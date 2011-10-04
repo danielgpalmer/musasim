@@ -8,7 +8,7 @@ all: obj sim gdbserver musasim
 clean:
 	rm -rf obj
 	rm -f gdbserver
-
+	rm -f musasim
 obj:
 	mkdir obj
 
