@@ -2,6 +2,10 @@
 
 CHARS="A B C D E F G H I J K L M N O P Q R S T U V W X Y Z";
 
+if [ ! -x ./bin2c ]; then
+	gcc -o bin2c bin2c.c;
+fi
+
 rm -f rom.bin;
 
 for CHAR in $CHARS; do
@@ -9,5 +13,6 @@ for CHAR in $CHARS; do
 	cat $CHAR.tmp >> rom.bin
 done;
 
-
 rm *.tmp;
+
+./bin2c rom.bin rom.c rom
