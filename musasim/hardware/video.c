@@ -11,26 +11,63 @@
 #define HBLANKPERIOD 20
 #define VBLANKPERIOD 28
 
-#define TILESIZE 8
-#define BGMAPHEIGHT 50
-#define BGMAPWIDTH 80
+//MAP FORMATS
+
+// NORMAL	1 byte index
+// PACKED   [nibble - nibble] packed index
 
 // registers
-uint8_t mode;
-uint8_t clearcolour;
+
+#define MODE_DISABLED 0
+#define MODE_BITMAP 1
+#define MODE_TILED 2
+#define MODE_MASK 0b11
+
+uint16_t config;
+uint16_t clearcolour;
 uint16_t pixel = 0;
 uint16_t line = 0;
+
+uint16_t* registers[] = { &config, &clearcolour, &pixel, &line };
 //
 
-uint8_t bg0map[BGMAPWIDTH][BGMAPHEIGHT];
-uint8_t bg1map[BGMAPWIDTH][BGMAPHEIGHT];
+// maps
+
+// tile index 0 is special and is a nop
+
+uint8_t bg0mapflags;
+uint8_t bg1mapflags;
+uint8_t bg0map[];
+uint8_t bg1map[];
+
+// TILE FORMATS
+
+// SMALL 	8x8
+// NORMAL	16x16
+// SKINNY	8x16
+// FAT		32x32
+
+#define TILEFORMAT_SIZE_FAT 32
+
+// Tile memory map
+// 0x0 -- Tile format
+// 0x1 -- Title data
+// ..
+
+#define BGTILEARRAYSIZE 255 * ((TILEFORMAT_SIZE_FAT/8) * TILEFORMAT_SIZE_FAT)
+
+uint8_t bg0tileflags = 0;
+uint8_t bg0tiles[BGTILEARRAYSIZE];
+
+uint8_t bg1tileflags = 0;
+uint8_t bg1tiles[BGTILEARRAYSIZE];
 
 bool DEBUG = false;
 
 SDL_Surface* screen = NULL;
 
 void* pixels;
-uint32_t endaddress;
+uint32_t memoryend;
 uint32_t currentaddress = 0;
 
 GThread* thread;
@@ -62,7 +99,7 @@ void video_init() {
 	printf("Created surface; %d x %d pixels @ %dBPP\n", screen->w, screen->h, screen->format->BitsPerPixel);
 
 	pixels = (void*) screen->pixels;
-	endaddress = ((screen->w * screen->h) * PIXELSIZE) - PIXELSIZE;
+	memoryend = ((screen->w * screen->h) * PIXELSIZE);
 
 	SDL_EventState(SDL_ACTIVEEVENT, SDL_IGNORE);
 	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
@@ -88,7 +125,7 @@ void video_quit() {
 }
 
 bool validaddress(uint32_t address) {
-	if (address <= endaddress) {
+	if (address < (memoryend + sizeof(registers))) {
 		return true;
 	}
 
@@ -99,6 +136,8 @@ bool validaddress(uint32_t address) {
 
 void video_tick() {
 
+	int mode = config & MODE_MASK;
+
 	pixel++;
 	if (pixel > WIDTH + HBLANKPERIOD) {
 		pixel = 0;
@@ -106,7 +145,10 @@ void video_tick() {
 		//printf("HBLANK\n");
 		if (line > HEIGHT + VBLANKPERIOD) {
 			line = 0;
-			SDL_Flip(screen);
+
+			if (mode == MODE_BITMAP) {
+				SDL_Flip(screen);
+			}
 			printf("VBLANK\n");
 
 		}
@@ -144,14 +186,19 @@ void video_write_word(uint32_t address, uint16_t data) {
 		return;
 	}
 
-	if (SDL_MUSTLOCK(screen)) {
-		SDL_LockSurface(screen);
+	if (address < memoryend) {
+		if (SDL_MUSTLOCK(screen)) {
+			SDL_LockSurface(screen);
+		}
+
+		*((uint16_t*) screen->pixels + (address / 2)) = data;
+
+		if (SDL_MUSTLOCK(screen)) {
+			SDL_UnlockSurface(screen);
+		}
 	}
-
-	*((uint16_t*) screen->pixels + (address / 2)) = data;
-
-	if (SDL_MUSTLOCK(screen)) {
-		SDL_UnlockSurface(screen);
+	else {
+		*registers[address - memoryend] = data;
 	}
 }
 
