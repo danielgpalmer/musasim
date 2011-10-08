@@ -227,6 +227,8 @@ void video_write_word(uint32_t address, uint16_t data) {
 		else {
 			printf("Ignored write to registers during active period\n");
 		}
+
+		dumpregs();
 	}
 
 }
@@ -258,4 +260,14 @@ bool registerwritecheck(){
 	}
 
 	return false;
+}
+
+void dumpregs() {
+
+	printf("-- REGS --\n");
+
+	if((flags & FLAG_VBLANK) == FLAG_VBLANK){
+		printf("VBlank\n");
+	}
+
 }
