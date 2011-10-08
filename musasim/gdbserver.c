@@ -37,7 +37,9 @@ bool parseargs(int argc, char* argv[]) {
 	if (argc == 2 || argc == 3) {
 
 		if (argc == 3) {
-			loadrom(argv[2]);
+			if(common_loadrom(argv[2])){
+				// TODO Insert error handling here
+			}
 		}
 
 		port = strtol(argv[1], &endpointer, 0);
@@ -253,16 +255,14 @@ void readcommand(int s) {
 
 		case 'z':
 			printf("GDB is unsetting a breakpoint\n");
-			char *xbrzero = strtok(inputbuffer, "Z,#");
+			strtok(inputbuffer, "Z,#");
 			char *xbreakaddress = strtok(NULL, "Z,#");
-			char *xbreaksize = strtok(NULL, "Z,#");
+			strtok(NULL, "Z,#");
 
 			printf("0x%s\n", xbreakaddress);
 
 			clearbreakpoint(strtoul(xbreakaddress, NULL, 16));
-			data = "OK";
-
-			data = "OK";
+			data = OK;
 
 			break;
 
@@ -270,9 +270,9 @@ void readcommand(int s) {
 			if (verbose) {
 				printf("GDB is setting a breakpoint at ");
 			}
-			char *brzero = strtok(inputbuffer, "Z,#");
+			strtok(inputbuffer, "Z,#");
 			char *breakaddress = strtok(NULL, "Z,#");
-			char *breaksize = strtok(NULL, "Z,#");
+			strtok(NULL, "Z,#");
 
 			if (verbose) {
 				printf("0x%s\n", breakaddress);
@@ -399,7 +399,7 @@ void gdbread(int s, char *buffer) {
 				}
 
 				else {
-					*buffer = NULL;
+					*buffer = '\0';
 					bufferpos++;
 				}
 
@@ -593,7 +593,7 @@ char* query(char* commandbuffer) {
 
 		if (strncmp(monitorcommand, "load ", 5) == 0) {
 			printf("User has requested that a new binary is loaded into ROM\n");
-			loadrom(monitorcommand + 5);
+			common_loadrom(monitorcommand + 5);
 			ret = "OK";
 		}
 

@@ -9,6 +9,6 @@
 #define COMMON_H_
 
 void request_exit();
-bool load_rom(char* path);
+bool common_loadrom(char* path);
 
 #endif /* COMMON_H_ */

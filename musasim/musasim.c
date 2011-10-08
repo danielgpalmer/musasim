@@ -16,7 +16,7 @@ bool shouldexit = false;
 bool parseargs(int argc, char* argv[]) {
 
 	if (argc == 2) {
-		if (loadrom(argv[1])) {
+		if (common_loadrom(argv[1])) {
 			return true;
 		}
 	}

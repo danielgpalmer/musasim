@@ -13,7 +13,7 @@
 #include "common.h"
 #include "sim.h"
 
-bool loadrom(char* path) {
+bool common_loadrom(char* path) {
 
 	memset(g_rom, 0x00, SIZE_ROM);
 	FILE* fhandle;

@@ -4,6 +4,9 @@
 #include <glib.h>
 #include <SDL/SDL.h>
 
+#include "common.h"
+#include "video.h"
+
 #define PIXELFORMAT 16
 #define PIXELSIZE (PIXELFORMAT/8)
 #define WIDTH 480
@@ -18,17 +21,21 @@
 
 // registers
 
+#define FLAG_VBLANK 1
+#define FLAG_HBLANK 1 << 1
+
 #define MODE_DISABLED 0
 #define MODE_BITMAP 1
 #define MODE_TILED 2
 #define MODE_MASK 0b11
 
+uint16_t flags;
 uint16_t config;
 uint16_t clearcolour;
 uint16_t pixel = 0;
 uint16_t line = 0;
 
-uint16_t* registers[] = { &config, &clearcolour, &pixel, &line };
+uint16_t* registers[] = { &flags, &config, &clearcolour, &pixel, &line };
 //
 
 // maps
@@ -37,8 +44,8 @@ uint16_t* registers[] = { &config, &clearcolour, &pixel, &line };
 
 uint8_t bg0mapflags;
 uint8_t bg1mapflags;
-uint8_t bg0map[];
-uint8_t bg1map[];
+uint8_t bg0map[256];
+uint8_t bg1map[256];
 
 // TILE FORMATS
 
@@ -139,21 +146,35 @@ void video_tick() {
 	int mode = config & MODE_MASK;
 
 	pixel++;
-	if (pixel > WIDTH + HBLANKPERIOD) {
-		pixel = 0;
-		line++;
+
+	if (pixel == WIDTH) {
+		flags |= FLAG_HBLANK;
 		//printf("HBLANK\n");
-		if (line > HEIGHT + VBLANKPERIOD) {
+	}
+
+	else if (pixel > WIDTH + HBLANKPERIOD) {
+
+		flags &= !FLAG_HBLANK;
+		pixel = 0;
+
+		line++;
+
+		if (line == HEIGHT) {
+			printf("VBLANK\n");
+			flags |= FLAG_VBLANK;
+		}
+
+		else if (line > HEIGHT + VBLANKPERIOD) {
+
+			flags &= !FLAG_VBLANK;
 			line = 0;
 
 			if (mode == MODE_BITMAP) {
 				SDL_Flip(screen);
 			}
-			printf("VBLANK\n");
 
 		}
 	}
-
 }
 
 void video_write_byte(uint32_t address, uint8_t data) {
@@ -198,8 +219,16 @@ void video_write_word(uint32_t address, uint16_t data) {
 		}
 	}
 	else {
-		*registers[address - memoryend] = data;
+
+		if(registerwritecheck()){
+			*registers[address - memoryend] = data;
+
+		}
+		else {
+			printf("Ignored write to registers during active period\n");
+		}
 	}
+
 }
 
 uint8_t video_read_byte(uint32_t address) {
@@ -212,7 +241,7 @@ uint8_t video_read_byte(uint32_t address) {
 
 }
 
-uint16_t video_read_word(uint32_t address, uint16_t data) {
+uint16_t video_read_word(uint32_t address) {
 
 	if (!validaddress(address)) {
 		return 0;
@@ -222,3 +251,11 @@ uint16_t video_read_word(uint32_t address, uint16_t data) {
 
 }
 
+bool registerwritecheck(){
+
+	if((flags & FLAG_VBLANK) == FLAG_VBLANK){
+		return true;
+	}
+
+	return false;
+}
