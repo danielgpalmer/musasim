@@ -1,1 +1,17 @@
-Readme
+What this is;
+
+Current this is the Musashi m68k emulator, source code taken from the latest zip 
+I could find on the interwebs, plus all the stuff I could backport from MAME..
+The copy of Musashi in MAME now has 040 emulation etc but is pretty MAMEified and
+I can't be bothered to work out how to split it back out. I only want 000 emulation
+anyhow. On top of that there is a simple simulator (hacked up from the one that was
+in the zip) that you can load programs into, a crappy GDB remote protocol 
+implementation that you can use to do debugging, and a framebuffer you can write 
+to from the m68k side. 
+
+What this will be;
+
+I'm writing this as an emulator for a machine that I'm building.. I want to get the
+hardware working nicely in software before I spend a long time writing VHDL and making
+it actually work. I am currently expanding the "video hardware" out with a tile based
+graphics system. I will add some sound hardware based on blipbuffer at some point too.
