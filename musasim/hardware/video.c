@@ -7,6 +7,15 @@
 #include "common.h"
 #include "video.h"
 
+
+uint16_t flags;
+uint16_t config;
+uint16_t clearcolour;
+uint16_t pixel = 0;
+uint16_t line = 0;
+
+uint16_t* video_registers[] = { &flags, &config, &clearcolour, &pixel, &line };
+
 #define PIXELFORMAT 16
 #define PIXELSIZE (PIXELFORMAT/8)
 #define WIDTH 480
@@ -29,13 +38,6 @@
 #define MODE_TILED 2
 #define MODE_MASK 0b11
 
-uint16_t flags;
-uint16_t config;
-uint16_t clearcolour;
-uint16_t pixel = 0;
-uint16_t line = 0;
-
-uint16_t* registers[] = { &flags, &config, &clearcolour, &pixel, &line };
 //
 
 // maps
@@ -132,7 +134,7 @@ void video_quit() {
 }
 
 bool validaddress(uint32_t address) {
-	if (address < (memoryend + sizeof(registers))) {
+	if (address < (memoryend + sizeof(video_registers))) {
 		return true;
 	}
 
@@ -221,7 +223,7 @@ void video_write_word(uint32_t address, uint16_t data) {
 	else {
 
 		if(registerwritecheck()){
-			*registers[address - memoryend] = data;
+			*video_registers[address - memoryend] = data;
 
 		}
 		else {

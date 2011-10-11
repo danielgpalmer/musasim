@@ -30,11 +30,7 @@ int  cpu_irq_ack(int level);
 #define OFFSET_MAGIC 0x200000
 #define MAX_MAGIC (OFFSET_MAGIC + (SIZE_MAGIC - 1))
 
-/* Video */
 
-#define SIZE_VIDEO 0x12C000
-#define OFFSET_VIDEO (OFFSET_MAGIC + SIZE_MAGIC)
-#define MAX_VIDEO (OFFSET_VIDEO + (SIZE_VIDEO - 1))
 
 
 unsigned char g_rom[SIZE_ROM];					/* ROM */
