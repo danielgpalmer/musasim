@@ -14,10 +14,12 @@
 #include "../hardware/video.h"
 
 char headers[] = "#include <stdint.h>\n"
-				 "\n\n";
+		"\n\n";
 
 void common();
 void machine();
+void video();
+void sound();
 
 int main(int argc, char* argv[]) {
 
@@ -34,6 +36,7 @@ int main(int argc, char* argv[]) {
 		else if (strcmp(argv[1], "video") == 0) {
 			printf("/* video.h */\n\n");
 			common();
+			video();
 			printf("\n");
 		}
 		else if (strcmp(argv[1], "sound") == 0) {
@@ -52,4 +55,14 @@ void common() {
 void machine() {
 	printf("volatile uint16_t* machine_ram_start = (uint16_t*) 0x%x;\n", OFFSET_RAM);
 	printf("volatile uint16_t* machine_ram_end = (uint16_t*) 0x%x;\n", MAX_RAM);
+	printf("uint16_t machine_ram_size = (uint16_t) 0x%x;\n", SIZE_RAM);
+}
+
+void video() {
+	printf("volatile uint16_t* video_start = (uint16_t*) 0x%x;\n", OFFSET_VIDEO);
+	printf("volatile uint16_t* video_end = (uint16_t*) 0x%x;\n", MAX_VIDEO);
+}
+
+void sound() {
+
 }
