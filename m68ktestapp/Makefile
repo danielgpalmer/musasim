@@ -17,8 +17,8 @@ prog.bin: prog.elf
 prog.srec: prog.elf
 	$(CP) -O srec prog.elf prog.srec
 	
-prog.elf: crt.o main.o rom.lds
-	$(CC) $(LFLAGS) -o prog.elf crt.o main.o
+prog.elf: crt.o main.o fontrom.o rom.lds
+	$(CC) $(LFLAGS) -o prog.elf crt.o main.o fontrom.o
 
 main.o: main.c
 	$(CC) $(CFLAGS) -c main.c
@@ -26,7 +26,8 @@ main.o: main.c
 crt.o: crt.s
 	$(AS) $(AFLAGS) crt.s -o crt.o > crt.lst
 
-
+fontrom.o: fontrom/fontrom.c
+	$(CC) $(CFLAGS) -c fontrom/fontrom.c
 clean:
 	rm -f *.o
 	rm -f *.bin

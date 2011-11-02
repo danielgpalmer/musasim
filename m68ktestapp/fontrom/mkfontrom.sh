@@ -10,9 +10,9 @@ rm -f rom.bin;
 
 for CHAR in $CHARS; do
 	gm convert -size 8x16 -pointsize 12 -draw "text 0,10 $CHAR" null:'rgb(255,255,255)' mono:$CHAR.tmp
-	cat $CHAR.tmp >> rom.bin
+	cat $CHAR.tmp >> fontrom.bin
 done;
 
 rm *.tmp;
 
-./bin2c rom.bin rom.c rom
+./bin2c fontrom.bin fontrom fontrom

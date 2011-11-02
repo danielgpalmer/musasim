@@ -61,6 +61,7 @@ void machine() {
 void video() {
 	printf("volatile uint16_t* video_start = (uint16_t*) 0x%x;\n", OFFSET_VIDEO);
 	printf("volatile uint16_t* video_end = (uint16_t*) 0x%x;\n", MAX_VIDEO);
+	printf("volatile uint16_t* video_registers = (uint16_t*) 0x%x;\n", OFFSET_VIDEOREGISTERS);
 }
 
 void sound() {

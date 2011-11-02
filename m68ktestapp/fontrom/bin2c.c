@@ -17,7 +17,7 @@ char* self = 0;
 
 void usage()
 {
-  printf("Usage:\n%s input_binary_file output_c_file symbol_name\n\n", self);
+  printf("Usage:\n%s input_binary_file output_prefix symbol_name\n\n", self);
 }
 
 void bail_out(const char* s1, const char* s2)
@@ -28,7 +28,7 @@ void bail_out(const char* s1, const char* s2)
 
 int main(int argc, char** argv)
 {
-  FILE *fi, *fo;
+  FILE *fi, *fc, *fh;
   int c, i;
 
   self = argv[0];
@@ -41,26 +41,35 @@ int main(int argc, char** argv)
   if ((fi = fopen(argv[1], "rb")) == 0)
     bail_out("Cannot open input file ", argv[1]);
 
-  if ((fo = fopen(argv[2], "w")) == 0)
+  char* header;
+  char* source;
+
+  asprintf(&source, "%s.c", argv[2]);
+  asprintf(&header, "%s.h", argv[2]);
+
+  if ((fc = fopen(source, "w")) == 0)
+    bail_out("Cannot open output file ", argv[2]);
+
+  if ((fh = fopen(header, "w")) == 0)
     bail_out("Cannot open output file ", argv[2]);
 
   if ((c = fgetc(fi)) != EOF) {
-    fprintf(fo, "extern volatile unsigned char _binary_%s_start[];\n", argv[3]);
-    fprintf(fo, "volatile unsigned char _binary_%s_start[] = {\n", argv[3]);
-    fprintf(fo, c<16 ? "  0x%x" : " 0x%x", (unsigned char)c);
+    fprintf(fh, "extern volatile unsigned char _binary_%s_start[];\n", argv[3]);
+    fprintf(fc, "volatile unsigned char _binary_%s_start[] = {\n", argv[3]);
+    fprintf(fc, c<16 ? "  0x%x" : " 0x%x", (unsigned char)c);
   }
 
   i = 1;
   while ((c = fgetc(fi)) != EOF) {
     if (i < 12)
-      fprintf(fo, c<16 ? ",  0x%x" : ", 0x%x", (unsigned char)c);
+      fprintf(fc, c<16 ? ",  0x%x" : ", 0x%x", (unsigned char)c);
     else {
-      fprintf(fo, c<16 ? ",\n  0x%x" : ",\n 0x%x", (unsigned char)c);
+      fprintf(fc, c<16 ? ",\n  0x%x" : ",\n 0x%x", (unsigned char)c);
       i = 0;
     }
     i++;
   }
-  fprintf(fo, " };\n");
+  fprintf(fc, " };\n");
 
   printf("converted %s\n", argv[1]);
 
