@@ -7,7 +7,6 @@
 #include "common.h"
 #include "video.h"
 
-
 uint16_t flags;
 uint16_t config;
 uint16_t clearcolour;
@@ -145,7 +144,7 @@ bool validaddress(uint32_t address) {
 
 void video_tick() {
 
-	int mode = config & MODE_MASK;
+	//int mode = config & MODE_MASK;
 
 	pixel++;
 
@@ -171,9 +170,9 @@ void video_tick() {
 			flags &= !FLAG_VBLANK;
 			line = 0;
 
-			if (mode == MODE_BITMAP) {
-				SDL_Flip(screen);
-			}
+			//if (mode == MODE_BITMAP) {
+			SDL_Flip(screen);
+			//}
 
 		}
 	}
@@ -184,6 +183,10 @@ void video_write_byte(uint32_t address, uint8_t data) {
 	if (!validaddress(address)) {
 		return;
 	}
+
+	//if (DEBUG) {
+	printf("writing pixel value %x to %x\n", data, address);
+	//}
 
 	if (SDL_MUSTLOCK(screen)) {
 		SDL_LockSurface(screen);
@@ -196,12 +199,12 @@ void video_write_byte(uint32_t address, uint8_t data) {
 
 void video_write_word(uint32_t address, uint16_t data) {
 
-	if (DEBUG) {
-		printf("writing pixel value %x to %x\n", data, address);
-	}
-
 	if (!validaddress(address)) {
 		return;
+	}
+
+	if (DEBUG) {
+		printf("writing pixel value %x to %x\n", data, address);
 	}
 
 	if (address % 2 != 0) {
@@ -209,29 +212,34 @@ void video_write_word(uint32_t address, uint16_t data) {
 		return;
 	}
 
-	if (address < memoryend) {
-		if (SDL_MUSTLOCK(screen)) {
-			SDL_LockSurface(screen);
-		}
-
-		*((uint16_t*) screen->pixels + (address / 2)) = data;
-
-		if (SDL_MUSTLOCK(screen)) {
-			SDL_UnlockSurface(screen);
-		}
+	//if (address < memoryend) {
+	if (SDL_MUSTLOCK(screen)) {
+		SDL_LockSurface(screen);
 	}
-	else {
 
-		if(registerwritecheck()){
-			*video_registers[address - memoryend] = data;
-
-		}
-		else {
-			printf("Ignored write to registers during active period\n");
-		}
-
-		dumpregs();
+	if (DEBUG) {
+		printf("Raw pixel write\n");
 	}
+	*((uint16_t*) screen->pixels + (address / 2)) = data;
+
+	if (SDL_MUSTLOCK(screen)) {
+		SDL_UnlockSurface(screen);
+	}
+
+	SDL_Flip(screen);
+	//}
+	//else {
+	//
+	//	if (registerwritecheck()) {
+	//		*video_registers[address - memoryend] = data;
+//
+	//	}
+	//	else {
+	//		printf("Ignored write to registers during active period\n");
+	//	}
+//
+	//	dumpregs();
+	//}
 
 }
 
@@ -255,9 +263,9 @@ uint16_t video_read_word(uint32_t address) {
 
 }
 
-bool registerwritecheck(){
+bool registerwritecheck() {
 
-	if((flags & FLAG_VBLANK) == FLAG_VBLANK){
+	if ((flags & FLAG_VBLANK) == FLAG_VBLANK) {
 		return true;
 	}
 
@@ -268,7 +276,7 @@ void dumpregs() {
 
 	printf("-- REGS --\n");
 
-	if((flags & FLAG_VBLANK) == FLAG_VBLANK){
+	if ((flags & FLAG_VBLANK) == FLAG_VBLANK) {
 		printf("VBlank\n");
 	}
 

@@ -129,21 +129,27 @@ int osd_get_char(void) {
 
 /* Read data from RAM, ROM, or a device */
 unsigned int cpu_read_byte(unsigned int address) {
+
+	unsigned int value = 0;
+
 	if (isromspace(address)) /* Program */
 	{
-		return READ_BYTE(g_rom, address - OFFSET_ROM);
+		value = READ_BYTE(g_rom, address - OFFSET_ROM);
 	}
 
 	if (isramspace(address)) {
-		return READ_BYTE(g_ram, address - OFFSET_RAM);
+		value = READ_BYTE(g_ram, address - OFFSET_RAM);
 	}
 
 	if (ishardwarespace(address)) {
-		return (uint32_t) video_read_byte(address - OFFSET_VIDEO);
+		value = (uint32_t) video_read_byte(address - OFFSET_VIDEO);
 	}
 
 	badread(address);
-	return 0;
+
+	printf("Read 0x%x from 0x%x\n", value, address);
+
+	return value;
 
 }
 

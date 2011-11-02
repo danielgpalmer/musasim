@@ -1,1 +1,1 @@
-extern volatile unsigned char _binary_fontrom_start[];
+const uint8_t _binary_fontrom_start[];

@@ -139,7 +139,6 @@ int main(int argc, char* argv[]) {
 
 					simstep();
 					if (steps > 800000) {
-						printf("tick\n");
 						simtick();
 						steps = 0;
 					}
