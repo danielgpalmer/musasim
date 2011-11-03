@@ -36,6 +36,8 @@ int main(void) {
 
 	puts(helloworld);
 
+	int charoffset = 8 * 16;
+
 	while (1) {
 
 		//for (int y = 0; y < HEIGHT; y++) {
@@ -46,7 +48,7 @@ int main(void) {
 
 		for (int i = 0; i < 16; i++) {
 
-			uint8_t character = _binary_fontrom_start[i];
+			uint8_t character = _binary_fontrom_start[i + (charoffset + 'A')];
 
 			for (int j = 0; j < 8; j++) {
 
