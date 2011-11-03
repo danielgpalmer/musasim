@@ -32,7 +32,7 @@
 							  ((BASE)[(ADDR)+2]<<8) |		\
 							  (BASE)[(ADDR)+3])
 
-#define WRITE_BYTE(BASE, ADDR, VAL) (BASE)[ADDR] = (VAL)%0xff
+#define WRITE_BYTE(BASE, ADDR, VAL) (BASE)[ADDR] = (VAL) & 0xff
 #define WRITE_WORD(BASE, ADDR, VAL) (BASE)[ADDR] = ((VAL)>>8) & 0xff;		\
 									(BASE)[(ADDR)+1] = (VAL)&0xff
 #define WRITE_LONG(BASE, ADDR, VAL) (BASE)[ADDR] = ((VAL)>>24) & 0xff;		\
@@ -187,12 +187,15 @@ unsigned int cpu_read_long(unsigned int address) {
 /* Write data to RAM or a device */
 void cpu_write_byte(unsigned int address, unsigned int value) {
 
+
+
 	if (isromspace(address)) { /* Program */
 		badwriterom(address);
 		return;
 	}
 
 	else if (isramspace(address)) {
+		printf("writing byte 0x%x to 0x%x\n", value, address);
 		WRITE_BYTE(g_ram, address - OFFSET_RAM, value);
 	}
 
