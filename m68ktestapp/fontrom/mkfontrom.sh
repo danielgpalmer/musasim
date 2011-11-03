@@ -4,10 +4,10 @@
 set -e;
 
 CHARS="! \" # \$ % & ' ( ) _ + , - . /";
-CHARS="${CHARS} 0 1 2 3 4 5 6 7 8 9 \: \; \< \= \> \? @ ";
+CHARS="${CHARS} 0 1 2 3 4 5 6 7 8 9 \: \; < = > ? @ ";
 CHARS="${CHARS} A B C D E F G H I J K L M N O P Q R S T U V W X Y Z";
 CHARS="${CHARS} [ \\ ] ^ _ \`";
-CHARS="${CHARS} a b c d e f g h i j k l m n o p q e s t u v w x y z";
+CHARS="${CHARS} a b c d e f g h i j k l m n o p q r s t u v w x y z";
 CHARS="${CHARS} { | } ~";
 
 if [ ! -x ./bin2c ]; then

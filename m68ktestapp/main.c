@@ -15,6 +15,7 @@
 int16_t initedvar = 0;
 
 volatile char* magic = (volatile char*) 0x200000;
+	volatile uint16_t* video = (volatile uint16_t*) 0x300000;
 
 volatile char something[4] = { 0xff, 0xaa, 0xff, 0xaa };
 
@@ -27,16 +28,44 @@ void puts(char* string) {
 	}
 }
 
+int col = 0;
+
+void gputs(char* string) {
+
+	int charoffset = 33 * 16;
+	char c;
+
+	while ((c = *string++) != 0) {
+		for (int i = 0; i < 16; i++) {
+
+			uint8_t character = _binary_fontrom_start[i + ((c * 16) - charoffset)];
+
+			for (int j = 0; j < 8; j++) {
+
+				int pixel = character & 0x01;
+				if (pixel) {
+					*(video + (WIDTH * i) + j + (col * 8)) = 0x000000;
+				}
+				else {
+					*(video + (WIDTH * i) + j + (col * 8)) = 0xFFFFFF;
+				}
+				character = (character >> 1);
+			}
+		}
+
+		col++;
+	}
+}
+
 int main(void) {
 
-	volatile uint16_t* video = (volatile uint16_t*) 0x300000;
 
 	char helloworld[] = "Hello, World!\n";
 	char* string = helloworld;
 
 	puts(helloworld);
 
-	int charoffset = 8 * 16;
+	gputs("Hello, world!");
 
 	while (1) {
 
@@ -46,22 +75,6 @@ int main(void) {
 		//	}
 		//}
 
-		for (int i = 0; i < 16; i++) {
-
-			uint8_t character = _binary_fontrom_start[i + (charoffset + 'A')];
-
-			for (int j = 0; j < 8; j++) {
-
-				int pixel = character & 0x01;
-				if (pixel) {
-					*(video + (WIDTH * i) + j) = 0x000000;
-				}
-				else {
-					*(video + (WIDTH * i) + j) = 0xFFFFFF;
-				}
-				character = (character >> 1);
-			}
-		}
 	}
 
 //*(video + (480 * 240) + 100) = 0xFFFF;
