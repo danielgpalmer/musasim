@@ -19,15 +19,7 @@
 ----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+use IEEE.NUMERIC_STD.ALL;
 
 entity toplevel is
     Port ( led1 : out  STD_LOGIC;
@@ -38,12 +30,22 @@ entity toplevel is
 end toplevel;
 
 architecture Behavioral of toplevel is
+	
+	signal counter : STD_LOGIC_VECTOR(21 downto 0) := (others => '0');
 
 begin
 
-led1 <= '1';
+led1 <= counter(21);
 led2 <= '1';
-cpuclock <= clock;
+
+process(clock)
+begin
+	if(rising_edge(clock)) then
+		counter <= STD_LOGIC_VECTOR(unsigned(counter) + 1);
+	end if;
+end process;
+
+cpuclock <= counter(3);
 
 end Behavioral;
 

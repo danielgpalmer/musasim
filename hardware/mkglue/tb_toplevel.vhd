@@ -60,8 +60,7 @@ ARCHITECTURE behavior OF tb_toplevel IS
    signal cpuclock : std_logic;
 
    -- Clock period definitions
-   constant clock_period : time := 10 ns;
-   constant cpuclock_period : time := 10 ns;
+   constant clock_period : time := 40 ns;
  
 BEGIN
  
@@ -83,15 +82,6 @@ BEGIN
 		wait for clock_period/2;
    end process;
  
-   cpuclock_process :process
-   begin
-		cpuclock <= '0';
-		wait for cpuclock_period/2;
-		cpuclock <= '1';
-		wait for cpuclock_period/2;
-   end process;
- 
-
    -- Stimulus process
    stim_proc: process
    begin		
