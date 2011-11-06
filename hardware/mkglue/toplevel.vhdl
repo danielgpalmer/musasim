@@ -26,26 +26,34 @@ entity toplevel is
            led2 : out  STD_LOGIC;
            switch : in  STD_LOGIC;
            clock : in  STD_LOGIC;
-			  cpuclock: out STD_LOGIC);
+			  cpuclock: out STD_LOGIC;
+			  cpureset: out STD_LOGIC);
 end toplevel;
 
 architecture Behavioral of toplevel is
 	
 	signal counter : STD_LOGIC_VECTOR(21 downto 0) := (others => '0');
+	signal reset : STD_LOGIC := '1';
 
 begin
 
 led1 <= counter(21);
 led2 <= '1';
 
+cpuclock <= counter(3);
+cpureset <= reset;
+
 process(clock)
 begin
 	if(rising_edge(clock)) then
 		counter <= STD_LOGIC_VECTOR(unsigned(counter) + 1);
+		if(reset = '1' and (unsigned(counter) / 4) = 1000) then
+			reset <= '0';
+		end if;
 	end if;
 end process;
 
-cpuclock <= counter(3);
+
 
 end Behavioral;
 

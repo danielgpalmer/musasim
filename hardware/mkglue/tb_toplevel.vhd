@@ -45,7 +45,8 @@ ARCHITECTURE behavior OF tb_toplevel IS
          led2 : OUT  std_logic;
          switch : IN  std_logic;
          clock : IN  std_logic;
-         cpuclock : OUT  std_logic
+         cpuclock : OUT  std_logic;
+			cpureset : OUT std_logic
         );
     END COMPONENT;
     
@@ -58,6 +59,7 @@ ARCHITECTURE behavior OF tb_toplevel IS
    signal led1 : std_logic;
    signal led2 : std_logic;
    signal cpuclock : std_logic;
+	signal cpureset : std_logic;
 
    -- Clock period definitions
    constant clock_period : time := 40 ns;
@@ -70,7 +72,8 @@ BEGIN
           led2 => led2,
           switch => switch,
           clock => clock,
-          cpuclock => cpuclock
+          cpuclock => cpuclock,
+			 cpureset => cpureset
         );
 
    -- Clock process definitions
