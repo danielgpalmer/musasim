@@ -1,0 +1,6 @@
+NET "clock" LOC = "P1";
+NET "switch" LOC = "P18";
+NET "led1" LOC = "P39";
+NET "led2" LOC = "P38";
+
+NET "cpuclock" LOC = "P2";
