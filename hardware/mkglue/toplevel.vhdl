@@ -37,8 +37,9 @@ architecture Behavioral of toplevel is
 
 begin
 
-led1 <= counter(21);
-led2 <= '1';
+led1 <= counter(21) when (reset = '0') else 
+			'1';
+led2 <= reset;
 
 cpuclock <= counter(3);
 cpureset <= reset;
@@ -47,7 +48,11 @@ process(clock)
 begin
 	if(rising_edge(clock)) then
 		counter <= STD_LOGIC_VECTOR(unsigned(counter) + 1);
-		if(reset = '1' and (unsigned(counter) / 4) = 1000) then
+		if(reset = '0') then
+			if(switch = '0') then
+				reset <= '1';
+			end if;
+		elsif(reset = '1' and (unsigned(counter) / 4) = 1000) then
 			reset <= '0';
 		end if;
 	end if;

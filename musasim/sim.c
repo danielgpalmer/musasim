@@ -9,6 +9,7 @@
 #include "sim.h"
 #include "m68k.h"
 
+#include "hardware/board.h"
 #include "hardware/video.h"
 
 /* Memory-mapped IO ports */
@@ -23,22 +24,7 @@
 /* Time between characters sent to output device (seconds) */
 #define OUTPUT_DEVICE_PERIOD 1
 
-/* Read/write macros */
-#define READ_BYTE(BASE, ADDR) (BASE)[ADDR]
-#define READ_WORD(BASE, ADDR) (((BASE)[ADDR]<<8) |			\
-							  (BASE)[(ADDR)+1])
-#define READ_LONG(BASE, ADDR) (((BASE)[ADDR]<<24) |			\
-							  ((BASE)[(ADDR)+1]<<16) |		\
-							  ((BASE)[(ADDR)+2]<<8) |		\
-							  (BASE)[(ADDR)+3])
 
-#define WRITE_BYTE(BASE, ADDR, VAL) (BASE)[ADDR] = (VAL) & 0xff
-#define WRITE_WORD(BASE, ADDR, VAL) (BASE)[ADDR] = ((VAL)>>8) & 0xff;		\
-									(BASE)[(ADDR)+1] = (VAL)&0xff
-#define WRITE_LONG(BASE, ADDR, VAL) (BASE)[ADDR] = ((VAL)>>24) & 0xff;		\
-									(BASE)[(ADDR)+1] = ((VAL)>>16)&0xff;	\
-									(BASE)[(ADDR)+2] = ((VAL)>>8)&0xff;		\
-									(BASE)[(ADDR)+3] = (VAL)&0xff
 
 /* Prototypes */
 void exit_error(char* fmt, ...);
