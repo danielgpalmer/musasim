@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "board.h"
 
 /*
@@ -6,4 +7,8 @@
  *
  */
 
-slot slots[NUM_SLOTS];
+card slots[NUM_SLOTS];
+
+void board_add_device(int slot, card *card) {
+
+}
