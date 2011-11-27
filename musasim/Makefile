@@ -13,10 +13,10 @@ obj:
 	mkdir obj
 
 gdbserver: obj/gdbserver.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/video.o
-	$(CC) $(LFLAGS) obj/gdbserver.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/video.o -o gdbserver
+	$(CC) $(LFLAGS) obj/gdbserver.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/video.o obj/board.o -o gdbserver
 
 musasim: obj/musasim.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/video.o
-	$(CC) $(LFLAGS) obj/musasim.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/video.o -o musasim
+	$(CC) $(LFLAGS) obj/musasim.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/video.o obj/board.o -o musasim
 
 obj/gdbserver.o: gdbserver.c gdbserver.h sim.h m68k.h m68kconf.h
 	$(CC) $(CFLAGS) --std=gnu99 gdbserver.c -o obj/gdbserver.o
