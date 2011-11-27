@@ -17,14 +17,7 @@
 
 #define NUM_SLOTS 8
 
-typedef struct {
-	void (*read_byte)(uint32_t address);
-	void (*read_word)(uint32_t address);
-	void (*read_long)(uint32_t address);
-	void (*write_byte)(uint32_t address);
-	void (*write_word)(uint32_t address);
-	void (*write_long)(uint32_t address);
-} card;
+#include "cards/card.h"
 
 void board_add_device(int slot, card *card);
 
