@@ -13,6 +13,8 @@
 #include "common.h"
 #include "sim.h"
 
+#include "hardware/board.h"
+
 bool common_loadrom(char* path) {
 
 	memset(g_rom, 0x00, SIZE_ROM);

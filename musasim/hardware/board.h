@@ -19,7 +19,7 @@
 
 #include "cards/card.h"
 
-void board_add_device(int slot, card *card);
+void board_add_device(uint8_t slot, card *card);
 
 unsigned int cpu_read_byte(unsigned int address);
 unsigned int cpu_read_word(unsigned int address);

@@ -1,7 +1,6 @@
-CC =     gcc
-WARNINGS = -Wall -Werror
-CFLAGS = $(WARNINGS) -O2 -finline-functions -c -Iobj -I. `pkg-config --cflags glib-2.0` `pkg-config --cflags gthread-2.0` `pkg-config --cflags sdl` -g
-LFLAGS = $(WARNINGS) `pkg-config --libs glib-2.0` `pkg-config --libs gthread-2.0` `pkg-config --libs sdl`
+include common.mk
+
+LIBCARDS=./hardware/cards/libcards.a
 
 all: obj gdbserver musasim
 
@@ -12,11 +11,11 @@ clean:
 obj:
 	mkdir obj
 
-gdbserver: obj/gdbserver.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/video.o
-	$(CC) $(LFLAGS) obj/gdbserver.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/video.o obj/board.o -o gdbserver
+gdbserver: obj/gdbserver.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o
+	$(CC) $(LFLAGS) obj/gdbserver.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o $(LIBCARDS) -o gdbserver
 
-musasim: obj/musasim.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/video.o
-	$(CC) $(LFLAGS) obj/musasim.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/video.o obj/board.o -o musasim
+musasim: obj/musasim.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o
+	$(CC) $(LFLAGS) obj/musasim.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o $(LIBCARDS) -o musasim
 
 obj/gdbserver.o: gdbserver.c gdbserver.h sim.h m68k.h m68kconf.h
 	$(CC) $(CFLAGS) --std=gnu99 gdbserver.c -o obj/gdbserver.o
@@ -55,7 +54,4 @@ obj/m68kmake: m68kmake.c m68k_in.c
 
 obj/board.o: hardware/board.c hardware/board.h
 	$(CC) $(CFLAGS) --std=gnu99 hardware/board.c -o obj/board.o	
-
-obj/video.o: hardware/video.c hardware/video.h
-	$(CC) $(CFLAGS) --std=gnu99 hardware/video.c -o obj/video.o
 

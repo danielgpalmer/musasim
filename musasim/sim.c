@@ -10,7 +10,9 @@
 #include "m68k.h"
 
 #include "hardware/board.h"
-#include "hardware/video.h"
+#include "hardware/cards/romcard.h"
+#include "hardware/cards/videocard.h"
+#include "hardware/cards/uartcard.h"
 
 /* Memory-mapped IO ports */
 #define INPUT_ADDRESS 0x800000
@@ -260,6 +262,12 @@ void sim_init() {
 
 	printf("sim_init()\n");
 	g_thread_init(NULL);
+
+	board_add_device(0, &romcard);
+	board_add_device(1, &videocard);
+	board_add_device(2, &uartcard);
+
+
 	video_init();
 }
 

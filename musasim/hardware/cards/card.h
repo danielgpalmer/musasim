@@ -8,7 +8,11 @@
 #ifndef CARD_H_
 #define CARD_H_
 
+#include <stddef.h>
+#include <stdint.h>
+
 typedef struct {
+	char* boardinfo;
 	void (*read_byte)(uint32_t address);
 	void (*read_word)(uint32_t address);
 	void (*read_long)(uint32_t address);

@@ -4,8 +4,18 @@
 #include <glib.h>
 #include <SDL/SDL.h>
 
-#include "common.h"
-#include "video.h"
+//#include "common.h"
+#include "videocard.h"
+
+card videocard = {
+	"VIDEO CARD",
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL
+};
 
 uint16_t flags;
 uint16_t config;
@@ -92,7 +102,7 @@ void video_threadfunc(void* data) {
 
 	}
 
-	request_exit();
+	//request_exit();
 
 	g_thread_exit(NULL);
 }

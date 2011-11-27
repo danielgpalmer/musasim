@@ -23,6 +23,7 @@ uint16_t* video_registers[5];
 #define OFFSET_VIDEO (OFFSET_MAGIC + SIZE_MAGIC)
 #define MAX_VIDEO (OFFSET_VIDEO + (SIZE_VIDEO - 1))
 
+#include "card.h"
 
-
+card videocard;
 

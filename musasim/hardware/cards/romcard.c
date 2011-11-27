@@ -7,3 +7,13 @@
 
 
 #include "romcard.h"
+
+card romcard = {
+	"ROM CARD",
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL
+};

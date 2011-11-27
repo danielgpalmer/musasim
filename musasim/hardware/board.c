@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "board.h"
-#include "video.h"
+#include "cards/videocard.h"
 #include "stdio.h"
 
 /*
@@ -63,14 +63,31 @@ void badwrite(unsigned int address) {
 	fprintf(stderr, "Attempted to write to address %08x\n", address);
 }
 
-card slots[NUM_SLOTS];
+card* slots[NUM_SLOTS];
 
-void board_add_device(int slot, card *card) {
+void decode_slot(uint32_t address) {
 
+	uint8_t slot = (address & 0xE00000) >> 21;
+	printf("Slot %d\n", slot);
+
+	if (slots[slot] == NULL) {
+		printf("*** NO CARD IN SLOT ***\n");
+	}
+	else {
+		printf("*** %s ***\n", slots[slot]->boardinfo);
+	}
+
+
+}
+
+void board_add_device(uint8_t slot, card *card) {
+	slots[slot] = card;
 }
 
 /* Read data from RAM, ROM, or a device */
 unsigned int cpu_read_byte(unsigned int address) {
+
+	decode_slot(address);
 
 	unsigned int value = 0;
 
@@ -97,6 +114,8 @@ unsigned int cpu_read_byte(unsigned int address) {
 
 unsigned int cpu_read_word(unsigned int address) {
 
+	decode_slot(address);
+
 	if (isromspace(address)) { /* Program */
 		return READ_WORD(g_rom, address - OFFSET_ROM);
 	}
@@ -111,6 +130,8 @@ unsigned int cpu_read_word(unsigned int address) {
 }
 
 unsigned int cpu_read_long(unsigned int address) {
+
+	decode_slot(address);
 
 	if (isromspace(address)) { /* Program */
 		return READ_LONG(g_rom, address - OFFSET_ROM);
@@ -128,6 +149,8 @@ unsigned int cpu_read_long(unsigned int address) {
 
 /* Write data to RAM or a device */
 void cpu_write_byte(unsigned int address, unsigned int value) {
+
+	decode_slot(address);
 
 	if (isromspace(address)) { /* Program */
 		badwriterom(address);
@@ -154,6 +177,8 @@ void cpu_write_byte(unsigned int address, unsigned int value) {
 
 void cpu_write_word(unsigned int address, unsigned int value) {
 
+	decode_slot(address);
+
 	if (isromspace(address)) { /* Program */
 		badwriterom(address);
 		return;
@@ -170,6 +195,9 @@ void cpu_write_word(unsigned int address, unsigned int value) {
 }
 
 void cpu_write_long(unsigned int address, unsigned int value) {
+
+	decode_slot(address);
+
 	if (isromspace(address)) { /* Program */
 		badwriterom(address);
 		return;
