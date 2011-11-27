@@ -11,12 +11,14 @@
 #include "sim.h"
 #include "m68k.h"
 
+#include "hardware/cards/romcard.h"
+
 bool shouldexit = false;
 
 bool parseargs(int argc, char* argv[]) {
 
 	if (argc == 2) {
-		if (common_loadrom(argv[1])) {
+		if (romcard_loadrom(argv[1])) {
 			return true;
 		}
 	}

@@ -9,7 +9,18 @@
 #define ROMCARD_H_
 
 #include "card.h"
+#include "stdbool.h"
+
+bool romcard_loadrom(char* path);
 
 card romcard;
+
+/* ROM and RAM sizes */
+#define OFFSET_ROM 0x0
+#define OFFSET_RAM 0x100000
+#define SIZE_ROM 0x100000
+#define SIZE_RAM 0x100000
+#define MAX_ROM (OFFSET_ROM + (SIZE_ROM - 1))
+#define MAX_RAM (OFFSET_RAM + (SIZE_RAM - 1))
 
 #endif /* ROMCARD_H_ */

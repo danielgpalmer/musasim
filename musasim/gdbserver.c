@@ -18,6 +18,8 @@
 #include "m68k.h"
 #include "gdbserver.h"
 
+#include "hardware/cards/romcard.h"
+
 void cleanup();
 
 GSList* breakpoints;
@@ -37,7 +39,7 @@ bool parseargs(int argc, char* argv[]) {
 	if (argc == 2 || argc == 3) {
 
 		if (argc == 3) {
-			if(common_loadrom(argv[2])){
+			if(romcard_loadrom(argv[2])){
 				// TODO Insert error handling here
 			}
 		}
@@ -592,7 +594,7 @@ char* query(char* commandbuffer) {
 
 		if (strncmp(monitorcommand, "load ", 5) == 0) {
 			printf("User has requested that a new binary is loaded into ROM\n");
-			common_loadrom(monitorcommand + 5);
+			romcard_loadrom(monitorcommand + 5);
 			ret = "OK";
 		}
 

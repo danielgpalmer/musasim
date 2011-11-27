@@ -28,13 +28,9 @@ void cpu_write_byte(unsigned int address, unsigned int value);
 void cpu_write_word(unsigned int address, unsigned int value);
 void cpu_write_long(unsigned int address, unsigned int value);
 
-/* ROM and RAM sizes */
-#define SIZE_ROM 0x100000
-#define OFFSET_ROM 0x0
-#define MAX_ROM (OFFSET_ROM + (SIZE_ROM - 1))
-#define SIZE_RAM 0x100000
-#define OFFSET_RAM 0x100000
-#define MAX_RAM (OFFSET_RAM + (SIZE_RAM - 1))
+
+
+#define SLOT_ADDRESS_MASK 0x1FFFFF
 
 /* Magic locations */
 #define SIZE_MAGIC 0x100000
@@ -44,8 +40,7 @@ void cpu_write_long(unsigned int address, unsigned int value);
 
 
 
-unsigned char g_rom[SIZE_ROM];					/* ROM */
-unsigned char g_ram[SIZE_RAM];					/* RAM */
+
 unsigned int g_fc;								/* Current function code from CPU */
 
 
