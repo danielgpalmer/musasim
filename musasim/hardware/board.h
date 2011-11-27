@@ -14,3 +14,10 @@
 									(BASE)[(ADDR)+1] = ((VAL)>>16)&0xff;	\
 									(BASE)[(ADDR)+2] = ((VAL)>>8)&0xff;		\
 									(BASE)[(ADDR)+3] = (VAL)&0xff
+
+
+#define NUM_SLOTS 8
+
+typedef struct {
+
+} slot;

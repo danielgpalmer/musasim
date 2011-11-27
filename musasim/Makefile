@@ -27,7 +27,7 @@ obj/musasim.o: musasim.c sim.h m68k.h m68kconf.h
 obj/common.o: common.c
 	$(CC) $(CFLAGS) --std=gnu99 common.c -o obj/common.o
 
-obj/sim.o: sim.c sim.h m68k.h m68kconf.h
+obj/sim.o: sim.c sim.h m68k.h m68kconf.h obj/board.o
 	$(CC) $(CFLAGS) --std=gnu99 sim.c -o obj/sim.o
 
 obj/m68kcpu.o: sim.h obj/m68kops.h sim.h m68k.h m68kconf.h
@@ -52,6 +52,9 @@ obj/m68kmake: m68kmake.c m68k_in.c
 	$(CC) $(WARNINGS) m68kmake.c -o obj/m68kmake
 
 # hardware 
+
+obj/board.o: hardware/board.c hardware/board.h
+	$(CC) $(CFLAGS) --std=gnu99 hardware/board.c -o obj/board.o	
 
 obj/video.o: hardware/video.c hardware/video.h
 	$(CC) $(CFLAGS) --std=gnu99 hardware/video.c -o obj/video.o
