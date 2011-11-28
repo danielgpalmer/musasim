@@ -14,5 +14,6 @@ card uartcard = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
 	NULL
 };

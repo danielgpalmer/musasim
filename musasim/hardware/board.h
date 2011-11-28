@@ -12,7 +12,6 @@ void cpu_write_word(unsigned int address, unsigned int value);
 void cpu_write_long(unsigned int address, unsigned int value);
 
 #define SLOT_ADDRESS_MASK 0x1FFFFF
-
 #define SLOT_OFFSET(SLOTNUM) (SLOTNUM << 21)
 
 /* Magic locations */

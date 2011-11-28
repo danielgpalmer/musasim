@@ -13,6 +13,7 @@
 
 typedef struct {
 	char* boardinfo;
+	void (*init)();
 	uint8_t (*read_byte)(uint32_t address);
 	uint16_t (*read_word)(uint32_t address);
 	uint32_t (*read_long)(uint32_t address);

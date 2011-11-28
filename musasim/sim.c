@@ -260,7 +260,6 @@ void sim_init() {
 	board_add_device(2, &uartcard);
 	board_add_device(3, &soundcard);
 
-	video_init();
 }
 
 void sim_quit() {

@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "board.h"
-#include "cards/videocard.h"
 #include "stdio.h"
 
 /*
@@ -33,6 +32,9 @@ uint8_t decode_slot(uint32_t address) {
 
 void board_add_device(uint8_t slot, card *card) {
 	slots[slot] = card;
+	if (card->init != NULL) {
+		(card->init)();
+	}
 }
 
 unsigned int cpu_read_byte(unsigned int address) {

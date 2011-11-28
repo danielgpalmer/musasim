@@ -285,6 +285,7 @@ void dumpregs() {
 
 card videocard = {
 	"VIDEO CARD",
+	video_init,
 	video_read_byte,
 	video_read_word,
 	NULL,
