@@ -1,5 +1,6 @@
 include common.mk
 
+CARDSDIR=./hardware/cards/
 LIBCARDS=./hardware/cards/libcards.a
 
 all: obj gdbserver musasim
@@ -8,13 +9,14 @@ clean:
 	rm -rf obj
 	rm -f gdbserver
 	rm -f musasim
+	$(MAKE) -C $(CARDSDIR) clean
 obj:
 	mkdir obj
 
-gdbserver: obj/gdbserver.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o
+gdbserver: obj/gdbserver.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o libcards.a
 	$(CC) $(LFLAGS) obj/gdbserver.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o $(LIBCARDS) -o gdbserver
 
-musasim: obj/musasim.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o
+musasim: obj/musasim.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o libcards.a
 	$(CC) $(LFLAGS) obj/musasim.o obj/common.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o $(LIBCARDS) -o musasim
 
 obj/gdbserver.o: gdbserver.c gdbserver.h sim.h m68k.h m68kconf.h
@@ -55,3 +57,7 @@ obj/m68kmake: m68kmake.c m68k_in.c
 obj/board.o: hardware/board.c hardware/board.h
 	$(CC) $(CFLAGS) --std=gnu99 hardware/board.c -o obj/board.o	
 
+.PHONY: libcards.a
+	
+libcards.a:
+	$(MAKE) -C $(CARDSDIR) libcards.a
