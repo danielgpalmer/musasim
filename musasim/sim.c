@@ -13,6 +13,7 @@
 #include "hardware/cards/romcard.h"
 #include "hardware/cards/videocard.h"
 #include "hardware/cards/uartcard.h"
+#include "hardware/cards/soundcard.h"
 
 /* Memory-mapped IO ports */
 #define INPUT_ADDRESS 0x800000
@@ -26,12 +27,9 @@
 /* Time between characters sent to output device (seconds) */
 #define OUTPUT_DEVICE_PERIOD 1
 
-
-
 /* Prototypes */
 void exit_error(char* fmt, ...);
 int osd_get_char(void);
-
 
 void cpu_pulse_reset(void);
 void cpu_set_fc(unsigned int fc);
@@ -58,8 +56,6 @@ void int_controller_clear(unsigned int value);
 
 void get_user_input(void);
 
-
-
 void badread(unsigned int address);
 void badwriterom(unsigned int address);
 void badwrite(unsigned int address);
@@ -77,8 +73,7 @@ unsigned int g_int_controller_pending = 0; /* list of pending interrupts */
 unsigned int g_int_controller_highest_int = 0; /* Highest pending interrupt */
 
 /* Exit with an error message.  Use printf syntax. */
-void exit_error(char* fmt, ...)
-{
+void exit_error(char* fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	vfprintf(stderr, fmt, args);
@@ -107,8 +102,6 @@ int osd_get_char(void) {
 	return ch;
 }
 
-
-
 /* Called when the CPU pulses the RESET line */
 void cpu_pulse_reset(void) {
 	nmi_device_reset();
@@ -124,12 +117,12 @@ void cpu_set_fc(unsigned int fc) {
 /* Called when the CPU acknowledges an interrupt */
 int cpu_irq_ack(int level) {
 	switch (level) {
-	case IRQ_NMI_DEVICE:
-		return nmi_device_ack();
-	case IRQ_INPUT_DEVICE:
-		return input_device_ack();
-	case IRQ_OUTPUT_DEVICE:
-		return output_device_ack();
+		case IRQ_NMI_DEVICE:
+			return nmi_device_ack();
+		case IRQ_INPUT_DEVICE:
+			return input_device_ack();
+		case IRQ_OUTPUT_DEVICE:
+			return output_device_ack();
 	}
 	return M68K_INT_ACK_SPURIOUS;
 }
@@ -187,8 +180,7 @@ void output_device_reset(void) {
 
 void output_device_update(void) {
 	if (!g_output_device_ready) {
-		if ((time(NULL) - g_output_device_last_output) >= OUTPUT_DEVICE_PERIOD)
-		{
+		if ((time(NULL) - g_output_device_last_output) >= OUTPUT_DEVICE_PERIOD) {
 			g_output_device_ready = 1;
 			int_controller_set(IRQ_OUTPUT_DEVICE);
 		}
@@ -244,15 +236,15 @@ void get_user_input(void) {
 
 	if (ch >= 0) {
 		switch (ch) {
-		case 0x1b:
-			g_quit = 1;
-			break;
-		case '~':
-			if (last_ch != ch)
-				g_nmi = 1;
-			break;
-		default:
-			g_input_device_value = ch;
+			case 0x1b:
+				g_quit = 1;
+				break;
+			case '~':
+				if (last_ch != ch)
+					g_nmi = 1;
+				break;
+			default:
+				g_input_device_value = ch;
 		}
 	}
 	last_ch = ch;
@@ -266,12 +258,12 @@ void sim_init() {
 	board_add_device(0, &romcard);
 	board_add_device(1, &videocard);
 	board_add_device(2, &uartcard);
-
+	board_add_device(3, &soundcard);
 
 	video_init();
 }
 
-void sim_quit(){
+void sim_quit() {
 
 	printf("sim_quit()\n");
 	video_quit();
@@ -329,4 +321,3 @@ void simstep() {
 //	}
 //	return 0;
 //}
-
