@@ -7,15 +7,6 @@
 //#include "common.h"
 #include "videocard.h"
 
-card videocard = {
-	"VIDEO CARD",
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL
-};
 
 uint16_t flags;
 uint16_t config;
@@ -291,3 +282,13 @@ void dumpregs() {
 	}
 
 }
+
+card videocard = {
+	"VIDEO CARD",
+	video_read_byte,
+	video_read_word,
+	NULL,
+	video_write_byte,
+	video_write_word,
+	NULL
+};
