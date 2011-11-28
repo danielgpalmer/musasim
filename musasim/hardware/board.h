@@ -13,6 +13,8 @@ void cpu_write_long(unsigned int address, unsigned int value);
 
 #define SLOT_ADDRESS_MASK 0x1FFFFF
 
+#define SLOT_OFFSET(SLOTNUM) (SLOTNUM << 21)
+
 /* Magic locations */
 #define SIZE_MAGIC 0x100000
 #define OFFSET_MAGIC 0x200000

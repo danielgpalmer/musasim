@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include "fontrom/fontrom.h"
+#include "../musasim/genheader/video.h"
 
 #define PIXELSIZE 2
 #define WIDTH 480
@@ -14,19 +15,19 @@
 
 int16_t initedvar = 0;
 
-volatile char* magic = (volatile char*) 0x200000;
-	volatile uint16_t* video = (volatile uint16_t*) 0x300000;
+//volatile char* magic = (volatile char*) 0x200000;
+//volatile uint16_t* video = (volatile uint16_t*) 0x300000;
 
 volatile char something[4] = { 0xff, 0xaa, 0xff, 0xaa };
 
-void puts(char* string) {
-
-	char c;
-
-	while ((c = *string++) != 0) {
-		*magic = c;
-	}
-}
+//void puts(char* string) {
+//
+//	char c;
+//
+//	while ((c = *string++) != 0) {
+//		*magic = c;
+//	}
+//}
 
 int col = 0;
 
@@ -44,10 +45,10 @@ void gputs(char* string) {
 
 				int pixel = character & 0x01;
 				if (pixel) {
-					*(video + (WIDTH * i) + j + (col * 8)) = 0x000000;
+					*(video_start + (WIDTH * i) + j + (col * 8)) = 0x000000;
 				}
 				else {
-					*(video + (WIDTH * i) + j + (col * 8)) = 0xFFFFFF;
+					*(video_start + (WIDTH * i) + j + (col * 8)) = 0xFFFFFF;
 				}
 				character = (character >> 1);
 			}
@@ -60,10 +61,10 @@ void gputs(char* string) {
 int main(void) {
 
 
-	char helloworld[] = "Hello, World!\n";
-	char* string = helloworld;
+	//char helloworld[] = "Hello, World!\n";
+	//char* string = helloworld;
 
-	puts(helloworld);
+	//puts(helloworld);
 
 	gputs("Hello, world!");
 

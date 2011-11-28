@@ -11,7 +11,8 @@
 #include <stdbool.h>
 
 #include "../sim.h"
-#include "../hardware/video.h"
+#include "../hardware/board.h"
+#include "../hardware/cards/videocard.h"
 
 char headers[] = "#include <stdint.h>\n"
 		"\n\n";
@@ -53,15 +54,15 @@ void common() {
 }
 
 void machine() {
-	printf("volatile uint16_t* machine_ram_start = (uint16_t*) 0x%x;\n", OFFSET_RAM);
-	printf("volatile uint16_t* machine_ram_end = (uint16_t*) 0x%x;\n", MAX_RAM);
-	printf("uint16_t machine_ram_size = (uint16_t) 0x%x;\n", SIZE_RAM);
+	//printf("volatile uint16_t* machine_ram_start = (uint16_t*) 0x%x;\n", OFFSET_RAM);
+	//printf("volatile uint16_t* machine_ram_end = (uint16_t*) 0x%x;\n", MAX_RAM);
+	//printf("uint16_t machine_ram_size = (uint16_t) 0x%x;\n", SIZE_RAM);
 }
 
 void video() {
-	printf("volatile uint16_t* video_start = (uint16_t*) 0x%x;\n", OFFSET_VIDEO);
-	printf("volatile uint16_t* video_end = (uint16_t*) 0x%x;\n", MAX_VIDEO);
-	printf("volatile uint16_t* video_registers = (uint16_t*) 0x%x;\n", OFFSET_VIDEOREGISTERS);
+	printf("volatile uint16_t* video_start = (uint16_t*) 0x%x;\n", SLOT_OFFSET(1));
+	printf("volatile uint16_t* video_end = (uint16_t*) 0x%x;\n", SLOT_OFFSET(1) + SIZE_VIDEO);
+	printf("volatile uint16_t* video_registers = (uint16_t*) 0x%x;\n", SLOT_OFFSET(1) + OFFSET_VIDEOREGISTERS);
 }
 
 void sound() {
