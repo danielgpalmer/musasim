@@ -16,14 +16,10 @@ card* slots[NUM_SLOTS];
 uint8_t decode_slot(uint32_t address) {
 
 	uint8_t slot = (address & 0xE00000) >> 21;
-	printf("Slot %d\n", slot);
 
 	if (slots[slot] == NULL) {
 		printf("*** NO CARD IN SLOT ***\n");
 		return NOCARD;
-	}
-	else {
-		printf("*** %s ***\n", slots[slot]->boardinfo);
 	}
 
 	return slot;
@@ -34,6 +30,12 @@ void board_add_device(uint8_t slot, card *card) {
 	slots[slot] = card;
 	if (card->init != NULL) {
 		(card->init)();
+	}
+}
+
+void board_poweroff(){
+	for(int i = 0; i < NUM_SLOTS; i++){
+		(slots[i]->dispose)();
 	}
 }
 

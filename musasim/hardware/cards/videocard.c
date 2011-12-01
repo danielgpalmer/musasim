@@ -127,9 +127,9 @@ void video_init() {
 	}
 }
 
-void video_quit() {
+void video_dispose() {
 
-	printf("video_quit()\n");
+	printf("video_dispose()\n");
 
 }
 
@@ -286,6 +286,7 @@ void dumpregs() {
 card videocard = {
 	"VIDEO CARD",
 	video_init,
+	video_dispose,
 	video_read_byte,
 	video_read_word,
 	NULL,

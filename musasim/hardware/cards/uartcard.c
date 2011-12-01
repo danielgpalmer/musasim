@@ -5,9 +5,13 @@
  *      Author: daniel
  */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <fcntl.h>
 #include "uartcard.h"
+#include "unistd.h"
 
 #define FIFOSIZE 16
 #define NUMOFCHANNELS 2
@@ -31,9 +35,35 @@ typedef struct {
 	registers registers;
 	uint8_t rxfifo[FIFOSIZE];
 	uint8_t txfifo[FIFOSIZE];
+	int pty;
 } channel;
 
 channel channels[NUMOFCHANNELS];
+
+void uart_init() {
+
+	int pty;
+
+	for (int i = 0; i < NUMOFCHANNELS; i++) {
+		printf("Opening PTY for channel %d\n", i);
+		pty = posix_openpt(O_RDWR | O_NOCTTY);
+		if (pty == -1) {
+			printf("FAILED!\n");
+		}
+		else {
+			printf("Channel %d pty is %s\n", i, ptsname(pty));
+			channels[i].pty = pty;
+		}
+	}
+}
+
+void uart_dispose() {
+
+	for (int i = 0; i < NUMOFCHANNELS; i++) {
+		close(channels[i].pty);
+	}
+
+}
 
 /*
  * A3		->	Channel
@@ -106,4 +136,4 @@ void uart_write_byte(uint32_t address, uint8_t value) {
 	uart_decode_register(address, true);
 }
 
-card uartcard = { "UART CARD", NULL, uart_read_byte, NULL, NULL, uart_write_byte, NULL, NULL };
+card uartcard = { "UART CARD", uart_init, uart_dispose, uart_read_byte, NULL, NULL, uart_write_byte, NULL, NULL };

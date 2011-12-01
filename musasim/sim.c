@@ -265,7 +265,7 @@ void sim_init() {
 void sim_quit() {
 
 	printf("sim_quit()\n");
-	video_quit();
+	board_poweroff();
 
 }
 

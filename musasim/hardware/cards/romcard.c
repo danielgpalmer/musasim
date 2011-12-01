@@ -121,5 +121,5 @@ void romcard_write_long(uint32_t address, uint32_t value) {
 
 }
 
-card romcard = { "ROM CARD", NULL, romcard_read_byte, romcard_read_word, romcard_read_long, romcard_write_byte,
-		romcard_write_word, romcard_write_long };
+card romcard = { "ROM CARD", NULL, NULL, romcard_read_byte, romcard_read_word, romcard_read_long, romcard_write_byte,
+		romcard_write_word, romcard_write_long};
