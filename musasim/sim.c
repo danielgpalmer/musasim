@@ -270,7 +270,7 @@ void sim_quit() {
 }
 
 void simtick() {
-	video_tick();
+	board_tick();
 }
 
 void simreset() {

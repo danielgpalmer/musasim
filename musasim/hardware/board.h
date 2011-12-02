@@ -3,6 +3,7 @@
 #include "cards/card.h"
 
 void board_add_device(uint8_t slot, card *card);
+void board_tick();
 void board_poweroff();
 
 unsigned int cpu_read_byte(unsigned int address);

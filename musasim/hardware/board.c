@@ -33,9 +33,19 @@ void board_add_device(uint8_t slot, card *card) {
 	}
 }
 
-void board_poweroff(){
-	for(int i = 0; i < NUM_SLOTS; i++){
-		(slots[i]->dispose)();
+void board_tick() {
+	for (int i = 0; i < NUM_SLOTS; i++) {
+		if (slots[i] != NULL) {
+			(slots[i]->tick)();
+		}
+	}
+}
+
+void board_poweroff() {
+	for (int i = 0; i < NUM_SLOTS; i++) {
+		if (slots[i] != NULL) {
+			(slots[i]->dispose)();
+		}
 	}
 }
 
