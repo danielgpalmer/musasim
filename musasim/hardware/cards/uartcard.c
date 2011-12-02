@@ -136,4 +136,4 @@ void uart_write_byte(uint32_t address, uint8_t value) {
 	uart_decode_register(address, true);
 }
 
-card uartcard = { "UART CARD", uart_init, uart_dispose, uart_read_byte, NULL, NULL, uart_write_byte, NULL, NULL };
+card uartcard = {"UART CARD", uart_init, uart_dispose, NULL-, uart_read_byte, NULL, NULL, uart_write_byte, NULL, NULL};
