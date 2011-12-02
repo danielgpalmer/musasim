@@ -17,8 +17,10 @@
 #define NUMOFCHANNELS 2
 
 typedef struct {
-	uint8_t receiver_buffer;
-	uint8_t transmitter_holding;
+	uint8_t rxfifo[FIFOSIZE];
+	uint8_t txfifo[FIFOSIZE];
+	uint8_t rxtop;
+	uint8_t txtop;
 	uint8_t interrupt_enable;
 	uint8_t interrupt_identification;
 	uint8_t fifo_control;
@@ -33,8 +35,6 @@ typedef struct {
 
 typedef struct {
 	registers registers;
-	uint8_t rxfifo[FIFOSIZE];
-	uint8_t txfifo[FIFOSIZE];
 	int pty;
 } channel;
 
@@ -65,6 +65,20 @@ void uart_dispose() {
 
 }
 
+#define FIFOCONTROL_ENABLE 0x80
+#define FIFOCONTROL_RCVRFIFORESET 0x40
+#define FIFOCONTROL_XMITFIFORESET 0x20
+#define FIFOCONTROL_DMAMODESELECT 0x10
+#define FIFOCONTROL_RCVRTRIGGER 0x03
+
+bool uart_fifo_enabled(registers* regs) {
+	return ((regs->fifo_control & FIFOCONTROL_ENABLE) == FIFOCONTROL_ENABLE) ? true : false;
+}
+
+uint8_t uart_fifo_rcvrtrigger(registers* regs) {
+	return regs->fifo_control && FIFOCONTROL_RCVRTRIGGER;
+}
+
 /*
  * A3		->	Channel
  * A2 - A0	->	A2 - A0
@@ -75,6 +89,31 @@ void uart_dispose() {
 
 bool uart_dlab_high(registers* regs) {
 	return (regs->line_control & LINECONTROL_DLAB) == LINECONTROL_DLAB ? true : false;
+}
+
+#define LINESTATUS_DATAREADY 0x80
+#define LINESTATUS_OVERRUNERROR 0x40
+#define LINESTATUS_PARITYERROR 0x20
+#define LINESTATUS_FRAMINGERROR 0x10
+#define LINESTATUS_BREAKINTERRUPT 0x08
+#define LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY 0x04
+#define LINESTATUS_TRANSMITTEREMPTY 0x02
+#define LINESTATUS_ERRORINRCVRFIFO 0x01
+
+void uart_linestatus_setdataready() {
+
+}
+
+void uart_linestatus_cleardataready() {
+
+}
+
+void uart_linestatus_settransmitterempty() {
+
+}
+
+void uart_linestatus_cleartransmitterempty() {
+
 }
 
 #define CHANNELMASK 0x08
@@ -91,10 +130,36 @@ uint8_t* uart_decode_register(uint32_t address, bool write) {
 			}
 			else {
 				if (write) {
-					return &(regs->transmitter_holding);
+					if (uart_fifo_enabled(regs)) {
+						uint8_t* txslot = &(regs->txfifo[regs->txtop]);
+						if (regs->txtop + 1 < FIFOSIZE) {
+							regs->txtop += 1;
+						}
+						else {
+							uart_linestatus_cleartransmitterempty();
+						}
+						return txslot;
+					}
+					else {
+						uart_linestatus_cleartransmitterempty();
+						return &(regs->txfifo[0]);
+					}
 				}
 				else {
-					return &(regs->receiver_buffer);
+					if (uart_fifo_enabled(regs)) {
+						uint8_t* rxslot = &(regs->rxfifo[regs->rxtop]);
+						if (regs->rxtop - 1 > 0) {
+							regs->rxtop -= 1;
+						}
+						else {
+							uart_linestatus_cleardataready();
+						}
+						return rxslot;
+					}
+					else {
+						uart_linestatus_cleardataready();
+						return &(regs->rxfifo[0]);
+					}
 				}
 			}
 		case 0x01:
@@ -128,12 +193,13 @@ uint8_t* uart_decode_register(uint32_t address, bool write) {
 }
 
 uint8_t uart_read_byte(uint32_t address) {
-	uart_decode_register(address, false);
-	return 0;
+	uint8_t* reg = uart_decode_register(address, false);
+	return *reg;
 }
 
 void uart_write_byte(uint32_t address, uint8_t value) {
-	uart_decode_register(address, true);
+	uint8_t* reg = uart_decode_register(address, true);
+	*reg = value;
 }
 
-card uartcard = {"UART CARD", uart_init, uart_dispose, NULL, uart_read_byte, NULL, NULL, uart_write_byte, NULL, NULL};
+card uartcard = { "UART CARD", uart_init, uart_dispose, NULL, uart_read_byte, NULL, NULL, uart_write_byte, NULL, NULL };
