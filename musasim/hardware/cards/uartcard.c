@@ -11,7 +11,8 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include "uartcard.h"
-#include "unistd.h"
+#include <unistd.h>
+#include <errno.h>
 
 #define FIFOSIZE 16
 #define NUMOFCHANNELS 2
@@ -55,6 +56,10 @@ void uart_init() {
 			unlockpt(ptm);
 			printf("Channel %d ptm is %s\n", i, ptsname(ptm));
 			channels[i].ptm = ptm;
+			int flags = fcntl(ptm, F_GETFL);
+			if (!(flags & O_NONBLOCK)) {
+				fcntl(ptm, F_SETFL, flags | O_NONBLOCK);
+			}
 		}
 	}
 }
@@ -207,11 +212,20 @@ void uart_write_byte(uint32_t address, uint8_t value) {
 void uart_tick() {
 
 	static int sixteendivider = 0;
+	static uint8_t byte;
 
 	sixteendivider++;
 	if (sixteendivider == 16) {
 		sixteendivider = 0;
-		write(channels[0].ptm, "x", 1);
+		for (int i = 0; i < NUMOFCHANNELS; i++) {
+			//write(channels[i].ptm, "x", 1);
+			int bytes = 0;
+			if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
+				if(bytes > 0){
+					printf("%c\n", byte);
+				}
+			}
+		}
 	}
 
 }
