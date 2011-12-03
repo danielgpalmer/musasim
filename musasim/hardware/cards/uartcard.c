@@ -35,24 +35,26 @@ typedef struct {
 
 typedef struct {
 	registers registers;
-	int pty;
+	int ptm;
 } channel;
 
 channel channels[NUMOFCHANNELS];
 
 void uart_init() {
 
-	int pty;
+	int ptm;
 
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
 		printf("Opening PTY for channel %d\n", i);
-		pty = posix_openpt(O_RDWR | O_NOCTTY);
-		if (pty == -1) {
+		ptm = posix_openpt(O_RDWR | O_NOCTTY);
+		if (ptm == -1) {
 			printf("FAILED!\n");
 		}
 		else {
-			printf("Channel %d pty is %s\n", i, ptsname(pty));
-			channels[i].pty = pty;
+			grantpt(ptm);
+			unlockpt(ptm);
+			printf("Channel %d ptm is %s\n", i, ptsname(ptm));
+			channels[i].ptm = ptm;
 		}
 	}
 }
@@ -60,7 +62,7 @@ void uart_init() {
 void uart_dispose() {
 
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
-		close(channels[i].pty);
+		close(channels[i].ptm);
 	}
 
 }
@@ -202,4 +204,17 @@ void uart_write_byte(uint32_t address, uint8_t value) {
 	*reg = value;
 }
 
-card uartcard = { "UART CARD", uart_init, uart_dispose, NULL, uart_read_byte, NULL, NULL, uart_write_byte, NULL, NULL };
+void uart_tick() {
+
+	static int sixteendivider = 0;
+
+	sixteendivider++;
+	if (sixteendivider == 16) {
+		sixteendivider = 0;
+		write(channels[0].ptm, "x", 1);
+	}
+
+}
+
+card uartcard = { "UART CARD", uart_init, uart_dispose, uart_tick, uart_read_byte, NULL, NULL, uart_write_byte, NULL,
+		NULL };
