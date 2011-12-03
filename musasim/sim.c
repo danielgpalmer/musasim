@@ -14,6 +14,7 @@
 #include "hardware/cards/videocard.h"
 #include "hardware/cards/uartcard.h"
 #include "hardware/cards/soundcard.h"
+#include "hardware/cards/compactflashinterfacecard.h"
 
 /* Memory-mapped IO ports */
 #define INPUT_ADDRESS 0x800000
@@ -259,6 +260,7 @@ void sim_init() {
 	board_add_device(1, &videocard);
 	board_add_device(2, &uartcard);
 	board_add_device(3, &soundcard);
+	board_add_device(4, &compactflashinterfacecard);
 
 }
 
