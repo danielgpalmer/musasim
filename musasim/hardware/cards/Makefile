@@ -2,8 +2,8 @@ include ../../common.mk
 
 LOCALCFLAGS=--std=gnu99
 
-libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o
-	ar cr libcards.a romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o
+libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o
+	ar cr libcards.a romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o
 
 romcard.o: romcard.c romcard.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c romcard.c -o romcard.o
@@ -19,6 +19,9 @@ soundcard.o: soundcard.c soundcard.h
 
 compactflashinterfacecard.o: compactflashinterfacecard.c compactflashinterfacecard.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c compactflashinterfacecard.c -o compactflashinterfacecard.o
+
+inputcard.o: inputcard.c inputcard.h
+	gcc $(CFLAGS) $(LOCALCFLAGS) -c inputcard.c -o inputcard.o
 
 clean:
 	rm -f *.o *.a
