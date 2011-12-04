@@ -13,9 +13,15 @@ card* slots[NUM_SLOTS];
 
 #define NOCARD 0xFF
 
-uint8_t decode_slot(uint32_t address) {
+/**
+ *
+ */
 
-	uint8_t slot = (address & 0xE00000) >> 21;
+#define SLOTADDRESSMASK 0xE00000
+
+uint8_t board_decode_slot(uint32_t address) {
+
+	uint8_t slot = (address & SLOTADDRESSMASK) >> 21;
 
 	if (slots[slot] == NULL) {
 		printf("*** NO CARD IN SLOT ***\n");
@@ -54,7 +60,7 @@ void board_poweroff() {
 }
 
 unsigned int board_read_byte(unsigned int address) {
-	uint8_t slot = decode_slot(address);
+	uint8_t slot = board_decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->read_byte != NULL) {
 			return (slots[slot]->read_byte)(address & SLOT_ADDRESS_MASK);
@@ -67,7 +73,7 @@ unsigned int board_read_byte(unsigned int address) {
 }
 
 unsigned int board_read_word(unsigned int address) {
-	uint8_t slot = decode_slot(address);
+	uint8_t slot = board_decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->read_word != NULL) {
 			return (slots[slot]->read_word)(address & SLOT_ADDRESS_MASK);
@@ -80,7 +86,7 @@ unsigned int board_read_word(unsigned int address) {
 }
 
 unsigned int board_read_long(unsigned int address) {
-	uint8_t slot = decode_slot(address);
+	uint8_t slot = board_decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->read_long != NULL) {
 			return (slots[slot]->read_long)(address & SLOT_ADDRESS_MASK);
@@ -94,7 +100,7 @@ unsigned int board_read_long(unsigned int address) {
 }
 
 void board_write_byte(unsigned int address, unsigned int value) {
-	uint8_t slot = decode_slot(address);
+	uint8_t slot = board_decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->write_byte != NULL) {
 			(slots[slot]->write_byte)(address & SLOT_ADDRESS_MASK, value);
@@ -106,7 +112,7 @@ void board_write_byte(unsigned int address, unsigned int value) {
 }
 
 void board_write_word(unsigned int address, unsigned int value) {
-	uint8_t slot = decode_slot(address);
+	uint8_t slot = board_decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->write_word != NULL) {
 			(slots[slot]->write_word)(address & SLOT_ADDRESS_MASK, value);
@@ -118,7 +124,7 @@ void board_write_word(unsigned int address, unsigned int value) {
 }
 
 void board_write_long(unsigned int address, unsigned int value) {
-	uint8_t slot = decode_slot(address);
+	uint8_t slot = board_decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->write_long != NULL) {
 			(slots[slot]->write_long)(address & SLOT_ADDRESS_MASK, value);
