@@ -53,7 +53,7 @@ void board_poweroff() {
 	}
 }
 
-unsigned int cpu_read_byte(unsigned int address) {
+unsigned int board_read_byte(unsigned int address) {
 	uint8_t slot = decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->read_byte != NULL) {
@@ -66,7 +66,7 @@ unsigned int cpu_read_byte(unsigned int address) {
 	return 0;
 }
 
-unsigned int cpu_read_word(unsigned int address) {
+unsigned int board_read_word(unsigned int address) {
 	uint8_t slot = decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->read_word != NULL) {
@@ -79,7 +79,7 @@ unsigned int cpu_read_word(unsigned int address) {
 	return 0;
 }
 
-unsigned int cpu_read_long(unsigned int address) {
+unsigned int board_read_long(unsigned int address) {
 	uint8_t slot = decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->read_long != NULL) {
@@ -93,7 +93,7 @@ unsigned int cpu_read_long(unsigned int address) {
 	return 0;
 }
 
-void cpu_write_byte(unsigned int address, unsigned int value) {
+void board_write_byte(unsigned int address, unsigned int value) {
 	uint8_t slot = decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->write_byte != NULL) {
@@ -105,7 +105,7 @@ void cpu_write_byte(unsigned int address, unsigned int value) {
 	}
 }
 
-void cpu_write_word(unsigned int address, unsigned int value) {
+void board_write_word(unsigned int address, unsigned int value) {
 	uint8_t slot = decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->write_word != NULL) {
@@ -117,7 +117,7 @@ void cpu_write_word(unsigned int address, unsigned int value) {
 	}
 }
 
-void cpu_write_long(unsigned int address, unsigned int value) {
+void board_write_long(unsigned int address, unsigned int value) {
 	uint8_t slot = decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->write_long != NULL) {

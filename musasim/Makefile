@@ -57,7 +57,12 @@ obj/m68kmake: m68kmake.c m68k_in.c
 obj/board.o: hardware/board.c hardware/board.h
 	$(CC) $(CFLAGS) --std=gnu99 hardware/board.c -o obj/board.o	
 
-.PHONY: libcards.a
+
+.PHONY: libcards.a docs
 	
 libcards.a:
 	$(MAKE) -C $(CARDSDIR) libcards.a
+
+docs:
+	rm -r ../docs/html
+	doxygen DoxyFile

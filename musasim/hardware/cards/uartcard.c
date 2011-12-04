@@ -54,7 +54,7 @@ void uart_init() {
 		else {
 			grantpt(ptm);
 			unlockpt(ptm);
-			printf("Channel %d ptm is %s\n", i, ptsname(ptm));
+			printf("Channel %d pts is %s\n", i, ptsname(ptm));
 			channels[i].ptm = ptm;
 			int flags = fcntl(ptm, F_GETFL);
 			if (!(flags & O_NONBLOCK)) {
