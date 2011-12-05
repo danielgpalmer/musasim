@@ -7,26 +7,53 @@
 
 #include "inputcard.h"
 
-uint8_t port0 = 0xff;
-uint8_t port1 = 0xff;
+// Basically a megadrive pad..
+
+#define PORT0_UP	'w'
+#define PORT0_DOWN	'z'
+#define PORT0_LEFT	'a'
+#define PORT0_RIGHT	's'
+#define PORT0_A 	'j'
+#define PORT0_B		'k'
+#define PORT0_C		'l'
+#define PORT0_START 0x20 // Space
+
+//	7	|	6	|	5	|	4	|	3	|	2	|	1	|	0
+//	U		D		L		R		A		B		C		S
+// Active Low
+
+#define BUTTON_UP		0x7f
+#define BUTTON_DOWN 	0xbf
+#define BUTTON_LEFT 	0xdf
+#define BUTTON_RIGHT	0xef
+#define BUTTON_A		0xf7
+#define BUTTON_B		0xfb
+#define BUTTON_C		0xfd
+#define BUTTON_START	0xfe
+
+uint8_t ports[2];
+
+void inputcard_init() {
+	for (int i = 0; i < sizeof(ports); i++) {
+		ports[i] = 0;
+	}
+}
 
 uint8_t inputcard_read_byte(uint32_t address) {
 
 	int port = address & 0x1;
-
-	switch (port) {
-		case 0x0:
-			return port0;
-		case 0x1:
-			return port1;
-		default:
-			return 0;
-	}
+	return ports[port];
 
 }
 
 void inputcard_tick() {
 	// "latch" stuff here
+
+	for (int i = 0; i < sizeof(ports); i++) {
+		// do port things here
+	}
+
 }
 
-card inputcard = { "INPUT CARD", NULL, NULL, inputcard_tick, inputcard_read_byte, NULL, NULL, NULL, NULL, NULL };
+card inputcard =
+		{ "INPUT CARD", inputcard_init, NULL, inputcard_tick, inputcard_read_byte, NULL, NULL, NULL, NULL, NULL };
