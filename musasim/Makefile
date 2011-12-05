@@ -64,5 +64,5 @@ libcards.a:
 	$(MAKE) -C $(CARDSDIR) libcards.a
 
 docs:
-	rm -r ../docs/html
+	rm -rf ../docs/html
 	doxygen DoxyFile
