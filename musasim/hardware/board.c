@@ -61,12 +61,24 @@ void board_poweroff() {
 
 // Bus mastering stuff
 
-bool board_lock_bus(){
+bool buslocked = false;
+
+bool board_lock_bus() {
+
+	// The real board will have an arbiter that decides which bus request to forward to the CPU
+	// and route the result back to that card.
+
+	// TODO simulate a single bus req to the cpu
+	// TODO lock cpu off of the bus.. keep ticks happening but make sure the time the CPU cant touch the bus is simulated
 	return false;
 }
 
-void board_unlock_bus(){
+void board_unlock_bus() {
 
+}
+
+bool board_bus_locked() {
+	return buslocked;
 }
 
 //
