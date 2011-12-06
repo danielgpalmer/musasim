@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
 	registersighandler();
 
 	printf("Resetting CPU\n");
-	simreset();
+	sim_reset();
 
 	while (state != EXIT) {
 
@@ -139,11 +139,11 @@ int main(int argc, char* argv[]) {
 				else {
 					steps += 1;
 
-					simstep();
-					if (steps > 800000) {
-						simtick();
-						steps = 0;
-					}
+					//simstep();
+					//if (steps > 800000) {
+						sim_tick();
+					//	steps = 0;
+					//}
 					//usleep(1);
 				}
 				break;
@@ -221,7 +221,7 @@ void readcommand(int s) {
 			if (verbose) {
 				printf("GDB wants execution to step\n");
 			}
-			simstep();
+			sim_tick(); // FIXME check if this actually works
 			data = "S05";
 			break;
 		case '?':
@@ -234,7 +234,7 @@ void readcommand(int s) {
 			if (verbose) {
 				printf("GDB wants the processor to reset\n");
 			}
-			simreset();
+			sim_reset();
 			data = "OK";
 			break;
 
@@ -600,7 +600,7 @@ char* query(char* commandbuffer) {
 
 		else if (strncmp(monitorcommand, "reset", 5) == 0) {
 			printf("User has requested the CPU is reset\n");
-			simreset();
+			sim_reset();
 			ret = "OK";
 		}
 

@@ -34,10 +34,9 @@ int main(int argc, char* argv[]) {
 
 	if (parseargs(argc, argv)) {
 		sim_init();
-		simreset();
+		sim_reset();
 		while (!shouldexit) {
-			simstep();
-			simtick();
+			sim_tick();
 			usleep(16);
 		}
 	}

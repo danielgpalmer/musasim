@@ -57,12 +57,6 @@ void output_device_write(unsigned int value);
 void int_controller_set(unsigned int value);
 void int_controller_clear(unsigned int value);
 
-void get_user_input(void);
-
-void badread(unsigned int address);
-void badwriterom(unsigned int address);
-void badwrite(unsigned int address);
-
 /* Data */
 unsigned int g_quit = 0; /* 1 if we want to quit */
 unsigned int g_nmi = 0; /* 1 if nmi pending */
@@ -74,36 +68,6 @@ time_t g_output_device_last_output; /* Time of last char output */
 
 unsigned int g_int_controller_pending = 0; /* list of pending interrupts */
 unsigned int g_int_controller_highest_int = 0; /* Highest pending interrupt */
-
-/* Exit with an error message.  Use printf syntax. */
-void exit_error(char* fmt, ...) {
-	va_list args;
-	va_start(args, fmt);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
-	fprintf(stderr, "\n");
-
-	exit(EXIT_FAILURE);
-}
-
-/* OS-dependant code to get a character from the user.
- * This function must not block, and must either return an ASCII code or -1.
- */
-//#include <conio.h>
-int osd_get_char(void) {
-	int ch = -1;
-	//if(kbhit())
-	//{
-	//	while(kbhit())
-	//		ch = getch();
-	//}
-
-	ch = getchar();
-
-	printf("here\n");
-
-	return ch;
-}
 
 /* Called when the CPU pulses the RESET line */
 void cpu_pulse_reset(void) {
@@ -232,27 +196,6 @@ void int_controller_clear(unsigned int value) {
 	m68k_set_irq(g_int_controller_highest_int);
 }
 
-/* Parse user input and update any devices that need user input */
-void get_user_input(void) {
-	static int last_ch = -1;
-	int ch = osd_get_char();
-
-	if (ch >= 0) {
-		switch (ch) {
-			case 0x1b:
-				g_quit = 1;
-				break;
-			case '~':
-				if (last_ch != ch)
-					g_nmi = 1;
-				break;
-			default:
-				g_input_device_value = ch;
-		}
-	}
-	last_ch = ch;
-}
-
 void sim_init() {
 
 	printf("sim_init()\n");
@@ -268,6 +211,13 @@ void sim_init() {
 
 }
 
+void sim_tick() {
+	if (!board_bus_locked()) {
+		m68k_execute(4);
+	}
+	board_tick();
+}
+
 void sim_quit() {
 
 	printf("sim_quit()\n");
@@ -275,23 +225,18 @@ void sim_quit() {
 
 }
 
-void simtick() {
-	board_tick();
-}
-
-void simreset() {
+void sim_reset() {
 	m68k_pulse_reset();
 	input_device_reset();
 	output_device_reset();
 	nmi_device_reset();
 }
 
-void simstep() {
-	m68k_execute(4);
-	//output_device_update();
-	//input_device_update();
-	//nmi_device_update();
-}
+//void simstep() {
+//output_device_update();
+//input_device_update();
+//nmi_device_update();
+//}
 
 /* The main loop */
 

@@ -1,4 +1,9 @@
+#ifndef BOARD_H_
+#define BOARD_H_
+
 #define NUM_SLOTS 8
+
+#include <stdbool.h>
 
 #include "cards/card.h"
 
@@ -13,13 +18,13 @@ void board_write_byte(unsigned int address, unsigned int value);
 void board_write_word(unsigned int address, unsigned int value);
 void board_write_long(unsigned int address, unsigned int value);
 
+bool board_lock_bus();
+void board_unlock_bus();
+bool board_bus_locked();
+
 #define SLOT_ADDRESS_MASK 0x1FFFFF
 #define SLOT_OFFSET(SLOTNUM) (SLOTNUM << 21)
 
-/* Magic locations */
-#define SIZE_MAGIC 0x100000
-#define OFFSET_MAGIC 0x200000
-#define MAX_MAGIC (OFFSET_MAGIC + (SIZE_MAGIC - 1))
-
 unsigned int g_fc; /* Current function code from CPU */
 
+#endif

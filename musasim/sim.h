@@ -3,9 +3,9 @@
 
 void sim_init();
 void sim_quit();
-void simreset();
+void sim_reset();
 void simstep();
-void simtick();
+void sim_tick();
 
 void cpu_pulse_reset(void);
 void cpu_set_fc(unsigned int fc);
