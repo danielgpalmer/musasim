@@ -59,6 +59,18 @@ void board_poweroff() {
 	}
 }
 
+// Bus mastering stuff
+
+bool board_lock_bus(){
+	return false;
+}
+
+void board_unlock_bus(){
+
+}
+
+//
+
 unsigned int board_read_byte(unsigned int address) {
 	uint8_t slot = board_decode_slot(address);
 	if (slot != NOCARD) {

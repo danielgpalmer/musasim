@@ -16,6 +16,7 @@
 #include "hardware/cards/soundcard.h"
 #include "hardware/cards/compactflashinterfacecard.h"
 #include "hardware/cards/inputcard.h"
+#include "hardware/cards/dmacard.h"
 
 /* Memory-mapped IO ports */
 #define INPUT_ADDRESS 0x800000
@@ -263,6 +264,7 @@ void sim_init() {
 	board_add_device(3, &soundcard);
 	board_add_device(4, &compactflashinterfacecard);
 	board_add_device(5, &inputcard);
+	board_add_device(6, &dmacard);
 
 }
 
