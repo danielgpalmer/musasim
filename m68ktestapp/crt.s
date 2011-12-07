@@ -100,4 +100,4 @@ start:
 	jmp	main
 
 INT:
-
+	stop	#0

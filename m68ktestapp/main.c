@@ -29,6 +29,29 @@ volatile char something[4] = { 0xff, 0xaa, 0xff, 0xaa };
 //	}
 //}
 
+void interrupthandler() __attribute__ (( interrupt ));
+void interrupthandler() {
+
+}
+
+uint16_t getstatusregister() {
+	uint16_t temp;
+	asm volatile (
+			"move.w %%sr, %0\n\t"
+			:
+			: "g"(temp)
+			: );
+	return temp;
+}
+
+void setstatusregister(uint16_t value) {
+	asm volatile (
+			"move.w %0, %%sr\n\t"
+			:
+			: "g"(value)
+			: );
+}
+
 int col = 0;
 
 void gputs(char* string) {
@@ -60,11 +83,10 @@ void gputs(char* string) {
 
 int main(void) {
 
+//char helloworld[] = "Hello, World!\n";
+//char* string = helloworld;
 
-	//char helloworld[] = "Hello, World!\n";
-	//char* string = helloworld;
-
-	//puts(helloworld);
+//puts(helloworld);
 
 	gputs("Hello, world!");
 
