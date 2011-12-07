@@ -1,7 +1,9 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include "board.h"
+
 #include "stdio.h"
+#include "board.h"
+#include "../../m68kcpu.h"
 
 /*
  *
@@ -98,11 +100,17 @@ bool board_bus_locked() {
 // Interrupts
 
 void board_raise_interrupt(card* card) {
-
+	printf("raise interrupt\n");
+	m68k_set_irq(5);
 }
 
-void board_lower_interrupt(card* card){
+void board_lower_interrupt(card* card) {
+	m68k_set_irq(0);
+}
 
+int board_ack_interrupt(int level) {
+	printf("ack interrupt\n");
+	return 0;
 }
 
 //

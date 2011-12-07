@@ -161,8 +161,8 @@ void video_tick() {
 		line++;
 
 		if (line == HEIGHT) {
-			printf("VBLANK\n");
 			flags |= FLAG_VBLANK;
+			board_raise_interrupt(&videocard);
 		}
 
 		else if (line > HEIGHT + VBLANKPERIOD) {
@@ -278,7 +278,6 @@ void dumpregs() {
 
 	if ((flags & FLAG_VBLANK) == FLAG_VBLANK) {
 		printf("VBlank\n");
-		board_raise_interrupt(&videocard);
 	}
 
 }

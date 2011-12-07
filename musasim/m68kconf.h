@@ -24,6 +24,8 @@
 #ifndef M68KCONF__HEADER
 #define M68KCONF__HEADER
 
+#include "sim.h"
+#include "hardware/board.h"
 
 /* Configuration switches.
  * Use OPT_SPECIFY_HANDLER for configuration options that allow callbacks.
@@ -76,7 +78,7 @@
  * auto-clear when the interrupt is serviced.
  */
 #define M68K_EMULATE_INT_ACK        OPT_SPECIFY_HANDLER
-#define M68K_INT_ACK_CALLBACK(A)    cpu_irq_ack(A)
+#define M68K_INT_ACK_CALLBACK(A)    board_ack_interrupt(A)
 
 
 /* If on, CPU will call the breakpoint acknowledge callback when it encounters
@@ -174,10 +176,6 @@
 #endif
 
 #endif /* M68K_COMPILE_FOR_MAME */
-
-
-#include "sim.h"
-#include "hardware/board.h"
 
 #define m68k_read_memory_8(A) board_read_byte(A)
 #define m68k_read_memory_16(A) board_read_word(A)

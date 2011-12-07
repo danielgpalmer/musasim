@@ -20,6 +20,7 @@ void board_write_long(unsigned int address, unsigned int value);
 
 void board_raise_interrupt(card* card);
 void board_lower_interrupt(card* card);
+int board_ack_interrupt(int level);
 
 void board_lock_bus();
 void board_unlock_bus();

@@ -22,10 +22,6 @@ void cpu_pulse_reset(void) {
 
 }
 
-int cpu_irq_ack(int level) {
-	return 0;
-}
-
 /* Called when the CPU changes the function code pins */
 void cpu_set_fc(unsigned int fc) {
 	g_fc = fc;
