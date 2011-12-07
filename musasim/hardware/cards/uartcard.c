@@ -221,7 +221,7 @@ void uart_tick() {
 			//write(channels[i].ptm, "x", 1);
 			int bytes = 0;
 			if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
-				if(bytes > 0){
+				if (bytes > 0) {
 					printf("%c\n", byte);
 				}
 			}
@@ -230,5 +230,5 @@ void uart_tick() {
 
 }
 
-card uartcard = { "UART CARD", uart_init, uart_dispose, uart_tick, uart_read_byte, NULL, NULL, uart_write_byte, NULL,
-		NULL };
+card uartcard = { "UART CARD", uart_init, uart_dispose, uart_tick, NULL, NULL, uart_read_byte, NULL, NULL,
+		uart_write_byte, NULL, NULL };

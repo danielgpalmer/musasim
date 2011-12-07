@@ -18,7 +18,7 @@ void board_write_byte(unsigned int address, unsigned int value);
 void board_write_word(unsigned int address, unsigned int value);
 void board_write_long(unsigned int address, unsigned int value);
 
-bool board_lock_bus();
+void board_lock_bus();
 void board_unlock_bus();
 bool board_bus_locked();
 

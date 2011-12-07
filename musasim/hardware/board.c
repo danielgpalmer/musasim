@@ -59,18 +59,30 @@ void board_poweroff() {
 	}
 }
 
+uint8_t board_which_slot(card* card) {
+
+	for (int i = 0; i < sizeof(slots); i++) {
+		if (slots[i] == card) {
+			return i;
+		}
+	}
+
+	return NOCARD;
+
+}
+
 // Bus mastering stuff
 
 bool buslocked = false;
 
-bool board_lock_bus() {
+void board_lock_bus() {
 
 	// The real board will have an arbiter that decides which bus request to forward to the CPU
 	// and route the result back to that card.
 
 	// TODO simulate a single bus req to the cpu
 	// TODO lock cpu off of the bus.. keep ticks happening but make sure the time the CPU cant touch the bus is simulated
-	return false;
+	return;
 }
 
 void board_unlock_bus() {

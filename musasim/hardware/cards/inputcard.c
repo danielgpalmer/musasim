@@ -17,7 +17,6 @@
 #define PORT0_B		'k'
 #define PORT0_C		'l'
 #define PORT0_START 0x20 // Space
-
 //	7	|	6	|	5	|	4	|	3	|	2	|	1	|	0
 //	U		D		L		R		A		B		C		S
 // Active Low
@@ -55,5 +54,5 @@ void inputcard_tick() {
 
 }
 
-card inputcard =
-		{ "INPUT CARD", inputcard_init, NULL, inputcard_tick, inputcard_read_byte, NULL, NULL, NULL, NULL, NULL };
+card inputcard = { "INPUT CARD", inputcard_init, NULL, inputcard_tick, NULL, NULL, inputcard_read_byte, NULL, NULL,
+		NULL, NULL, NULL };

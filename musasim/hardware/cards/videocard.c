@@ -288,6 +288,8 @@ card videocard = {
 	video_init,
 	video_dispose,
 	video_tick,
+	NULL,
+	NULL,
 	video_read_byte,
 	video_read_word,
 	NULL,
