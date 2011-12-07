@@ -95,6 +95,18 @@ bool board_bus_locked() {
 
 //
 
+// Interrupts
+
+void board_raise_interrupt(card* card) {
+
+}
+
+void board_lower_interrupt(card* card){
+
+}
+
+//
+
 unsigned int board_read_byte(unsigned int address) {
 	uint8_t slot = board_decode_slot(address);
 	if (slot != NOCARD) {

@@ -5,8 +5,8 @@
 #include <SDL/SDL.h>
 
 //#include "common.h"
+#include "../board.h"
 #include "videocard.h"
-
 
 uint16_t flags;
 uint16_t config;
@@ -120,8 +120,7 @@ void video_init() {
 	SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
 	SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
 
-	if ((thread = g_thread_create((GThreadFunc) video_threadfunc, NULL, TRUE, &threaderr)) == NULL)
-	{
+	if ((thread = g_thread_create((GThreadFunc) video_threadfunc, NULL, TRUE, &threaderr)) == NULL) {
 		printf("Thread create failed: %s!!\n", threaderr->message);
 		g_error_free(threaderr);
 	}
@@ -279,21 +278,10 @@ void dumpregs() {
 
 	if ((flags & FLAG_VBLANK) == FLAG_VBLANK) {
 		printf("VBlank\n");
+		board_raise_interrupt(&videocard);
 	}
 
 }
 
-card videocard = {
-	"VIDEO CARD",
-	video_init,
-	video_dispose,
-	video_tick,
-	NULL,
-	NULL,
-	video_read_byte,
-	video_read_word,
-	NULL,
-	video_write_byte,
-	video_write_word,
-	NULL
-};
+card videocard = { "VIDEO CARD", video_init, video_dispose, video_tick, NULL, NULL, video_read_byte, video_read_word,
+		NULL, video_write_byte, video_write_word, NULL };
