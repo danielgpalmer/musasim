@@ -12,6 +12,8 @@
  */
 
 card* slots[NUM_SLOTS];
+bool interruptswaiting[NUM_SLOTS];
+bool busrequestwaiting[NUM_SLOTS];
 
 #define NOCARD 0xFF
 
@@ -77,18 +79,19 @@ uint8_t board_which_slot(card* card) {
 
 bool buslocked = false;
 
-void board_lock_bus() {
+void board_lock_bus(card* card) {
 
 	// The real board will have an arbiter that decides which bus request to forward to the CPU
 	// and route the result back to that card.
 
 	// TODO simulate a single bus req to the cpu
 	// TODO lock cpu off of the bus.. keep ticks happening but make sure the time the CPU cant touch the bus is simulated
-	return;
+
+	busrequestwaiting[board_which_slot(card)] = true;
 }
 
 void board_unlock_bus() {
-
+	busrequestwaiting[board_which_slot(card)] = false;
 }
 
 bool board_bus_locked() {
@@ -98,6 +101,16 @@ bool board_bus_locked() {
 //
 
 // Interrupts
+
+// - Each slot has an interrupt line except one (not decided yet)
+//   A priority encoder issues the interrupt to the CPU
+//
+// - Each slot has an ack line that is pulled low once the CPU starts servicing
+//   this interrupt
+//
+// - If two or more interrupts happen at the same time or an interrupt fires
+//   while another is waiting to be ack'ed it will be held and the priority encoder
+//   will issue the in priority order
 
 void board_raise_interrupt(card* card) {
 	printf("raise interrupt\n");

@@ -21,7 +21,7 @@ prog.elf: crt.o main.o fontrom.o rom.lds
 	$(CC) $(LFLAGS) -o prog.elf crt.o main.o fontrom.o
 
 main.o: main.c
-	$(CC) $(CFLAGS) -c main.c
+	$(CC) $(CFLAGS) -c main.c --save-temps
 
 crt.o: crt.s
 	$(AS) $(AFLAGS) crt.s -o crt.o > crt.lst
