@@ -34,7 +34,7 @@ vectors:
 	dc.l	INT		/* Reserved (NOT USED) */
 	dc.l	INT		/* Reserved (NOT USED) */
 	dc.l	INT		/* Spurious Interrupt */
-	dc.l	INT		/* IRQ Level 1 */
+	dc.l	interrupthandler/* IRQ Level 1 */
 	dc.l	INT		/* IRQ Level 2 */
 	dc.l	INT		/* IRQ Level 3 */
 	dc.l	INT		/* IRQ Level 4 */
