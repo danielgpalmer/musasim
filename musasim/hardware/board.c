@@ -124,7 +124,7 @@ void board_raise_interrupt(card* card) {
 		return;
 	}
 
-	//
+	// The current driver is requesting interrupt again?
 	if (curslot == slot) {
 		printf("reissue\n");
 		return;
