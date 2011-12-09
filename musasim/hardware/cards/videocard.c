@@ -282,5 +282,10 @@ void dumpregs() {
 
 }
 
-card videocard = { "VIDEO CARD", video_init, video_dispose, video_tick, NULL, NULL, video_read_byte, video_read_word,
+void videocard_irqack(){
+	printf("video irq ack\n");
+	board_lower_interrupt(&videocard);
+}
+
+card videocard = { "VIDEO CARD", video_init, video_dispose, video_tick, videocard_irqack, NULL, video_read_byte, video_read_word,
 		NULL, video_write_byte, video_write_word, NULL };

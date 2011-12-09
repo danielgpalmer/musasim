@@ -102,7 +102,7 @@ bool board_bus_locked() {
 
 // Interrupts
 
-// - Each slot has an interrupt line except one (not decided yet)
+// - Each slot has an interrupt line except one (not decided yet, probably 0)
 //   A priority encoder issues the interrupt to the CPU
 //
 // - Each slot has an ack line that is pulled low once the CPU starts servicing
@@ -112,18 +112,35 @@ bool board_bus_locked() {
 //   while another is waiting to be ack'ed it will be held and the priority encoder
 //   will issue the in priority order
 
+int curslot;
+
 void board_raise_interrupt(card* card) {
-	printf("raise interrupt\n");
-	m68k_set_irq(5);
+	int slot = board_which_slot(card);
+
+	if (slot == NOCARD || slot == 0) {
+		printf("Interrupt from card not in slot, or card in zero\n");
+		return;
+	}
+
+	printf("board_raise_interrupt(%d) SR - 0x%x\n", slot, m68k_get_reg(NULL, M68K_REG_SR));
+
+	curslot = board_which_slot(card);
+
+	m68k_set_irq(slot);
 }
 
 void board_lower_interrupt(card* card) {
+	int slot = board_which_slot(card);
+	printf("board_lower_interrupt(%d)\n", slot);
 	m68k_set_irq(0);
 }
 
 int board_ack_interrupt(int level) {
 	printf("ack interrupt\n");
-	return 0;
+
+	(slots[curslot]->irqack)();
+	//slot = board_which_slot()
+	return M68K_INT_ACK_AUTOVECTOR;
 }
 
 //
