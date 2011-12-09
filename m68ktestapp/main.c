@@ -83,6 +83,8 @@ void gputs(char* string) {
 
 int main(void) {
 
+	uint16_t sr = getstatusregister();
+
 //char helloworld[] = "Hello, World!\n";
 //char* string = helloworld;
 

@@ -90,7 +90,7 @@ void board_lock_bus(card* card) {
 	busrequestwaiting[board_which_slot(card)] = true;
 }
 
-void board_unlock_bus() {
+void board_unlock_bus(card* card) {
 	busrequestwaiting[board_which_slot(card)] = false;
 }
 

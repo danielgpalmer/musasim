@@ -22,8 +22,8 @@ void board_raise_interrupt(card* card);
 void board_lower_interrupt(card* card);
 int board_ack_interrupt(int level);
 
-void board_lock_bus();
-void board_unlock_bus();
+void board_lock_bus(card* card);
+void board_unlock_bus(card* card);
 bool board_bus_locked();
 
 #define SLOT_ADDRESS_MASK 0x1FFFFF
