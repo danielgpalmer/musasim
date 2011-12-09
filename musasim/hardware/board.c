@@ -102,7 +102,7 @@ bool board_bus_locked() {
 
 // Interrupts
 
-// - Each slot has an interrupt line except one (not decided yet, probably 0)
+// - Each slot has an interrupt line except one (not decided yet, probably 0), 7 is an issue too
 //   A priority encoder issues the interrupt to the CPU
 //
 // - Each slot has an ack line that is pulled low once the CPU starts servicing
@@ -112,31 +112,75 @@ bool board_bus_locked() {
 //   while another is waiting to be ack'ed it will be held and the priority encoder
 //   will issue the in priority order
 
-int curslot;
+int curslot = 0; // the slot that is driving atm
 
 void board_raise_interrupt(card* card) {
+
 	int slot = board_which_slot(card);
 
+	// Sanity check
 	if (slot == NOCARD || slot == 0) {
 		printf("Interrupt from card not in slot, or card in zero\n");
 		return;
 	}
 
-	printf("board_raise_interrupt(%d) SR - 0x%x\n", slot, m68k_get_reg(NULL, M68K_REG_SR));
+	//
+	if (curslot == slot) {
+		printf("reissue\n");
+		return;
+	}
 
-	curslot = board_which_slot(card);
+	// Slot is already waiting
+	if (interruptswaiting[slot]) {
+		return;
+	}
 
-	m68k_set_irq(slot);
+	// no IRQ is happening.. do it!
+	if (curslot == 0) {
+//		printf("board_raise_interrupt(%d) SR - 0x%x\n", slot, m68k_get_reg(NULL, M68K_REG_SR));
+		curslot = board_which_slot(card);
+		m68k_set_irq(slot);
+	}
+	// Someone else is driving.. queue
+	else {
+		printf("queue %d\n", slot);
+		interruptswaiting[slot] = true;
+	}
 }
 
 void board_lower_interrupt(card* card) {
+
 	int slot = board_which_slot(card);
-	printf("board_lower_interrupt(%d)\n", slot);
-	m68k_set_irq(0);
+
+	// Sanity check
+	if (slot == NOCARD || slot == 0) {
+		printf("Interrupt from card not in slot, or card in zero\n");
+		return;
+	}
+
+	interruptswaiting[slot] = false; // make sure the card is no longer queue
+
+	// If this card is the current driver..
+	if (curslot == slot) {
+//		printf("board_lower_interrupt(%d)\n", slot);
+
+		// check the queue for a waiting card
+		int newslot = 0;
+		for (int i = 7; i < 0; i--) {
+			if (interruptswaiting[i] == true) {
+				newslot = i;
+				break;
+			}
+		}
+
+		// issue the new level if there was a card waiting, otherwise issue 0
+		m68k_set_irq(newslot);
+		curslot = newslot;
+	}
 }
 
 int board_ack_interrupt(int level) {
-	printf("ack interrupt\n");
+//	printf("ack interrupt\n");
 
 	(slots[curslot]->irqack)();
 	//slot = board_which_slot()

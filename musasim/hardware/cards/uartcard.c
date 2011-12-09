@@ -14,6 +14,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "../board.h"
+
 #define FIFOSIZE 16
 #define NUMOFCHANNELS 2
 
@@ -225,10 +227,17 @@ void uart_tick() {
 					printf("%c\n", byte);
 				}
 			}
+
 		}
+		board_raise_interrupt(&uartcard);
 	}
 
 }
 
-card uartcard = { "UART CARD", uart_init, uart_dispose, uart_tick, NULL, NULL, uart_read_byte, NULL, NULL,
+void uart_irq_ack() {
+	//printf("uart_irq_ack()\n");
+	board_lower_interrupt(&uartcard);
+}
+
+card uartcard = { "UART CARD", uart_init, uart_dispose, uart_tick, uart_irq_ack, NULL, uart_read_byte, NULL, NULL,
 		uart_write_byte, NULL, NULL };
