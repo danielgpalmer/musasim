@@ -114,30 +114,31 @@ bool board_bus_locked() {
 
 int curslot = 0; // the slot that is driving atm
 
+bool board_interrupt_sanitycheck(int slot) {
+	if (slot != NOCARD && slot != 0 && slot != 7) {
+		return true;
+	}
+
+	printf("Interrupt from card not in slot, or card in zero\n");
+	return false;
+}
+
 void board_raise_interrupt(card* card) {
 
 	int slot = board_which_slot(card);
-
-	// Sanity check
-	if (slot == NOCARD || slot == 0) {
-		printf("Interrupt from card not in slot, or card in zero\n");
+	if (!board_interrupt_sanitycheck(slot)) {
 		return;
 	}
 
 	// The current driver is requesting interrupt again?
-	if (curslot == slot) {
+	if (interruptswaiting[slot] || curslot == slot) {
 		printf("reissue\n");
-		return;
-	}
-
-	// Slot is already waiting
-	if (interruptswaiting[slot]) {
 		return;
 	}
 
 	// no IRQ is happening.. do it!
 	if (curslot == 0) {
-//		printf("board_raise_interrupt(%d) SR - 0x%x\n", slot, m68k_get_reg(NULL, M68K_REG_SR));
+		printf("board_raise_interrupt(%d) SR - 0x%x\n", slot, m68k_get_reg(NULL, M68K_REG_SR));
 		curslot = board_which_slot(card);
 		m68k_set_irq(slot);
 	}
@@ -151,10 +152,7 @@ void board_raise_interrupt(card* card) {
 void board_lower_interrupt(card* card) {
 
 	int slot = board_which_slot(card);
-
-	// Sanity check
-	if (slot == NOCARD || slot == 0) {
-		printf("Interrupt from card not in slot, or card in zero\n");
+	if (!board_interrupt_sanitycheck(slot)) {
 		return;
 	}
 
