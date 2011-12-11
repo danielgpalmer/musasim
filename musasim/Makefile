@@ -14,7 +14,7 @@ obj:
 	mkdir obj
 
 gdbserver: obj/gdbserver.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o libcards.a
-	$(CC) $(LFLAGS) obj/gdbserver.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o $(LIBCARDS) -o gdbserver
+	$(CC) $(LFLAGS) -D GDBSERVER obj/gdbserver.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o $(LIBCARDS) -o gdbserver
 
 musasim: obj/musasim.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o libcards.a
 	$(CC) $(LFLAGS) obj/musasim.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o $(LIBCARDS) -o musasim

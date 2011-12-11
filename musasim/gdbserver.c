@@ -651,5 +651,9 @@ char* readmem(char* commandbuffer) {
 }
 
 
+void gdbserver_check_breakpoints(uint32_t address){
+
+}
+
 
 
