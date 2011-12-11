@@ -4,9 +4,9 @@
 #include <glib.h>
 #include <SDL/SDL.h>
 
-//#include "common.h"
 #include "../board.h"
 #include "videocard.h"
+#include "../../sim.h"
 
 uint16_t flags;
 uint16_t config;
@@ -93,7 +93,9 @@ void video_threadfunc(void* data) {
 
 	}
 
-	//request_exit();
+	printf("** exit ! **\n");
+
+	sim_quit();
 
 	g_thread_exit(NULL);
 }
@@ -282,10 +284,10 @@ void dumpregs() {
 
 }
 
-void videocard_irqack(){
+void videocard_irqack() {
 	printf("video irq ack\n");
 	board_lower_interrupt(&videocard);
 }
 
-card videocard = { "VIDEO CARD", video_init, video_dispose, video_tick, videocard_irqack, NULL, video_read_byte, video_read_word,
-		NULL, video_write_byte, video_write_word, NULL };
+card videocard = { "VIDEO CARD", video_init, video_dispose, video_tick, videocard_irqack, NULL, video_read_byte,
+		video_read_word, NULL, video_write_byte, video_write_word, NULL };

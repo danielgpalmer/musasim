@@ -18,6 +18,8 @@
 #include "hardware/cards/inputcard.h"
 #include "hardware/cards/dmacard.h"
 
+bool shouldexit = false;
+
 void cpu_pulse_reset(void) {
 
 }
@@ -43,6 +45,11 @@ void sim_init() {
 }
 
 void sim_tick() {
+
+	if (shouldexit) {
+		return;
+	}
+
 	if (!board_bus_locked()) {
 		m68k_execute(4);
 	}
@@ -53,9 +60,14 @@ void sim_quit() {
 
 	printf("sim_quit()\n");
 	board_poweroff();
+	shouldexit = true;
 
 }
 
 void sim_reset() {
 	m68k_pulse_reset();
+}
+
+bool sim_has_quit() {
+	return shouldexit;
 }

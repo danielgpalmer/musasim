@@ -13,7 +13,6 @@
 
 #include <glib.h>
 
-#include "common.h"
 #include "sim.h"
 #include "m68k.h"
 #include "gdbserver.h"

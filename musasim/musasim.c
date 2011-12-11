@@ -7,13 +7,10 @@
 #include <signal.h>
 #include <glib.h>
 
-#include "common.h"
 #include "sim.h"
 #include "m68k.h"
 
 #include "hardware/cards/romcard.h"
-
-bool shouldexit = false;
 
 bool parseargs(int argc, char* argv[]) {
 
@@ -31,18 +28,12 @@ bool parseargs(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
-
 	if (parseargs(argc, argv)) {
 		sim_init();
 		sim_reset();
-		while (!shouldexit) {
+		while (!sim_has_quit()) {
 			sim_tick();
 			usleep(16);
 		}
 	}
-
-}
-
-void request_exit() {
-	shouldexit = true;
 }
