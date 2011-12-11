@@ -32,13 +32,13 @@ void sim_init() {
 	printf("sim_init()\n");
 	g_thread_init(NULL);
 
-	board_add_device(0, &romcard);
-	board_add_device(1, &videocard);
-	board_add_device(2, &uartcard);
-	board_add_device(3, &soundcard);
-	board_add_device(4, &compactflashinterfacecard);
-	board_add_device(5, &inputcard);
-	board_add_device(6, &dmacard);
+	board_add_device(SLOT_ROMCARD, &romcard);
+	board_add_device(SLOT_VIDEOCARD, &videocard);
+	board_add_device(SLOT_UARTCARD, &uartcard);
+	board_add_device(SLOT_SOUNDCARD, &soundcard);
+	board_add_device(SLOT_CFCARD, &compactflashinterfacecard);
+	board_add_device(SLOT_DMACARD, &dmacard);
+	board_add_device(SLOT_INPUTCARD, &inputcard);
 
 }
 

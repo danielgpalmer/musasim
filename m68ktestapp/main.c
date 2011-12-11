@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include "fontrom/fontrom.h"
 #include "../musasim/genheader/video.h"
+#include "../musasim/genheader/input.h"
 
 #define PIXELSIZE 2
 #define WIDTH 480
@@ -31,6 +32,13 @@ volatile char something[4] = { 0xff, 0xaa, 0xff, 0xaa };
 
 void interrupthandler() __attribute__ (( interrupt ));
 void interrupthandler() {
+
+}
+
+void vblank_handler() __attribute (( interrupt));
+void vblank_handler(){
+
+	uint8_t port0 = *input_start;
 
 }
 

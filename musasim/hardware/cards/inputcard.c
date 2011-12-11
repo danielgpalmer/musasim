@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include <stdio.h>
 #include "inputcard.h"
 
 // Basically a megadrive pad..
@@ -39,7 +40,7 @@ void inputcard_init() {
 }
 
 uint8_t inputcard_read_byte(uint32_t address) {
-
+	printf("inputcard_read_byte()\n");
 	int port = address & 0x1;
 	return ports[port];
 

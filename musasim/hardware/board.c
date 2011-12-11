@@ -98,19 +98,17 @@ bool board_bus_locked() {
 	return buslocked;
 }
 
-//
+/* Interrupts
+ - Each slot has an interrupt line except two; slot 0 and slot 7
+ A priority encoder takes the interrupt lines and issues the highest
+ to the CPU.
+ - If two or more interrupts happen at the same time or an interrupt fires
+ while another is waiting to be ack'ed it will be held and the priority encoder
+ will issue the in priority order
 
-// Interrupts
-
-// - Each slot has an interrupt line except one (not decided yet, probably 0), 7 is an issue too
-//   A priority encoder issues the interrupt to the CPU
-//
-// - Each slot has an ack line that is pulled low once the CPU starts servicing
-//   this interrupt
-//
-// - If two or more interrupts happen at the same time or an interrupt fires
-//   while another is waiting to be ack'ed it will be held and the priority encoder
-//   will issue the in priority order
+ - Each slot has an ack line that is pulled low once the CPU starts
+ servicing it's interrupt
+ */
 
 int curslot = 0; // the slot that is driving atm
 
@@ -119,7 +117,7 @@ bool board_interrupt_sanitycheck(int slot) {
 		return true;
 	}
 
-	printf("Interrupt from card not in slot, or card in zero\n");
+	printf("Interrupt from card not in slot, or card in zero or seven\n");
 	return false;
 }
 
@@ -138,7 +136,7 @@ void board_raise_interrupt(card* card) {
 
 	// no IRQ is happening.. do it!
 	if (curslot == 0) {
-		printf("board_raise_interrupt(%d) SR - 0x%x\n", slot, m68k_get_reg(NULL, M68K_REG_SR));
+		//printf("board_raise_interrupt(%d) SR - 0x%x\n", slot, m68k_get_reg(NULL, M68K_REG_SR));
 		curslot = board_which_slot(card);
 		m68k_set_irq(slot);
 	}
@@ -164,8 +162,9 @@ void board_lower_interrupt(card* card) {
 
 		// check the queue for a waiting card
 		int newslot = 0;
-		for (int i = 7; i < 0; i--) {
+		for (int i = 6; i < 0; i--) {
 			if (interruptswaiting[i] == true) {
+				interruptswaiting[i] = false;
 				newslot = i;
 				break;
 			}

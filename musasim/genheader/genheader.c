@@ -21,6 +21,7 @@ void common();
 void machine();
 void video();
 void sound();
+void input();
 
 int main(int argc, char* argv[]) {
 
@@ -45,6 +46,12 @@ int main(int argc, char* argv[]) {
 			common();
 			printf("\n");
 		}
+		else if (strcmp(argv[1], "input") == 0) {
+			printf("/* input.h */\n\n");
+			common();
+			input();
+			printf("\n");
+		}
 	}
 	return 0;
 }
@@ -60,11 +67,16 @@ void machine() {
 }
 
 void video() {
-	printf("volatile uint16_t* video_start = (uint16_t*) 0x%x;\n", SLOT_OFFSET(1));
-	printf("volatile uint16_t* video_end = (uint16_t*) 0x%x;\n", SLOT_OFFSET(1) + SIZE_VIDEO);
-	printf("volatile uint16_t* video_registers = (uint16_t*) 0x%x;\n", SLOT_OFFSET(1) + OFFSET_VIDEOREGISTERS);
+	printf("volatile uint16_t* video_start = (uint16_t*) 0x%x;\n", SLOT_OFFSET(SLOT_VIDEOCARD));
+	printf("volatile uint16_t* video_end = (uint16_t*) 0x%x;\n", SLOT_OFFSET(SLOT_VIDEOCARD) + SIZE_VIDEO);
+	printf("volatile uint16_t* video_registers = (uint16_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + OFFSET_VIDEOREGISTERS);
 }
 
 void sound() {
 
+}
+
+void input() {
+	printf("volatile uint8_t* input_start = (uint8_t*) 0x%x;\n", SLOT_OFFSET(SLOT_INPUTCARD));
 }

@@ -1,4 +1,4 @@
-all: machine.h video.h sound.h
+all: machine.h video.h sound.h input.h
 
 machine.h: genheader
 	./genheader machine > machine.h
@@ -6,14 +6,18 @@ machine.h: genheader
 
 video.h: genheader
 	./genheader video > video.h
-	gcc -x c -fsyntax-only machine.h
+	gcc -x c -fsyntax-only video.h
 
 sound.h: genheader
 	./genheader sound > sound.h
-	gcc -x c -fsyntax-only machine.h
+	gcc -x c -fsyntax-only sound.h
 
-genheader: genheader.c
+input.h: genheader
+	./genheader input > input.h
+	gcc -x c -fsyntax-only input.h
+
+genheader: genheader.c Makefile
 	gcc genheader.c -o genheader
 
 clean:
-	rm -f genheader video.h machine.h sound.h
+	rm -f genheader video.h machine.h sound.h input.h
