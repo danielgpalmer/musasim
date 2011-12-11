@@ -240,34 +240,32 @@ void readcommand(int s) {
 			newstate = LISTENING;
 			break;
 
-		case 'z':
-			if (verbose) {
-				printf("GDB is unsetting a breakpoint\n");
-			}
-			strtok(inputbuffer, "Z,#");
-			char *xbreakaddress = strtok(NULL, "Z,#");
-			strtok(NULL, "Z,#");
-
-			printf("0x%s\n", xbreakaddress);
-
-			gdbserver_clear_breakpoint(strtoul(xbreakaddress, NULL, 16));
-			data = OK;
-
-			break;
-
-		case 'Z':
-			if (verbose) {
-				printf("GDB is setting a breakpoint at ");
-			}
+		case 'z': {
 			strtok(inputbuffer, "Z,#");
 			char *breakaddress = strtok(NULL, "Z,#");
 			strtok(NULL, "Z,#");
 
+			gdbserver_clear_breakpoint(strtoul(breakaddress, NULL, 16));
+			data = OK;
+
 			if (verbose) {
-				printf("0x%s\n", breakaddress);
+				printf("GDB is unsetting a breakpoint at 0x%s\n", breakaddress);
 			}
+		}
+			break;
+
+		case 'Z': {
+			strtok(inputbuffer, "Z,#");
+			char *breakaddress = strtok(NULL, "Z,#");
+			strtok(NULL, "Z,#");
+
 			gbserver_set_breakpoint(strtoul(breakaddress, NULL, 16));
 			data = "OK";
+
+			if (verbose) {
+				printf("GDB is setting a breakpoint at 0x%s\n", breakaddress);
+			}
+		}
 			break;
 
 		default:
@@ -541,7 +539,7 @@ void gdbserver_clear_breakpoint(uint32_t address) {
 
 }
 
-char* munchhexstring(char* buffer) {
+char* gbdserver_munchhexstring(char* buffer) {
 
 	static char string[256];
 	int stringpos = 0;
@@ -553,10 +551,8 @@ char* munchhexstring(char* buffer) {
 		stringpos += 1;
 		buffer += 2;
 	}
-	printf("%s\n", string);
 
 	return string;
-
 }
 
 char* gdbserver_query(char* commandbuffer) {
@@ -571,7 +567,7 @@ char* gdbserver_query(char* commandbuffer) {
 
 		char* offset = strchr(commandbuffer, ',') + 1;
 		printf("GDB is sending a monitor command; %s\n", offset);
-		char* monitorcommand = munchhexstring(offset);
+		char* monitorcommand = gbdserver_munchhexstring(offset);
 
 		if (strncmp(monitorcommand, "load ", 5) == 0) {
 			printf("User has requested that a new binary is loaded into ROM\n");
