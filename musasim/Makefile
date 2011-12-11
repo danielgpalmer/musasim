@@ -3,7 +3,7 @@ include common.mk
 CARDSDIR=./hardware/cards/
 LIBCARDS=./hardware/cards/libcards.a
 
-all: obj gdbserver musasim
+all: obj gdbserver musasim genheader
 
 clean:
 	rm -rf obj
@@ -58,10 +58,13 @@ obj/board.o: hardware/board.c hardware/board.h
 	$(CC) $(CFLAGS) --std=gnu99 hardware/board.c -o obj/board.o	
 
 
-.PHONY: libcards.a docs
+.PHONY: libcards.a docs genheader
 	
 libcards.a:
 	$(MAKE) -C $(CARDSDIR) libcards.a
+
+genheader:
+	$(MAKE) -C genheader
 
 docs:
 	rm -rf ../docs/html
