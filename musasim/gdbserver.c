@@ -38,7 +38,7 @@ bool parseargs(int argc, char* argv[]) {
 	if (argc == 2 || argc == 3) {
 
 		if (argc == 3) {
-			if(romcard_loadrom(argv[2])){
+			if (romcard_loadrom(argv[2])) {
 				// TODO Insert error handling here
 			}
 		}
@@ -66,8 +66,6 @@ bool parseargs(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
 
-	int steps = 0;
-
 	printf("musashi m68k emulator\tKarl Stenerud with patches from MAME up to 0105\n"
 			"gdbserver for musashi\tDaniel Palmer (daniel@0x0f.com)\n");
 
@@ -81,7 +79,6 @@ int main(int argc, char* argv[]) {
 		fprintf(stderr, "Failed to create socket\n");
 		exit(EXIT_FAILURE);
 	}
-
 
 	memset(&servaddr, 0, sizeof(servaddr));
 	servaddr.sin_family = AF_INET;
@@ -131,20 +128,7 @@ int main(int argc, char* argv[]) {
 				break;
 
 			case RUNNING:
-				if (isbreakpoint(m68k_get_reg(NULL, M68K_REG_PC))) {
-					state = WAITING;
-					sendpacket(socketconnection, "S05");
-				}
-				else {
-					steps += 1;
-
-					//simstep();
-					//if (steps > 800000) {
-						sim_tick();
-					//	steps = 0;
-					//}
-					//usleep(1);
-				}
+				sim_tick();
 				break;
 
 			case BREAKING:
@@ -453,7 +437,7 @@ void cleanup() {
 	g_slist_free(breakpoints);
 }
 
-void request_exit(){
+void request_exit() {
 	printf("Exit requested\n");
 	state = EXIT;
 	kill(0, SIGINT);
@@ -548,17 +532,6 @@ void clearbreakpoint(uint32_t address) {
 
 }
 
-bool isbreakpoint(uint32_t address) {
-	GSList* iterator;
-	for (iterator = breakpoints; iterator; iterator = iterator->next) {
-		if (GPOINTER_TO_UINT(iterator->data) == address) {
-			printf("BREAK!\n");
-			return true;
-		}
-	}
-	return false;
-}
-
 char* munchhexstring(char* buffer) {
 
 	static char string[256];
@@ -650,10 +623,15 @@ char* readmem(char* commandbuffer) {
 	return getmemorystring(ad, sz);
 }
 
-
-void gdbserver_check_breakpoints(uint32_t address){
-
+void gdbserver_check_breakpoints(uint32_t address) {
+	GSList* iterator;
+	for (iterator = breakpoints; iterator; iterator = iterator->next) {
+		if (GPOINTER_TO_UINT(iterator->data) == address) {
+			printf("BREAK!\n");
+			state = WAITING;
+			sendpacket(socketconnection, "S05");
+			break;
+		}
+	}
 }
-
-
 
