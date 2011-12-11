@@ -19,11 +19,11 @@ char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6,
 		int a4, int a5, int fp, int sp, int ps, int pc);
 char* getmemorystring(unsigned int address, int len);
 
-void setbreakpoint(uint32_t address);
-void clearbreakpoint(uint32_t address);
+void gbserver_set_breakpoint(uint32_t address);
+void gdbserver_clear_breakpoint(uint32_t address);
 bool isbreakpoint(uint32_t address);
-char* query(char* commandbuffer);
-char* readregs(char* commandbuffer);
+char* gdbserver_query(char* commandbuffer);
+char* gbdserver_readregs(char* commandbuffer);
 char* readmem(char* commandbuffer);
 
 void gdbserver_check_breakpoints();

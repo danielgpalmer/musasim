@@ -130,6 +130,7 @@ int main(int argc, char* argv[]) {
 				break;
 
 			case RUNNING:
+				printf("--tick --\n");
 				sim_tick();
 				break;
 
@@ -166,7 +167,7 @@ void readcommand(int s) {
 	char command = inputbuffer[0];
 	switch (command) {
 		case 'g':
-			data = readregs(inputbuffer);
+			data = gbdserver_readregs(inputbuffer);
 			break;
 		case 'G':
 			if (verbose) {
@@ -224,7 +225,7 @@ void readcommand(int s) {
 			break;
 
 		case 'q':
-			data = query(inputbuffer);
+			data = gdbserver_query(inputbuffer);
 			break;
 
 		case 'D':
@@ -240,14 +241,16 @@ void readcommand(int s) {
 			break;
 
 		case 'z':
-			printf("GDB is unsetting a breakpoint\n");
+			if (verbose) {
+				printf("GDB is unsetting a breakpoint\n");
+			}
 			strtok(inputbuffer, "Z,#");
 			char *xbreakaddress = strtok(NULL, "Z,#");
 			strtok(NULL, "Z,#");
 
 			printf("0x%s\n", xbreakaddress);
 
-			clearbreakpoint(strtoul(xbreakaddress, NULL, 16));
+			gdbserver_clear_breakpoint(strtoul(xbreakaddress, NULL, 16));
 			data = OK;
 
 			break;
@@ -263,7 +266,7 @@ void readcommand(int s) {
 			if (verbose) {
 				printf("0x%s\n", breakaddress);
 			}
-			setbreakpoint(strtoul(breakaddress, NULL, 16));
+			gbserver_set_breakpoint(strtoul(breakaddress, NULL, 16));
 			data = "OK";
 			break;
 
@@ -521,15 +524,19 @@ char* getmemorystring(unsigned int address, int len) {
 
 }
 
-void setbreakpoint(uint32_t address) {
+void gbserver_set_breakpoint(uint32_t address) {
 
+#ifdef DEBUG
 	printf("Setting break at 0x%x\n", address);
+#endif
 	breakpoints = g_slist_append(breakpoints, GUINT_TO_POINTER(address));
-
 }
 
-void clearbreakpoint(uint32_t address) {
+void gdbserver_clear_breakpoint(uint32_t address) {
+
+#ifdef DEBUG
 	printf("Clearing break at 0x%x\n", address);
+#endif
 	breakpoints = g_slist_remove(breakpoints, GUINT_TO_POINTER(address));
 
 }
@@ -552,7 +559,7 @@ char* munchhexstring(char* buffer) {
 
 }
 
-char* query(char* commandbuffer) {
+char* gdbserver_query(char* commandbuffer) {
 
 	char* ret = "";
 
@@ -595,7 +602,7 @@ char* query(char* commandbuffer) {
 	return ret;
 }
 
-char* readregs(char* commandbuffer) {
+char* gbdserver_readregs(char* commandbuffer) {
 	if (verbose) {
 		printf("GDB wants to read the registers\n");
 	}
@@ -629,12 +636,14 @@ void gdbserver_check_breakpoints() {
 
 	uint32_t address = m68k_get_reg(NULL, M68K_REG_PC);
 
+#ifdef DEBUG
 	printf("gdbserver_check_breakpoints(0x%x)\n", address);
+#endif
 
 	GSList* iterator;
 	for (iterator = breakpoints; iterator; iterator = iterator->next) {
 		if (GPOINTER_TO_UINT(iterator->data) == address) {
-			printf("BREAK!\n");
+			printf("*** breaking at 0x%x ***\n", address);
 			state = WAITING;
 			sendpacket(socketconnection, "S05");
 			m68k_end_timeslice();
