@@ -630,6 +630,7 @@ void gdbserver_check_breakpoints(uint32_t address) {
 			printf("BREAK!\n");
 			state = WAITING;
 			sendpacket(socketconnection, "S05");
+			m68k_end_timeslice();
 			break;
 		}
 	}
