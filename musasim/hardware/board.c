@@ -3,7 +3,7 @@
 
 #include "stdio.h"
 #include "board.h"
-#include "../../m68kcpu.h"
+#include "../m68kcpu.h"
 
 /*
  *
