@@ -107,23 +107,28 @@
  * fetching immediate data and instructions on a banked memory system.
  */
 
-#ifdef GDBSERVER
-
-#define M68K_MONITOR_PC             OPT_SPECIFY_HANDLER
-#define M68K_SET_PC_CALLBACK(A)     gdbserver_check_breakpoints(A)
-
-#else
+/*
+ * Seems to only actually do something when interrupt handlers fire
+ */
 
 #define M68K_MONITOR_PC             OPT_OFF
 #define M68K_SET_PC_CALLBACK(A)     your_pc_changed_handler_function(A)
 
-#endif
-
 /* If on, CPU will call the instruction hook callback before every
  * instruction.
  */
+
+#ifdef GDBSERVER
+
+#define M68K_INSTRUCTION_HOOK       OPT_SPECIFY_HANDLER
+#define M68K_INSTRUCTION_CALLBACK() gdbserver_check_breakpoints()
+
+#else
+
 #define M68K_INSTRUCTION_HOOK       OPT_OFF
 #define M68K_INSTRUCTION_CALLBACK() your_instruction_hook_function()
+
+#endif
 
 /* If on, the CPU will emulate the 4-byte prefetch queue of a real 68000 */
 #define M68K_EMULATE_PREFETCH       OPT_ON

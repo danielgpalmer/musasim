@@ -91,8 +91,8 @@ void gputs(char* string) {
 
 int main(void) {
 
-	uint16_t sr = getstatusregister();
-	setstatusregister((sr & 0xf8ff));
+	//uint16_t sr = getstatusregister();
+	//setstatusregister((sr & 0xf8ff));
 
 //char helloworld[] = "Hello, World!\n";
 //char* string = helloworld;

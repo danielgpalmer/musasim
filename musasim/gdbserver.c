@@ -21,6 +21,8 @@
 
 void cleanup();
 
+char OK[] = "OK";
+
 GSList* breakpoints;
 
 int socketlistening;
@@ -623,7 +625,12 @@ char* readmem(char* commandbuffer) {
 	return getmemorystring(ad, sz);
 }
 
-void gdbserver_check_breakpoints(uint32_t address) {
+void gdbserver_check_breakpoints() {
+
+	uint32_t address = m68k_get_reg(NULL, M68K_REG_PC);
+
+	printf("gdbserver_check_breakpoints(0x%x)\n", address);
+
 	GSList* iterator;
 	for (iterator = breakpoints; iterator; iterator = iterator->next) {
 		if (GPOINTER_TO_UINT(iterator->data) == address) {

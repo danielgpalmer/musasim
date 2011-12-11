@@ -1,3 +1,6 @@
+#ifndef GDB__HEADER
+#define GDB__HEADER
+
 #define GDBACK '+';
 #define GDBNAK '-';
 
@@ -23,6 +26,7 @@ char* query(char* commandbuffer);
 char* readregs(char* commandbuffer);
 char* readmem(char* commandbuffer);
 
+void gdbserver_check_breakpoints();
 
 typedef enum State {
 	LISTENING, WAITING, RUNNING, BREAKING, EXIT
@@ -33,5 +37,4 @@ typedef enum ReadState {
 	WAITINGFORSTART, READINGPACKET, CHECKSUMDIGITONE, CHECKSUMDIGITTWO, DONE
 } ReadState;
 
-
-char OK[] = "OK";
+#endif

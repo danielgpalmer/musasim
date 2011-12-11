@@ -13,8 +13,8 @@ clean:
 obj:
 	mkdir obj
 
-gdbserver: obj/gdbserver.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o libcards.a
-	$(CC) $(LFLAGS) -D GDBSERVER obj/gdbserver.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o $(LIBCARDS) -o gdbserver
+gdbserver: obj/gdbserver.o obj/sim.o obj/m68kcpugdb.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o libcards.a
+	$(CC) $(LFLAGS) -D GDBSERVER obj/gdbserver.o obj/sim.o obj/m68kcpugdb.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o $(LIBCARDS) -o gdbserver
 
 musasim: obj/musasim.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o libcards.a
 	$(CC) $(LFLAGS) obj/musasim.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o $(LIBCARDS) -o musasim
@@ -30,6 +30,9 @@ obj/sim.o: sim.c sim.h m68k.h m68kconf.h obj/board.o
 
 obj/m68kcpu.o: sim.h obj/m68kops.h sim.h m68k.h m68kconf.h
 	$(CC) $(CFLAGS) m68kcpu.c -o obj/m68kcpu.o
+
+obj/m68kcpugdb.o: sim.h obj/m68kops.h sim.h m68k.h m68kconf.h
+	$(CC) $(CFLAGS) -D GDBSERVER m68kcpu.c -o obj/m68kcpugdb.o
 
 obj/m68kops.o: obj/m68kmake obj/m68kops.h obj/m68kops.c sim.h m68k.h m68kconf.h
 	$(CC) $(CFLAGS) obj/m68kops.c -o obj/m68kops.o
