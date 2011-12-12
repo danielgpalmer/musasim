@@ -9,6 +9,7 @@
 #include "fontrom/fontrom.h"
 #include "../musasim/genheader/video.h"
 #include "../musasim/genheader/input.h"
+#include "../musasim/genheader/uart.h"
 
 #define PIXELSIZE 2
 #define WIDTH 480
@@ -102,6 +103,8 @@ int main(void) {
 	gputs("Hello, world!");
 
 	while (1) {
+
+		//*uart_start = 'A';
 
 		//for (int y = 0; y < HEIGHT; y++) {
 		//	for (int x = 0; x < WIDTH; x++) {

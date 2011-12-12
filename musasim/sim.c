@@ -60,6 +60,7 @@ void sim_quit() {
 
 	printf("sim_quit()\n");
 	board_poweroff();
+	m68k_end_timeslice();
 	shouldexit = true;
 
 }

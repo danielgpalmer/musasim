@@ -22,6 +22,7 @@
 typedef struct {
 	uint8_t rxfifo[FIFOSIZE];
 	uint8_t txfifo[FIFOSIZE];
+	uint8_t txshift;
 	uint8_t rxtop;
 	uint8_t txtop;
 	uint8_t interrupt_enable;
@@ -39,6 +40,7 @@ typedef struct {
 typedef struct {
 	registers registers;
 	int ptm;
+	int txclock;
 } channel;
 
 channel channels[NUMOFCHANNELS];
@@ -63,6 +65,9 @@ void uart_init() {
 				fcntl(ptm, F_SETFL, flags | O_NONBLOCK);
 			}
 		}
+
+		channels[i].registers.line_status = 0x60;
+
 	}
 }
 
@@ -117,12 +122,29 @@ void uart_linestatus_cleardataready() {
 
 }
 
-void uart_linestatus_settransmitterempty() {
+void uart_linestatus_settransmitterempty(registers* regs) {
+	regs->line_status |= LINESTATUS_TRANSMITTEREMPTY;
 
 }
 
-void uart_linestatus_cleartransmitterempty() {
+void uart_linestatus_cleartransmitterempty(registers* regs) {
+	regs->line_status &= !LINESTATUS_TRANSMITTEREMPTY;
+}
 
+bool uart_transmitter_is_empty(registers* regs) {
+	return (regs->line_status & LINESTATUS_TRANSMITTEREMPTY) ? true : false;
+}
+
+void uart_linestatus_set_transmitterholdingregisterempty(registers* regs) {
+	regs->line_status |= LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY;
+}
+
+void uart_linestatus_clear_transmitterholdingregisterempty(registers* regs) {
+	regs->line_status &= !LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY;
+}
+
+bool uart_linestatus_transmitterholdingregisterempty(registers* regs) {
+	return (regs->line_status & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) ? true : false;
 }
 
 #define CHANNELMASK 0x08
@@ -144,13 +166,14 @@ uint8_t* uart_decode_register(uint32_t address, bool write) {
 						if (regs->txtop + 1 < FIFOSIZE) {
 							regs->txtop += 1;
 						}
-						else {
-							uart_linestatus_cleartransmitterempty();
-						}
+						// Not right
+						//else {
+						//	uart_linestatus_cleartransmitterempty(regs);
+						//}
 						return txslot;
 					}
 					else {
-						uart_linestatus_cleartransmitterempty();
+						uart_linestatus_clear_transmitterholdingregisterempty(regs);
 						return &(regs->txfifo[0]);
 					}
 				}
@@ -207,6 +230,9 @@ uint8_t uart_read_byte(uint32_t address) {
 }
 
 void uart_write_byte(uint32_t address, uint8_t value) {
+
+	printf("uart_write_byte(0x%x, 0x%x)\n", address, value);
+
 	uint8_t* reg = uart_decode_register(address, true);
 	*reg = value;
 }
@@ -224,12 +250,28 @@ void uart_tick() {
 			int bytes = 0;
 			if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
 				if (bytes > 0) {
-					printf("%c\n", byte);
+					//printf("%c\n", byte);
 				}
 			}
-
 		}
-		board_raise_interrupt(&uartcard);
+		//board_raise_interrupt(&uartcard);
+
+	}
+
+	// Check the transmitter, if there is a byte start "transmitting it"
+
+	for (int i = 0; i < NUMOFCHANNELS; i++) {
+		if (!uart_linestatus_transmitterholdingregisterempty(&channels[i].registers)) {
+			printf("%c\n", channels[i].registers.txfifo[0]);
+			uart_linestatus_settransmitterempty(&channels[i].registers);
+		}
+		if (!uart_transmitter_is_empty(&channels[i].registers)) {
+			channels[i].txclock++;
+			if (channels[i].txclock == 16) {
+				channels[i].txclock = 0;
+				uart_linestatus_settransmitterempty(&channels[i].registers);
+			}
+		}
 	}
 
 }

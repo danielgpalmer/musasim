@@ -22,6 +22,7 @@ void machine();
 void video();
 void sound();
 void input();
+void uart();
 
 int main(int argc, char* argv[]) {
 
@@ -52,6 +53,12 @@ int main(int argc, char* argv[]) {
 			input();
 			printf("\n");
 		}
+		else if (strcmp(argv[1], "uart") == 0) {
+			printf("/* uart.h */\n\n");
+			common();
+			uart();
+			printf("\n");
+		}
 	}
 	return 0;
 }
@@ -75,6 +82,10 @@ void video() {
 
 void sound() {
 
+}
+
+void uart() {
+	printf("volatile uint8_t* uart_start = (uint8_t*) 0x%x;\n", SLOT_OFFSET(SLOT_UARTCARD));
 }
 
 void input() {
