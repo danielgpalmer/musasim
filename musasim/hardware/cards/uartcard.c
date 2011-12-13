@@ -210,37 +210,50 @@ void uart_write_byte(uint32_t address, uint8_t value) {
 
 void uart_tick() {
 
-	static int sixteendivider = 0;
-	static uint8_t byte;
+	//static int sixteendivider = 0;
+	//static uint8_t byte;
 
-	sixteendivider++;
-	if (sixteendivider == 16) {
-		sixteendivider = 0;
-		for (int i = 0; i < NUMOFCHANNELS; i++) {
-			//write(channels[i].ptm, "x", 1);
-			int bytes = 0;
-			if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
-				if (bytes > 0) {
-					//printf("%c\n", byte);
-				}
-			}
-		}
-		//board_raise_interrupt(&uartcard);
+	//sixteendivider++;
+	//if (sixteendivider == 16) {
+	//	sixteendivider = 0;
+	//	for (int i = 0; i < NUMOFCHANNELS; i++) {
+	//		//write(channels[i].ptm, "x", 1);
+	//		int bytes = 0;
+	//		if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
+	///			if (bytes > 0) {
+	//				//printf("%c\n", byte);
+	////			}
+	//		}
+	//	}
+	//board_raise_interrupt(&uartcard);
 
-	}
+	//}
 
 	// Check the transmitter, if there is a byte start "transmitting it"
 
+	//for (int i = 0; i < NUMOFCHANNELS; i++) {
+
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
-		if (!uart_bitset(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, (channels[i].registers.line_status))) {
-			printf("%c\n", channels[i].registers.txfifo[0]);
-		}
+
+		// Are we transmitting?
 		if (!uart_bitset(LINESTATUS_TRANSMITTEREMPTY, (channels[i].registers.line_status))) {
 			channels[i].txclock++;
+			// end of byte
 			if (channels[i].txclock == 16) {
 				channels[i].txclock = 0;
+				// transmitter is now empty
 				uart_setbit(LINESTATUS_TRANSMITTEREMPTY, &(channels[i].registers.line_status));
 			}
+		}
+
+		// Check if we have data that is ready to be shifted out
+		if (!uart_bitset(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, (channels[i].registers.line_status))) {
+			printf("%c\n", channels[i].registers.txfifo[0]);
+			// move data to transmitter
+
+			// We're transmitting
+			uart_clearbit(LINESTATUS_TRANSMITTEREMPTY, &(channels[i].registers.line_status));
+
 		}
 	}
 
