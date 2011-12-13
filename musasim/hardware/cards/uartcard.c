@@ -45,6 +45,23 @@ typedef struct {
 
 channel channels[NUMOFCHANNELS];
 
+void uart_clearbit(uint8_t mask, uint8_t* target) {
+	*target &= !mask;
+}
+
+void uart_setbit(uint8_t mask, uint8_t* target) {
+	*target |= mask;
+}
+
+bool uart_bitset(uint8_t mask, uint8_t target) {
+	return (target & mask) == mask ? true : false;
+}
+
+void uart_reset_channel(channel* chan) {
+	chan->registers.line_status = 0x60;
+	chan->registers.interrupt_identification = 0x01;
+}
+
 void uart_init() {
 
 	int ptm;
@@ -66,8 +83,7 @@ void uart_init() {
 			}
 		}
 
-		channels[i].registers.line_status = 0x60;
-
+		uart_reset_channel(&(channels[i]));
 	}
 }
 
@@ -85,14 +101,6 @@ void uart_dispose() {
 #define FIFOCONTROL_DMAMODESELECT 0x10
 #define FIFOCONTROL_RCVRTRIGGER 0x03
 
-bool uart_fifo_enabled(registers* regs) {
-	return ((regs->fifo_control & FIFOCONTROL_ENABLE) == FIFOCONTROL_ENABLE) ? true : false;
-}
-
-uint8_t uart_fifo_rcvrtrigger(registers* regs) {
-	return regs->fifo_control && FIFOCONTROL_RCVRTRIGGER;
-}
-
 /*
  * A3		->	Channel
  * A2 - A0	->	A2 - A0
@@ -100,10 +108,6 @@ uint8_t uart_fifo_rcvrtrigger(registers* regs) {
  */
 
 #define LINECONTROL_DLAB 0x80
-
-bool uart_dlab_high(registers* regs) {
-	return (regs->line_control & LINECONTROL_DLAB) == LINECONTROL_DLAB ? true : false;
-}
 
 #define LINESTATUS_DATAREADY 0x80
 #define LINESTATUS_OVERRUNERROR 0x40
@@ -114,39 +118,6 @@ bool uart_dlab_high(registers* regs) {
 #define LINESTATUS_TRANSMITTEREMPTY 0x02
 #define LINESTATUS_ERRORINRCVRFIFO 0x01
 
-void uart_linestatus_setdataready() {
-
-}
-
-void uart_linestatus_cleardataready() {
-
-}
-
-void uart_linestatus_settransmitterempty(registers* regs) {
-	regs->line_status |= LINESTATUS_TRANSMITTEREMPTY;
-
-}
-
-void uart_linestatus_cleartransmitterempty(registers* regs) {
-	regs->line_status &= !LINESTATUS_TRANSMITTEREMPTY;
-}
-
-bool uart_transmitter_is_empty(registers* regs) {
-	return (regs->line_status & LINESTATUS_TRANSMITTEREMPTY) ? true : false;
-}
-
-void uart_linestatus_set_transmitterholdingregisterempty(registers* regs) {
-	regs->line_status |= LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY;
-}
-
-void uart_linestatus_clear_transmitterholdingregisterempty(registers* regs) {
-	regs->line_status &= !LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY;
-}
-
-bool uart_linestatus_transmitterholdingregisterempty(registers* regs) {
-	return (regs->line_status & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) ? true : false;
-}
-
 #define CHANNELMASK 0x08
 #define REGISTERMASK 0x07
 
@@ -156,12 +127,12 @@ uint8_t* uart_decode_register(uint32_t address, bool write) {
 
 	switch (reg) {
 		case 0x00:
-			if (uart_dlab_high(regs)) {
+			if (uart_bitset(LINECONTROL_DLAB, regs->line_control)) {
 				return &(regs->divisor_latch_lsb);
 			}
 			else {
 				if (write) {
-					if (uart_fifo_enabled(regs)) {
+					if (uart_bitset(FIFOCONTROL_ENABLE, regs->fifo_control)) {
 						uint8_t* txslot = &(regs->txfifo[regs->txtop]);
 						if (regs->txtop + 1 < FIFOSIZE) {
 							regs->txtop += 1;
@@ -173,29 +144,29 @@ uint8_t* uart_decode_register(uint32_t address, bool write) {
 						return txslot;
 					}
 					else {
-						uart_linestatus_clear_transmitterholdingregisterempty(regs);
+						uart_clearbit(LINESTATUS_TRANSMITTEREMPTY, &(regs->line_status));
 						return &(regs->txfifo[0]);
 					}
 				}
 				else {
-					if (uart_fifo_enabled(regs)) {
+					if (uart_bitset(FIFOCONTROL_ENABLE, regs->fifo_control)) {
 						uint8_t* rxslot = &(regs->rxfifo[regs->rxtop]);
 						if (regs->rxtop - 1 > 0) {
 							regs->rxtop -= 1;
 						}
 						else {
-							uart_linestatus_cleardataready();
+							uart_clearbit(LINESTATUS_DATAREADY, &(regs->line_status));
 						}
 						return rxslot;
 					}
 					else {
-						uart_linestatus_cleardataready();
+						uart_clearbit(LINESTATUS_DATAREADY, &(regs->line_status));
 						return &(regs->rxfifo[0]);
 					}
 				}
 			}
 		case 0x01:
-			if (uart_dlab_high(regs)) {
+			if (uart_bitset(LINECONTROL_DLAB, regs->line_control)) {
 				return &(regs->divisor_latch_msb);
 			}
 			else {
@@ -261,15 +232,14 @@ void uart_tick() {
 	// Check the transmitter, if there is a byte start "transmitting it"
 
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
-		if (!uart_linestatus_transmitterholdingregisterempty(&channels[i].registers)) {
+		if (!uart_bitset(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, (channels[i].registers.line_status))) {
 			printf("%c\n", channels[i].registers.txfifo[0]);
-			uart_linestatus_settransmitterempty(&channels[i].registers);
 		}
-		if (!uart_transmitter_is_empty(&channels[i].registers)) {
+		if (!uart_bitset(LINESTATUS_TRANSMITTEREMPTY, (channels[i].registers.line_status))) {
 			channels[i].txclock++;
 			if (channels[i].txclock == 16) {
 				channels[i].txclock = 0;
-				uart_linestatus_settransmitterempty(&channels[i].registers);
+				uart_setbit(LINESTATUS_TRANSMITTEREMPTY, &(channels[i].registers.line_status));
 			}
 		}
 	}
