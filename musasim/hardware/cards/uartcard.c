@@ -211,17 +211,11 @@ uint8_t* uart_decode_register(uint32_t address, bool write) {
 }
 
 uint8_t uart_read_byte(uint32_t address) {
-
-	log_println(LEVEL_DEBUG, TAG, "read");
-
 	uint8_t* reg = uart_decode_register(address, false);
 	return *reg;
 }
 
 void uart_write_byte(uint32_t address, uint8_t value) {
-
-	log_println(LEVEL_DEBUG, TAG, "write");
-
 	uint8_t* reg = uart_decode_register(address, true);
 	*reg = value;
 }
@@ -264,7 +258,7 @@ void uart_tick() {
 	for (int i = 0; i < 1; i++) {
 
 		channel* channel = &(channels[i]);
-		log_println(LEVEL_DEBUG, TAG, "Updating channel %d - LS 0x%x", i, channel->registers.line_status);
+		//log_println(LEVEL_DEBUG, TAG, "Updating channel %d - LS 0x%x", i, channel->registers.line_status);
 
 		// Are we transmitting?
 		if (!uart_bitset(LINESTATUS_TRANSMITTEREMPTY, channel->registers.line_status)) {
@@ -284,7 +278,7 @@ void uart_tick() {
 		}
 
 		else {
-			log_println(LEVEL_DEBUG, TAG, "Transmitter is empty!");
+			//log_println(LEVEL_DEBUG, TAG, "Transmitter is empty!");
 
 			// Check if we have data that is ready to be shifted out
 			if (!uart_bitset(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, channel->registers.line_status)) {

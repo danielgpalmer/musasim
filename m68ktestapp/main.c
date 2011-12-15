@@ -93,7 +93,7 @@ void gputs(char* string) {
 void sputs(char* string) {
 	char c;
 	while ((c = *string++) != 0) {
-		while ((*(uart_start + 5) & 0x40) != 0x40) {
+		while ((*(uart_start + 5) & 0x20) != 0x20) {
 			// nop
 		}
 		*uart_start = c;
