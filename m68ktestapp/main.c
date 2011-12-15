@@ -37,7 +37,7 @@ void interrupthandler() {
 }
 
 void vblank_handler() __attribute (( interrupt));
-void vblank_handler(){
+void vblank_handler() {
 
 	uint8_t port0 = *input_start;
 
@@ -90,6 +90,16 @@ void gputs(char* string) {
 	}
 }
 
+void sputs(char* string) {
+	char c;
+	while ((c = *string++) != 0) {
+		while ((*(uart_start + 5) & 0x40) != 0x40) {
+			// nop
+		}
+		*uart_start = c;
+	}
+}
+
 int main(void) {
 
 	//uint16_t sr = getstatusregister();
@@ -100,16 +110,11 @@ int main(void) {
 
 //puts(helloworld);
 
-	gputs("H");
+	gputs("Hello World!");
+	sputs("Hello World!");
 
 	while (1) {
 
-
-		while((*(uart_start + 5) & 0x40) != 0x40){
-			// nop
-		}
-
-		*uart_start = 'A';
 
 		//for (int y = 0; y < HEIGHT; y++) {
 		//	for (int x = 0; x < WIDTH; x++) {
