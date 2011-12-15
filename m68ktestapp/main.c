@@ -104,6 +104,11 @@ int main(void) {
 
 	while (1) {
 
+
+		while((*(uart_start + 5) & 0x40) != 0x40){
+			// nop
+		}
+
 		*uart_start = 'A';
 
 		//for (int y = 0; y < HEIGHT; y++) {

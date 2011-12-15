@@ -118,7 +118,6 @@ void uart_dispose() {
 #define LINECONTROL_PARITYENABLE 0x08
 #define LINECONTROL_NUMBEROFSTOPBITS 0x04
 #define LINECONTROL_WORDLENGTHSELECT 0x03 // two bits
-
 #define LINESTATUS_DATAREADY 0x01
 #define LINESTATUS_OVERRUNERROR 0x02
 #define LINESTATUS_PARITYERROR 0x04
@@ -154,6 +153,11 @@ uint8_t* uart_decode_register(uint32_t address, bool write) {
 						return txslot;
 					}
 					else {
+
+						if (!uart_bitset(LINESTATUS_TRANSMITTEREMPTY, regs->line_status)) {
+							log_println(LEVEL_DEBUG, TAG, "TX overrun!");
+						}
+
 						uart_clearbit(LINESTATUS_TRANSMITTEREMPTY, &(regs->line_status));
 						return &(regs->txfifo[0]);
 					}
