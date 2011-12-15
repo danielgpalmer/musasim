@@ -14,10 +14,14 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "../../logging.h"
+
 #include "../board.h"
 
 #define FIFOSIZE 16
 #define NUMOFCHANNELS 2
+
+const char TAG[] = "uart";
 
 typedef struct {
 	uint8_t rxfifo[FIFOSIZE];
@@ -40,7 +44,7 @@ typedef struct {
 typedef struct {
 	registers registers;
 	int ptm;
-	int txclock;
+	unsigned int txclock;
 } channel;
 
 channel channels[NUMOFCHANNELS];
@@ -58,6 +62,7 @@ bool uart_bitset(uint8_t mask, uint8_t target) {
 }
 
 void uart_reset_channel(channel* chan) {
+	chan->txclock = 0;
 	chan->registers.line_status = 0x60;
 	chan->registers.interrupt_identification = 0x01;
 }
@@ -109,14 +114,14 @@ void uart_dispose() {
 
 #define LINECONTROL_DLAB 0x80
 
-#define LINESTATUS_DATAREADY 0x80
-#define LINESTATUS_OVERRUNERROR 0x40
-#define LINESTATUS_PARITYERROR 0x20
-#define LINESTATUS_FRAMINGERROR 0x10
-#define LINESTATUS_BREAKINTERRUPT 0x08
-#define LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY 0x04
-#define LINESTATUS_TRANSMITTEREMPTY 0x02
-#define LINESTATUS_ERRORINRCVRFIFO 0x01
+#define LINESTATUS_DATAREADY 0x01
+#define LINESTATUS_OVERRUNERROR 0x02
+#define LINESTATUS_PARITYERROR 0x04
+#define LINESTATUS_FRAMINGERROR 0x08
+#define LINESTATUS_BREAKINTERRUPT 0x20
+#define LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY 0x20
+#define LINESTATUS_TRANSMITTEREMPTY 0x40
+#define LINESTATUS_ERRORINRCVRFIFO 0x80
 
 #define CHANNELMASK 0x08
 #define REGISTERMASK 0x07
@@ -202,13 +207,20 @@ uint8_t uart_read_byte(uint32_t address) {
 
 void uart_write_byte(uint32_t address, uint8_t value) {
 
-	printf("uart_write_byte(0x%x, 0x%x)\n", address, value);
-
 	uint8_t* reg = uart_decode_register(address, true);
 	*reg = value;
 }
 
 void uart_tick() {
+
+	// slow this down a bit for now
+	static int divider = 0;
+	divider++;
+	if (divider < 2048) {
+		return;
+	}
+
+	divider = 0;
 
 	//static int sixteendivider = 0;
 	//static uint8_t byte;
@@ -233,28 +245,46 @@ void uart_tick() {
 
 	//for (int i = 0; i < NUMOFCHANNELS; i++) {
 
-	for (int i = 0; i < NUMOFCHANNELS; i++) {
+	//for (int i = 0; i < NUMOFCHANNELS; i++) {
+	for (int i = 0; i < 1; i++) {
+
+		channel* channel = &(channels[i]);
 
 		// Are we transmitting?
-		if (!uart_bitset(LINESTATUS_TRANSMITTEREMPTY, (channels[i].registers.line_status))) {
-			channels[i].txclock++;
+		if (!uart_bitset(LINESTATUS_TRANSMITTEREMPTY, channel->registers.line_status)) {
+
+			log_println(LEVEL_DEBUG, TAG, "Transmitting .. clock %d", channel->txclock);
+
+			channel->txclock++;
 			// end of byte
-			if (channels[i].txclock == 16) {
-				channels[i].txclock = 0;
+			if (channel->txclock == 16) {
+				channel->txclock = 0;
+
+				log_println(LEVEL_DEBUG, TAG, "Transmitter has finished");
+
 				// transmitter is now empty
-				uart_setbit(LINESTATUS_TRANSMITTEREMPTY, &(channels[i].registers.line_status));
+				uart_setbit(LINESTATUS_TRANSMITTEREMPTY, &(channel->registers.line_status));
 			}
 		}
 
-		// Check if we have data that is ready to be shifted out
-		if (!uart_bitset(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, (channels[i].registers.line_status))) {
-			printf("%c\n", channels[i].registers.txfifo[0]);
-			// move data to transmitter
+		// Are we not transmitting .. this check has to happen hence not an else if
+		if (uart_bitset(LINESTATUS_TRANSMITTEREMPTY, (channels[i].registers.line_status))) {
+			log_println(LEVEL_DEBUG, TAG, "Transmitter is empty!");
 
-			// We're transmitting
-			uart_clearbit(LINESTATUS_TRANSMITTEREMPTY, &(channels[i].registers.line_status));
+			// Check if we have data that is ready to be shifted out
+			if (!uart_bitset(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, channel->registers.line_status)) {
 
+				log_println(LEVEL_DEBUG, TAG, "Holding register has something");
+
+				// move data to transmitter .. which is really a cheat.. we just write it to the pty
+				write(channel->ptm, &(channel->registers.txfifo[0]), 1);
+				log_println(LEVEL_DEBUG, TAG, "Sent [%c]", channel->registers.txfifo[0]);
+
+				// We're transmitting
+				uart_clearbit(LINESTATUS_TRANSMITTEREMPTY, &(channel->registers.line_status));
+			}
 		}
+
 	}
 
 }

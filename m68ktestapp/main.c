@@ -100,11 +100,11 @@ int main(void) {
 
 //puts(helloworld);
 
-	gputs("Hello, world!");
+	gputs("H");
 
 	while (1) {
 
-		//*uart_start = 'A';
+		*uart_start = 'A';
 
 		//for (int y = 0; y < HEIGHT; y++) {
 		//	for (int x = 0; x < WIDTH; x++) {
