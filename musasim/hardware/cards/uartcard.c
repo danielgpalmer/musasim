@@ -45,6 +45,8 @@ typedef struct {
 	registers registers;
 	int ptm;
 	unsigned int txclock;
+	int clockdivider;
+	bool dlabwilllatch;
 } channel;
 
 channel channels[NUMOFCHANNELS];
@@ -220,23 +222,12 @@ void uart_write_byte(uint32_t address, uint8_t value) {
 	*reg = value;
 }
 
-static int clock_divider = 0;
 static int clocks = 0;
+
 void uart_tick() {
 
-	// slow this down a bit for now
-
 	clocks++;
-	if (clocks < clock_divider) {
-		return;
-	}
 
-	clocks = 0;
-
-	//static int sixteendivider = 0;
-	//static uint8_t byte;
-
-	//sixteendivider++;
 	//if (sixteendivider == 16) {
 	//	sixteendivider = 0;
 	//	for (int i = 0; i < NUMOFCHANNELS; i++) {
@@ -252,14 +243,23 @@ void uart_tick() {
 
 	//}
 
-	// Check the transmitter, if there is a byte start "transmitting it"
-
-	//for (int i = 0; i < NUMOFCHANNELS; i++) {
-
-	//for (int i = 0; i < NUMOFCHANNELS; i++) {
-	for (int i = 0; i < 1; i++) {
-
+	for (int i = 0; i < NUMOFCHANNELS; i++) {
 		channel* channel = &(channels[i]);
+
+		if (!uart_bitset(LINECONTROL_DLAB, channel->registers.line_control)) {
+			channel->dlabwilllatch = true;
+		}
+		else {
+			if (channel->dlabwilllatch) {
+				channel->clockdivider = (channel->registers.divisor_latch_msb << 8)
+						+ channel->registers.divisor_latch_lsb;
+				log_println(LEVEL_DEBUG, TAG, "Clock divider changed to %d for channel %d", channel->clockdivider, i);
+			}
+		}
+
+		if (clocks % channel->clockdivider != 0) {
+			break;
+		}
 		//log_println(LEVEL_DEBUG, TAG, "Updating channel %d - LS 0x%x", i, channel->registers.line_status);
 
 		// Are we transmitting?
