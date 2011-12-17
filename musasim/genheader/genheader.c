@@ -13,6 +13,7 @@
 #include "../sim.h"
 #include "../hardware/board.h"
 #include "../hardware/cards/videocard.h"
+#include "../hardware/cards/uartcard.h"
 
 char headers[] = "#include <stdint.h>\n"
 		"\n\n";
@@ -85,7 +86,12 @@ void sound() {
 }
 
 void uart() {
-	printf("volatile uint8_t* uart_start = (uint8_t*) 0x%x;\n", SLOT_OFFSET(SLOT_UARTCARD));
+	printf("volatile uint8_t* uart_chan0_rxtx = (uint8_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_RXTXBUFFER);
+	printf("volatile uint8_t* uart_chan0_linecontrol = (uint8_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINECONTROL);
+	printf("volatile uint8_t* uart_chan0_linestatus = (uint8_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINESTATUS);
 }
 
 void input() {

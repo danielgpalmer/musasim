@@ -9,7 +9,10 @@
 #define UARTCARD_H_
 
 #include "card.h"
-
 card uartcard;
+
+#define UART_REGISTER_RXTXBUFFER 0
+#define UART_REGISTER_LINECONTROL 3
+#define UART_REGISTER_LINESTATUS 5
 
 #endif /* UARTCARD_H_ */

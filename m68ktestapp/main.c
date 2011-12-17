@@ -90,14 +90,28 @@ void gputs(char* string) {
 	}
 }
 
+void sputch(char ch) {
+	while ((*(uart_chan0_linestatus) & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY)
+			!= LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) {
+		// nop
+	}
+	*uart_chan0_rxtx = ch;
+}
+
 void sputs(char* string) {
 	char c;
 	while ((c = *string++) != 0) {
-		while ((*(uart_start + 5) & 0x20) != 0x20) {
-			// nop
-		}
-		*uart_start = c;
+		sputch(c);
 	}
+}
+
+char sgetch() {
+
+	while (!(*(uart_chan0_linestatus) & LINESTATUS_DATAREADY)) {
+
+	}
+
+	return *uart_chan0_rxtx;
 }
 
 int main(void) {
@@ -120,6 +134,8 @@ int main(void) {
 		//		*(video + (WIDTH * y) + x) = x * y;
 		//	}
 		//}
+
+		sputch(sgetch());
 
 	}
 
