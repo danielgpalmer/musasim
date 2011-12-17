@@ -7,6 +7,9 @@
 #include "../board.h"
 #include "videocard.h"
 #include "../../sim.h"
+#include "../../logging.h"
+
+static const char TAG[] = "video";
 
 uint16_t flags;
 uint16_t config;
@@ -102,12 +105,13 @@ void video_threadfunc(void* data) {
 
 void video_init() {
 
-	printf("video_init()\n");
+	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
 	SDL_Init(SDL_INIT_EVERYTHING);
 	screen = SDL_SetVideoMode(WIDTH, HEIGHT, PIXELFORMAT, SDL_SWSURFACE);
 
-	printf("Created surface; %d x %d pixels @ %dBPP\n", screen->w, screen->h, screen->format->BitsPerPixel);
+	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
+			screen->format->BitsPerPixel);
 
 	pixels = (void*) screen->pixels;
 	memoryend = ((screen->w * screen->h) * PIXELSIZE);

@@ -21,7 +21,7 @@
 #define FIFOSIZE 16
 #define NUMOFCHANNELS 2
 
-const char TAG[] = "uart";
+static const char TAG[] = "uart";
 
 typedef struct {
 	uint8_t rxfifo[FIFOSIZE];
@@ -72,15 +72,15 @@ void uart_init() {
 	int ptm;
 
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
-		printf("Opening PTY for channel %d\n", i);
+		log_println(LEVEL_INFO, TAG, "Opening PTY for channel %d", i);
 		ptm = posix_openpt(O_RDWR | O_NOCTTY);
 		if (ptm == -1) {
-			printf("FAILED!\n");
+			log_println(LEVEL_INFO, TAG, "failed opening PTY!");
 		}
 		else {
 			grantpt(ptm);
 			unlockpt(ptm);
-			printf("Channel %d pts is %s\n", i, ptsname(ptm));
+			log_println(LEVEL_INFO, TAG, "Channel %d pts is %s", i, ptsname(ptm));
 			channels[i].ptm = ptm;
 			int flags = fcntl(ptm, F_GETFL);
 			if (!(flags & O_NONBLOCK)) {
@@ -220,16 +220,18 @@ void uart_write_byte(uint32_t address, uint8_t value) {
 	*reg = value;
 }
 
+static int clock_divider = 0;
+static int clocks = 0;
 void uart_tick() {
 
 	// slow this down a bit for now
-	static int divider = 0;
-	divider++;
-	if (divider < 2048) {
+
+	clocks++;
+	if (clocks < clock_divider) {
 		return;
 	}
 
-	divider = 0;
+	clocks = 0;
 
 	//static int sixteendivider = 0;
 	//static uint8_t byte;

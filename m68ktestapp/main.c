@@ -110,11 +110,11 @@ int main(void) {
 
 //puts(helloworld);
 
-	gputs("Hello World!");
-	sputs("Hello World!");
 
 	while (1) {
 
+		sputs("Hello World!");
+		gputs("Hello World!");
 
 		//for (int y = 0; y < HEIGHT; y++) {
 		//	for (int x = 0; x < WIDTH; x++) {

@@ -7,6 +7,7 @@
 #include <glib.h>
 
 #include "sim.h"
+#include "logging.h"
 #include "m68k.h"
 
 #include "hardware/board.h"
@@ -20,6 +21,8 @@
 
 bool shouldexit = false;
 
+static const char TAG[] = "sim";
+
 void cpu_pulse_reset(void) {
 
 }
@@ -31,7 +34,7 @@ void cpu_set_fc(unsigned int fc) {
 
 void sim_init() {
 
-	printf("sim_init()\n");
+	log_println(LEVEL_DEBUG, TAG, "sim_init()");
 	g_thread_init(NULL);
 
 	board_add_device(SLOT_ROMCARD, &romcard);
@@ -57,8 +60,7 @@ void sim_tick() {
 }
 
 void sim_quit() {
-
-	printf("sim_quit()\n");
+	log_println(LEVEL_DEBUG, TAG, "sim_quit()");
 	board_poweroff();
 	m68k_end_timeslice();
 	shouldexit = true;

@@ -3,7 +3,10 @@
 
 #include "stdio.h"
 #include "board.h"
+#include "../logging.h"
 #include "../m68kcpu.h"
+
+static char TAG[] = "board";
 
 /*
  *
@@ -130,7 +133,9 @@ void board_raise_interrupt(card* card) {
 
 	// The current driver is requesting interrupt again?
 	if (interruptswaiting[slot] || curslot == slot) {
-		printf("reissue\n");
+		log_println(LEVEL_DEBUG, TAG,
+				"Slot %d tried to raise an interrupt while it is already scheduled to have it's interrupt serviced",
+				slot);
 		return;
 	}
 
