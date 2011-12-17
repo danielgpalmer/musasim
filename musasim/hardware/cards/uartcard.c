@@ -346,7 +346,7 @@ void uart_tick() {
 }
 
 void uart_irq_ack() {
-	//printf("uart_irq_ack()\n");
+	log_println(LEVEL_DEBUG, TAG, "uart_irq_ack()");
 	board_lower_interrupt(&uartcard);
 }
 
