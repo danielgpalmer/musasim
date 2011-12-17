@@ -96,7 +96,7 @@ void video_threadfunc(void* data) {
 
 	}
 
-	printf("** exit ! **\n");
+	log_println(LEVEL_INFO, TAG, "Window was closed");
 
 	sim_quit();
 
@@ -134,7 +134,7 @@ void video_init() {
 
 void video_dispose() {
 
-	printf("video_dispose()\n");
+	log_println(LEVEL_DEBUG, TAG, "video_dispose()");
 
 }
 

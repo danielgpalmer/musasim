@@ -70,6 +70,17 @@ void uart_reset_channel(channel* chan) {
 	chan->clockdivider = 0;
 }
 
+char uart_make_safe_char(char achar) {
+	switch (achar) {
+		case '\n':
+			return ' ';
+		case '\r':
+			return ' ';
+		default:
+			return achar;
+	}
+}
+
 void uart_init() {
 
 	int ptm;
@@ -278,7 +289,8 @@ void uart_tick() {
 
 				// move data to transmitter .. which is really a cheat.. we just write it to the pty
 				write(channel->ptm, &(channel->registers.txfifo[0]), 1);
-				log_println(LEVEL_DEBUG, TAG, "Sent [%c]", channel->registers.txfifo[0]);
+				log_println(LEVEL_DEBUG, TAG, "Sent 0x%02x[%c]", channel->registers.txfifo[0],
+						uart_make_safe_char(channel->registers.txfifo[0]));
 
 				// We're transmitting
 				uart_clearbit(LINESTATUS_TRANSMITTEREMPTY, &(channel->registers.line_status));
@@ -291,13 +303,20 @@ void uart_tick() {
 
 		// receiver
 
-		//int bytes;
-		//char byte;
-		//if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
-		//	if (bytes > 0) {
-		//		//log_println(LEVEL_DEBUG, TAG, "Read byte 0x%02x[%c] from pty", byte, byte);
-		//	}
-		//}
+		int bytes;
+		char byte;
+		if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
+			if (bytes > 0) {
+				log_println(LEVEL_DEBUG, TAG, "Read byte 0x%02x[%c] from pty", byte, uart_make_safe_char(byte));
+
+				channel->registers.rxfifo[0] = byte;
+				if (uart_bitset(LINESTATUS_DATAREADY, channel->registers.line_status)) {
+					log_println(LEVEL_DEBUG, TAG, "RX Overflow");
+					uart_setbit(LINESTATUS_OVERRUNERROR, &(channel->registers.line_status));
+				}
+				uart_setbit(LINESTATUS_DATAREADY, &(channel->registers.line_status));
+			}
+		}
 
 	}
 
