@@ -68,6 +68,9 @@ void sim_quit() {
 }
 
 void sim_reset() {
+
+	log_println(LEVEL_DEBUG, TAG, "sim_reset()");
+
 	m68k_pulse_reset();
 }
 

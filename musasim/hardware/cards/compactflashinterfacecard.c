@@ -7,4 +7,4 @@
 
 #include "compactflashinterfacecard.h"
 
-card compactflashinterfacecard = { "", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+card compactflashinterfacecard = { "CF INTERFACE", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };

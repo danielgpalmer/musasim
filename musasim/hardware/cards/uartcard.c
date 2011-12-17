@@ -67,6 +67,7 @@ void uart_reset_channel(channel* chan) {
 	chan->txclock = 0;
 	chan->registers.line_status = 0x60;
 	chan->registers.interrupt_identification = 0x01;
+	chan->clockdivider = 0;
 }
 
 void uart_init() {
@@ -222,33 +223,19 @@ void uart_write_byte(uint32_t address, uint8_t value) {
 	*reg = value;
 }
 
-static int clocks = 0;
-
 void uart_tick() {
 
+	static int clocks = 0;
 	clocks++;
 
-	//if (sixteendivider == 16) {
-	//	sixteendivider = 0;
-	//	for (int i = 0; i < NUMOFCHANNELS; i++) {
-	//		//write(channels[i].ptm, "x", 1);
-	//		int bytes = 0;
-	//		if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
-	///			if (bytes > 0) {
-	//				//printf("%c\n", byte);
-	////			}
-	//		}
-	//	}
-	//board_raise_interrupt(&uartcard);
-
-	//}
-
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
+
 		channel* channel = &(channels[i]);
 
 		if (!uart_bitset(LINECONTROL_DLAB, channel->registers.line_control)) {
 			channel->dlabwilllatch = true;
 		}
+
 		else {
 			if (channel->dlabwilllatch) {
 				channel->clockdivider = (channel->registers.divisor_latch_msb << 8)
@@ -257,8 +244,10 @@ void uart_tick() {
 			}
 		}
 
-		if (clocks % channel->clockdivider != 0) {
-			break;
+		if (channel->clockdivider != 0) {
+			if (clocks % channel->clockdivider != 0) {
+				break;
+			}
 		}
 		//log_println(LEVEL_DEBUG, TAG, "Updating channel %d - LS 0x%x", i, channel->registers.line_status);
 
@@ -299,6 +288,16 @@ void uart_tick() {
 
 			}
 		}
+
+		// receiver
+
+		//int bytes;
+		//char byte;
+		//if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
+		//	if (bytes > 0) {
+		//		//log_println(LEVEL_DEBUG, TAG, "Read byte 0x%02x[%c] from pty", byte, byte);
+		//	}
+		//}
 
 	}
 

@@ -31,7 +31,7 @@ uint8_t board_decode_slot(uint32_t address) {
 	uint8_t slot = (address & SLOTADDRESSMASK) >> 21;
 
 	if (slots[slot] == NULL) {
-		printf("*** NO CARD IN SLOT ***\n");
+		log_println(LEVEL_DEBUG, TAG, "Address decoded to slot %d but there is no card in that slot", slot);
 		return NOCARD;
 	}
 
@@ -40,6 +40,9 @@ uint8_t board_decode_slot(uint32_t address) {
 }
 
 void board_add_device(uint8_t slot, card *card) {
+
+	log_println(LEVEL_DEBUG, TAG, "Inserting %s into slot %d", card->boardinfo, slot);
+
 	slots[slot] = card;
 	if (card->init != NULL) {
 		(card->init)();

@@ -7,6 +7,9 @@
 
 #include <stdio.h>
 #include "inputcard.h"
+#include "../../logging.h"
+
+static const char TAG[] = "input";
 
 // Basically a megadrive pad..
 
@@ -34,6 +37,9 @@
 uint8_t ports[2];
 
 void inputcard_init() {
+
+	log_println(LEVEL_DEBUG, TAG, "inputcard_init()");
+
 	for (int i = 0; i < sizeof(ports); i++) {
 		ports[i] = 0;
 	}
