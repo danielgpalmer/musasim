@@ -16,9 +16,11 @@ input.h: genheader
 	./genheader input > input.h
 	gcc -x c -fsyntax-only input.h
 	
-uart.h: genheader
+uart.h: genheader ../hardware/cards/uartregistermasks.h
 	./genheader uart > uart.h
+	cat ../hardware/cards/uartregistermasks.h >> uart.h
 	gcc -x c -fsyntax-only uart.h
+
 
 genheader: genheader.c Makefile
 	gcc genheader.c -o genheader
