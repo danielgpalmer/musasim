@@ -188,11 +188,11 @@ uint8_t* uart_decode_register(uint32_t address, bool write) {
 			else {
 				return &(regs->interrupt_identification);
 			}
-		case 0x03:
+		case UART_REGISTER_LINECONTROL:
 			return &(regs->line_control);
-		case 0x04:
+		case UART_REGISTER_MODEMCONTROL:
 			return &(regs->modem_control);
-		case 0x05:
+		case UART_REGISTER_LINESTATUS:
 			return &(regs->line_status);
 		case 0x06:
 			return &(regs->modem_status);
@@ -278,6 +278,12 @@ void uart_tick() {
 				// holding register is now empty
 				uart_setbit(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, &(channel->registers.line_status));
 
+				// TX interrupt
+
+				if (uart_bitset(INTERRUPTENALBE_ETBEI, channel->registers.interrupt_enable)) {
+					board_raise_interrupt(&uartcard);
+				}
+
 			}
 		}
 
@@ -295,6 +301,13 @@ void uart_tick() {
 					uart_setbit(LINESTATUS_OVERRUNERROR, &(channel->registers.line_status));
 				}
 				uart_setbit(LINESTATUS_DATAREADY, &(channel->registers.line_status));
+
+				// RX interrupt
+				if (uart_bitset(INTERRUPTENABLE_ERBFI, channel->registers.interrupt_enable)) {
+					//uart_setbit(INTERRUPTIDENTIFY_, &(channel->registers.interrupt_identification));
+					board_raise_interrupt(&uartcard);
+				}
+
 			}
 		}
 

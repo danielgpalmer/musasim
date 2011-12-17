@@ -46,7 +46,7 @@ void inputcard_init() {
 }
 
 uint8_t inputcard_read_byte(uint32_t address) {
-	printf("inputcard_read_byte()\n");
+	log_println(LEVEL_DEBUG, TAG, "inputcard_read_byte()");
 	int port = address & 0x1;
 	return ports[port];
 

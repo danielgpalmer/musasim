@@ -22,6 +22,30 @@ int16_t initedvar = 0;
 
 volatile char something[4] = { 0xff, 0xaa, 0xff, 0xaa };
 
+void sputch(char ch) {
+	while ((*(uart_chan0_linestatus) & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY)
+			!= LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) {
+		// nop
+	}
+	*uart_chan0_rxtx = ch;
+}
+
+void sputs(char* string) {
+	char c;
+	while ((c = *string++) != 0) {
+		sputch(c);
+	}
+}
+
+char sgetch() {
+
+	while (!(*(uart_chan0_linestatus) & LINESTATUS_DATAREADY)) {
+
+	}
+
+	return *uart_chan0_rxtx;
+}
+
 //void puts(char* string) {
 //
 //	char c;
@@ -41,6 +65,11 @@ void vblank_handler() {
 
 	uint8_t port0 = *input_start;
 
+}
+
+void uart_handler() __attribute (( interrupt));
+void uart_handler() {
+	sputch(sgetch());
 }
 
 uint16_t getstatusregister() {
@@ -90,39 +119,17 @@ void gputs(char* string) {
 	}
 }
 
-void sputch(char ch) {
-	while ((*(uart_chan0_linestatus) & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY)
-			!= LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) {
-		// nop
-	}
-	*uart_chan0_rxtx = ch;
-}
-
-void sputs(char* string) {
-	char c;
-	while ((c = *string++) != 0) {
-		sputch(c);
-	}
-}
-
-char sgetch() {
-
-	while (!(*(uart_chan0_linestatus) & LINESTATUS_DATAREADY)) {
-
-	}
-
-	return *uart_chan0_rxtx;
-}
-
 int main(void) {
 
-	//uint16_t sr = getstatusregister();
-	//setstatusregister((sr & 0xf8ff));
+	uint16_t sr = getstatusregister();
+	setstatusregister((sr & 0xf8ff));
 
 //char helloworld[] = "Hello, World!\n";
 //char* string = helloworld;
 
 //puts(helloworld);
+
+	*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
 
 	gputs("Hello World!");
 	while (1) {
@@ -134,8 +141,6 @@ int main(void) {
 		//		*(video + (WIDTH * y) + x) = x * y;
 		//	}
 		//}
-
-		sputch(sgetch());
 
 	}
 

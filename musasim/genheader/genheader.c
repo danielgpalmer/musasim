@@ -88,10 +88,13 @@ void sound() {
 void uart() {
 	printf("volatile uint8_t* uart_chan0_rxtx = (uint8_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_RXTXBUFFER);
+	printf("volatile uint8_t* uart_chan0_interruptenable = (uint8_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_INTERRUPTENABLE);
 	printf("volatile uint8_t* uart_chan0_linecontrol = (uint8_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINECONTROL);
 	printf("volatile uint8_t* uart_chan0_linestatus = (uint8_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINESTATUS);
+
 }
 
 void input() {

@@ -289,7 +289,7 @@ void dumpregs() {
 }
 
 void videocard_irqack() {
-	printf("video irq ack\n");
+	log_println(LEVEL_DEBUG, TAG, "videocard_irqack()");
 	board_lower_interrupt(&videocard);
 }
 
