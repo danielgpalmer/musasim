@@ -48,6 +48,10 @@ typedef struct {
 	unsigned int txclock;
 	int clockdivider;
 	bool dlabwilllatch;
+	bool intpending_forth;
+	bool intpending_third;
+	bool intpending_second;
+	bool intpending_highest;
 } channel;
 
 channel channels[NUMOFCHANNELS];
@@ -125,7 +129,8 @@ void uart_dispose() {
 #define REGISTERMASK 0x07
 
 uint8_t* uart_decode_register(uint32_t address, bool write) {
-	registers* regs = &(channels[(address & CHANNELMASK) >> 4].registers);
+	channel* chan = &(channels[(address & CHANNELMASK) >> 4]);
+	registers* regs = &(chan->registers);
 	uint8_t reg = (address & REGISTERMASK);
 
 	switch (reg) {
@@ -186,6 +191,30 @@ uint8_t* uart_decode_register(uint32_t address, bool write) {
 				return &(regs->fifo_control);
 			}
 			else {
+
+				// clear the current id and pending bit
+				regs->interrupt_identification &= ~(INTERRUPTIDENTIFY_ID | INTERRUPTIDENTIFY_PENDING);
+
+				if (chan->intpending_highest) {
+					regs->interrupt_identification |= (INTERRUPTIDENTIFY_LEVEL_HIGHEST | INTERRUPTIDENTIFY_PENDING);
+					chan->intpending_highest = false;
+				}
+
+				else if (chan->intpending_second) {
+					regs->interrupt_identification |= (INTERRUPTIDENTIFY_LEVEL_SECOND | INTERRUPTIDENTIFY_PENDING);
+					chan->intpending_second = false;
+				}
+
+				else if (chan->intpending_third) {
+					regs->interrupt_identification |= (INTERRUPTIDENTIFY_LEVEL_THIRD | INTERRUPTIDENTIFY_PENDING);
+					chan->intpending_third = false;
+				}
+
+				else if (chan->intpending_forth) {
+					regs->interrupt_identification |= (INTERRUPTIDENTIFY_LEVEL_FORTH | INTERRUPTIDENTIFY_PENDING);
+					chan->intpending_forth = false;
+				}
+
 				return &(regs->interrupt_identification);
 			}
 		case UART_REGISTER_LINECONTROL:
@@ -281,6 +310,7 @@ void uart_tick() {
 				// TX interrupt
 
 				if (uart_bitset(INTERRUPTENALBE_ETBEI, channel->registers.interrupt_enable)) {
+					channel->intpending_third = true;
 					board_raise_interrupt(&uartcard);
 				}
 
@@ -304,7 +334,7 @@ void uart_tick() {
 
 				// RX interrupt
 				if (uart_bitset(INTERRUPTENABLE_ERBFI, channel->registers.interrupt_enable)) {
-					//uart_setbit(INTERRUPTIDENTIFY_, &(channel->registers.interrupt_identification));
+					channel->intpending_third = true;
 					board_raise_interrupt(&uartcard);
 				}
 
