@@ -13,11 +13,11 @@ clean:
 obj:
 	mkdir obj
 
-gdbserver: obj/gdbserver.o obj/sim.o obj/m68kcpugdb.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/logging.o libcards.a
-	$(CC) $(LFLAGS) -D GDBSERVER obj/gdbserver.o obj/sim.o obj/m68kcpugdb.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o obj/logging.o $(LIBCARDS) -o gdbserver
+gdbserver: obj/gdbserver.o obj/sim.o obj/m68kcpugdb.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/logging.o obj/utils.o libcards.a 
+	$(CC) $(LFLAGS) -D GDBSERVER obj/gdbserver.o obj/sim.o obj/m68kcpugdb.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o obj/logging.o obj/utils.o $(LIBCARDS) -o gdbserver
 
-musasim: obj/musasim.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/logging.o libcards.a 
-	$(CC) $(LFLAGS) obj/musasim.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o obj/logging.o $(LIBCARDS) -o musasim
+musasim: obj/musasim.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/logging.o obj/utils.o libcards.a 
+	$(CC) $(LFLAGS) obj/musasim.o obj/sim.o obj/m68kcpu.o obj/m68kops.o obj/m68kopac.o obj/m68kopdm.o obj/m68kopnz.o obj/board.o obj/logging.o obj/utils.o $(LIBCARDS) -o musasim
 
 obj/gdbserver.o: gdbserver.c gdbserver.h sim.h m68k.h m68kconf.h
 	$(CC) $(CFLAGS) --std=gnu99 gdbserver.c -o obj/gdbserver.o
@@ -54,6 +54,9 @@ obj/m68kmake: m68kmake.c m68k_in.c
 
 obj/logging.o: logging.c logging.h
 	$(CC) $(CFLAGS) logging.c -o obj/logging.o
+obj/utils.o: utils.c utils.h
+	$(CC) $(CFLAGS) utils.c -o obj/utils.o
+
 
 # hardware 
 

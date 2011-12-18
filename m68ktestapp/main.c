@@ -63,6 +63,7 @@ void interrupthandler() {
 void vblank_handler() __attribute (( interrupt));
 void vblank_handler() {
 
+	uint16_t vidflags = *video_register_flags;
 	uint8_t port0 = *input_start;
 
 }
@@ -130,6 +131,8 @@ int main(void) {
 //puts(helloworld);
 
 	*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
+
+	*video_register_config = 0xFFFF;
 
 	gputs("Hello World!");
 	while (1) {

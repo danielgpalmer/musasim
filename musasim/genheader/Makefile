@@ -21,9 +21,8 @@ uart.h: genheader ../hardware/cards/uartregistermasks.h
 	cat ../hardware/cards/uartregistermasks.h >> uart.h
 	gcc -x c -fsyntax-only uart.h
 
-
-genheader: genheader.c Makefile
-	gcc genheader.c -o genheader
+genheader: genheader.c Makefile ../utils.c
+	gcc genheader.c ../utils.c -o genheader
 
 clean:
 	rm -f genheader video.h machine.h sound.h input.h uart.h

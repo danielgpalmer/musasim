@@ -7,6 +7,7 @@
 #include "videocard.h"
 #include "../../sim.h"
 #include "../../logging.h"
+#include "../../utils.h"
 
 static const char TAG[] = "video";
 
@@ -17,7 +18,6 @@ uint16_t pixel = 0;
 uint16_t line = 0;
 
 uint16_t* video_registers[] = { &flags, &config, &clearcolour, &pixel, &line };
-
 
 #define HBLANKPERIOD 20
 #define VBLANKPERIOD 28
@@ -78,6 +78,7 @@ void* pixels;
 uint32_t currentaddress = 0;
 
 uint32_t registersstart;
+#define GETVIDREG(x) ( x = 0 ? 0 : (x & ~registersstart) / 2)
 
 void video_init() {
 
@@ -91,7 +92,7 @@ void video_init() {
 
 	pixels = (void*) screen->pixels;
 
-	registersstart = video_fillbits(VIDEO_MEMORYEND);
+	registersstart = utils_nextpow(VIDEO_MEMORYEND);
 	log_println(LEVEL_DEBUG, TAG, "Memory size is 0x%x, registers start at 0x%x", VIDEO_MEMORYEND, registersstart);
 
 }
@@ -181,9 +182,6 @@ void video_write_word(uint32_t address, uint16_t data) {
 			SDL_LockSurface(screen);
 		}
 
-		if (DEBUG) {
-			printf("Raw pixel write\n");
-		}
 		*((uint16_t*) screen->pixels + (address / 2)) = data;
 
 		if (SDL_MUSTLOCK(screen)) {
@@ -193,19 +191,11 @@ void video_write_word(uint32_t address, uint16_t data) {
 		SDL_Flip(screen);
 	}
 
-	//}
-	//else {
-	//
-	//	if (registerwritecheck()) {
-	//		*video_registers[address - memoryend] = data;
-//
-	//	}
-	//	else {
-	//		printf("Ignored write to registers during active period\n");
-	//	}
-//
-	//	dumpregs();
-	//}
+	else {
+		uint8_t reg = GETVIDREG(address);
+		*video_registers[reg] = data;
+		log_println(LEVEL_DEBUG, TAG, "Wrote to video register %d", reg);
+	}
 
 }
 
@@ -225,17 +215,14 @@ uint16_t video_read_word(uint32_t address) {
 		return 0;
 	}
 
-	return 0;
-
-}
-
-bool registerwritecheck() {
-
-	if ((flags & FLAG_VBLANK) == FLAG_VBLANK) {
-		return true;
+	if (address >= registersstart) {
+		uint8_t reg = GETVIDREG(address);
+		log_println(LEVEL_DEBUG, TAG, "Read video register %d", reg);
+		return *(video_registers[reg]);
 	}
 
-	return false;
+	return 0;
+
 }
 
 void dumpregs() {

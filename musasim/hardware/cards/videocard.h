@@ -18,18 +18,7 @@ void dumpregs();
 #define VIDEO_MEMORYEND (VIDEO_WIDTH * VIDEO_HEIGHT) * VIDEO_PIXELSIZE
 
 #define VIDEO_REG_FLAGS 0
-#define VIDEO_REG_CONFIG 1
-
-uint32_t video_fillbits(uint32_t value) {
-	value--;
-	value |= value >> 1;
-	value |= value >> 2;
-	value |= value >> 4;
-	value |= value >> 8;
-	value |= value >> 16;
-	value++;
-	return value;
-}
+#define VIDEO_REG_CONFIG 2
 
 #include "card.h"
 

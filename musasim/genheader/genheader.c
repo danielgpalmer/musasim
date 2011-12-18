@@ -14,6 +14,7 @@
 #include "../hardware/board.h"
 #include "../hardware/cards/videocard.h"
 #include "../hardware/cards/uartcard.h"
+#include "../utils.h"
 
 char headers[] = "#include <stdint.h>\n"
 		"\n\n";
@@ -77,11 +78,14 @@ void machine() {
 void video() {
 
 	uint32_t registers = VIDEO_MEMORYEND;
-	registers = video_fillbits(registers);
+	registers = utils_nextpow(registers);
 
 	printf("volatile uint16_t* video_start = (uint16_t*) 0x%x;\n", SLOT_OFFSET(SLOT_VIDEOCARD));
 	printf("volatile uint16_t* video_end = (uint16_t*) 0x%x;\n", SLOT_OFFSET(SLOT_VIDEOCARD) + VIDEO_MEMORYEND);
-	printf("volatile uint16_t* video_registers = (uint16_t*) 0x%x;\n", SLOT_OFFSET(SLOT_VIDEOCARD) + registers);
+	printf("volatile uint16_t* video_register_flags = (uint16_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_FLAGS);
+	printf("volatile uint16_t* video_register_config = (uint16_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_CONFIG);
 }
 
 void sound() {
