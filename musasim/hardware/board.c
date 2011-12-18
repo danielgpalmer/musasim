@@ -209,6 +209,12 @@ unsigned int board_read_byte(unsigned int address) {
 }
 
 unsigned int board_read_word(unsigned int address) {
+
+	if (address % 2 != 0) {
+		printf("Word read must be aligned\n");
+		return 0;
+	}
+
 	uint8_t slot = board_decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->read_word != NULL) {
@@ -248,6 +254,12 @@ void board_write_byte(unsigned int address, unsigned int value) {
 }
 
 void board_write_word(unsigned int address, unsigned int value) {
+
+	if (address % 2 != 0) {
+		printf("Word writes must be aligned\n");
+		return;
+	}
+
 	uint8_t slot = board_decode_slot(address);
 	if (slot != NOCARD) {
 		if (slots[slot]->write_word != NULL) {

@@ -47,6 +47,18 @@ void inputcard_init() {
 		ports[i] = 0;
 	}
 
+	// Ignore all the events that aren't needed
+	SDL_EventState(SDL_ACTIVEEVENT, SDL_IGNORE);
+	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+	SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
+	SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
+	SDL_EventState(SDL_JOYAXISMOTION, SDL_IGNORE);
+	SDL_EventState(SDL_JOYBALLMOTION, SDL_IGNORE);
+	SDL_EventState(SDL_JOYHATMOTION, SDL_IGNORE);
+	SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
+	SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
+
+
 }
 
 uint8_t inputcard_read_byte(uint32_t address) {

@@ -18,10 +18,7 @@ uint16_t line = 0;
 
 uint16_t* video_registers[] = { &flags, &config, &clearcolour, &pixel, &line };
 
-#define PIXELFORMAT 16
-#define PIXELSIZE (PIXELFORMAT/8)
-#define WIDTH 480
-#define HEIGHT 272
+
 #define HBLANKPERIOD 20
 #define VBLANKPERIOD 28
 
@@ -78,31 +75,24 @@ bool DEBUG = false;
 SDL_Surface* screen = NULL;
 
 void* pixels;
-uint32_t memoryend;
 uint32_t currentaddress = 0;
+
+uint32_t registersstart;
 
 void video_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
 	SDL_Init(SDL_INIT_EVERYTHING);
-	screen = SDL_SetVideoMode(WIDTH, HEIGHT, PIXELFORMAT, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, SDL_SWSURFACE);
 
 	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
 			screen->format->BitsPerPixel);
 
 	pixels = (void*) screen->pixels;
-	memoryend = ((screen->w * screen->h) * PIXELSIZE);
 
-	SDL_EventState(SDL_ACTIVEEVENT, SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
-	SDL_EventState(SDL_JOYAXISMOTION, SDL_IGNORE);
-	SDL_EventState(SDL_JOYBALLMOTION, SDL_IGNORE);
-	SDL_EventState(SDL_JOYHATMOTION, SDL_IGNORE);
-	SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
-	SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
+	registersstart = video_fillbits(VIDEO_MEMORYEND);
+	log_println(LEVEL_DEBUG, TAG, "Memory size is 0x%x, registers start at 0x%x", VIDEO_MEMORYEND, registersstart);
 
 }
 
@@ -113,7 +103,12 @@ void video_dispose() {
 }
 
 bool validaddress(uint32_t address) {
-	if (address < (memoryend + sizeof(video_registers))) {
+
+	if (address < VIDEO_MEMORYEND) {
+		return true;
+	}
+
+	else if (address >= registersstart && address < registersstart + sizeof(video_registers)) {
 		return true;
 	}
 
@@ -128,24 +123,24 @@ void video_tick() {
 
 	pixel++;
 
-	if (pixel == WIDTH) {
+	if (pixel == VIDEO_WIDTH) {
 		flags |= FLAG_HBLANK;
 		//printf("HBLANK\n");
 	}
 
-	else if (pixel > WIDTH + HBLANKPERIOD) {
+	else if (pixel > VIDEO_WIDTH + HBLANKPERIOD) {
 
 		flags &= !FLAG_HBLANK;
 		pixel = 0;
 
 		line++;
 
-		if (line == HEIGHT) {
+		if (line == VIDEO_HEIGHT) {
 			flags |= FLAG_VBLANK;
 			board_raise_interrupt(&videocard);
 		}
 
-		else if (line > HEIGHT + VBLANKPERIOD) {
+		else if (line > VIDEO_HEIGHT + VBLANKPERIOD) {
 
 			flags &= !FLAG_VBLANK;
 			line = 0;
@@ -164,16 +159,14 @@ void video_write_byte(uint32_t address, uint8_t data) {
 		return;
 	}
 
-	//if (DEBUG) {
-	printf("writing pixel value %x to %x\n", data, address);
-	//}
-
-	if (SDL_MUSTLOCK(screen)) {
-		SDL_LockSurface(screen);
-	}
-	*((uint8_t*) screen->pixels + address) = data;
-	if (SDL_MUSTLOCK(screen)) {
-		SDL_UnlockSurface(screen);
+	if (address < registersstart) {
+		if (SDL_MUSTLOCK(screen)) {
+			SDL_LockSurface(screen);
+		}
+		*((uint8_t*) screen->pixels + address) = data;
+		if (SDL_MUSTLOCK(screen)) {
+			SDL_UnlockSurface(screen);
+		}
 	}
 }
 
@@ -183,30 +176,23 @@ void video_write_word(uint32_t address, uint16_t data) {
 		return;
 	}
 
-	if (DEBUG) {
-		printf("writing pixel value %x to %x\n", data, address);
+	if (address < registersstart) {
+		if (SDL_MUSTLOCK(screen)) {
+			SDL_LockSurface(screen);
+		}
+
+		if (DEBUG) {
+			printf("Raw pixel write\n");
+		}
+		*((uint16_t*) screen->pixels + (address / 2)) = data;
+
+		if (SDL_MUSTLOCK(screen)) {
+			SDL_UnlockSurface(screen);
+		}
+
+		SDL_Flip(screen);
 	}
 
-	if (address % 2 != 0) {
-		printf("Word writes must be aligned\n");
-		return;
-	}
-
-	//if (address < memoryend) {
-	if (SDL_MUSTLOCK(screen)) {
-		SDL_LockSurface(screen);
-	}
-
-	if (DEBUG) {
-		printf("Raw pixel write\n");
-	}
-	*((uint16_t*) screen->pixels + (address / 2)) = data;
-
-	if (SDL_MUSTLOCK(screen)) {
-		SDL_UnlockSurface(screen);
-	}
-
-	SDL_Flip(screen);
 	//}
 	//else {
 	//

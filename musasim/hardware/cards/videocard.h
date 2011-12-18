@@ -11,15 +11,25 @@ void video_write_word(uint32_t address, uint16_t data);
 bool registerwritecheck();
 void dumpregs();
 
-uint16_t* video_registers[5];
+#define VIDEO_PIXELFORMAT 16
+#define VIDEO_PIXELSIZE (VIDEO_PIXELFORMAT/8)
+#define VIDEO_WIDTH 480
+#define VIDEO_HEIGHT 272
+#define VIDEO_MEMORYEND (VIDEO_WIDTH * VIDEO_HEIGHT) * VIDEO_PIXELSIZE
 
 #define VIDEO_REG_FLAGS 0
 #define VIDEO_REG_CONFIG 1
 
-/* Video */
-#define SIZE_VIDEO_MEMORY 0x12C000
-#define SIZE_VIDEO  (SIZE_VIDEO_MEMORY + sizeof(video_registers))
-#define OFFSET_VIDEOREGISTERS SIZE_VIDEO_MEMORY
+uint32_t video_fillbits(uint32_t value) {
+	value--;
+	value |= value >> 1;
+	value |= value >> 2;
+	value |= value >> 4;
+	value |= value >> 8;
+	value |= value >> 16;
+	value++;
+	return value;
+}
 
 #include "card.h"
 
