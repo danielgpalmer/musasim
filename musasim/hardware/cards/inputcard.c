@@ -16,14 +16,14 @@ static const char TAG[] = "input";
 
 // Basically a megadrive pad..
 
-#define PORT0_UP	'w'
-#define PORT0_DOWN	'z'
-#define PORT0_LEFT	'a'
-#define PORT0_RIGHT	's'
-#define PORT0_A 	'j'
-#define PORT0_B		'k'
-#define PORT0_C		'l'
-#define PORT0_START 0x20 // Space
+#define PORT0_UP	SDLK_w
+#define PORT0_DOWN	SDLK_z
+#define PORT0_LEFT	SDLK_a
+#define PORT0_RIGHT	SDLK_s
+#define PORT0_A 	SDLK_j
+#define PORT0_B		SDLK_k
+#define PORT0_C		SDLK_l
+#define PORT0_START SDLK_SPACE // Space
 //	7	|	6	|	5	|	4	|	3	|	2	|	1	|	0
 //	U		D		L		R		A		B		C		S
 // Active Low
@@ -58,6 +58,56 @@ uint8_t inputcard_read_byte(uint32_t address) {
 
 void inputcard_decodekey(SDLKey key, bool up) {
 
+	int port = 0;
+	uint8_t mask;
+
+	switch (key) {
+		case PORT0_UP:
+			log_println(LEVEL_DEBUG, TAG, "Button UP");
+			port = 0;
+			mask = BUTTON_UP;
+			break;
+		case PORT0_DOWN:
+			log_println(LEVEL_DEBUG, TAG, "Button DOWN");
+			port = 0;
+			mask = BUTTON_UP;
+			break;
+		case PORT0_LEFT:
+			log_println(LEVEL_DEBUG, TAG, "Button LEFT");
+			port = 0;
+			mask = BUTTON_UP;
+			break;
+		case PORT0_RIGHT:
+			log_println(LEVEL_DEBUG, TAG, "Button RIGHT");
+			port = 0;
+			mask = BUTTON_UP;
+			break;
+		case PORT0_A:
+			log_println(LEVEL_DEBUG, TAG, "Button A");
+			port = 0;
+			mask = BUTTON_A;
+			break;
+		case PORT0_B:
+			log_println(LEVEL_DEBUG, TAG, "Button B");
+			port = 0;
+			mask = BUTTON_B;
+			break;
+		case PORT0_C:
+			log_println(LEVEL_DEBUG, TAG, "Button C");
+			port = 0;
+			mask = BUTTON_C;
+			break;
+		default:
+			log_println(LEVEL_DEBUG, TAG, "Unhandled key");
+			return;
+	}
+
+	if (up) {
+		ports[port] &= ~mask;
+	}
+	else {
+		ports[port] |= mask;
+	}
 }
 
 void inputcard_tick() {
