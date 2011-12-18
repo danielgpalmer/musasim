@@ -4,8 +4,9 @@ machine.h: genheader
 	./genheader machine > machine.h
 	gcc -x c -fsyntax-only machine.h
 
-video.h: genheader
+video.h: genheader ../hardware/cards/videoregistermasks.h
 	./genheader video > video.h
+	cat ../hardware/cards/videoregistermasks.h >> video.h
 	gcc -x c -fsyntax-only video.h
 
 sound.h: genheader

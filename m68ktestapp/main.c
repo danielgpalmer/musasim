@@ -120,6 +120,10 @@ void gputs(char* string) {
 	}
 }
 
+void initvideo() {
+	*video_register_config |= VIDEO_CONFIG_MODE_BITMAP;
+}
+
 int main(void) {
 
 	uint16_t sr = getstatusregister();
@@ -130,9 +134,9 @@ int main(void) {
 
 //puts(helloworld);
 
-	*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
+	initvideo();
 
-	*video_register_config = 0xFFFF;
+	*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
 
 	gputs("Hello World!");
 	while (1) {

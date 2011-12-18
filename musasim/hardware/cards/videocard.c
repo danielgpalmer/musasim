@@ -5,6 +5,7 @@
 
 #include "../board.h"
 #include "videocard.h"
+#include "videoregistermasks.h"
 #include "../../sim.h"
 #include "../../logging.h"
 #include "../../utils.h"
@@ -21,21 +22,6 @@ uint16_t* video_registers[] = { &flags, &config, &clearcolour, &pixel, &line };
 
 #define HBLANKPERIOD 20
 #define VBLANKPERIOD 28
-
-//MAP FORMATS
-
-// NORMAL	1 byte index
-// PACKED   [nibble - nibble] packed index
-
-// registers
-
-#define FLAG_VBLANK 1
-#define FLAG_HBLANK 1 << 1
-
-#define MODE_DISABLED 0
-#define MODE_BITMAP 1
-#define MODE_TILED 2
-#define MODE_MASK 0b11
 
 //
 
@@ -103,9 +89,13 @@ void video_dispose() {
 
 }
 
-bool validaddress(uint32_t address) {
+static bool video_validaddress(uint32_t address) {
 
 	if (address < VIDEO_MEMORYEND) {
+		if ((config & VIDEO_CONFIG_MODE_MASK) == VIDEO_CONFIG_MODE_DISABLED) {
+			log_println(LEVEL_DEBUG, TAG, "access to video memory while disabled");
+			return false;
+		}
 		return true;
 	}
 
@@ -120,7 +110,11 @@ bool validaddress(uint32_t address) {
 
 void video_tick() {
 
-	//int mode = config & MODE_MASK;
+	int mode = config & VIDEO_CONFIG_MODE_MASK;
+
+	if (mode == VIDEO_CONFIG_MODE_DISABLED) {
+		return;
+	}
 
 	pixel++;
 
@@ -156,7 +150,7 @@ void video_tick() {
 
 void video_write_byte(uint32_t address, uint8_t data) {
 
-	if (!validaddress(address)) {
+	if (!video_validaddress(address)) {
 		return;
 	}
 
@@ -173,7 +167,7 @@ void video_write_byte(uint32_t address, uint8_t data) {
 
 void video_write_word(uint32_t address, uint16_t data) {
 
-	if (!validaddress(address)) {
+	if (!video_validaddress(address)) {
 		return;
 	}
 
@@ -201,7 +195,7 @@ void video_write_word(uint32_t address, uint16_t data) {
 
 uint8_t video_read_byte(uint32_t address) {
 
-	if (!validaddress(address)) {
+	if (!video_validaddress(address)) {
 		return 0;
 	}
 
@@ -211,7 +205,7 @@ uint8_t video_read_byte(uint32_t address) {
 
 uint16_t video_read_word(uint32_t address) {
 
-	if (!validaddress(address)) {
+	if (!video_validaddress(address)) {
 		return 0;
 	}
 
