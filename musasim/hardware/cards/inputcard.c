@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <SDL/SDL.h>
+#include <stdbool.h>
 #include "inputcard.h"
 #include "../../sim.h"
 #include "../../logging.h"
@@ -55,15 +56,29 @@ uint8_t inputcard_read_byte(uint32_t address) {
 
 }
 
+void inputcard_decodekey(SDLKey key, bool up) {
+
+}
+
 void inputcard_tick() {
 	// "latch" stuff here
 
 	SDL_Event event;
 
-	while (SDL_PollEvent(&event) == 1) {
-		if (event.type == SDL_QUIT) {
-			log_println(LEVEL_INFO, TAG, "Window was closed");
-			sim_quit();
+	while (SDL_PollEvent(&event)) {
+		switch (event.type) {
+			case SDL_QUIT:
+				log_println(LEVEL_INFO, TAG, "Window was closed");
+				sim_quit();
+				break;
+			case SDL_KEYDOWN:
+				log_println(LEVEL_DEBUG, TAG, "key down");
+				inputcard_decodekey(event.key.keysym.sym, false);
+				break;
+			case SDL_KEYUP:
+				log_println(LEVEL_DEBUG, TAG, "key up");
+				inputcard_decodekey(event.key.keysym.sym, true);
+				break;
 		}
 	}
 
