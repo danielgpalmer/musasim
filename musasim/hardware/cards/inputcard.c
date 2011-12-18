@@ -6,7 +6,9 @@
  */
 
 #include <stdio.h>
+#include <SDL/SDL.h>
 #include "inputcard.h"
+#include "../../sim.h"
 #include "../../logging.h"
 
 static const char TAG[] = "input";
@@ -43,6 +45,7 @@ void inputcard_init() {
 	for (int i = 0; i < sizeof(ports); i++) {
 		ports[i] = 0;
 	}
+
 }
 
 uint8_t inputcard_read_byte(uint32_t address) {
@@ -54,6 +57,15 @@ uint8_t inputcard_read_byte(uint32_t address) {
 
 void inputcard_tick() {
 	// "latch" stuff here
+
+	SDL_Event event;
+
+	while (SDL_PollEvent(&event) == 1) {
+		if (event.type == SDL_QUIT) {
+			log_println(LEVEL_INFO, TAG, "Window was closed");
+			sim_quit();
+		}
+	}
 
 	for (int i = 0; i < sizeof(ports); i++) {
 		// do port things here

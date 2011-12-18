@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <glib.h>
 #include <SDL/SDL.h>
 
 #include "../board.h"
@@ -82,27 +81,6 @@ void* pixels;
 uint32_t memoryend;
 uint32_t currentaddress = 0;
 
-GThread* thread;
-GError* threaderr = NULL;
-
-void video_threadfunc(void* data) {
-
-	SDL_Event event;
-
-	while (event.type != SDL_QUIT) {
-
-		SDL_PollEvent(&event);
-		usleep(250);
-
-	}
-
-	log_println(LEVEL_INFO, TAG, "Window was closed");
-
-	sim_quit();
-
-	g_thread_exit(NULL);
-}
-
 void video_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
@@ -126,10 +104,6 @@ void video_init() {
 	SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
 	SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
 
-	if ((thread = g_thread_create((GThreadFunc) video_threadfunc, NULL, TRUE, &threaderr)) == NULL) {
-		printf("Thread create failed: %s!!\n", threaderr->message);
-		g_error_free(threaderr);
-	}
 }
 
 void video_dispose() {
