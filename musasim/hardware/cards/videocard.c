@@ -120,7 +120,9 @@ void video_tick() {
 
 	if (pixel == VIDEO_WIDTH) {
 		flags |= FLAG_HBLANK;
-		//printf("HBLANK\n");
+		if (config & VIDEO_CONFIG_ENHBINT) {
+			board_raise_interrupt(&videocard);
+		}
 	}
 
 	else if (pixel > VIDEO_WIDTH + HBLANKPERIOD) {
@@ -132,12 +134,14 @@ void video_tick() {
 
 		if (line == VIDEO_HEIGHT) {
 			flags |= FLAG_VBLANK;
-			board_raise_interrupt(&videocard);
+			if (config & VIDEO_CONFIG_ENVBINT) {
+				board_raise_interrupt(&videocard);
+			}
 		}
 
 		else if (line > VIDEO_HEIGHT + VBLANKPERIOD) {
 
-			flags &= !FLAG_VBLANK;
+			flags &= ~FLAG_VBLANK;
 			line = 0;
 
 			//if (mode == MODE_BITMAP) {
