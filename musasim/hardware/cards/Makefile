@@ -11,7 +11,7 @@ romcard.o: romcard.c romcard.h card.h
 uartcard.o: uartcard.c uartcard.h card.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c uartcard.c -o uartcard.o	
 
-videocard.o: videocard.c videocard.h card.h
+videocard.o: videocard.c videocard.h card.h ../../sim.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c videocard.c -o videocard.o
 
 soundcard.o: soundcard.c soundcard.h card.h

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <glib.h>
+#include <unistd.h>
 
 #include <sys/time.h>
 
@@ -81,6 +82,7 @@ void sim_tick() {
 	static struct timeval start, end, diff;
 	static long int lastoutput = 0;
 	static long int average = 0;
+	static long int sleep = 0;
 
 	if (shouldexit) {
 		return;
@@ -89,8 +91,9 @@ void sim_tick() {
 	gettimeofday(&start, NULL);
 
 	if (!board_bus_locked()) {
-		m68k_execute(4);
+		m68k_execute(SIM_CLOCKS_PERTICK);
 	}
+
 	board_tick();
 
 	gettimeofday(&end, NULL);
@@ -99,7 +102,7 @@ void sim_tick() {
 
 	average = (average + diff.tv_usec) / 2;
 
-	if(diff.tv_sec > 0){
+	if (diff.tv_sec > 0) {
 		log_println(LEVEL_DEBUG, TAG, "tick took longer than one second");
 	}
 
@@ -109,8 +112,13 @@ void sim_tick() {
 
 	if (lastoutput < (end.tv_sec - 10)) {
 		lastoutput = end.tv_sec;
-		log_println(LEVEL_DEBUG, TAG, "tick is taking %d us", average);
+		log_println(LEVEL_DEBUG, TAG, "tick is taking %d us, %d target, %d sleep", average, SIM_USECSPERTICK, sleep);
 	}
+
+	sleep = SIM_USECSPERTICK - average;
+	//if(sleep > 10){
+		//usleep(sleep);
+	//}
 
 }
 

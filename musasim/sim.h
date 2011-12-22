@@ -12,7 +12,10 @@ bool sim_has_quit();
 void cpu_pulse_reset(void);
 void cpu_set_fc(unsigned int fc);
 
-#define SIM_TICKS_PERSECOND 10000000 // 10mhz
+#define SIM_TARGET_FREQUENCY 12000000 // 12mhz
+#define SIM_CLOCKS_PERTICK 86 // this needs to high enough that the time a tick takes is a good number of micro seconds. On the other hand, if its too high emulation accuracy will be bad
+#define SIM_TICKS_PERSECOND (SIM_TARGET_FREQUENCY/SIM_CLOCKS_PERTICK) //
+#define SIM_USECSPERTICK (1000000 / SIM_TICKS_PERSECOND)
 
 #define SLOT_ROMCARD 0
 #define SLOT_VIDEOCARD 1

@@ -12,16 +12,13 @@
 
 static const char TAG[] = "video";
 
-uint16_t flags;
-uint16_t config;
-uint16_t clearcolour;
-uint16_t pixel = 0;
-uint16_t line = 0;
+static uint16_t flags;
+static uint16_t config;
+static uint16_t clearcolour;
+static uint16_t pixel = 0;
+static uint16_t line = 0;
 
 uint16_t* video_registers[] = { &flags, &config, &clearcolour, &pixel, &line };
-
-#define HBLANKPERIOD 20
-#define VBLANKPERIOD 28
 
 //
 
@@ -110,11 +107,19 @@ static bool video_validaddress(uint32_t address) {
 
 void video_tick() {
 
+	static int framecounter = 0;
+
 	int mode = config & VIDEO_CONFIG_MODE_MASK;
 
 	if (mode == VIDEO_CONFIG_MODE_DISABLED) {
 		return;
 	}
+
+	//int ticksperpixel = VIDEO_TOTALPIXELS;
+
+	//printf("ticks per pixel %d %d\n", ticksperpixel, SIM_TICKS_PERSECOND);
+
+	//for (int i = 0; i < SIM_CLOCKS_PERTICK; i++) {
 
 	pixel++;
 
@@ -125,11 +130,9 @@ void video_tick() {
 		}
 	}
 
-	else if (pixel > VIDEO_WIDTH + HBLANKPERIOD) {
-
+	else if (pixel == (VIDEO_WIDTH + HBLANKPERIOD)) {
 		flags &= !FLAG_HBLANK;
 		pixel = 0;
-
 		line++;
 
 		if (line == VIDEO_HEIGHT) {
@@ -138,15 +141,22 @@ void video_tick() {
 				board_raise_interrupt(&videocard);
 			}
 
-			SDL_Flip(screen);
 		}
 
-		else if (line > VIDEO_HEIGHT + VBLANKPERIOD) {
-
+		else if (line == (VIDEO_HEIGHT + VBLANKPERIOD)) {
 			flags &= ~FLAG_VBLANK;
 			line = 0;
+			SDL_Flip(screen);
+			framecounter++;
+			if (framecounter > 60) {
+				printf("one second\n");
+				framecounter = 0;
+			}
 		}
 	}
+	//}
+
+	//printf("%d, %d\n", pixel, line);
 }
 
 void video_write_byte(uint32_t address, uint8_t data) {

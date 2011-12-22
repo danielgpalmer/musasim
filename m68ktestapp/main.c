@@ -66,6 +66,19 @@ void vblank_handler() {
 	uint16_t vidflags = *video_register_flags;
 	uint8_t port0 = *input_start;
 
+	static int y, x;
+
+	*(video_start + (WIDTH * y) + x) = 0xFFFFFFFF;
+
+	x++;
+	if (x == WIDTH) {
+		x = 0;
+		y++;
+		if (y == HEIGHT) {
+			y = 0;
+		}
+	}
+
 }
 
 void uart_handler() __attribute (( interrupt));
@@ -137,23 +150,18 @@ int main(void) {
 	initvideo();
 
 	*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
+	*video_register_config |= VIDEO_CONFIG_ENVBINT;
 	//sputs("Hello World!");
 
 	while (1) {
 
-		for (int y = 0; y < HEIGHT; y++) {
-			for (int x = 0; x < WIDTH; x++) {
-				*(video_start + (WIDTH * y) + x) = 0xFFFFFFFF;
-			}
-		}
+		//for (int y = 0; y < HEIGHT; y++) {
+		//	for (int x = 0; x < WIDTH; x++) {
+		//		*(video_start + (WIDTH * y) + x) = x * y;
+		//	}
+		//}
 
-		for (int y = 0; y < HEIGHT; y++) {
-			for (int x = 0; x < WIDTH; x++) {
-				*(video_start + (WIDTH * y) + x) = x * y;
-			}
-		}
-
-		gputs("Hello World!");
+		//gputs("Hello World!");
 
 	}
 
