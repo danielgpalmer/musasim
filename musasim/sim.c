@@ -6,6 +6,8 @@
 #include <time.h>
 #include <glib.h>
 
+#include <sys/time.h>
+
 #include "sim.h"
 #include "logging.h"
 #include "m68k.h"
@@ -47,16 +49,69 @@ void sim_init() {
 
 }
 
+/* Subtract the `struct timeval' values X and Y,
+ storing the result in RESULT.
+ Return 1 if the difference is negative, otherwise 0.  */
+
+int timeval_subtract(result, x, y)
+	struct timeval *result, *x, *y; {
+	/* Perform the carry for the later subtraction by updating y. */
+	if (x->tv_usec < y->tv_usec) {
+		int nsec = (y->tv_usec - x->tv_usec) / 1000000 + 1;
+		y->tv_usec -= 1000000 * nsec;
+		y->tv_sec += nsec;
+	}
+	if (x->tv_usec - y->tv_usec > 1000000) {
+		int nsec = (x->tv_usec - y->tv_usec) / 1000000;
+		y->tv_usec += 1000000 * nsec;
+		y->tv_sec -= nsec;
+	}
+
+	/* Compute the time remaining to wait.
+	 tv_usec is certainly positive. */
+	result->tv_sec = x->tv_sec - y->tv_sec;
+	result->tv_usec = x->tv_usec - y->tv_usec;
+
+	/* Return 1 if result is negative. */
+	return x->tv_sec < y->tv_sec;
+}
+
 void sim_tick() {
+
+	static struct timeval start, end, diff;
+	static long int lastoutput = 0;
+	static long int average = 0;
 
 	if (shouldexit) {
 		return;
 	}
 
+	gettimeofday(&start, NULL);
+
 	if (!board_bus_locked()) {
 		m68k_execute(4);
 	}
 	board_tick();
+
+	gettimeofday(&end, NULL);
+
+	timeval_subtract(&diff, &end, &start);
+
+	average = (average + diff.tv_usec) / 2;
+
+	if(diff.tv_sec > 0){
+		log_println(LEVEL_DEBUG, TAG, "tick took longer than one second");
+	}
+
+	if (lastoutput == 0) {
+		lastoutput = end.tv_sec;
+	}
+
+	if (lastoutput < (end.tv_sec - 10)) {
+		lastoutput = end.tv_sec;
+		log_println(LEVEL_DEBUG, TAG, "tick is taking %d us", average);
+	}
+
 }
 
 void sim_quit() {

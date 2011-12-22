@@ -137,17 +137,14 @@ void video_tick() {
 			if (config & VIDEO_CONFIG_ENVBINT) {
 				board_raise_interrupt(&videocard);
 			}
+
+			SDL_Flip(screen);
 		}
 
 		else if (line > VIDEO_HEIGHT + VBLANKPERIOD) {
 
 			flags &= ~FLAG_VBLANK;
 			line = 0;
-
-			//if (mode == MODE_BITMAP) {
-			SDL_Flip(screen);
-			//}
-
 		}
 	}
 }
@@ -179,14 +176,10 @@ void video_write_word(uint32_t address, uint16_t data) {
 		if (SDL_MUSTLOCK(screen)) {
 			SDL_LockSurface(screen);
 		}
-
 		*((uint16_t*) screen->pixels + (address / 2)) = data;
-
 		if (SDL_MUSTLOCK(screen)) {
 			SDL_UnlockSurface(screen);
 		}
-
-		SDL_Flip(screen);
 	}
 
 	else {

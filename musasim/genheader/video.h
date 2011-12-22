@@ -23,6 +23,7 @@ volatile uint16_t* video_register_config = (uint16_t*) 0x240002;
 #define VIDEO_CONFIG_MODE_TILED 2
 #define VIDEO_CONFIG_MODE_MASK 0b11
 #define VIDEO_CONFIG_ENVBINT 1 << 2
+#define VIDEO_CONFIG_ENHBINT 1 << 3
 
 #define FLAG_VBLANK 1
 #define FLAG_HBLANK 1 << 1

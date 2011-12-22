@@ -137,17 +137,23 @@ int main(void) {
 	initvideo();
 
 	*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
+	//sputs("Hello World!");
 
-	gputs("Hello World!");
 	while (1) {
 
-		//sputs("Hello World!");
+		for (int y = 0; y < HEIGHT; y++) {
+			for (int x = 0; x < WIDTH; x++) {
+				*(video_start + (WIDTH * y) + x) = 0xFFFFFFFF;
+			}
+		}
 
-		//for (int y = 0; y < HEIGHT; y++) {
-		//	for (int x = 0; x < WIDTH; x++) {
-		//		*(video + (WIDTH * y) + x) = x * y;
-		//	}
-		//}
+		for (int y = 0; y < HEIGHT; y++) {
+			for (int x = 0; x < WIDTH; x++) {
+				*(video_start + (WIDTH * y) + x) = x * y;
+			}
+		}
+
+		gputs("Hello World!");
 
 	}
 

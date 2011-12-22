@@ -12,6 +12,8 @@ bool sim_has_quit();
 void cpu_pulse_reset(void);
 void cpu_set_fc(unsigned int fc);
 
+#define SIM_TICKS_PERSECOND 10000000 // 10mhz
+
 #define SLOT_ROMCARD 0
 #define SLOT_VIDEOCARD 1
 #define SLOT_UARTCARD 2

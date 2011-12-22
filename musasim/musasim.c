@@ -33,7 +33,6 @@ int main(int argc, char* argv[]) {
 		sim_reset();
 		while (!sim_has_quit()) {
 			sim_tick();
-			usleep(16);
 		}
 	}
 }
