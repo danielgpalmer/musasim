@@ -1,7 +1,8 @@
 all: machine.h video.h sound.h input.h uart.h
 
-machine.h: genheader
+machine.h: genheader ../hardware/cards/dmaregisters.h
 	./genheader machine > machine.h
+	cat ../hardware/cards/dmaregisters.h >> machine.h
 	gcc -x c -fsyntax-only machine.h
 
 video.h: genheader ../hardware/cards/videoregistermasks.h

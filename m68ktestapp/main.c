@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include "fontrom/fontrom.h"
+#include "../musasim/genheader/machine.h"
 #include "../musasim/genheader/video.h"
 #include "../musasim/genheader/input.h"
 #include "../musasim/genheader/uart.h"
@@ -148,6 +149,11 @@ void gputs(char* string) {
 
 void initvideo() {
 	*video_register_config |= VIDEO_CONFIG_MODE_BITMAP;
+
+	while (!(*dma_register_config & DMA_REGISTER_CONFIG_DONE)) {
+
+	}
+
 	for (int y = 0; y < HEIGHT; y++) {
 		for (int x = 0; x < WIDTH; x++) {
 			*(video_start + (WIDTH * y) + x) = 0xffffffff;

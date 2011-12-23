@@ -14,6 +14,7 @@
 #include "../hardware/board.h"
 #include "../hardware/cards/videocard.h"
 #include "../hardware/cards/uartcard.h"
+#include "../hardware/cards/dmacard.h"
 #include "../utils.h"
 
 char headers[] = "#include <stdint.h>\n"
@@ -73,6 +74,10 @@ void machine() {
 	//printf("volatile uint16_t* machine_ram_start = (uint16_t*) 0x%x;\n", OFFSET_RAM);
 	//printf("volatile uint16_t* machine_ram_end = (uint16_t*) 0x%x;\n", MAX_RAM);
 	//printf("uint16_t machine_ram_size = (uint16_t) 0x%x;\n", SIZE_RAM);
+
+	printf("volatile uint16_t* dma_register_config = (uint16_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_CONFIG);
+
 }
 
 void video() {
@@ -87,7 +92,7 @@ void video() {
 	printf("volatile uint16_t* video_register_config = (uint16_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_CONFIG);
 	printf("volatile uint16_t* video_register_frame = (uint16_t*) 0x%x;\n",
-				SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_FRAME);
+			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_FRAME);
 }
 
 void sound() {
