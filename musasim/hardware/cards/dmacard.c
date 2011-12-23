@@ -11,6 +11,7 @@
 #include "dmacard.h"
 #include "dmaregisters.h"
 #include "stdint.h"
+#include "../../logging.h"
 
 static uint16_t config = 0;
 static uint16_t count = 0;
@@ -20,6 +21,8 @@ static uint16_t destinationl = 0;
 static uint16_t destinationh = 0;
 
 static uint16_t* dma_registers[] = { &config, &count, &sourceh, &sourcel, &destinationh, &destinationl };
+
+static const char TAG[] = "dmacard";
 
 void dmacard_init() {
 
@@ -43,18 +46,25 @@ void dmacard_busgrant() {
 
 void dmacard_tick() {
 
+	log_println(LEVEL_DEBUG, TAG, "dmacard_tick");
+
+	config |= DMA_REGISTER_CONFIG_DONE;
+
 }
 
 #define ADDRESSMASK 0x07
 
+static int dmacard_decodereg(uint32_t address) {
+	return (address & ADDRESSMASK);
+}
+
 uint16_t dmacard_read_word(uint32_t address) {
-	return 0;
+	return *(dma_registers[dmacard_decodereg(address)]);
 }
 
 void dmacard_write_word(uint32_t address, uint16_t value) {
 
-	int reg = (address & ADDRESSMASK);
-	*(dma_registers[reg]) = value;
+	*(dma_registers[dmacard_decodereg(address)]) = value;
 
 }
 
