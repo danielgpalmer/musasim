@@ -58,11 +58,10 @@ void inputcard_init() {
 	SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
 	SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
 
-
 }
 
 uint8_t inputcard_read_byte(uint32_t address) {
-	log_println(LEVEL_DEBUG, TAG, "inputcard_read_byte()");
+	log_println(LEVEL_INSANE, TAG, "inputcard_read_byte()");
 	int port = address & 0x1;
 	return ports[port];
 

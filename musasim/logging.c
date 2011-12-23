@@ -10,7 +10,7 @@
 
 #include "logging.h"
 
-static int loglevel = LEVEL_ALL;
+static int loglevel = LEVEL_DEBUG;
 
 static const char YELLOW[] = "33";
 static const char RED[] = "31";

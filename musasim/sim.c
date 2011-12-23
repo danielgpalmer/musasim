@@ -79,6 +79,8 @@ int timeval_subtract(result, x, y)
 
 void sim_tick() {
 
+	log_println(LEVEL_INSANE, TAG, "sim_tick()");
+
 	static struct timeval start, end, diff;
 	static long int lastoutput = 0;
 	static long int average = 0;
@@ -116,9 +118,9 @@ void sim_tick() {
 	}
 
 	sleep = SIM_USECSPERTICK - average;
-	//if(sleep > 10){
-		//usleep(sleep);
-	//}
+	if (sleep > 0) {
+		usleep(sleep);
+	}
 
 }
 

@@ -86,6 +86,8 @@ void video() {
 			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_FLAGS);
 	printf("volatile uint16_t* video_register_config = (uint16_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_CONFIG);
+	printf("volatile uint16_t* video_register_frame = (uint16_t*) 0x%x;\n",
+				SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_FRAME);
 }
 
 void sound() {

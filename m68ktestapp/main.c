@@ -63,22 +63,35 @@ void interrupthandler() {
 void vblank_handler() __attribute (( interrupt));
 void vblank_handler() {
 
+	static uint16_t lastframe;
+	static uint16_t thisframe;
+	static int y, x;
+	static int xinc = 1, yinc = 1;
+
 	uint16_t vidflags = *video_register_flags;
 	uint8_t port0 = *input_start;
 
-	static int y, x;
+	thisframe = *video_register_frame;
 
-	*(video_start + (WIDTH * y) + x) = 0xFFFFFFFF;
+	for (int i = 0; i < thisframe - lastframe; i++) {
 
-	x++;
-	if (x == WIDTH) {
-		x = 0;
-		y++;
-		if (y == HEIGHT) {
-			y = 0;
+		*(video_start + (WIDTH * y) + x) = x * y;
+
+		x += xinc;
+
+		if (x == WIDTH - 1 || x == 0) {
+			xinc = -xinc;
 		}
+
+		y += yinc;
+
+		if (y == HEIGHT - 1 || y == 0) {
+			yinc = -yinc;
+		}
+
 	}
 
+	lastframe = thisframe;
 }
 
 void uart_handler() __attribute (( interrupt));
@@ -135,6 +148,12 @@ void gputs(char* string) {
 
 void initvideo() {
 	*video_register_config |= VIDEO_CONFIG_MODE_BITMAP;
+	for (int y = 0; y < HEIGHT; y++) {
+		for (int x = 0; x < WIDTH; x++) {
+			*(video_start + (WIDTH * y) + x) = 0xffffffff;
+		}
+	}
+	*video_register_config |= VIDEO_CONFIG_ENVBINT;
 }
 
 int main(void) {
@@ -150,16 +169,9 @@ int main(void) {
 	initvideo();
 
 	*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
-	*video_register_config |= VIDEO_CONFIG_ENVBINT;
 	//sputs("Hello World!");
 
 	while (1) {
-
-		//for (int y = 0; y < HEIGHT; y++) {
-		//	for (int x = 0; x < WIDTH; x++) {
-		//		*(video_start + (WIDTH * y) + x) = x * y;
-		//	}
-		//}
 
 		//gputs("Hello World!");
 

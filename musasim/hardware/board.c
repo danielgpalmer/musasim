@@ -186,7 +186,7 @@ void board_lower_interrupt(card* card) {
 
 int board_ack_interrupt(int level) {
 
-	log_println(LEVEL_DEBUG, TAG, "board_ack_interrupt(%d)", level);
+	log_println(LEVEL_INSANE, TAG, "board_ack_interrupt(%d)", level);
 
 	(slots[curslot]->irqack)();
 	//slot = board_which_slot()

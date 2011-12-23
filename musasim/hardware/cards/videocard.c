@@ -10,15 +10,17 @@
 #include "../../logging.h"
 #include "../../utils.h"
 
+#define PIXELSPERTICK (VIDEO_PIXELSPERSECOND/SIM_TICKS_PERSECOND)
+
 static const char TAG[] = "video";
 
 static uint16_t flags;
 static uint16_t config;
-static uint16_t clearcolour;
 static uint16_t pixel = 0;
 static uint16_t line = 0;
+static uint16_t frame = 0;
 
-uint16_t* video_registers[] = { &flags, &config, &clearcolour, &pixel, &line };
+static uint16_t* video_registers[] = { &flags, &config, &pixel, &line, &frame };
 
 //
 
@@ -77,6 +79,9 @@ void video_init() {
 
 	registersstart = utils_nextpow(VIDEO_MEMORYEND);
 	log_println(LEVEL_DEBUG, TAG, "Memory size is 0x%x, registers start at 0x%x", VIDEO_MEMORYEND, registersstart);
+	log_println(LEVEL_DEBUG, TAG,
+			"Total pixel are is %d pixels, refresh rate %d, pixels per second %d, pixels per tick %d",
+			VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELSPERSECOND, PIXELSPERTICK);
 
 }
 
@@ -107,54 +112,50 @@ static bool video_validaddress(uint32_t address) {
 
 void video_tick() {
 
-	static int framecounter = 0;
-
 	int mode = config & VIDEO_CONFIG_MODE_MASK;
 
 	if (mode == VIDEO_CONFIG_MODE_DISABLED) {
 		return;
 	}
 
+	log_println(LEVEL_INSANE, TAG, "video_tick()");
+
 	//int ticksperpixel = VIDEO_TOTALPIXELS;
 
 	//printf("ticks per pixel %d %d\n", ticksperpixel, SIM_TICKS_PERSECOND);
 
-	//for (int i = 0; i < SIM_CLOCKS_PERTICK; i++) {
+	for (int i = 0; i < PIXELSPERTICK; i++) {
 
-	pixel++;
+		pixel++;
 
-	if (pixel == VIDEO_WIDTH) {
-		flags |= FLAG_HBLANK;
-		if (config & VIDEO_CONFIG_ENHBINT) {
-			board_raise_interrupt(&videocard);
-		}
-	}
-
-	else if (pixel == (VIDEO_WIDTH + HBLANKPERIOD)) {
-		flags &= !FLAG_HBLANK;
-		pixel = 0;
-		line++;
-
-		if (line == VIDEO_HEIGHT) {
-			flags |= FLAG_VBLANK;
-			if (config & VIDEO_CONFIG_ENVBINT) {
+		if (pixel == VIDEO_WIDTH) {
+			flags |= FLAG_HBLANK;
+			if (config & VIDEO_CONFIG_ENHBINT) {
 				board_raise_interrupt(&videocard);
 			}
-
 		}
 
-		else if (line == (VIDEO_HEIGHT + VBLANKPERIOD)) {
-			flags &= ~FLAG_VBLANK;
-			line = 0;
-			SDL_Flip(screen);
-			framecounter++;
-			if (framecounter > 60) {
-				printf("one second\n");
-				framecounter = 0;
+		else if (pixel == (VIDEO_WIDTH + HBLANKPERIOD)) {
+			flags &= !FLAG_HBLANK;
+			pixel = 0;
+			line++;
+
+			if (line == VIDEO_HEIGHT) {
+				flags |= FLAG_VBLANK;
+				if (config & VIDEO_CONFIG_ENVBINT) {
+					board_raise_interrupt(&videocard);
+				}
+
+			}
+
+			else if (line == (VIDEO_HEIGHT + VBLANKPERIOD)) {
+				flags &= ~FLAG_VBLANK;
+				line = 0;
+				SDL_Flip(screen);
+				frame++;
 			}
 		}
 	}
-	//}
 
 	//printf("%d, %d\n", pixel, line);
 }
@@ -218,7 +219,7 @@ uint16_t video_read_word(uint32_t address) {
 
 	if (address >= registersstart) {
 		uint8_t reg = GETVIDREG(address);
-		log_println(LEVEL_DEBUG, TAG, "Read video register %d", reg);
+		log_println(LEVEL_INSANE, TAG, "Read video register %d", reg);
 		return *(video_registers[reg]);
 	}
 
@@ -237,7 +238,7 @@ void dumpregs() {
 }
 
 void videocard_irqack() {
-	log_println(LEVEL_DEBUG, TAG, "videocard_irqack()");
+	log_println(LEVEL_INSANE, TAG, "videocard_irqack()");
 	board_lower_interrupt(&videocard);
 }
 
