@@ -77,12 +77,23 @@ void machine() {
 
 	printf("volatile uint16_t* dma_register_config = (uint16_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_CONFIG);
-	printf("volatile uint16_t* dma_register_count = (uint16_t*) 0x%x;\n",
-			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_COUNT);
+
+	printf("volatile uint16_t* dma_register_data = (uint16_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DATA);
+
+	printf("volatile uint16_t* dma_register_counth = (uint16_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_COUNTH);
+	printf("volatile uint16_t* dma_register_countl = (uint16_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_COUNTL);
+
+	printf("volatile uint16_t* dma_register_srch = (uint16_t*) 0x%x;\n",
+				SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_SOURCEH);
+		printf("volatile uint16_t* dma_register_srcl = (uint16_t*) 0x%x;\n",
+				SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_SOURCEL);
+
 
 	printf("volatile uint16_t* dma_register_desth = (uint16_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DESTINATIONH);
-
 	printf("volatile uint16_t* dma_register_destl = (uint16_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DESTINATIONL);
 

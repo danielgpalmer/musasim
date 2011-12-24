@@ -149,9 +149,10 @@ void gputs(char* string) {
 
 void initvideo() {
 	*video_register_config |= VIDEO_CONFIG_MODE_BITMAP;
-	*dma_register_count = 0xFF00;
+	*dma_register_counth = 0x0001;
+	*dma_register_countl = 0xFE00;
 	*dma_register_desth = 0x0020;
-	*dma_register_config |= DMA_REGISTER_CONFIG_START;
+	*dma_register_config |= DMA_REGISTER_CONFIG_START | DMA_REGISTER_CONFIG_SIZE;
 	while (!(*dma_register_config & DMA_REGISTER_CONFIG_DONE)) {
 
 	}

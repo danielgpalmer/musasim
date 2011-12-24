@@ -17,19 +17,25 @@
 #include "../board.h"
 
 static uint16_t config = 0;
-static uint16_t count = 0;
+static uint16_t data = 0;
+static uint16_t countl = 0;
+static uint16_t counth = 0;
 static uint16_t sourcel = 0;
 static uint16_t sourceh = 0;
 static uint16_t destinationl = 0;
 static uint16_t destinationh = 0;
 
-static uint16_t* dma_registers[] = { &config, &count, &sourceh, &sourcel, &destinationh, &destinationl };
+static uint16_t* dma_registers[] =
+		{ &config, &data, &counth, &countl, &sourceh, &sourcel, &destinationh, &destinationl };
+
+static uint32_t counter = 0;
+static uint32_t destination = 0;
 
 static const char TAG[] = "dmacard";
 
 void dmacard_init() {
 
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 7; i++) {
 		*(dma_registers[i]) = 0;
 	}
 
@@ -64,7 +70,7 @@ void dmacard_tick() {
 
 	for (int i = 0; i < SIM_CLOCKS_PERTICK; i++) {
 		if (transferinprogress) {
-			if (count == 0) {
+			if (counter == 0) {
 				log_println(LEVEL_DEBUG, TAG, "transfer done");
 				config |= DMA_REGISTER_CONFIG_DONE;
 				transferinprogress = false;
@@ -72,21 +78,18 @@ void dmacard_tick() {
 			}
 
 			else {
-				uint32_t address = (destinationh << 16) | destinationl;
-				//log_println(LEVEL_DEBUG, TAG, "writing to 0x%x", address);
+				//log_println(LEVEL_DEBUG, TAG, "writing to 0x%x", destination);
 
 				if (config & DMA_REGISTER_CONFIG_SIZE) {
-					board_write_word(address, 0xFFFF);
-					address += 2;
+					board_write_word(destination, 0xFFFF);
+					destination += 2;
 				}
 				else {
-					board_write_byte(address, 0xFF);
-					address += 1;
+					board_write_byte(destination, 0xFF);
+					destination++;
 				}
 
-				count--;
-				destinationh = (address >> 16) & 0xFFFF;
-				destinationl = address & 0xFFFFF;
+				counter--;
 			}
 
 		}
@@ -109,27 +112,31 @@ uint16_t dmacard_read_word(uint32_t address) {
 
 void dmacard_dumpconfig() {
 
+	log_println(LEVEL_DEBUG, TAG, "transfering 0x%08x %s from 0x%08x to 0x%08x", counter,
+			config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", 0, destination);
+
 }
 
 void dmacard_write_word(uint32_t address, uint16_t value) {
 	int reg = (address & ADDRESSMASK);
-	log_println(LEVEL_DEBUG, TAG, "write %d, value %d", address, value);
+	log_println(LEVEL_DEBUG, TAG, "write 0x%x, value 0x%x", address, value);
 
-	switch (reg) {
-		case DMACARD_REGISTER_CONFIG:
-			value &= 0x7fff;
-			if (value & DMA_REGISTER_CONFIG_START) {
-				board_lock_bus(&dmacard);
-				transferinprogress = true;
-				value &= ~DMA_REGISTER_CONFIG_START;
-			}
-			break;
-		case DMACARD_REGISTER_COUNT:
-			log_println(LEVEL_DEBUG, TAG, "Transfer count set to %d", value);
-			break;
+	if (reg == DMACARD_REGISTER_CONFIG) {
+		value &= 0x7fff;
 	}
 
 	*(dmacard_decodereg(address)) = value;
+
+	if (reg == DMACARD_REGISTER_CONFIG) {
+		if (value & DMA_REGISTER_CONFIG_START) {
+			counter = ((counth << 16) | countl);
+			destination = ((destinationh << 16) | destinationl);
+			board_lock_bus(&dmacard);
+			transferinprogress = true;
+			value &= ~DMA_REGISTER_CONFIG_START;
+			dmacard_dumpconfig();
+		}
+	}
 
 }
 

@@ -79,9 +79,11 @@ void video_init() {
 
 	registersstart = utils_nextpow(VIDEO_MEMORYEND);
 	log_println(LEVEL_DEBUG, TAG, "Memory size is 0x%x, registers start at 0x%x", VIDEO_MEMORYEND, registersstart);
-	log_println(LEVEL_DEBUG, TAG,
-			"Total pixel are is %d pixels, refresh rate %d, pixels per second %d, pixels per tick %d",
-			VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELSPERSECOND, PIXELSPERTICK);
+	log_println(
+			LEVEL_DEBUG,
+			TAG,
+			"Active area is %d pixel, Total area  is %d pixels, refresh rate %d, pixels per second %d, pixels per tick %d",
+			VIDEO_ACTIVEPIXELS, VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELSPERSECOND, PIXELSPERTICK);
 
 }
 

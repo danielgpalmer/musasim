@@ -4,9 +4,13 @@
 
 
 volatile uint16_t* dma_register_config = (uint16_t*) 0xa00000;
-volatile uint16_t* dma_register_count = (uint16_t*) 0xa00002;
-volatile uint16_t* dma_register_desth = (uint16_t*) 0xa00008;
-volatile uint16_t* dma_register_destl = (uint16_t*) 0xa0000a;
+volatile uint16_t* dma_register_data = (uint16_t*) 0xa00002;
+volatile uint16_t* dma_register_counth = (uint16_t*) 0xa00004;
+volatile uint16_t* dma_register_countl = (uint16_t*) 0xa00006;
+volatile uint16_t* dma_register_srch = (uint16_t*) 0xa00008;
+volatile uint16_t* dma_register_srcl = (uint16_t*) 0xa0000a;
+volatile uint16_t* dma_register_desth = (uint16_t*) 0xa0000c;
+volatile uint16_t* dma_register_destl = (uint16_t*) 0xa0000e;
 
 /*
  * dmaregisters.h
