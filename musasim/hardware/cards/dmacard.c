@@ -64,9 +64,17 @@ void dmacard_tick() {
 			else {
 				uint32_t address = (destinationh << 16) | destinationl;
 				//log_println(LEVEL_DEBUG, TAG, "writing to 0x%x", address);
-				board_write_word(address, 0xFFFF);
+
+				if (config & DMA_REGISTER_CONFIG_SIZE) {
+					board_write_word(address, 0xFFFF);
+					address += 2;
+				}
+				else {
+					board_write_byte(address, 0xFF);
+					address += 1;
+				}
+
 				count--;
-				address += 2;
 				destinationh = (address >> 16) & 0xFFFF;
 				destinationl = address & 0xFFFFF;
 			}
@@ -89,9 +97,13 @@ uint16_t dmacard_read_word(uint32_t address) {
 	return *(dmacard_decodereg(address));
 }
 
+void dmacard_dumpconfig() {
+
+}
+
 void dmacard_write_word(uint32_t address, uint16_t value) {
 	int reg = (address & ADDRESSMASK);
-	log_println(LEVEL_DEBUG, TAG, "write %d, value %d, reg %d ", address, value, reg);
+	log_println(LEVEL_DEBUG, TAG, "write %d, value %d", address, value);
 
 	switch (reg) {
 		case DMACARD_REGISTER_CONFIG:
@@ -107,7 +119,6 @@ void dmacard_write_word(uint32_t address, uint16_t value) {
 	}
 
 	*(dmacard_decodereg(address)) = value;
-	log_println(LEVEL_DEBUG, TAG, "count %d", count);
 }
 
 card dmacard = { "DMA Controller", dmacard_init, dmacard_dispose, dmacard_tick, dmacard_irqack, dmacard_busgrant, NULL,
