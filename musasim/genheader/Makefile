@@ -23,7 +23,7 @@ uart.h: genheader ../hardware/cards/uartregistermasks.h
 	cat ../hardware/cards/uartregistermasks.h >> uart.h
 	gcc -x c -fsyntax-only uart.h
 
-genheader: genheader.c Makefile ../utils.c
+genheader: genheader.c Makefile ../utils.c ../hardware/cards/dmacard.h
 	gcc genheader.c ../utils.c -o genheader
 
 clean:

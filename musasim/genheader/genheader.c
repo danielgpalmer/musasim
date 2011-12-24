@@ -77,6 +77,14 @@ void machine() {
 
 	printf("volatile uint16_t* dma_register_config = (uint16_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_CONFIG);
+	printf("volatile uint16_t* dma_register_count = (uint16_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_COUNT);
+
+	printf("volatile uint16_t* dma_register_desth = (uint16_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DESTINATIONH);
+
+	printf("volatile uint16_t* dma_register_destl = (uint16_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DESTINATIONL);
 
 }
 

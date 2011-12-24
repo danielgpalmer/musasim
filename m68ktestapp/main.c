@@ -149,16 +149,18 @@ void gputs(char* string) {
 
 void initvideo() {
 	*video_register_config |= VIDEO_CONFIG_MODE_BITMAP;
-
+	*dma_register_count = 0xFF00;
+	*dma_register_desth = 0x0020;
+	*dma_register_config |= DMA_REGISTER_CONFIG_START;
 	while (!(*dma_register_config & DMA_REGISTER_CONFIG_DONE)) {
 
 	}
 
-	for (int y = 0; y < HEIGHT; y++) {
-		for (int x = 0; x < WIDTH; x++) {
-			*(video_start + (WIDTH * y) + x) = 0xffffffff;
-		}
-	}
+	//for (int y = 0; y < HEIGHT; y++) {
+	//	for (int x = 0; x < WIDTH; x++) {
+	//		*(video_start + (WIDTH * y) + x) = 0xffff;
+	//	}
+	//}
 	*video_register_config |= VIDEO_CONFIG_ENVBINT;
 }
 
