@@ -43,7 +43,12 @@ void dmacard_irqack() {
 
 }
 
+static bool havebuslock = false;
+
 void dmacard_busgrant() {
+
+	log_println(LEVEL_DEBUG, TAG, "dmacard_busgrant");
+	havebuslock = true;
 
 }
 
@@ -53,12 +58,17 @@ void dmacard_tick() {
 
 	log_println(LEVEL_INSANE, TAG, "dmacard_tick");
 
+	if (!havebuslock) {
+		return;
+	}
+
 	for (int i = 0; i < SIM_CLOCKS_PERTICK; i++) {
 		if (transferinprogress) {
 			if (count == 0) {
 				log_println(LEVEL_DEBUG, TAG, "transfer done");
 				config |= DMA_REGISTER_CONFIG_DONE;
 				transferinprogress = false;
+				board_unlock_bus(&dmacard);
 			}
 
 			else {
@@ -109,6 +119,7 @@ void dmacard_write_word(uint32_t address, uint16_t value) {
 		case DMACARD_REGISTER_CONFIG:
 			value &= 0x7fff;
 			if (value & DMA_REGISTER_CONFIG_START) {
+				board_lock_bus(&dmacard);
 				transferinprogress = true;
 				value &= ~DMA_REGISTER_CONFIG_START;
 			}
@@ -119,6 +130,7 @@ void dmacard_write_word(uint32_t address, uint16_t value) {
 	}
 
 	*(dmacard_decodereg(address)) = value;
+
 }
 
 card dmacard = { "DMA Controller", dmacard_init, dmacard_dispose, dmacard_tick, dmacard_irqack, dmacard_busgrant, NULL,

@@ -94,10 +94,13 @@ void board_lock_bus(card* card) {
 	// TODO lock cpu off of the bus.. keep ticks happening but make sure the time the CPU cant touch the bus is simulated
 
 	busrequestwaiting[board_which_slot(card)] = true;
+	buslocked = true;
+	(card->busreqack)();
 }
 
 void board_unlock_bus(card* card) {
 	busrequestwaiting[board_which_slot(card)] = false;
+	buslocked = false;
 }
 
 bool board_bus_locked() {
