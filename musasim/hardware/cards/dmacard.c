@@ -29,6 +29,8 @@ static uint16_t* dma_registers[] =
 		{ &config, &data, &counth, &countl, &sourceh, &sourcel, &destinationh, &destinationl };
 
 static uint32_t counter = 0;
+static uint16_t datalatched = 0;
+static uint32_t source = 0;
 static uint32_t destination = 0;
 
 static const char TAG[] = "dmacard";
@@ -80,15 +82,16 @@ void dmacard_tick() {
 			else {
 				//log_println(LEVEL_DEBUG, TAG, "writing to 0x%x", destination);
 
-				if (config & DMA_REGISTER_CONFIG_SIZE) {
-					board_write_word(destination, 0xFFFF);
-					destination += 2;
+				if (config & DMA_REGISTER_CONFIG_MODE) {
+					if (config & DMA_REGISTER_CONFIG_SIZE) {
+						board_write_word(destination, datalatched);
+						destination += 2;
+					}
+					else {
+						board_write_byte(destination, datalatched);
+						destination++;
+					}
 				}
-				else {
-					board_write_byte(destination, 0xFF);
-					destination++;
-				}
-
 				counter--;
 			}
 
@@ -112,8 +115,14 @@ uint16_t dmacard_read_word(uint32_t address) {
 
 void dmacard_dumpconfig() {
 
-	log_println(LEVEL_DEBUG, TAG, "transfering 0x%08x %s from 0x%08x to 0x%08x", counter,
-			config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", 0, destination);
+	if (config & DMA_REGISTER_CONFIG_MODE) {
+		log_println(LEVEL_DEBUG, TAG, "copying data 0x%08x times as %s to 0x%08x", counter,
+				config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", destination);
+	}
+	else {
+		log_println(LEVEL_DEBUG, TAG, "transferring 0x%08x %s from 0x%08x to 0x%08x", counter,
+				config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", 0, destination);
+	}
 
 }
 
@@ -130,7 +139,9 @@ void dmacard_write_word(uint32_t address, uint16_t value) {
 	if (reg == DMACARD_REGISTER_CONFIG) {
 		if (value & DMA_REGISTER_CONFIG_START) {
 			counter = ((counth << 16) | countl);
+			source = ((sourceh << 16) || sourcel);
 			destination = ((destinationh << 16) | destinationl);
+			datalatched = data;
 			board_lock_bus(&dmacard);
 			transferinprogress = true;
 			value &= ~DMA_REGISTER_CONFIG_START;
