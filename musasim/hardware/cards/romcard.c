@@ -19,6 +19,9 @@ static uint8_t* ram; /* RAM */
 
 static const char TAG[] = "romcard";
 
+#define ISROMSPACE(address) (address >= OFFSET_ROM && address <= MAX_ROM)
+#define ISRAMSPACE(address) (address >= OFFSET_RAM && address <= MAX_RAM)
+
 void romcard_init() {
 
 	if (rom == NULL) {
@@ -30,6 +33,9 @@ void romcard_init() {
 		ram = malloc(SIZE_RAM);
 		memset(ram, 0, SIZE_RAM);
 	}
+
+	log_println(LEVEL_INFO, TAG, "ROM section from 0x%08x to 0x%08x", OFFSET_ROM, MAX_ROM);
+	log_println(LEVEL_INFO, TAG, "RAM section from 0x%08x to 0x%08x", OFFSET_RAM, MAX_RAM);
 
 }
 
@@ -57,7 +63,7 @@ static bool romcard_valid_address(uint32_t address, bool write) {
 
 	// Disallow writes to rom space, outside of ram space
 	if (write) {
-		if (address >= OFFSET_RAM && address <= MAX_RAM) {
+		if (ISRAMSPACE(address)) {
 			return true;
 		}
 		else {
@@ -68,7 +74,7 @@ static bool romcard_valid_address(uint32_t address, bool write) {
 
 	// flag reads outside of rom/ram space
 	else {
-		if ((address >= OFFSET_ROM && address <= MAX_ROM) || (address >= OFFSET_RAM && address <= MAX_RAM)) {
+		if (ISROMSPACE(address) || ISRAMSPACE(address)) {
 			return true;
 		}
 		else {
@@ -83,16 +89,16 @@ typedef struct {
 	uint32_t relative_address;
 } bank;
 
-bank romcard_bank(uint32_t address) {
+static bank romcard_bank(uint32_t address) {
 
 	bank reg;
 
-	if (address >= OFFSET_ROM && address <= MAX_ROM) {
+	if (ISROMSPACE(address)) {
 		reg.base = rom;
 		reg.relative_address = address - OFFSET_ROM;
 	}
 
-	else if (address >= OFFSET_RAM && address <= MAX_RAM) {
+	else if (ISRAMSPACE(address)) {
 		reg.base = ram;
 		reg.relative_address = address - OFFSET_RAM;
 	}
