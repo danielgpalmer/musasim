@@ -145,7 +145,7 @@ void dmacard_tick() {
 					}
 				}
 
-				log_println(LEVEL_DEBUG, TAG, "data 0x%08x, src 0x%08x, dst 0x%08x", datalatched, source, destination);
+				log_println(LEVEL_INSANE, TAG, "data 0x%08x, src 0x%08x, dst 0x%08x", datalatched, source, destination);
 
 				counter--;
 			}
