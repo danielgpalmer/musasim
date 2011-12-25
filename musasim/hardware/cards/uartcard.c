@@ -274,7 +274,7 @@ void uart_tick() {
 		// Are we transmitting?
 		if (!uart_bitset(LINESTATUS_TRANSMITTEREMPTY, channel->registers.line_status)) {
 
-			log_println(LEVEL_DEBUG, TAG, "Transmitting .. clock %d", channel->txclock);
+			log_println(LEVEL_INSANE, TAG, "Transmitting .. clock %d", channel->txclock);
 
 			channel->txclock++;
 			// end of byte

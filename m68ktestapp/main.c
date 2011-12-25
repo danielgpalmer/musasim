@@ -97,7 +97,7 @@ void vblank_handler() {
 
 void uart_handler() __attribute (( interrupt));
 void uart_handler() {
-	sputch(sgetch());
+	//sputch(sgetch());
 }
 
 uint16_t getstatusregister() {
@@ -180,11 +180,11 @@ int main(void) {
 	initvideo();
 
 	*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
-	//sputs("Hello World!");
 
 	while (1) {
 
 		//gputs("Hello World!");
+	sputs("Hello World!");
 
 	}
 
