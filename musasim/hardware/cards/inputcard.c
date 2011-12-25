@@ -37,7 +37,7 @@ static const char TAG[] = "input";
 #define BUTTON_C		0xfd
 #define BUTTON_START	0xfe
 
-uint8_t ports[2];
+static uint8_t ports[2];
 
 void inputcard_init() {
 

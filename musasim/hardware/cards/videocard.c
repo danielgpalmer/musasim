@@ -28,10 +28,10 @@ static uint16_t* video_registers[] = { &flags, &config, &pixel, &line, &frame };
 
 // tile index 0 is special and is a nop
 
-uint8_t bg0mapflags;
-uint8_t bg1mapflags;
-uint8_t bg0map[256];
-uint8_t bg1map[256];
+//static uint8_t bg0mapflags;
+//static uint8_t bg1mapflags;
+//static uint8_t bg0map[256];
+//static uint8_t bg1map[256];
 
 // TILE FORMATS
 
@@ -49,20 +49,17 @@ uint8_t bg1map[256];
 
 #define BGTILEARRAYSIZE 255 * ((TILEFORMAT_SIZE_FAT/8) * TILEFORMAT_SIZE_FAT)
 
-uint8_t bg0tileflags = 0;
-uint8_t bg0tiles[BGTILEARRAYSIZE];
+//static uint8_t bg0tileflags = 0;
+//static uint8_t bg0tiles[BGTILEARRAYSIZE];
 
-uint8_t bg1tileflags = 0;
-uint8_t bg1tiles[BGTILEARRAYSIZE];
+//static uint8_t bg1tileflags = 0;
+//static uint8_t bg1tiles[BGTILEARRAYSIZE];
 
-bool DEBUG = false;
+static SDL_Surface* screen = NULL;
 
-SDL_Surface* screen = NULL;
+static void* pixels;
+static uint32_t registersstart;
 
-void* pixels;
-uint32_t currentaddress = 0;
-
-uint32_t registersstart;
 #define GETVIDREG(x) ( x = 0 ? 0 : (x & ~registersstart) / 2)
 
 void video_init() {
