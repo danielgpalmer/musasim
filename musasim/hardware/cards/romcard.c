@@ -5,16 +5,19 @@
  *      Author: daniel
  */
 
-#include "stdio.h"
-#include "string.h"
-#include "stdbool.h"
-#include "stdint.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "romcard.h"
 #include "../util.h"
+#include "../../logging.h"
 
 static uint8_t* rom; /* ROM */
 static uint8_t* ram; /* RAM */
+
+static const char TAG[] = "romcard";
 
 void romcard_init() {
 
@@ -27,6 +30,7 @@ void romcard_init() {
 		ram = malloc(SIZE_RAM);
 		memset(ram, 0, SIZE_RAM);
 	}
+
 }
 
 bool romcard_loadrom(char* path) {
@@ -49,12 +53,29 @@ bool romcard_loadrom(char* path) {
 	return true;
 }
 
-bool romcard_valid_address(uint32_t address, bool write) {
-	if (address < MAX_RAM) {
-		return true;
+static bool romcard_valid_address(uint32_t address, bool write) {
+
+	// Disallow writes to rom space, outside of ram space
+	if (write) {
+		if (address >= OFFSET_RAM && address <= MAX_RAM) {
+			return true;
+		}
+		else {
+			log_println(LEVEL_INFO, TAG, "invalid write to 0x%08x, write to ROM?", address);
+			return false;
+		}
 	}
 
-	return false;
+	// flag reads outside of rom/ram space
+	else {
+		if ((address >= OFFSET_ROM && address <= MAX_ROM) || (address >= OFFSET_RAM && address <= MAX_RAM)) {
+			return true;
+		}
+		else {
+			log_println(LEVEL_INFO, TAG, "invalid read to 0x%08x", address);
+			return false;
+		}
+	}
 }
 
 typedef struct {
@@ -101,7 +122,7 @@ uint16_t romcard_read_word(uint32_t address) {
 
 uint32_t romcard_read_long(uint32_t address) {
 
-	if (romcard_valid_address(address, true)) {
+	if (romcard_valid_address(address, false)) {
 		bank reg = romcard_bank(address);
 		return READ_LONG(reg.base, reg.relative_address);
 	}

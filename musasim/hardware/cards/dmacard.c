@@ -5,9 +5,6 @@
  *      Author: daniel
  */
 
-#ifndef DMACARD_C_
-#define DMACARD_C_
-
 #include "dmacard.h"
 #include "dmaregisters.h"
 #include <stdint.h>
@@ -209,4 +206,3 @@ void dmacard_write_word(uint32_t address, uint16_t value) {
 card dmacard = { "DMA Controller", dmacard_init, NULL, dmacard_tick, dmacard_irqack, dmacard_busgrant, NULL,
 		dmacard_read_word, NULL, NULL, dmacard_write_word, NULL };
 
-#endif /* DMACARD_C_ */
