@@ -43,10 +43,6 @@ void dmacard_init() {
 
 }
 
-void dmacard_dispose() {
-
-}
-
 void dmacard_irqack() {
 
 }
@@ -210,7 +206,7 @@ void dmacard_write_word(uint32_t address, uint16_t value) {
 
 }
 
-card dmacard = { "DMA Controller", dmacard_init, dmacard_dispose, dmacard_tick, dmacard_irqack, dmacard_busgrant, NULL,
+card dmacard = { "DMA Controller", dmacard_init, NULL, dmacard_tick, dmacard_irqack, dmacard_busgrant, NULL,
 		dmacard_read_word, NULL, NULL, dmacard_write_word, NULL };
 
 #endif /* DMACARD_C_ */

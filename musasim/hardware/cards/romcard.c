@@ -13,10 +13,25 @@
 #include "romcard.h"
 #include "../util.h"
 
-uint8_t rom[SIZE_ROM]; /* ROM */
-uint8_t ram[SIZE_RAM]; /* RAM */
+static uint8_t* rom; /* ROM */
+static uint8_t* ram; /* RAM */
+
+void romcard_init() {
+
+	if (rom == NULL) {
+		rom = malloc(SIZE_ROM);
+		memset(rom, 0, SIZE_ROM);
+	}
+
+	if (ram == NULL) {
+		ram = malloc(SIZE_RAM);
+		memset(ram, 0, SIZE_RAM);
+	}
+}
 
 bool romcard_loadrom(char* path) {
+
+	romcard_init(); // FIXME hack
 
 	memset(rom, 0x00, SIZE_ROM);
 	FILE* fhandle;
