@@ -18,8 +18,14 @@
 #define DMA_REGISTER_CONFIG_DACT (DMA_REGISTER_CONFIG_ACT << DMA_REGISTER_CONFIG_DATAACT_SHIFT) //
 #define DMA_REGISTER_CONFIG_SRCACT (DMA_REGISTER_CONFIG_ACT << DMA_REGISTER_CONFIG_SRCACT_SHIFT) //
 #define DMA_REGISTER_CONFIG_DSTACT (DMA_REGISTER_CONFIG_ACT << DMA_REGISTER_CONFIG_DSTACT_SHIFT) //
+#define DMA_REGISTER_CONFIG_MUTATOR 0x1800 //
 #define DMA_REGISTER_CONFIG_DONE 0x8000 // 1 when dma transfer finishes
 #define DMA_REGISTER_CONFIG_START 0x4000 // write 1 to start dma transfer
+#define DMA_MUT_NOTHING (0b00 << 11)
+#define DMA_MUT_AND (0b01 << 11)
+#define DMA_MUT_OR (0b10 << 11)
+#define DMA_MUT_XOR (0b11 << 11)
+
 // Actions that will be applied to the latch data,source or destination registers after a single read + write
 #define DMA_ACT_NOTHING 0b000
 #define DMA_ACT_INC 0b001

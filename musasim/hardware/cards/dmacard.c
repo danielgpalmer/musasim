@@ -55,6 +55,25 @@ void dmacard_busgrant() {
 
 static bool transferinprogress = false;
 
+static uint16_t mutate(uint16_t value) {
+
+	switch (config & DMA_REGISTER_CONFIG_MUTATOR) {
+		case DMA_MUT_NOTHING:
+			return value;
+		case DMA_MUT_AND:
+			return value & datalatched;
+		case DMA_MUT_OR:
+			return value | datalatched;
+		case DMA_MUT_XOR:
+			return value ^ datalatched;
+
+	}
+
+	// should never get here
+	return value;
+
+}
+
 void dmacard_tick() {
 
 	log_println(LEVEL_INSANE, TAG, "dmacard_tick");
@@ -86,11 +105,11 @@ void dmacard_tick() {
 				else { // Not accurate yet .. doing a read and a read in one cycle!
 					if (config & DMA_REGISTER_CONFIG_SIZE) {
 						uint16_t value = board_read_word(source);
-						board_write_word(destination, value);
+						board_write_word(destination, mutate(value));
 					}
 					else {
 						uint8_t value = board_read_byte(source);
-						board_write_byte(destination, value);
+						board_write_byte(destination, (uint8_t) (mutate(value) & 0xff));
 					}
 				}
 
