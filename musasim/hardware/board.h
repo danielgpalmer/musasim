@@ -7,7 +7,7 @@
 
 #include "cards/card.h"
 
-void board_add_device(uint8_t slot, card* card);
+void board_add_device(uint8_t slot, const card* card);
 void board_tick();
 void board_poweroff();
 
@@ -18,12 +18,12 @@ void board_write_byte(unsigned int address, unsigned int value);
 void board_write_word(unsigned int address, unsigned int value);
 void board_write_long(unsigned int address, unsigned int value);
 
-void board_raise_interrupt(card* card);
-void board_lower_interrupt(card* card);
+void board_raise_interrupt(const card* card);
+void board_lower_interrupt(const card* card);
 int board_ack_interrupt(int level);
 
-void board_lock_bus(card* card);
-void board_unlock_bus(card* card);
+void board_lock_bus(const card* card);
+void board_unlock_bus(const card* card);
 bool board_bus_locked();
 
 #define SLOT_ADDRESS_MASK 0x1FFFFF

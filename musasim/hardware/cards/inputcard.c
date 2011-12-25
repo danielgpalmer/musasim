@@ -149,5 +149,5 @@ void inputcard_tick() {
 
 }
 
-card inputcard = { "INPUT CARD", inputcard_init, NULL, inputcard_tick, NULL, NULL, inputcard_read_byte, NULL, NULL,
-		NULL, NULL, NULL };
+const card inputcard = { "INPUT CARD", inputcard_init, NULL, inputcard_tick, NULL, NULL, inputcard_read_byte, NULL,
+		NULL, NULL, NULL, NULL };

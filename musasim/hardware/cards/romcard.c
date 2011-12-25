@@ -19,7 +19,7 @@ static uint8_t* ram; /* RAM */
 
 static const char TAG[] = "romcard";
 
-#define ISROMSPACE(address) (address >= OFFSET_ROM && address <= MAX_ROM)
+#define ISROMSPACE(address) (address >= ROMCARD_OFFSET_ROM && address <= MAX_ROM)
 #define ISRAMSPACE(address) (address >= OFFSET_RAM && address <= MAX_RAM)
 
 void romcard_init() {
@@ -34,7 +34,7 @@ void romcard_init() {
 		memset(ram, 0, SIZE_RAM);
 	}
 
-	log_println(LEVEL_INFO, TAG, "ROM section from 0x%08x to 0x%08x", OFFSET_ROM, MAX_ROM);
+	log_println(LEVEL_INFO, TAG, "ROM section from 0x%08x to 0x%08x", ROMCARD_OFFSET_ROM, MAX_ROM);
 	log_println(LEVEL_INFO, TAG, "RAM section from 0x%08x to 0x%08x", OFFSET_RAM, MAX_RAM);
 
 }
@@ -46,13 +46,13 @@ bool romcard_loadrom(char* path) {
 	memset(rom, 0x00, SIZE_ROM);
 	FILE* fhandle;
 	if ((fhandle = fopen(path, "rb")) == NULL) {
-		printf("Unable to open %s\n", path);
+		log_println(LEVEL_WARNING, TAG, "Unable to open %s\n", path);
 		return false;
 	}
 
 	printf("Loading %s into ROM\n", path);
 	if (fread(rom, 1, SIZE_ROM + 1, fhandle) <= 0) {
-		printf("Error reading %s\n", path);
+		log_println(LEVEL_WARNING, TAG, "Error reading %s\n", path);
 		return false;
 	}
 
@@ -95,7 +95,7 @@ static bank romcard_bank(uint32_t address) {
 
 	if (ISROMSPACE(address)) {
 		reg.base = rom;
-		reg.relative_address = address - OFFSET_ROM;
+		reg.relative_address = address - ROMCARD_OFFSET_ROM;
 	}
 
 	else if (ISRAMSPACE(address)) {
@@ -163,5 +163,5 @@ void romcard_write_long(uint32_t address, uint32_t value) {
 
 }
 
-card romcard = { "ROM CARD", NULL, NULL, NULL, NULL, NULL, romcard_read_byte, romcard_read_word, romcard_read_long,
-		romcard_write_byte, romcard_write_word, romcard_write_long };
+const card romcard = { "ROM CARD", NULL, NULL, NULL, NULL, NULL, romcard_read_byte, romcard_read_word,
+		romcard_read_long, romcard_write_byte, romcard_write_word, romcard_write_long };

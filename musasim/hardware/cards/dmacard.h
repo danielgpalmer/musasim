@@ -10,7 +10,7 @@
 
 #include "card.h"
 
-card dmacard;
+const card dmacard;
 
 #define DMACARD_REGISTER_CONFIG 0
 #define DMACARD_REGISTER_DATA 2

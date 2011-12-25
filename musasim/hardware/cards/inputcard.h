@@ -10,6 +10,6 @@
 
 #include "card.h"
 
-card inputcard;
+const card inputcard;
 
 #endif /* INPUTCARD_H_ */

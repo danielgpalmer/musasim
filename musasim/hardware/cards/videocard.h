@@ -29,5 +29,5 @@ void dumpregs();
 
 #include "card.h"
 
-card videocard;
+const card videocard;
 

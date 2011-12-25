@@ -10,6 +10,6 @@
 
 #include "card.h"
 
-card soundcard;
+const card soundcard;
 
 #endif /* SOUNDCARD_H_ */

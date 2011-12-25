@@ -14,9 +14,9 @@ static char TAG[] = "board";
  *
  */
 
-card* slots[NUM_SLOTS];
-bool interruptswaiting[NUM_SLOTS];
-bool busrequestwaiting[NUM_SLOTS];
+const card* slots[NUM_SLOTS];
+static bool interruptswaiting[NUM_SLOTS];
+static bool busrequestwaiting[NUM_SLOTS];
 
 #define NOCARD 0xFF
 
@@ -26,7 +26,7 @@ bool busrequestwaiting[NUM_SLOTS];
 
 #define SLOTADDRESSMASK 0xE00000
 
-uint8_t board_decode_slot(uint32_t address) {
+static uint8_t board_decode_slot(uint32_t address) {
 
 	uint8_t slot = (address & SLOTADDRESSMASK) >> 21;
 
@@ -39,7 +39,7 @@ uint8_t board_decode_slot(uint32_t address) {
 
 }
 
-void board_add_device(uint8_t slot, card *card) {
+void board_add_device(uint8_t slot, const card *card) {
 
 	log_println(LEVEL_DEBUG, TAG, "Inserting %s into slot %d", card->boardinfo, slot);
 
@@ -69,7 +69,7 @@ void board_poweroff() {
 	}
 }
 
-uint8_t board_which_slot(card* card) {
+static uint8_t board_which_slot(const card* card) {
 
 	for (int i = 0; i < sizeof(slots); i++) {
 		if (slots[i] == card) {
@@ -85,7 +85,7 @@ uint8_t board_which_slot(card* card) {
 
 bool buslocked = false;
 
-void board_lock_bus(card* card) {
+void board_lock_bus(const card* card) {
 
 	// The real board will have an arbiter that decides which bus request to forward to the CPU
 	// and route the result back to that card.
@@ -98,7 +98,7 @@ void board_lock_bus(card* card) {
 	(card->busreqack)();
 }
 
-void board_unlock_bus(card* card) {
+void board_unlock_bus(const card* card) {
 	busrequestwaiting[board_which_slot(card)] = false;
 	buslocked = false;
 }
@@ -130,7 +130,7 @@ bool board_interrupt_sanitycheck(int slot) {
 	return false;
 }
 
-void board_raise_interrupt(card* card) {
+void board_raise_interrupt(const card* card) {
 
 	int slot = board_which_slot(card);
 	if (!board_interrupt_sanitycheck(slot)) {
@@ -158,7 +158,7 @@ void board_raise_interrupt(card* card) {
 	}
 }
 
-void board_lower_interrupt(card* card) {
+void board_lower_interrupt(const card* card) {
 
 	int slot = board_which_slot(card);
 	if (!board_interrupt_sanitycheck(slot)) {

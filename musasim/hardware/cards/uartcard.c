@@ -350,5 +350,5 @@ void uart_irq_ack() {
 	board_lower_interrupt(&uartcard);
 }
 
-card uartcard = { "UART CARD", uart_init, uart_dispose, uart_tick, uart_irq_ack, NULL, uart_read_byte, NULL, NULL,
+const card uartcard = { "UART CARD", uart_init, uart_dispose, uart_tick, uart_irq_ack, NULL, uart_read_byte, NULL, NULL,
 		uart_write_byte, NULL, NULL };
