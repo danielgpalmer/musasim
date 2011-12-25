@@ -92,7 +92,7 @@ void dmacard_tick() {
 						destination++;
 					}
 				}
-				else {
+				else { // Not accurate yet .. doing a read and a read in one cycle!
 					if (config & DMA_REGISTER_CONFIG_SIZE) {
 						uint16_t value = board_read_word(source);
 						board_write_word(destination, value);
