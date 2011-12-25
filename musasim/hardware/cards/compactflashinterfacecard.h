@@ -9,6 +9,7 @@
 #define COMPACTFLASHINTERFACECARD_H_
 
 #include "card.h"
-card compactflashinterfacecard;
+void cfintf_load(char* filename);
+const card compactflashinterfacecard;
 
 #endif /* COMPACTFLASHINTERFACECARD_H_ */
