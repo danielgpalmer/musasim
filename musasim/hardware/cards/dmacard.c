@@ -92,6 +92,20 @@ void dmacard_tick() {
 						destination++;
 					}
 				}
+				else {
+					if (config & DMA_REGISTER_CONFIG_SIZE) {
+						uint16_t value = board_read_word(source);
+						board_write_word(destination, value);
+						source += 2;
+						destination += 2;
+					}
+					else {
+						uint8_t value = board_read_byte(source);
+						board_write_byte(destination, value);
+						source++;
+						destination++;
+					}
+				}
 				counter--;
 			}
 
