@@ -9,7 +9,9 @@ clean:
 	rm -rf obj
 	rm -f gdbserver
 	rm -f musasim
+	$(MAKE) -C genheader clean
 	$(MAKE) -C $(CARDSDIR) clean
+	
 obj:
 	mkdir obj
 
