@@ -55,7 +55,7 @@ obj/m68kmake: m68kmake.c m68k_in.c
 	$(CC) $(WARNINGS) m68kmake.c -o obj/m68kmake
 
 obj/logging.o: logging.c logging.h
-	$(CC) $(CFLAGS) logging.c -o obj/logging.o
+	$(CC) $(CFLAGS) -std=gnu99 logging.c -o obj/logging.o
 obj/utils.o: utils.c utils.h
 	$(CC) $(CFLAGS) utils.c -o obj/utils.o
 
