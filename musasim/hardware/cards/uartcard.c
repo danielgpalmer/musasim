@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <fcntl.h>
+#include <termios.h>
 #include "uartcard.h"
 #include "uartregistermasks.h"
 #include <unistd.h>
@@ -90,6 +91,8 @@ void uart_init() {
 
 	int ptm;
 
+	struct termios tattr;
+
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
 		log_println(LEVEL_INFO, TAG, "Opening PTY for channel %d", i);
 		ptm = posix_openpt(O_RDWR | O_NOCTTY);
@@ -105,6 +108,9 @@ void uart_init() {
 			if (!(flags & O_NONBLOCK)) {
 				fcntl(ptm, F_SETFL, flags | O_NONBLOCK);
 			}
+			tcgetattr(ptm, &tattr);
+			cfmakeraw(&tattr);
+			tcsetattr(ptm, 0, &tattr);
 		}
 
 		uart_reset_channel(&(channels[i]));
@@ -152,8 +158,7 @@ uint8_t* uart_decode_register(uint32_t address, bool write) {
 						return txslot;
 					}
 					else {
-
-						log_println(LEVEL_DEBUG, TAG, "Host wrote a byte");
+						log_println(LEVEL_INSANE, TAG, "Host wrote a byte");
 						if (!uart_bitset(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, regs->line_status)) {
 							log_println(LEVEL_DEBUG, TAG, "TX overrun!");
 						}
@@ -281,7 +286,7 @@ void uart_tick() {
 			if (channel->txclock == 16) {
 				channel->txclock = 0;
 
-				log_println(LEVEL_DEBUG, TAG, "Transmitter has finished");
+				log_println(LEVEL_INSANE, TAG, "Transmitter has finished");
 
 				// transmitter is now empty
 				uart_setbit(LINESTATUS_TRANSMITTEREMPTY, &(channel->registers.line_status));
@@ -294,11 +299,11 @@ void uart_tick() {
 			// Check if we have data that is ready to be shifted out
 			if (!uart_bitset(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, channel->registers.line_status)) {
 
-				log_println(LEVEL_DEBUG, TAG, "Holding register has something");
+				log_println(LEVEL_INSANE, TAG, "Holding register has something");
 
 				// move data to transmitter .. which is really a cheat.. we just write it to the pty
 				write(channel->ptm, &(channel->registers.txfifo[0]), 1);
-				log_println(LEVEL_DEBUG, TAG, "Sent 0x%02x[%c]", channel->registers.txfifo[0],
+				log_println(LEVEL_INSANE, TAG, "Sent 0x%02x[%c]", channel->registers.txfifo[0],
 						uart_make_safe_char(channel->registers.txfifo[0]));
 
 				// We're transmitting
@@ -327,7 +332,7 @@ void uart_tick() {
 
 				channel->registers.rxfifo[0] = byte;
 				if (uart_bitset(LINESTATUS_DATAREADY, channel->registers.line_status)) {
-					log_println(LEVEL_DEBUG, TAG, "RX Overflow");
+					log_println(LEVEL_INFO, TAG, "RX Overflow");
 					uart_setbit(LINESTATUS_OVERRUNERROR, &(channel->registers.line_status));
 				}
 				uart_setbit(LINESTATUS_DATAREADY, &(channel->registers.line_status));

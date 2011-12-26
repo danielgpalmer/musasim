@@ -154,7 +154,7 @@ void initvideo() {
 	*dma_register_desth = 0x0020;
 	*dma_register_data = 0x0000;
 	*dma_register_config |= DMA_REGISTER_CONFIG_START | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE
-			| DMA_REGISTER_CONFIG_DATAACT_INCTWO | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
+			| DMA_REGISTER_CONFIG_DATAACT_INVERSE | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
 	while (!(*dma_register_config & DMA_REGISTER_CONFIG_DONE)) {
 
 	}
@@ -184,7 +184,7 @@ int main(void) {
 	while (1) {
 
 		//gputs("Hello World!");
-	sputs("Hello World!");
+		sputs("Hello World!\n");
 
 	}
 
