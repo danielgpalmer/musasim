@@ -3,8 +3,10 @@
 
 #include "sim.h"
 #include "m68k.h"
+#include "logging.h"
 
 #include "hardware/cards/romcard.h"
+#include "hardware/cards/compactflashinterfacecard.h"
 
 int main(int argc, char* argv[]) {
 
@@ -38,7 +40,14 @@ int main(int argc, char* argv[]) {
 	}
 
 	else {
-		romcard_loadrom(*(rompath->filename));
+		if (!romcard_loadrom(*(rompath->filename))) {
+			return 1;
+		}
+		if (cfpath->count > 0) {
+			if (!cfintf_load(*(cfpath->filename))) {
+				return 1;
+			}
+		}
 		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 		sim_init();
 		sim_reset();

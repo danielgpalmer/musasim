@@ -9,7 +9,7 @@ AFLAGS=-ahls
 CFLAGS=-mc68000 -ggdb -std=gnu99
 LFLAGS=-Trom.lds -nostartfiles  -Wl,-Map=prog.map
 
-all: prog.bin prog.srec
+all: prog.bin prog.srec cfimage.bin
 
 prog.bin: prog.elf
 	$(CP) -O binary prog.elf prog.bin
@@ -28,6 +28,10 @@ crt.o: crt.s
 
 fontrom.o: fontrom/fontrom.c
 	$(CC) $(CFLAGS) -c fontrom/fontrom.c
+
+cfimage.bin:
+	dd if=/dev/zero of=cfimage.bin bs=1MB count=64
+
 clean:
 	rm -f *.o
 	rm -f *.bin
