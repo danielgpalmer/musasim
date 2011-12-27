@@ -81,7 +81,9 @@ void cfintf_write_word(uint32_t address, uint16_t value) {
 }
 
 void cfint_dispose() {
-	munmap(image, size);
+	if (munmap(image, size) > 0) {
+		log_println(LEVEL_WARNING, TAG, "Failed to unmap image", errno);
+	}
 	close(fd);
 }
 

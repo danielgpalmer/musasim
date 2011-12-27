@@ -16,6 +16,7 @@
 #include "sim.h"
 #include "m68k.h"
 #include "gdbserver.h"
+#include "args.h"
 
 #include "hardware/cards/romcard.h"
 
@@ -35,37 +36,6 @@ bool verbose = true;
 int port;
 char* endpointer;
 
-bool parseargs(int argc, char* argv[]) {
-
-	if (argc == 2 || argc == 3) {
-
-		if (argc == 3) {
-			if (romcard_loadrom(argv[2])) {
-				// TODO Insert error handling here
-			}
-		}
-
-		port = strtol(argv[1], &endpointer, 0);
-		if (*endpointer) {
-			printf("Invalid port number");
-			return false;
-		}
-
-		if (port < 1024) {
-			printf("Port number is smaller than 1024\n");
-			return false;
-		}
-
-	}
-
-	else {
-		printf("usage: %s <port> [rom binary]\n", argv[0]);
-		return false;
-	}
-
-	return true;
-}
-
 int main(int argc, char* argv[]) {
 
 	printf("musashi m68k emulator\tKarl Stenerud with patches from MAME up to 0105\n"
@@ -73,8 +43,8 @@ int main(int argc, char* argv[]) {
 
 	struct sockaddr_in servaddr;
 
-	if (!parseargs(argc, argv)) {
-		exit(EXIT_FAILURE);
+	if (!args_parse(argc, argv)) {
+		return 0;
 	}
 
 	if ((socketlistening = socket(AF_INET, SOCK_STREAM, 0)) < 0) {

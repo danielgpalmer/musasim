@@ -28,6 +28,8 @@ char* readmem(char* commandbuffer);
 
 void gdbserver_check_breakpoints();
 
+int port;
+
 typedef enum State {
 	LISTENING, WAITING, RUNNING, BREAKING, EXIT
 

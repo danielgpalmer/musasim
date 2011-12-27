@@ -50,7 +50,7 @@ bool romcard_loadrom(const char* path) {
 		return false;
 	}
 
-	printf("Loading %s into ROM\n", path);
+	log_println(LEVEL_INFO, TAG, "Loading %s into ROM", path);
 	if (fread(rom, 1, SIZE_ROM + 1, fhandle) <= 0) {
 		log_println(LEVEL_WARNING, TAG, "Error reading %s\n", path);
 		return false;
