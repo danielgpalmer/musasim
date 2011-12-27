@@ -39,7 +39,7 @@ void romcard_init() {
 
 }
 
-bool romcard_loadrom(char* path) {
+bool romcard_loadrom(const char* path) {
 
 	romcard_init(); // FIXME hack
 
