@@ -16,6 +16,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <string.h>
 #include "../../logging.h"
 
 static const char TAG[] = "cfint";
@@ -154,11 +155,22 @@ void cfint_dispose() {
 	close(fd);
 }
 
+#define IDSERIAL "THEONLYONE          "
+#define IDFWVER "0.01    "
+
 static void cfint_createidblock() {
 
 	uint8_t* block = malloc(512);
 	memset(block, 0x00, 512);
+	memcpy(block + (ATA_ID_SERIAL * 2), IDSERIAL, (ATA_ID_SERIAL_LEN * 2));
+	memcpy(block + (ATA_ID_FIRMWAREVER * 2), IDFWVER, (ATA_ID_FIRMWAREVER_LEN * 2));
 
+	log_printhexblock(LEVEL_DEBUG, TAG, block, 512);
+
+}
+
+void cfint_init() {
+	cfint_createidblock();
 }
 
 static void cfint_decodecommand() {
@@ -178,5 +190,5 @@ void cfint_tick() {
 
 }
 
-const card compactflashinterfacecard = { "CF INTERFACE", NULL, cfint_dispose, cfint_tick, NULL, NULL, cfintf_read_byte,
-		cfintf_read_word, NULL, cfintf_write_byte, cfintf_write_word, NULL };
+const card compactflashinterfacecard = { "CF INTERFACE", cfint_init, cfint_dispose, cfint_tick, NULL, NULL,
+		cfintf_read_byte, cfintf_read_word, NULL, cfintf_write_byte, cfintf_write_word, NULL };
