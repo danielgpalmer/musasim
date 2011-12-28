@@ -18,10 +18,27 @@
 
 static const char TAG[] = "cfint";
 
-static uint16_t dataport;
-static uint16_t statusport;
+typedef struct {
+	uint16_t data;
+	uint8_t error;
+	uint8_t feature;
+	uint8_t sectorcount;
+	uint8_t sectornumber;
+	uint8_t cylinderhigh;
+	uint8_t cylinderlow;
+	uint8_t drivehead;
+	uint8_t status;
+	uint8_t command;
+} taskfile;
 
-static uint16_t* registers[] = { &dataport, NULL, NULL, NULL, NULL, NULL, &statusport };
+typedef struct {
+	uint8_t altstatus;
+	uint8_t devicecontrol;
+	uint8_t driveaddress;
+} control;
+
+static taskfile tf;
+static control c;
 
 static int fd;
 static uint8_t* image;
@@ -52,32 +69,79 @@ bool cfintf_load(const char* filename) {
 	return true;
 }
 
-#define ADDRESSMASK 0b111
+#define BLOCKMASK 0b10000 // A4
+#define ADDRESSMASK 0b1110 //
+#define BLOCK(address) ((address & BLOCKMASK) >> 3)
+#define REG(address) ((address & ADDRESSMASK) >> 1)
 
-#define REG(address) (address & ADDRESSMASK)
+static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
+
+	if (!BLOCK(address)) { // Command block
+
+		switch(REG(address)) {
+			case 0x00:
+			return &(tf.data);
+			case 0x01:
+			if(write) {
+				return &(tf.error);
+			}
+			else {
+				return &(tf.feature);
+			}
+			case 0x02:
+			return &(tf.sectorcount);
+			case 0x03:
+			return &(tf.sectornumber);
+			case 0x04:
+			return &(tf.cylinderlow);
+			case 0x05:
+			return &(tf.cylinderhigh);
+			case 0x06:
+			return &(tf.drivehead);
+			case 0x07:
+			if(write) {
+				return &(tf.command);
+			}
+			else {
+				return &(tf.status);
+			}
+
+		}
+	}
+	else { // controlblock
+
+		switch(REG(address)) {
+			case 0x06:
+			if(write) {
+				return &(c.altstatus);
+			}
+			else {
+				return &(c.devicecontrol);
+			}
+			case 0x07:
+			return &(c.driveaddress);
+		}
+	}
+
+	// shouldnt get here
+
+	return NULL;
+}
 
 uint8_t cfintf_read_byte(uint32_t address) {
-	return *(registers[REG(address)]);
+	return *((uint8_t*) cfintf_decodereg(address, false, false));
 }
 
 uint16_t cfintf_read_word(uint32_t address) {
-	int reg = REG(address);
-	if (reg != 0) {
-		return 0;
-	}
-	return *(registers[REG(address)]);
+	return *((uint16_t*) cfintf_decodereg(address, false, true));
 }
 
 void cfintf_write_byte(uint32_t address, uint8_t value) {
-	*(registers[REG(address)]) = value;
+	*((uint8_t*) cfintf_decodereg(address, true, false)) = value;
 }
 
 void cfintf_write_word(uint32_t address, uint16_t value) {
-	int reg = REG(address);
-	if (reg != 0) {
-		return;
-	}
-
+	*((uint16_t*) cfintf_decodereg(address, true, true)) = value;
 }
 
 void cfint_dispose() {
