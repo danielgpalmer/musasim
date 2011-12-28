@@ -29,9 +29,9 @@ GSList* breakpoints;
 int socketlistening;
 int socketconnection;
 
-State state = LISTENING;
+static State state = LISTENING;
 
-bool verbose = true;
+static bool verbose = true;
 
 int port;
 char* endpointer;
