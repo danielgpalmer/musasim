@@ -157,6 +157,7 @@ void cfint_dispose() {
 
 #define IDSERIAL "THEONLYONE          "
 #define IDFWVER "0.01    "
+#define IDMODEL "SIMULATEDCFCARD                         "
 
 static void cfint_createidblock() {
 
@@ -164,6 +165,11 @@ static void cfint_createidblock() {
 	memset(block, 0x00, 512);
 	memcpy(block + (ATA_ID_SERIAL * 2), IDSERIAL, (ATA_ID_SERIAL_LEN * 2));
 	memcpy(block + (ATA_ID_FIRMWAREVER * 2), IDFWVER, (ATA_ID_FIRMWAREVER_LEN * 2));
+	memcpy(block + (ATA_ID_MODELNUMBER * 2), IDMODEL, (ATA_ID_MODELNUMBER_LEN * 2));
+
+	//FIXME endian shit
+
+	*((uint32_t*) (block + (ATA_ID_LBASECTORS * 2))) = size / 512;
 
 	log_printhexblock(LEVEL_DEBUG, TAG, block, 512);
 
