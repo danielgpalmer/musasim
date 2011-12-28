@@ -76,17 +76,6 @@ void uart_reset_channel(channel* chan) {
 	chan->clockdivider = 0;
 }
 
-char uart_make_safe_char(char achar) {
-	switch (achar) {
-		case '\n':
-			return ' ';
-		case '\r':
-			return ' ';
-		default:
-			return achar;
-	}
-}
-
 void uart_init() {
 
 	int ptm;
@@ -304,7 +293,7 @@ void uart_tick() {
 				// move data to transmitter .. which is really a cheat.. we just write it to the pty
 				write(channel->ptm, &(channel->registers.txfifo[0]), 1);
 				log_println(LEVEL_INSANE, TAG, "Sent 0x%02x[%c]", channel->registers.txfifo[0],
-						uart_make_safe_char(channel->registers.txfifo[0]));
+						FILTERPRINTABLE(channel->registers.txfifo[0]));
 
 				// We're transmitting
 				uart_clearbit(LINESTATUS_TRANSMITTEREMPTY, &(channel->registers.line_status));
@@ -328,7 +317,7 @@ void uart_tick() {
 		char byte;
 		if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
 			if (bytes > 0) {
-				log_println(LEVEL_DEBUG, TAG, "Read byte 0x%02x[%c] from pty", byte, uart_make_safe_char(byte));
+				log_println(LEVEL_DEBUG, TAG, "Read byte 0x%02x[%c] from pty", byte, FILTERPRINTABLE(byte));
 
 				channel->registers.rxfifo[0] = byte;
 				if (uart_bitset(LINESTATUS_DATAREADY, channel->registers.line_status)) {

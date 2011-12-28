@@ -86,10 +86,7 @@ void log_printhexblock(int level, const char* tag, void* data, size_t len) {
 
 			}
 
-			char ascii = thisbyte;
-			if (!(ascii >= 0x20 && ascii <= 0x7F)) {
-				ascii = ' ';
-			}
+			char ascii = FILTERPRINTABLE(thisbyte);
 
 			printf("0x%02x [%c] ", thisbyte, ascii);
 
