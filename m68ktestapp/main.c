@@ -180,6 +180,7 @@ int main(void) {
 	initvideo();
 
 	*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
+	*ide_register_command = ATA_IDENTIFYDRIVE;
 
 	while (1) {
 

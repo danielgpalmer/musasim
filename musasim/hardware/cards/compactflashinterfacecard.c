@@ -6,6 +6,8 @@
  */
 
 #include "compactflashinterfacecard.h"
+#include "atacommands.h"
+#include "ataidoffsets.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -100,6 +102,7 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 			return &(tf.drivehead);
 			case 0x07:
 			if(write) {
+				log_println(LEVEL_DEBUG, TAG, "Command reg written.");
 				return &(tf.command);
 			}
 			else {
@@ -151,5 +154,29 @@ void cfint_dispose() {
 	close(fd);
 }
 
-const card compactflashinterfacecard = { "CF INTERFACE", NULL, cfint_dispose, NULL, NULL, NULL, cfintf_read_byte,
+static void cfint_createidblock() {
+
+	uint8_t* block = malloc(512);
+	memset(block, 0x00, 512);
+
+}
+
+static void cfint_decodecommand() {
+
+	switch (tf.command) {
+
+		case ATA_IDENTIFYDRIVE:
+			break;
+
+	}
+
+}
+
+void cfint_tick() {
+
+	cfint_decodecommand();
+
+}
+
+const card compactflashinterfacecard = { "CF INTERFACE", NULL, cfint_dispose, cfint_tick, NULL, NULL, cfintf_read_byte,
 		cfintf_read_word, NULL, cfintf_write_byte, cfintf_write_word, NULL };

@@ -75,6 +75,8 @@ void machine() {
 	//printf("volatile uint16_t* machine_ram_end = (uint16_t*) 0x%x;\n", MAX_RAM);
 	//printf("uint16_t machine_ram_size = (uint16_t) 0x%x;\n", SIZE_RAM);
 
+	printf("volatile uint8_t* ide_register_command = (uint8_t*) 0x%x;\n", SLOT_OFFSET(SLOT_CFCARD) + 14);
+
 	printf("volatile uint16_t* dma_register_config = (uint16_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_CONFIG);
 
@@ -87,10 +89,9 @@ void machine() {
 			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_COUNTL);
 
 	printf("volatile uint16_t* dma_register_srch = (uint16_t*) 0x%x;\n",
-				SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_SOURCEH);
-		printf("volatile uint16_t* dma_register_srcl = (uint16_t*) 0x%x;\n",
-				SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_SOURCEL);
-
+			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_SOURCEH);
+	printf("volatile uint16_t* dma_register_srcl = (uint16_t*) 0x%x;\n",
+			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_SOURCEL);
 
 	printf("volatile uint16_t* dma_register_desth = (uint16_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DESTINATIONH);
