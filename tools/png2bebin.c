@@ -6,6 +6,7 @@
 #define STBI_HEADER_FILE_ONLY
 #include "stb_image.c"
 
+#define STRIDE 3 // RGB
 int main(int argc, char* argv[]) {
 
 	struct arg_lit *help = arg_lit0(NULL, "help", "print this help and exit");
@@ -53,11 +54,30 @@ int main(int argc, char* argv[]) {
 
 	int x, y, comp;
 
-	stbi_uc* image = stbi_load_from_file(in, &x, &y, &comp, 0);
+	stbi_uc* image = stbi_load_from_file(in, &x, &y, &comp, STBI_rgb);
+
+	printf("Image is %d x %d, comp is %d\n", x, y, comp);
+
+	uint16_t pixel;
+
+	uint8_t* curpixel = image;
+
+	for (int yy = 0; yy < y; yy++) {
+		for (int xx = 0; xx < x; xx++) {
+
+			pixel = ((curpixel[0] & 0xf8) << 8) | ((curpixel[1] & 0xfc) << 3) | ((curpixel[2] & 0xf8 >> 3));
+
+			uint8_t msb = (pixel >> 8) & 0xFF;
+			uint8_t lsb = pixel & 0xFF;
+
+			fwrite(&msb, 1, 1, out);
+			fwrite(&lsb, 1, 1, out);
+			curpixel += STRIDE;
+		}
+	}
 
 	fclose(in);
-
-	// BIN WRITE HERE!
+	stbi_image_free(image);
 
 	fclose(out);
 
