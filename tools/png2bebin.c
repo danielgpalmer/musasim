@@ -7,6 +7,19 @@
 #include "stb_image.c"
 
 #define STRIDE 3 // RGB
+#define MSB(word) ((word >> 8) & 0xFF)
+#define LSB(word) (word & 0xFF)
+
+static void writebeword(uint16_t word, FILE* target) {
+
+	uint8_t msb = MSB(word);
+	uint8_t lsb = LSB(word);
+
+	fwrite(&msb, 1, 1, target);
+	fwrite(&lsb, 1, 1, target);
+
+}
+
 int main(int argc, char* argv[]) {
 
 	struct arg_lit *help = arg_lit0(NULL, "help", "print this help and exit");
@@ -60,18 +73,15 @@ int main(int argc, char* argv[]) {
 
 	uint16_t pixel;
 
+	writebeword(x, out);
+	writebeword(y, out);
+
 	uint8_t* curpixel = image;
 
 	for (int yy = 0; yy < y; yy++) {
 		for (int xx = 0; xx < x; xx++) {
-
 			pixel = ((curpixel[0] & 0xf8) << 8) | ((curpixel[1] & 0xfc) << 3) | ((curpixel[2] & 0xf8 >> 3));
-
-			uint8_t msb = (pixel >> 8) & 0xFF;
-			uint8_t lsb = pixel & 0xFF;
-
-			fwrite(&msb, 1, 1, out);
-			fwrite(&lsb, 1, 1, out);
+			writebeword(pixel, out);
 			curpixel += STRIDE;
 		}
 	}
