@@ -31,6 +31,7 @@ fontrom.o: fontrom/fontrom.c
 
 cfimage.bin:
 	dd if=/dev/zero of=cfimage.bin bs=1MB count=64
+	/sbin/mkfs.vfat cfimage.bin
 
 clean:
 	rm -f *.o
