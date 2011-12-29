@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "../../logging.h"
+#include <stdlib.h>
 
 static const char TAG[] = "cfint";
 
@@ -44,6 +45,7 @@ static taskfile tf;
 static control c;
 
 static int fd;
+static uint8_t* idblock;
 static uint8_t* image;
 static size_t size;
 
@@ -153,13 +155,14 @@ void cfint_dispose() {
 		log_println(LEVEL_WARNING, TAG, "Failed to unmap image", errno);
 	}
 	close(fd);
+	free((void*) idblock);
 }
 
 #define IDSERIAL "THEONLYONE          "
 #define IDFWVER "0.01    "
 #define IDMODEL "SIMULATEDCFCARD                         "
 
-static void cfint_createidblock() {
+static uint8_t* cfint_createidblock() {
 
 	uint8_t* block = malloc(512);
 	memset(block, 0x00, 512);
@@ -173,10 +176,12 @@ static void cfint_createidblock() {
 
 	log_printhexblock(LEVEL_DEBUG, TAG, block, 512);
 
+	return block;
+
 }
 
 void cfint_init() {
-	cfint_createidblock();
+	idblock = cfint_createidblock();
 }
 
 static void cfint_decodecommand() {
