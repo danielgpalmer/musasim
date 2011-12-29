@@ -13,9 +13,6 @@ int main(int argc, char* argv[]) {
 	struct arg_file *outputpath = arg_file1("o", "output", "binfile", "Path to output the resulting be16 binary to");
 	struct arg_end *end = arg_end(20);
 
-	FILE* in;
-	FILE* out;
-
 	void *argtable[] = { help, inputpath, outputpath, end };
 
 	if (arg_nullcheck(argtable) != 0) {
@@ -38,13 +35,27 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	// PNG DECODE HERE
+	FILE* in;
+	FILE* out;
 
 	printf("Coverting %s into be16 and writing to %s .. ", *(inputpath->filename), *(outputpath->filename));
 
-	fclose(in);
+	if ((in = fopen(*(inputpath->filename), "rb")) == NULL) {
+		printf("Error opening input file\n");
+		return 1;
+	}
 
-	out = fopen(*(outputpath->filename), "w");
+	if ((out = fopen(*(outputpath->filename), "wb")) == NULL) {
+		printf("Error creating/opening output file\n");
+		fclose(in);
+		return 1;
+	}
+
+	int x, y, comp;
+
+	stbi_uc* image = stbi_load_from_file(in, &x, &y, &comp, 0);
+
+	fclose(in);
 
 	// BIN WRITE HERE!
 
