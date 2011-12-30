@@ -261,6 +261,7 @@ void dmacard_tick() {
 
 				}
 
+				// Update all the pointers .. used for everything but MIXCOMPACT
 				if (unitcomplete) {
 					// Perform actions
 					for (int i = 0; i < 3; i++) {
