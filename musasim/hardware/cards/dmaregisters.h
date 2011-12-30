@@ -8,6 +8,21 @@
 #ifndef DMAREGISTERS_H_
 #define DMAREGISTERS_H_
 
+/*
+ *
+ *  15	14	13	12	11	10	09	08	07	06	05	04	03	02	01	00
+ *  DN	ST	MU	MU	DA	DA	DA  SA	SA	SA	dA	dA	dA	MO	MO	SZ
+ *
+ *  DN - Done
+ *  ST - Start
+ *  MU - Mutate
+ *  DA - Dest Action
+ *  SA - Source action
+ *  dA - Data action
+ *  MO - Mode
+ *  SZ - Size
+ */
+
 // size of DMA operation
 #define DMA_REGISTER_CONFIG_SIZE 0x0001 // 0 = 8bits, 1 = 16bits
 // mode of transfer
