@@ -14,7 +14,8 @@
 #include "../board.h"
 
 static uint16_t config = 0;
-static uint16_t data = 0;
+static uint16_t datal = 0;
+static uint16_t datah = 0;
 static uint16_t countl = 0;
 static uint16_t counth = 0;
 static uint16_t sourcel = 0;
@@ -22,11 +23,11 @@ static uint16_t sourceh = 0;
 static uint16_t destinationl = 0;
 static uint16_t destinationh = 0;
 
-static uint16_t* dma_registers[] =
-		{ &config, &data, &counth, &countl, &sourceh, &sourcel, &destinationh, &destinationl };
+static uint16_t* dma_registers[] = { &config, &datah, &datal, &counth, &countl, &sourceh, &sourcel, &destinationh,
+		&destinationl };
 
 static uint32_t counter = 0;
-static uint32_t datalatched = 0; // only use 16bits of this, but it makes it easier when actions are applied
+static uint32_t datalatched = 0;
 static uint32_t source = 0;
 static uint32_t destination = 0;
 
@@ -94,23 +95,26 @@ void dmacard_tick() {
 			else {
 				//log_println(LEVEL_DEBUG, TAG, "writing to 0x%x", destination);
 
-				if (config & DMA_REGISTER_CONFIG_MODE) {
-					if (config & DMA_REGISTER_CONFIG_SIZE) {
-						board_write_word(destination, (uint16_t) (datalatched & 0xffff));
-					}
-					else {
-						board_write_byte(destination, (uint8_t) (datalatched & 0xff));
-					}
-				}
-				else { // Not accurate yet .. doing a read and a read in one cycle!
-					if (config & DMA_REGISTER_CONFIG_SIZE) {
-						uint16_t value = board_read_word(source);
-						board_write_word(destination, mutate(value));
-					}
-					else {
-						uint8_t value = board_read_byte(source);
-						board_write_byte(destination, (uint8_t) (mutate(value) & 0xff));
-					}
+				switch ((config & DMA_REGISTER_CONFIG_MODE) >> 1) {
+					case 0b00:
+						if (config & DMA_REGISTER_CONFIG_SIZE) {
+							board_write_word(destination, (uint16_t)(datalatched & 0xffff));
+						}
+						else {
+							board_write_byte(destination, (uint8_t)(datalatched & 0xff));
+						}
+						break;
+
+					case 0b01: // Not accurate yet .. doing a read and a read in one cycle!
+						if (config & DMA_REGISTER_CONFIG_SIZE) {
+							uint16_t value = board_read_word(source);
+							board_write_word(destination, mutate(value));
+						}
+						else {
+							uint8_t value = board_read_byte(source);
+							board_write_byte(destination, (uint8_t)(mutate(value) & 0xff));
+						}
+						break;
 				}
 
 				static uint32_t* actregs[] = { &datalatched, &source, &destination };
@@ -212,7 +216,7 @@ void dmacard_write_word(uint32_t address, uint16_t value) {
 			counter = ((counth << 16) | countl);
 			source = ((sourceh << 16) || sourcel);
 			destination = ((destinationh << 16) | destinationl);
-			datalatched = data;
+			datalatched = ((datah << 16) | datal);
 			board_lock_bus(&dmacard);
 			transferinprogress = true;
 			value &= ~DMA_REGISTER_CONFIG_START;

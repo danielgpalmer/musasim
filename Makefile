@@ -1,4 +1,5 @@
 all:
+	$(MAKE) -C tools
 	$(MAKE) -C musasim
 	$(MAKE) -C musasim docs
 	$(MAKE) -C m68ktestapp

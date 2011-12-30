@@ -20,7 +20,7 @@ prog.srec: prog.elf
 prog.elf: crt.o main.o fontrom.o rom.lds
 	$(CC) $(LFLAGS) -o prog.elf crt.o main.o fontrom.o
 
-main.o: main.c #include ../musasim/genheader/machine.h ../musasim/genheader/video.h ../musasim/genheader/input.h ../musasim/genheader/uart.h
+main.o: main.c ../musasim/genheader/machine.h ../musasim/genheader/video.h ../musasim/genheader/input.h ../musasim/genheader/uart.h
 	$(CC) $(CFLAGS) -c main.c --save-temps
 
 crt.o: crt.s
