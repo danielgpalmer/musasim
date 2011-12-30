@@ -23,6 +23,8 @@ static uint16_t sourceh = 0;
 static uint16_t destinationl = 0;
 static uint16_t destinationh = 0;
 
+static char* register_names[] = { "config", "data high", "data low", "count h", "count low", "source high",
+		"source low", "destination h", "destination low" };
 static uint16_t* dma_registers[] = { &config, &datah, &datal, &counth, &countl, &sourceh, &sourcel, &destinationh,
 		&destinationl };
 
@@ -95,17 +97,8 @@ void dmacard_tick() {
 			else {
 				//log_println(LEVEL_DEBUG, TAG, "writing to 0x%x", destination);
 
-				switch ((config & DMA_REGISTER_CONFIG_MODE) >> 1) {
-					case 0b00:
-						if (config & DMA_REGISTER_CONFIG_SIZE) {
-							board_write_word(destination, (uint16_t)(datalatched & 0xffff));
-						}
-						else {
-							board_write_byte(destination, (uint8_t)(datalatched & 0xff));
-						}
-						break;
-
-					case 0b01: // Not accurate yet .. doing a read and a read in one cycle!
+				switch (config & DMA_REGISTER_CONFIG_MODE) {
+					case DMA_REGISTER_CONFIG_MODE_BLOCK:
 						if (config & DMA_REGISTER_CONFIG_SIZE) {
 							uint16_t value = board_read_word(source);
 							board_write_word(destination, mutate(value));
@@ -113,6 +106,15 @@ void dmacard_tick() {
 						else {
 							uint8_t value = board_read_byte(source);
 							board_write_byte(destination, (uint8_t)(mutate(value) & 0xff));
+						}
+						break;
+
+					case DMA_REGISTER_CONFIG_MODE_FILL: // Not accurate yet .. doing a read and a read in one cycle!
+						if (config & DMA_REGISTER_CONFIG_SIZE) {
+							board_write_word(destination, (uint16_t)(datalatched & 0xffff));
+						}
+						else {
+							board_write_byte(destination, (uint8_t)(datalatched & 0xff));
 						}
 						break;
 				}
@@ -161,7 +163,7 @@ void dmacard_tick() {
 					}
 				}
 
-				log_println(LEVEL_INSANE, TAG, "data 0x%08x, src 0x%08x, dst 0x%08x", datalatched, source, destination);
+				//log_println(LEVEL_DEBUG, TAG, "data 0x%08x, src 0x%08x, dst 0x%08x", datalatched, source, destination);
 
 				counter--;
 			}
@@ -186,13 +188,15 @@ uint16_t dmacard_read_word(uint32_t address) {
 
 void dmacard_dumpconfig() {
 
-	if (config & DMA_REGISTER_CONFIG_MODE) {
-		log_println(LEVEL_DEBUG, TAG, "copying data 0x%08x times as %s to 0x%08x", counter,
-				config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", destination);
-	}
-	else {
-		log_println(LEVEL_DEBUG, TAG, "transferring 0x%08x %s from 0x%08x to 0x%08x", counter,
-				config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", 0, destination);
+	switch (config & DMA_REGISTER_CONFIG_MODE) {
+		case DMA_REGISTER_CONFIG_MODE_FILL:
+			log_println(LEVEL_DEBUG, TAG, "copying data 0x%08x times as %s to 0x%08x", counter,
+					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", destination);
+			break;
+		case DMA_REGISTER_CONFIG_MODE_BLOCK:
+			log_println(LEVEL_DEBUG, TAG, "transferring 0x%08x %s from 0x%08x to 0x%08x", counter,
+					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", 0, destination);
+			break;
 	}
 
 	if ((config & DMA_REGISTER_CONFIG_DSTACT_INCTWO) == DMA_REGISTER_CONFIG_DSTACT_INCTWO) {
@@ -203,7 +207,8 @@ void dmacard_dumpconfig() {
 
 void dmacard_write_word(uint32_t address, uint16_t value) {
 	int reg = (address & ADDRESSMASK);
-	log_println(LEVEL_DEBUG, TAG, "write 0x%x, value 0x%x", address, value);
+	log_println(LEVEL_DEBUG, TAG, "write 0x%x [%s], value 0x%x", address,
+			reg == 0 ? register_names[0] : register_names[reg / 2], value);
 
 	if (reg == DMACARD_REGISTER_CONFIG) {
 		value &= 0x7fff;

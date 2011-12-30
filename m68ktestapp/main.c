@@ -152,9 +152,13 @@ void initvideo() {
 	*dma_register_counth = 0x0001;
 	*dma_register_countl = 0xFE00;
 	*dma_register_desth = 0x0020;
-	*dma_register_data = 0x0000;
-	*dma_register_config |= DMA_REGISTER_CONFIG_START | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE
+	*dma_register_datal = 0xFFFF;
+	//*dma_register_config |= DMA_REGISTER_CONFIG_START | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE
+	//		| DMA_REGISTER_CONFIG_DATAACT_INVERSE | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
+
+	*dma_register_config = DMA_REGISTER_CONFIG_START | DMA_REGISTER_CONFIG_MODE_FILL | DMA_REGISTER_CONFIG_SIZE
 			| DMA_REGISTER_CONFIG_DATAACT_INVERSE | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
+
 	while (!(*dma_register_config & DMA_REGISTER_CONFIG_DONE)) {
 
 	}
