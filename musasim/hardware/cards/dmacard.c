@@ -60,6 +60,7 @@ void dmacard_busgrant() {
 }
 
 static bool transferinprogress = false;
+static bool wordtransfer = false;
 
 static uint16_t mutate(uint16_t value1, uint16_t value2) {
 
@@ -146,7 +147,7 @@ void dmacard_tick() {
 					case DMA_REGISTER_CONFIG_MODE_BLOCK: // Takes two clocks, one for read, one for write
 						// read phase
 						if (state == 0) {
-							if (config & DMA_REGISTER_CONFIG_SIZE) {
+							if (wordtransfer) {
 								holding = board_read_word(source);
 							}
 							else {
@@ -156,7 +157,7 @@ void dmacard_tick() {
 						}
 						//write phase
 						else {
-							if (config & DMA_REGISTER_CONFIG_SIZE) {
+							if (wordtransfer) {
 								board_write_word(destination, mutate(holding, data));
 							}
 							else {
@@ -168,7 +169,7 @@ void dmacard_tick() {
 						break;
 
 					case DMA_REGISTER_CONFIG_MODE_FILL: // Takes one clock
-						if (config & DMA_REGISTER_CONFIG_SIZE) {
+						if (wordtransfer) {
 							board_write_word(destination, (uint16_t)(data & 0xffff));
 						}
 						else {
@@ -181,39 +182,83 @@ void dmacard_tick() {
 
 						switch (state) {
 							case 0:
+								if (wordtransfer) {
+									holding = board_read_word(source);
+								}
+								else {
+									holding = board_read_byte(source);
+								}
 								state = 1;
-								holding = board_read_word(source);
 								break;
 							case 1:
-								holding = mutate(holding, board_read_word(data));
+								if (wordtransfer) {
+									holding = mutate(holding, board_read_word(data));
+								}
+								else {
+									holding = mutate(holding, board_read_byte(data));
+								}
 								state = 2;
 								break;
 							case 2:
-								board_write_word(destination, holding);
+								if (wordtransfer) {
+									board_write_word(destination, holding);
+								}
+								else {
+									board_write_byte(destination, holding);
+								}
 								state = 0;
 								unitcomplete = true;
 								break;
 						}
 
 						break;
-					case DMA_REGISTER_CONFIG_MODE_MIXCOMPACT:
-
+					case DMA_REGISTER_CONFIG_MODE_MIXCOMPACT: {
+						static int shifts = 0;
+						static uint16_t shifthold = 0;
 						switch (state) {
-							case 0:
-								state = 1;
-								holding = board_read_word(source);
+							case 0: // load the src
+
+								if (wordtransfer) {
+									holding = board_read_word(source);
+								}
+								dmacard_perform_act(1); // update source pointer
+								if (shifts == 0) {
+									state = 1;
+								}
+								else {
+									state = 2;
+								}
 								break;
-							case 1:
-								holding = mutate(holding, board_read_word(data));
+							case 1: // load the mask
+								if (wordtransfer) {
+									shifthold = board_read_word(data);
+								}
 								state = 2;
+								dmacard_perform_act(0); // update data pointer
 								break;
 							case 2:
-								board_write_word(destination, holding);
+								holding = mutate(holding, shifthold & 0x1 ? 0xFFFF : 0x0000); // if the lsb bit is set do the action with 0xffff
+								shifthold = (shifthold >> 1); // shift everything right
+								shifts++;
+
+								// next shift round
+								if ((wordtransfer && shifts == 16) || shifts == 8) {
+									shifts = 0;
+								}
+
+								if (wordtransfer) {
+									board_write_word(destination, holding);
+								}
+								else {
+									board_write_byte(destination, holding);
+								}
+								dmacard_perform_act(2); // increment dest pointer
 								state = 0;
 								break;
 						}
-
+					}
 						break;
+
 				}
 
 				if (unitcomplete) {
@@ -294,6 +339,7 @@ static void dmacard_write_word(uint32_t address, uint16_t value) {
 			data = ((datah << 16) | datal);
 			board_lock_bus(&dmacard);
 			transferinprogress = true;
+			wordtransfer = config & DMA_REGISTER_CONFIG_SIZE;
 			value &= ~DMA_REGISTER_CONFIG_START;
 			dmacard_dumpconfig();
 		}
