@@ -334,7 +334,7 @@ static void dmacard_write_word(uint32_t address, uint16_t value) {
 	if (reg == DMACARD_REGISTER_CONFIG) {
 		if (value & DMA_REGISTER_CONFIG_START) {
 			counter = ((counth << 16) | countl);
-			source = ((sourceh << 16) || sourcel);
+			source = ((sourceh << 16) | sourcel);
 			destination = ((destinationh << 16) | destinationl);
 			data = ((datah << 16) | datal);
 			board_lock_bus(&dmacard);
