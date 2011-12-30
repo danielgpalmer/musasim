@@ -29,7 +29,7 @@ static uint16_t* dma_registers[] = { &config, &datah, &datal, &counth, &countl, 
 		&destinationl };
 
 static uint32_t counter = 0;
-static uint32_t datalatched = 0;
+static uint32_t data = 0;
 static uint32_t source = 0;
 static uint32_t destination = 0;
 
@@ -64,11 +64,11 @@ static uint16_t mutate(uint16_t value) {
 		case DMA_MUT_NOTHING:
 			return value;
 		case DMA_MUT_AND:
-			return value & datalatched;
+			return value & data;
 		case DMA_MUT_OR:
-			return value | datalatched;
+			return value | data;
 		case DMA_MUT_XOR:
-			return value ^ datalatched;
+			return value ^ data;
 
 	}
 
@@ -111,15 +111,15 @@ void dmacard_tick() {
 
 					case DMA_REGISTER_CONFIG_MODE_FILL: // Not accurate yet .. doing a read and a read in one cycle!
 						if (config & DMA_REGISTER_CONFIG_SIZE) {
-							board_write_word(destination, (uint16_t)(datalatched & 0xffff));
+							board_write_word(destination, (uint16_t)(data & 0xffff));
 						}
 						else {
-							board_write_byte(destination, (uint8_t)(datalatched & 0xff));
+							board_write_byte(destination, (uint8_t)(data & 0xff));
 						}
 						break;
 				}
 
-				static uint32_t* actregs[] = { &datalatched, &source, &destination };
+				static uint32_t* actregs[] = { &data, &source, &destination };
 				static int actshifts[] = { DMA_REGISTER_CONFIG_DATAACT_SHIFT, DMA_REGISTER_CONFIG_SRCACT_SHIFT,
 						DMA_REGISTER_CONFIG_DSTACT_SHIFT };
 
@@ -146,7 +146,7 @@ void dmacard_tick() {
 							(*reg) -= 2;
 							break;
 						default:
-							if (reg == &datalatched) {
+							if (reg == &data) {
 								switch (act) {
 									case DMA_ACT_ROTLEFT:
 										(*reg) = ((*reg) << 1) & 0xffff;
@@ -221,7 +221,7 @@ void dmacard_write_word(uint32_t address, uint16_t value) {
 			counter = ((counth << 16) | countl);
 			source = ((sourceh << 16) || sourcel);
 			destination = ((destinationh << 16) | destinationl);
-			datalatched = ((datah << 16) | datal);
+			data = ((datah << 16) | datal);
 			board_lock_bus(&dmacard);
 			transferinprogress = true;
 			value &= ~DMA_REGISTER_CONFIG_START;
