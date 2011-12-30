@@ -55,21 +55,21 @@ typedef struct {
 	bool intpending_highest;
 } channel;
 
-channel channels[NUMOFCHANNELS];
+static channel channels[NUMOFCHANNELS];
 
-void uart_clearbit(uint8_t mask, uint8_t* target) {
+static void uart_clearbit(uint8_t mask, uint8_t* target) {
 	*target &= ~mask;
 }
 
-void uart_setbit(uint8_t mask, uint8_t* target) {
+static void uart_setbit(uint8_t mask, uint8_t* target) {
 	*target |= mask;
 }
 
-bool uart_bitset(uint8_t mask, uint8_t target) {
+static bool uart_bitset(uint8_t mask, uint8_t target) {
 	return (target & mask) == mask ? true : false;
 }
 
-void uart_reset_channel(channel* chan) {
+static void uart_reset_channel(channel* chan) {
 	chan->txclock = 0;
 	chan->registers.line_status = 0x60;
 	chan->registers.interrupt_identification = 0x01;
@@ -123,7 +123,7 @@ void uart_dispose() {
 #define CHANNELMASK 0x08
 #define REGISTERMASK 0x07
 
-uint8_t* uart_decode_register(uint32_t address, bool write) {
+static uint8_t* uart_decode_register(uint32_t address, bool write) {
 	channel* chan = &(channels[(address & CHANNELMASK) >> 4]);
 	registers* regs = &(chan->registers);
 	uint8_t reg = (address & REGISTERMASK);
