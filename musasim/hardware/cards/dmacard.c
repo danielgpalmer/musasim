@@ -13,6 +13,9 @@
 #include "../../sim.h"
 #include "../board.h"
 
+#define ADDRESSMASK 0x0F
+static const char TAG[] = "dmacard";
+
 // Externally visible registers
 
 static uint16_t config = 0;
@@ -36,7 +39,10 @@ static uint32_t data = 0;
 static uint32_t source = 0;
 static uint32_t destination = 0;
 
-static const char TAG[] = "dmacard";
+// State
+static bool transferinprogress = false;
+static bool wordtransfer = false;
+static bool havebuslock = false;
 
 void dmacard_init() {
 
@@ -50,17 +56,12 @@ void dmacard_irqack() {
 
 }
 
-static bool havebuslock = false;
-
 void dmacard_busgrant() {
 
 	log_println(LEVEL_DEBUG, TAG, "dmacard_busgrant");
 	havebuslock = true;
 
 }
-
-static bool transferinprogress = false;
-static bool wordtransfer = false;
 
 static uint16_t mutate(uint16_t value1, uint16_t value2) {
 
@@ -278,8 +279,6 @@ void dmacard_tick() {
 
 	}
 }
-
-#define ADDRESSMASK 0x0F
 
 static uint16_t* dmacard_decodereg(uint32_t address) {
 	int reg = (address & ADDRESSMASK);
