@@ -13,6 +13,8 @@
 #include "../../sim.h"
 #include "../board.h"
 
+// Externally visible registers
+
 static uint16_t config = 0;
 static uint16_t datal = 0;
 static uint16_t datah = 0;
@@ -28,6 +30,7 @@ static char* register_names[] = { "config", "data high", "data low", "count h", 
 static uint16_t* dma_registers[] = { &config, &datah, &datal, &counth, &countl, &sourceh, &sourcel, &destinationh,
 		&destinationl };
 
+// Latched values
 static uint32_t counter = 0;
 static uint32_t data = 0;
 static uint32_t source = 0;
@@ -79,6 +82,13 @@ static uint16_t mutate(uint16_t value) {
 
 void dmacard_tick() {
 
+	static uint32_t* actregs[] = { &data, &source, &destination };
+	static int actshifts[] = { DMA_REGISTER_CONFIG_DATAACT_SHIFT, DMA_REGISTER_CONFIG_SRCACT_SHIFT,
+			DMA_REGISTER_CONFIG_DSTACT_SHIFT };
+
+	static int state = 0; // for transfer modes to track their current phase of the unit
+	static uint16_t holding = 0; // for stashing data between phases
+
 	log_println(LEVEL_INSANE, TAG, "dmacard_tick");
 
 	if (!havebuslock) {
@@ -86,6 +96,9 @@ void dmacard_tick() {
 	}
 
 	for (int i = 0; i < SIM_CLOCKS_PERTICK; i++) {
+
+		bool unitcomplete = false;
+
 		if (transferinprogress) {
 			if (counter == 0) {
 				log_println(LEVEL_DEBUG, TAG, "transfer done");
@@ -99,76 +112,88 @@ void dmacard_tick() {
 
 				switch (config & DMA_REGISTER_CONFIG_MODE) {
 					case DMA_REGISTER_CONFIG_MODE_BLOCK:
-						if (config & DMA_REGISTER_CONFIG_SIZE) {
-							uint16_t value = board_read_word(source);
-							board_write_word(destination, mutate(value));
+						if (state == 0) {
+							if (config & DMA_REGISTER_CONFIG_SIZE) {
+								holding = board_read_word(source);
+							}
+							else {
+								holding = board_read_byte(source);
+							}
+							state = 1;
 						}
 						else {
-							uint8_t value = board_read_byte(source);
-							board_write_byte(destination, (uint8_t)(mutate(value) & 0xff));
+							if (config & DMA_REGISTER_CONFIG_SIZE) {
+								board_write_word(destination, mutate(holding));
+							}
+							else {
+								board_write_byte(destination, (uint8_t)(mutate(holding) & 0xff));
+							}
+							state = 0;
+							unitcomplete = true;
 						}
 						break;
 
-					case DMA_REGISTER_CONFIG_MODE_FILL: // Not accurate yet .. doing a read and a read in one cycle!
+					case DMA_REGISTER_CONFIG_MODE_FILL:
 						if (config & DMA_REGISTER_CONFIG_SIZE) {
 							board_write_word(destination, (uint16_t)(data & 0xffff));
 						}
 						else {
 							board_write_byte(destination, (uint8_t)(data & 0xff));
 						}
+						unitcomplete = true;
+						break;
+
+					case DMA_REGISTER_CONFIG_MODE_MIX:
+						unitcomplete = true;
+						break;
+					case DMA_REGISTER_CONFIG_MODE_MIXCOMPACT:
+						unitcomplete = true;
 						break;
 				}
 
-				static uint32_t* actregs[] = { &data, &source, &destination };
-				static int actshifts[] = { DMA_REGISTER_CONFIG_DATAACT_SHIFT, DMA_REGISTER_CONFIG_SRCACT_SHIFT,
-						DMA_REGISTER_CONFIG_DSTACT_SHIFT };
+				if (unitcomplete) {
+					// Perform actions
+					for (int i = 0; i < 3; i++) {
 
-				// Perform actions
-				for (int i = 0; i < 3; i++) {
+						uint32_t* reg = actregs[i];
 
-					uint32_t* reg = actregs[i];
+						int act = (config & (DMA_REGISTER_CONFIG_ACT << actshifts[i])) >> actshifts[i];
 
-					int act = (config & (DMA_REGISTER_CONFIG_ACT << actshifts[i])) >> actshifts[i];
-
-					switch (act) {
-						case DMA_ACT_NOTHING:
-							break;
-						case DMA_ACT_INC:
-							(*reg)++;
-							break;
-						case DMA_ACT_INCTWO:
-							(*reg) += 2;
-							break;
-						case DMA_ACT_DEC:
-							(*reg)--;
-							break;
-						case DMA_ACT_DECTWO:
-							(*reg) -= 2;
-							break;
-						default:
-							if (reg == &data) {
-								switch (act) {
-									case DMA_ACT_ROTLEFT:
-										(*reg) = ((*reg) << 1) & 0xffff;
-										break;
-									case DMA_ACT_ROTRIGHT:
-										(*reg) = ((*reg) >> 1) & 0xffff;
-										break;
-									case DMA_ACT_INVERSE:
-										(*reg) = ~(*reg);
-										break;
-								}
-							}
-							break;
+						switch (act) {
+							case DMA_ACT_NOTHING:
+								break;
+							case DMA_ACT_INC:
+								(*reg)++;
+								break;
+							case DMA_ACT_INCTWO:
+								(*reg) += 2;
+								break;
+							case DMA_ACT_DEC:
+								(*reg)--;
+								break;
+							case DMA_ACT_DECTWO:
+								(*reg) -= 2;
+								break;
+							case DMA_ACT_ROTLEFT:
+								(*reg) = ((*reg) << 1) & 0xffff;
+								break;
+							case DMA_ACT_ROTRIGHT:
+								(*reg) = ((*reg) >> 1) & 0xffff;
+								break;
+							case DMA_ACT_INVERSE:
+								(*reg) = ~(*reg);
+								break;
+						}
 					}
+
+					//log_println(LEVEL_DEBUG, TAG, "data 0x%08x, src 0x%08x, dst 0x%08x", datalatched, source, destination);
+
+					counter--;
 				}
-
-				//log_println(LEVEL_DEBUG, TAG, "data 0x%08x, src 0x%08x, dst 0x%08x", datalatched, source, destination);
-
-				counter--;
 			}
 
 		}
+
 	}
 }
 
@@ -206,6 +231,15 @@ void dmacard_dumpconfig() {
 }
 
 void dmacard_write_word(uint32_t address, uint16_t value) {
+
+// DMA transfer was started
+	if (config & DMA_REGISTER_CONFIG_START) {
+		if (!(config & DMA_REGISTER_CONFIG_DONE)) { // but it doesnt seem to be done yet?
+			log_println(LEVEL_INFO, TAG, "Someone tried to write registers while a transfer is in the progress!");
+			return;
+		}
+	}
+
 	int reg = (address & ADDRESSMASK);
 	log_println(LEVEL_DEBUG, TAG, "write 0x%x [%s], value 0x%x", address,
 			reg == 0 ? register_names[0] : register_names[reg / 2], value);

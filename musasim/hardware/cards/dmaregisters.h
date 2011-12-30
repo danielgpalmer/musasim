@@ -31,6 +31,7 @@
 #define DMA_REGISTER_CONFIG_MODE_BLOCK (0b00 << DMA_REGISTER_CONFIG_MODE_SHIFT) // Copy data at address in SRC to address in DST
 #define DMA_REGISTER_CONFIG_MODE_FILL (0b01 << DMA_REGISTER_CONFIG_MODE_SHIFT)  // Copy value of DATA to address in DST
 #define DMA_REGISTER_CONFIG_MODE_MIX (0b10 << DMA_REGISTER_CONFIG_MODE_SHIFT)   // Mutate data at address in SRC with data at address in DATA and copy to DST
+#define DMA_REGISTER_CONFIG_MODE_MIXCOMPACT (0b11 << DMA_REGISTER_CONFIG_MODE_SHIFT)   // Mutate data at address in SRC with data at address in DATA and copy to DST
 // Actions that will be applied to the latch data,source or destination registers after a single read + write
 #define DMA_REGISTER_CONFIG_ACT 0b111
 #define DMA_REGISTER_CONFIG_DATAACT_SHIFT 3
