@@ -6,6 +6,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -36,6 +37,13 @@ static void romcard_init() {
 
 	log_println(LEVEL_INFO, TAG, "ROM section from 0x%08x to 0x%08x", ROMCARD_OFFSET_ROM, MAX_ROM);
 	log_println(LEVEL_INFO, TAG, "RAM section from 0x%08x to 0x%08x", OFFSET_RAM, MAX_RAM);
+
+}
+
+static void romcard_dispose() {
+
+	free(rom);
+	free(ram);
 
 }
 
@@ -163,5 +171,5 @@ static void romcard_write_long(uint32_t address, uint32_t value) {
 
 }
 
-const card romcard = { "ROM CARD", NULL, NULL, NULL, NULL, NULL, romcard_read_byte, romcard_read_word,
+const card romcard = { "ROM CARD", NULL, romcard_dispose, NULL, NULL, NULL, romcard_read_byte, romcard_read_word,
 		romcard_read_long, romcard_write_byte, romcard_write_word, romcard_write_long };
