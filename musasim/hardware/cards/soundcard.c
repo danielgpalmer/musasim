@@ -13,6 +13,7 @@
  */
 
 #include "soundcard.h"
+#include "../util.h"
 #include "../../utils.h"
 #include "../../logging.h"
 
@@ -120,26 +121,20 @@ static void soundcard_tick() {
 
 static uint16_t* soundcard_decodereg(uint32_t address) {
 
-	if (address < channelregisterbase) {
-		//return &sampleram[a]
+	int channelnum = 0;
+	int reg = address - channelregisterbase;
+	if (reg != 0) {
+		reg /= 2;
 	}
-	else {
-		int channelnum = 0;
-		int reg = address - channelregisterbase;
-		if (reg != 0) {
-			reg /= 2;
-		}
-		switch (reg) {
-			case 0:
-				return &(channels[channelnum].config);
-			case 1:
-				return &(channels[channelnum].samplepointer);
-			case 2:
-				return &(channels[channelnum].samplelength);
-			case 3:
-				return &(channels[channelnum].samplepos);
-		}
-
+	switch (reg) {
+		case 0:
+			return &(channels[channelnum].config);
+		case 1:
+			return &(channels[channelnum].samplepointer);
+		case 2:
+			return &(channels[channelnum].samplelength);
+		case 3:
+			return &(channels[channelnum].samplepos);
 	}
 
 	return NULL;
@@ -148,13 +143,23 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 
 static uint16_t soundcard_read_word(uint32_t address) {
 
-	soundcard_decodereg(address);
-	return 0;
+	if (address < channelregisterbase) {
+		return READ_WORD(sampleram, address);
+	}
+	else {
+		return *(soundcard_decodereg(address));
+	}
+
 }
 
 static void soundcard_write_word(uint32_t address, uint16_t value) {
 
-	soundcard_decodereg(address);
+	if (address < channelregisterbase) {
+		WRITE_WORD(sampleram, address, value);
+	}
+	else {
+		*(soundcard_decodereg(address)) = value;
+	}
 
 }
 
