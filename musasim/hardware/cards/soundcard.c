@@ -22,9 +22,22 @@
 static char TAG[] = "sound";
 
 #define NUMCHANNELS 8
+
 #define SAMPLEPAGES 4
 #define SAMPLEPAGESIZE 0xFFFF
 #define SAMPLETOTAL (SAMPLEPAGESIZE * SAMPLEPAGES)
+static uint8_t* sampleram;
+
+/*
+ *	15	4	3	2	1	0
+ *	i	[R	]	S	I	E
+ *
+ *	E - Enabled
+ *	I - Interrupt
+ *	S - Side
+ *	R - Rate, divisor of the master clock
+ *	i - Interrupt fired
+ */
 
 typedef struct {
 	uint16_t config;
@@ -34,17 +47,11 @@ typedef struct {
 
 } channel;
 
-static uint16_t config;
-static uint16_t flags;
-static const uint16_t* globalregisters[] = { &config, &flags };
-static int16_t* sampleram;
-
 static channel channels[NUMCHANNELS];
 static channel channelslatched[NUMCHANNELS];
 
-static uint32_t registerbase;
+static uint32_t channelregisterbase;
 static uint32_t channelbases[NUMCHANNELS];
-static uint32_t globalregisterbase;
 
 static void soundcard_init() {
 
@@ -56,19 +63,15 @@ static void soundcard_init() {
 		chan->samplelength = 0;
 	}
 
-	registerbase = utils_nextpow(SAMPLETOTAL);
+	channelregisterbase = utils_nextpow(SAMPLETOTAL);
 
-	log_println(LEVEL_DEBUG, TAG, "registers start at 0x%08x", registerbase);
+	log_println(LEVEL_DEBUG, TAG, "registers start at 0x%08x", channelregisterbase);
 
 	int registerspaddedsize = utils_nextpow(sizeof(channel));
 	for (int i = 0; i < NUMCHANNELS; i++) {
-		channelbases[i] = registerbase + (registerspaddedsize * i);
+		channelbases[i] = channelregisterbase + (registerspaddedsize * i);
 		log_println(LEVEL_DEBUG, TAG, "channel %d base is at 0x%08x ", i, channelbases[i]);
 	}
-
-	globalregisterbase = channelbases[NUMCHANNELS - 1] + registerspaddedsize;
-
-	log_println(LEVEL_DEBUG, TAG, "config register is at 0x%08x", globalregisterbase);
 
 }
 
@@ -88,17 +91,28 @@ static void soundcard_tick() {
 
 }
 
-static void* soundcard_decodereg(uint32_t address) {
+static uint16_t* soundcard_decodereg(uint32_t address) {
 
-	if (address < registerbase) {
-
-	}
-	else if (address < globalregisterbase) {
-
+	if (address < channelregisterbase) {
+		//return &sampleram[a]
 	}
 	else {
-		int index = address - globalregisterbase;
-		return globalregisters[index];
+		int channelnum = 0;
+		int reg = address - channelregisterbase;
+		if (reg != 0) {
+			reg /= 2;
+		}
+		switch (reg) {
+			case 0:
+				return &(channels[channelnum].config);
+			case 1:
+				return &(channels[channelnum].samplepointer);
+			case 2:
+				return &(channels[channelnum].samplelength);
+			case 3:
+				return &(channels[channelnum].samplepos);
+		}
+
 	}
 
 	return NULL;
@@ -114,7 +128,6 @@ static uint16_t soundcard_read_word(uint32_t address) {
 static void soundcard_write_word(uint32_t address, uint16_t value) {
 
 	soundcard_decodereg(address);
-	config = value;
 
 }
 
