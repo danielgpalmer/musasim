@@ -246,6 +246,7 @@ void dmacard_tick() {
 								// next shift round
 								if ((wordtransfer && shifts == 16) || shifts == 8) {
 									shifts = 0;
+									counter--;
 								}
 
 								if (wordtransfer) {
