@@ -18,6 +18,8 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <SDL.h>
 
 static char TAG[] = "sound";
 
@@ -53,6 +55,14 @@ static channel channelslatched[NUMCHANNELS];
 static uint32_t channelregisterbase;
 static uint32_t channelbases[NUMCHANNELS];
 
+static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
+
+	// TODO mixing here
+
+}
+
+static bool active = false;
+
 static void soundcard_init() {
 
 	sampleram = malloc(SAMPLETOTAL);
@@ -73,10 +83,27 @@ static void soundcard_init() {
 		log_println(LEVEL_DEBUG, TAG, "channel %d base is at 0x%08x ", i, channelbases[i]);
 	}
 
+	//FIXME this is just pasted from the docs
+	SDL_AudioSpec fmt;
+	fmt.freq = 22050;
+	fmt.format = AUDIO_S16;
+	fmt.channels = 2;
+	fmt.samples = 512;
+	fmt.callback = soundcard_sdlcallback;
+	fmt.userdata = NULL;
+
+	if (SDL_OpenAudio(&fmt, NULL) == 0) {
+		active = true;
+		SDL_PauseAudio(0);
+		log_println(LEVEL_DEBUG, TAG, "SDL output is now active");
+	}
+
 }
 
 static void soundcard_dispose() {
+	SDL_CloseAudio();
 	free(sampleram);
+
 }
 
 static void soundcard_tick() {
