@@ -44,7 +44,7 @@ static bool transferinprogress = false;
 static bool wordtransfer = false;
 static bool havebuslock = false;
 
-void dmacard_init() {
+static void dmacard_init() {
 
 	for (int i = 0; i < 7; i++) {
 		*(dma_registers[i]) = 0;
@@ -52,11 +52,11 @@ void dmacard_init() {
 
 }
 
-void dmacard_irqack() {
+static void dmacard_irqack() {
 
 }
 
-void dmacard_busgrant() {
+static void dmacard_busgrant() {
 
 	log_println(LEVEL_DEBUG, TAG, "dmacard_busgrant");
 	havebuslock = true;
@@ -118,7 +118,7 @@ static void dmacard_perform_act(int index) {
 	}
 }
 
-void dmacard_tick() {
+static void dmacard_tick() {
 
 	static int state = 0; // for transfer modes to track their current phase of the unit
 	static uint16_t holding = 0; // for stashing data between phases
@@ -290,7 +290,7 @@ static uint16_t* dmacard_decodereg(uint32_t address) {
 	return dma_registers[reg];
 }
 
-void dmacard_dumpconfig() {
+static void dmacard_dumpconfig() {
 
 	switch (config & DMA_REGISTER_CONFIG_MODE) {
 		case DMA_REGISTER_CONFIG_MODE_FILL:
@@ -309,7 +309,7 @@ void dmacard_dumpconfig() {
 
 }
 
-uint16_t dmacard_read_word(uint32_t address) {
+static uint16_t dmacard_read_word(uint32_t address) {
 	return *(dmacard_decodereg(address));
 }
 

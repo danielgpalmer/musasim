@@ -76,7 +76,7 @@ static void uart_reset_channel(channel* chan) {
 	chan->clockdivider = 0;
 }
 
-void uart_init() {
+static void uart_init() {
 
 	int ptm;
 
@@ -106,7 +106,7 @@ void uart_init() {
 	}
 }
 
-void uart_dispose() {
+static void uart_dispose() {
 
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
 		close(channels[i].ptm);
@@ -227,17 +227,17 @@ static uint8_t* uart_decode_register(uint32_t address, bool write) {
 
 }
 
-uint8_t uart_read_byte(uint32_t address) {
+static uint8_t uart_read_byte(uint32_t address) {
 	uint8_t* reg = uart_decode_register(address, false);
 	return *reg;
 }
 
-void uart_write_byte(uint32_t address, uint8_t value) {
+static void uart_write_byte(uint32_t address, uint8_t value) {
 	uint8_t* reg = uart_decode_register(address, true);
 	*reg = value;
 }
 
-void uart_tick() {
+static void uart_tick() {
 
 	static int clocks = 0;
 	clocks++;
@@ -339,7 +339,7 @@ void uart_tick() {
 
 }
 
-void uart_irq_ack() {
+static void uart_irq_ack() {
 	log_println(LEVEL_DEBUG, TAG, "uart_irq_ack()");
 	board_lower_interrupt(&uartcard);
 }
