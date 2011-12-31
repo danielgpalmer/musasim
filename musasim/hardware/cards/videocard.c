@@ -62,7 +62,7 @@ static uint32_t registersstart;
 
 #define GETVIDREG(x) ( x = 0 ? 0 : (x & ~registersstart) / 2)
 
-void video_init() {
+static void video_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
@@ -84,7 +84,7 @@ void video_init() {
 
 }
 
-void video_dispose() {
+static void video_dispose() {
 
 	log_println(LEVEL_DEBUG, TAG, "video_dispose()");
 
@@ -109,7 +109,7 @@ static bool video_validaddress(uint32_t address) {
 	return false;
 }
 
-void video_tick() {
+static void video_tick() {
 
 	int mode = config & VIDEO_CONFIG_MODE_MASK;
 
@@ -159,7 +159,7 @@ void video_tick() {
 	//printf("%d, %d\n", pixel, line);
 }
 
-void video_write_byte(uint32_t address, uint8_t data) {
+static void video_write_byte(uint32_t address, uint8_t data) {
 
 	if (!video_validaddress(address)) {
 		return;
@@ -176,7 +176,7 @@ void video_write_byte(uint32_t address, uint8_t data) {
 	}
 }
 
-void video_write_word(uint32_t address, uint16_t data) {
+static void video_write_word(uint32_t address, uint16_t data) {
 
 	if (!video_validaddress(address)) {
 		return;
@@ -200,7 +200,7 @@ void video_write_word(uint32_t address, uint16_t data) {
 
 }
 
-uint8_t video_read_byte(uint32_t address) {
+static uint8_t video_read_byte(uint32_t address) {
 
 	if (!video_validaddress(address)) {
 		return 0;
@@ -210,7 +210,7 @@ uint8_t video_read_byte(uint32_t address) {
 
 }
 
-uint16_t video_read_word(uint32_t address) {
+static uint16_t video_read_word(uint32_t address) {
 
 	if (!video_validaddress(address)) {
 		return 0;
@@ -226,17 +226,15 @@ uint16_t video_read_word(uint32_t address) {
 
 }
 
-void dumpregs() {
+/*static void dumpregs() {
 
-	printf("-- REGS --\n");
+ printf("-- REGS --\n");
 
-	if ((flags & FLAG_VBLANK) == FLAG_VBLANK) {
-		printf("VBlank\n");
-	}
+ if ((flags & FLAG_VBLANK) == FLAG_VBLANK) {
+ printf("VBlank\n");
+ }*/
 
-}
-
-void videocard_irqack() {
+static void videocard_irqack() {
 	log_println(LEVEL_INSANE, TAG, "videocard_irqack()");
 	board_lower_interrupt(&videocard);
 }
