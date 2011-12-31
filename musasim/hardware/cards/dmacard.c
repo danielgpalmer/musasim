@@ -137,6 +137,7 @@ void dmacard_tick() {
 			if (counter == 0) {
 				log_println(LEVEL_DEBUG, TAG, "transfer done");
 				config |= DMA_REGISTER_CONFIG_DONE;
+				config &= ~DMA_REGISTER_CONFIG_START;
 				transferinprogress = false;
 				board_unlock_bus(&dmacard);
 			}
