@@ -13,9 +13,13 @@
  */
 
 #include "soundcard.h"
+#include "../../utils.h"
+#include "../../logging.h"
 
 #include <stdlib.h>
 #include <stdint.h>
+
+static char TAG[] = "sound";
 
 #define NUMCHANNELS 8
 #define SAMPLEPAGES 4
@@ -23,16 +27,20 @@
 #define SAMPLETOTAL (SAMPLEPAGESIZE * SAMPLEPAGES)
 
 typedef struct {
-	uint16_t samplepage;
+	uint16_t config;
 	uint16_t samplepointer;
 	uint16_t samplelength;
 	uint16_t samplepos;
-	uint8_t samplerate;
 
 } channel;
 
+static uint16_t config;
 static int16_t* sampleram;
 static channel channels[NUMCHANNELS];
+
+static uint32_t registerbase;
+static uint32_t channelbases[NUMCHANNELS];
+static uint32_t configaddress;
 
 static void soundcard_init() {
 
@@ -44,12 +52,24 @@ static void soundcard_init() {
 		chan->samplelength = 0;
 	}
 
+	registerbase = utils_nextpow(SAMPLETOTAL);
+
+	log_println(LEVEL_DEBUG, TAG, "registers start at 0x%08x", registerbase);
+
+	int registerspaddedsize = utils_nextpow(sizeof(channel));
+	for (int i = 0; i < NUMCHANNELS; i++) {
+		channelbases[i] = registerbase + (registerspaddedsize * i);
+		log_println(LEVEL_DEBUG, TAG, "channel %d base is at 0x%08x ", i, channelbases[i]);
+	}
+
+	configaddress = utils_nextpow(channelbases[NUMCHANNELS - 1] + sizeof(channel));
+
+	log_println(LEVEL_DEBUG, TAG, "config register is at 0x%08x", configaddress);
+
 }
 
 static void soundcard_dispose() {
-
 	free(sampleram);
-
 }
 
 static void soundcard_tick() {
@@ -61,5 +81,24 @@ static void soundcard_tick() {
 
 }
 
-const card soundcard = { "SOUND CARD", soundcard_init, soundcard_dispose, soundcard_tick, NULL, NULL, NULL, NULL, NULL,
-		NULL };
+static void* soundcard_decodereg(uint32_t address) {
+
+	return NULL;
+
+}
+
+static uint16_t soundcard_read_word(uint32_t address) {
+
+	soundcard_decodereg(address);
+	return 0;
+}
+
+static void soundcard_write_word(uint32_t address, uint16_t value) {
+
+	soundcard_decodereg(address);
+	config = value;
+
+}
+
+const card soundcard = { "SOUND CARD", soundcard_init, soundcard_dispose, soundcard_tick, NULL, NULL, NULL,
+		soundcard_read_word, NULL, NULL, soundcard_write_word, NULL };
