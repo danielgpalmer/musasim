@@ -35,12 +35,16 @@ typedef struct {
 } channel;
 
 static uint16_t config;
+static uint16_t flags;
+static const uint16_t* globalregisters[] = { &config, &flags };
 static int16_t* sampleram;
+
 static channel channels[NUMCHANNELS];
+static channel channelslatched[NUMCHANNELS];
 
 static uint32_t registerbase;
 static uint32_t channelbases[NUMCHANNELS];
-static uint32_t configaddress;
+static uint32_t globalregisterbase;
 
 static void soundcard_init() {
 
@@ -62,9 +66,9 @@ static void soundcard_init() {
 		log_println(LEVEL_DEBUG, TAG, "channel %d base is at 0x%08x ", i, channelbases[i]);
 	}
 
-	configaddress = utils_nextpow(channelbases[NUMCHANNELS - 1] + sizeof(channel));
+	globalregisterbase = channelbases[NUMCHANNELS - 1] + registerspaddedsize;
 
-	log_println(LEVEL_DEBUG, TAG, "config register is at 0x%08x", configaddress);
+	log_println(LEVEL_DEBUG, TAG, "config register is at 0x%08x", globalregisterbase);
 
 }
 
@@ -75,13 +79,27 @@ static void soundcard_dispose() {
 static void soundcard_tick() {
 
 	for (int i = 0; i < NUMCHANNELS; i++) {
-		channel* chan = &(channels[i]);
+
+		channelslatched[i] = channels[i]; // when the channel should be latched
+
+		channel* chan = &(channelslatched[i]);
 		chan->samplepos++;
 	}
 
 }
 
 static void* soundcard_decodereg(uint32_t address) {
+
+	if (address < registerbase) {
+
+	}
+	else if (address < globalregisterbase) {
+
+	}
+	else {
+		int index = address - globalregisterbase;
+		return globalregisters[index];
+	}
 
 	return NULL;
 
