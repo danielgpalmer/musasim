@@ -22,7 +22,7 @@ static const char TAG[] = "romcard";
 #define ISROMSPACE(address) (address >= ROMCARD_OFFSET_ROM && address <= MAX_ROM)
 #define ISRAMSPACE(address) (address >= OFFSET_RAM && address <= MAX_RAM)
 
-void romcard_init() {
+static void romcard_init() {
 
 	if (rom == NULL) {
 		rom = malloc(SIZE_ROM);
@@ -106,7 +106,7 @@ static bank romcard_bank(uint32_t address) {
 	return reg;
 }
 
-uint8_t romcard_read_byte(uint32_t address) {
+static uint8_t romcard_read_byte(uint32_t address) {
 
 	if (romcard_valid_address(address, false)) {
 		bank reg = romcard_bank(address);
@@ -116,7 +116,7 @@ uint8_t romcard_read_byte(uint32_t address) {
 	return 0;
 }
 
-uint16_t romcard_read_word(uint32_t address) {
+static uint16_t romcard_read_word(uint32_t address) {
 
 	if (romcard_valid_address(address, false)) {
 		bank reg = romcard_bank(address);
@@ -126,7 +126,7 @@ uint16_t romcard_read_word(uint32_t address) {
 	return 0;
 }
 
-uint32_t romcard_read_long(uint32_t address) {
+static uint32_t romcard_read_long(uint32_t address) {
 
 	if (romcard_valid_address(address, false)) {
 		bank reg = romcard_bank(address);
@@ -136,7 +136,7 @@ uint32_t romcard_read_long(uint32_t address) {
 	return 0;
 }
 
-void romcard_write_byte(uint32_t address, uint8_t value) {
+static void romcard_write_byte(uint32_t address, uint8_t value) {
 
 	if (romcard_valid_address(address, true)) {
 		bank reg = romcard_bank(address);
@@ -145,7 +145,7 @@ void romcard_write_byte(uint32_t address, uint8_t value) {
 
 }
 
-void romcard_write_word(uint32_t address, uint16_t value) {
+static void romcard_write_word(uint32_t address, uint16_t value) {
 
 	if (romcard_valid_address(address, true)) {
 		bank reg = romcard_bank(address);
@@ -154,7 +154,7 @@ void romcard_write_word(uint32_t address, uint16_t value) {
 
 }
 
-void romcard_write_long(uint32_t address, uint32_t value) {
+static void romcard_write_long(uint32_t address, uint32_t value) {
 
 	if (romcard_valid_address(address, true)) {
 		bank reg = romcard_bank(address);

@@ -134,23 +134,23 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 	return NULL;
 }
 
-uint8_t cfintf_read_byte(uint32_t address) {
+static uint8_t cfintf_read_byte(uint32_t address) {
 	return *((uint8_t*) cfintf_decodereg(address, false, false));
 }
 
-uint16_t cfintf_read_word(uint32_t address) {
+static uint16_t cfintf_read_word(uint32_t address) {
 	return *((uint16_t*) cfintf_decodereg(address, false, true));
 }
 
-void cfintf_write_byte(uint32_t address, uint8_t value) {
+static void cfintf_write_byte(uint32_t address, uint8_t value) {
 	*((uint8_t*) cfintf_decodereg(address, true, false)) = value;
 }
 
-void cfintf_write_word(uint32_t address, uint16_t value) {
+static void cfintf_write_word(uint32_t address, uint16_t value) {
 	*((uint16_t*) cfintf_decodereg(address, true, true)) = value;
 }
 
-void cfint_dispose() {
+static void cfint_dispose() {
 	if (munmap(image, size) > 0) {
 		log_println(LEVEL_WARNING, TAG, "Failed to unmap image", errno);
 	}
@@ -180,7 +180,7 @@ static uint8_t* cfint_createidblock() {
 
 }
 
-void cfint_init() {
+static void cfint_init() {
 	idblock = cfint_createidblock();
 }
 
@@ -195,7 +195,7 @@ static void cfint_decodecommand() {
 
 }
 
-void cfint_tick() {
+static void cfint_tick() {
 
 	cfint_decodecommand();
 
