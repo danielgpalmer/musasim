@@ -13,6 +13,7 @@
  */
 
 #include "soundcard.h"
+#include "soundregistermasks.h"
 #include "../util.h"
 #include "../../utils.h"
 #include "../../logging.h"
@@ -36,7 +37,7 @@ static uint8_t* audiobuffer;
 
 /*
  *	15	5	4	3	2	1	0
- *	i	[R	]	r	l	I	E
+ *	i	[R	]	l	r	I	E
  *
  *	E - Enabled
  *	I - Interrupt
@@ -63,7 +64,7 @@ typedef union {
 	audiochannel audio;
 } channel;
 
-static channel channels[TOTALCHANNELS]; // +1 for the master channel
+static channel channels[TOTALCHANNELS];
 static channel channelslatched[TOTALCHANNELS];
 
 static uint32_t channelregisterbase;
@@ -74,7 +75,7 @@ static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 	// TODO mixing here
 	//log_println(LEVEL_DEBUG, TAG, "sdlcallback len %d", len);
 
-	SDL_MixAudio(stream, sampleram, len, SDL_MIX_MAXVOLUME);
+	SDL_MixAudio(stream, audiobuffer, len, SDL_MIX_MAXVOLUME);
 }
 
 static bool active = false;
@@ -137,71 +138,89 @@ static void soundcard_dispose() {
 
 static void soundcard_tick() {
 
-	SDL_LockAudio();
+	masterchannel* master = &(channels[0]->master);
 
-	for (int i = 1; i < TOTALCHANNELS; i++) {
+	if (master->config && SOUND_CHANNEL_ENABLED) { // sound is enabled
 
-		channelslatched[i] = channels[i]; // when the channel should be latched
+		SDL_LockAudio();
 
-		audiochannel* chan = &(channelslatched[i].audio);
-		chan->samplepos++;
-	}
+		for (int i = 1; i < TOTALCHANNELS; i++) {
+			if (channels[i].audio.config & SOUND_CHANNEL_ENABLED) {
 
-	SDL_UnlockAudio();
+				channelslatched[i] = channels[i]; // when the channel should be latched
+				audiochannel* chan = &(channelslatched[i].audio);
 
-}
+				// LEFT
+				if (chan->config & SOUND_CHANNEL_LEFT) {
 
-static uint16_t* soundcard_decodereg(uint32_t address) {
+				}
 
-	int channelnum = 0;
-	int reg = address - channelregisterbase;
-	if (reg != 0) {
-		reg /= 2;
-	}
+				// RIGHT
+				if (chan->config & SOUND_CHANNEL_RIGHT) {
 
-	if (channelnum == 0) {
-		masterchannel* chan = &(channels[channelnum].master);
-		return &(chan->config);
-	}
-	else {
-		audiochannel* chan = &(channels[channelnum].audio);
-		switch (reg) {
-			case 0:
-				return &(chan->config);
-			case 1:
-				return &(chan->samplepointer);
-			case 2:
-				return &(chan->samplelength);
-			case 3:
-				return &(chan->samplepos);
+				}
+
+				// Update channels
+
+				channelslatched[i].audio.samplepos++;
+				// fire interrupts here
+			}
 		}
+
+		SDL_UnlockAudio();
 	}
 
-	return NULL;
+	static uint16_t* soundcard_decodereg(uint32_t address) {
 
-}
+		int channelnum = 0;
+		int reg = address - channelregisterbase;
+		if (reg != 0) {
+			reg /= 2;
+		}
 
-static uint16_t soundcard_read_word(uint32_t address) {
+		if (channelnum == 0) {
+			masterchannel* chan = &(channels[channelnum].master);
+			return &(chan->config);
+		}
+		else {
+			audiochannel* chan = &(channels[channelnum].audio);
+			switch (reg) {
+				case 0:
+					return &(chan->config);
+				case 1:
+					return &(chan->samplepointer);
+				case 2:
+					return &(chan->samplelength);
+				case 3:
+					return &(chan->samplepos);
+			}
+		}
 
-	if (address < channelregisterbase) {
-		return READ_WORD(sampleram, address);
+		return NULL;
+
 	}
-	else {
-		return *(soundcard_decodereg(address));
+
+	static uint16_t soundcard_read_word(uint32_t address) {
+
+		if (address < channelregisterbase) {
+			return READ_WORD(sampleram, address);
+		}
+		else {
+			return *(soundcard_decodereg(address));
+		}
+
 	}
 
-}
+	static void soundcard_write_word(uint32_t address, uint16_t value) {
 
-static void soundcard_write_word(uint32_t address, uint16_t value) {
+		if (address < channelregisterbase) {
+			WRITE_WORD(sampleram, address, value);
+		}
+		else {
+			*(soundcard_decodereg(address)) = value;
+		}
 
-	if (address < channelregisterbase) {
-		WRITE_WORD(sampleram, address, value);
 	}
-	else {
-		*(soundcard_decodereg(address)) = value;
-	}
 
-}
-
-const card soundcard = { "SOUND CARD", soundcard_init, soundcard_dispose, soundcard_tick, NULL, NULL, NULL,
-		soundcard_read_word, NULL, NULL, soundcard_write_word, NULL };
+	const card soundcard = { "SOUND CARD", soundcard_init, soundcard_dispose, soundcard_tick, NULL, NULL, NULL,
+			soundcard_read_word, NULL, NULL, soundcard_write_word, NULL };
