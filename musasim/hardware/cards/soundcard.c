@@ -33,18 +33,19 @@ static char TAG[] = "sound";
 #define SAMPLETOTAL (SAMPLEPAGESIZE * SAMPLEPAGES)
 static uint8_t* sampleram;
 #define BUFFERSIZE (SAMPLETOTAL * 16)
-static uint8_t* audiobuffer;
+static int16_t* audiobuffer;
 static unsigned int audiobufferhead = 0;
 
 /*
- *	15	5	4	3	2	1	0
- *	i	[R	]	l	r	I	E
+ *	15	10	09	08	07	06	05	04	03	02	01	00
+ *	i	[ P	]	[	v	]	[R	]	l	r	I	E
  *
  *	E - Enabled
  *	I - Interrupt
  *	r - Right Side
  *	l - Left Side
  *	R - Rate, divisor of the master clock
+ *	P - Page
  *	i - Interrupt fired
  */
 
@@ -76,7 +77,7 @@ static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 	// TODO mixing here
 	//log_println(LEVEL_DEBUG, TAG, "sdlcallback len %d", len);
 
-	SDL_MixAudio(stream, audiobuffer, len, SDL_MIX_MAXVOLUME);
+	SDL_MixAudio(stream, (uint8_t*) audiobuffer, len, SDL_MIX_MAXVOLUME);
 }
 
 static bool active = false;
@@ -117,7 +118,7 @@ static void soundcard_init() {
 	//FIXME this is just pasted from the docs
 	SDL_AudioSpec fmt;
 	fmt.freq = 22050;
-	fmt.format = AUDIO_S16MSB;
+	fmt.format = AUDIO_S16SYS;
 	fmt.channels = 2;
 	fmt.samples = 512;
 	fmt.callback = soundcard_sdlcallback;
@@ -155,20 +156,25 @@ static void soundcard_tick() {
 					chan = &(channelslatched[i].audio);
 				}
 
+				int page = chan->config & (SOUND_CHANNEL_PAGE >> SOUND_CHANNEL_PAGE_SHIFT);
+				uint32_t pageoffset = SAMPLEPAGESIZE * page;
+				uint32_t sampleoffset = pageoffset + chan->samplepointer + (chan->samplepos * 2);
+
 				// LEFT
 				if (chan->config & SOUND_CHANNEL_LEFT) {
-
+					audiobuffer[audiobufferhead] = READ_WORD(sampleram, sampleoffset);
 				}
 
 				// RIGHT
 				if (chan->config & SOUND_CHANNEL_RIGHT) {
-
+					audiobuffer[audiobufferhead + 1] = READ_WORD(sampleram, sampleoffset);
 				}
 
 				// chan is all out of samples..
 				chan->samplepos++;
 				if (chan->samplepos == chan->samplelength) {
-					if(chan->config & SOUND_CHANNEL_INTERRUPT){
+					if (chan->config & SOUND_CHANNEL_INTERRUPT) {
+						chan->config |= SOUND_CHANNEL_RELOAD;
 						// fire interrupt
 					}
 				}
