@@ -69,7 +69,9 @@ static uint32_t channelbases[TOTALCHANNELS];
 static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 
 	// TODO mixing here
+	//log_println(LEVEL_DEBUG, TAG, "sdlcallback len %d", len);
 
+	SDL_MixAudio(stream, sampleram, len, SDL_MIX_MAXVOLUME);
 }
 
 static bool active = false;
@@ -77,6 +79,12 @@ static bool active = false;
 static void soundcard_init() {
 
 	sampleram = malloc(SAMPLETOTAL);
+
+	//FILE* rand = fopen("/dev/urandom", "r");
+	//for (int i = 0; i < SAMPLETOTAL; i++) {
+	//	fread(&(sampleram[i]), 1, 1, rand);
+	//}
+	//fclose(rand);
 
 	for (int i = 0; i < TOTALCHANNELS; i++) {
 		if (i == 0) {
@@ -103,7 +111,7 @@ static void soundcard_init() {
 	//FIXME this is just pasted from the docs
 	SDL_AudioSpec fmt;
 	fmt.freq = 22050;
-	fmt.format = AUDIO_S16;
+	fmt.format = AUDIO_S16MSB;
 	fmt.channels = 2;
 	fmt.samples = 512;
 	fmt.callback = soundcard_sdlcallback;
