@@ -34,6 +34,7 @@ static char TAG[] = "sound";
 static uint8_t* sampleram;
 #define BUFFERSIZE (SAMPLETOTAL * 16)
 static uint8_t* audiobuffer;
+static unsigned int audiobufferhead = 0;
 
 /*
  *	15	5	4	3	2	1	0
@@ -138,7 +139,7 @@ static void soundcard_dispose() {
 
 static void soundcard_tick() {
 
-	masterchannel* master = &(channels[0]->master);
+	masterchannel* master = &(channels[0].master);
 
 	if (master->config && SOUND_CHANNEL_ENABLED) { // sound is enabled
 
@@ -147,8 +148,12 @@ static void soundcard_tick() {
 		for (int i = 1; i < TOTALCHANNELS; i++) {
 			if (channels[i].audio.config & SOUND_CHANNEL_ENABLED) {
 
-				channelslatched[i] = channels[i]; // when the channel should be latched
+				// channel ran out of samples.. so latch it again
 				audiochannel* chan = &(channelslatched[i].audio);
+				if (chan->samplepos == chan->samplelength) {
+					channelslatched[i] = channels[i];
+					chan = &(channelslatched[i].audio);
+				}
 
 				// LEFT
 				if (chan->config & SOUND_CHANNEL_LEFT) {
@@ -160,67 +165,71 @@ static void soundcard_tick() {
 
 				}
 
-				// Update channels
-
-				channelslatched[i].audio.samplepos++;
-				// fire interrupts here
+				// chan is all out of samples..
+				chan->samplepos++;
+				if (chan->samplepos == chan->samplelength) {
+					// fire interrupts here
+				}
 			}
 		}
+
+		audiobufferhead++;
 
 		SDL_UnlockAudio();
 	}
+}
 
-	static uint16_t* soundcard_decodereg(uint32_t address) {
+static uint16_t* soundcard_decodereg(uint32_t address) {
 
-		int channelnum = 0;
-		int reg = address - channelregisterbase;
-		if (reg != 0) {
-			reg /= 2;
-		}
-
-		if (channelnum == 0) {
-			masterchannel* chan = &(channels[channelnum].master);
-			return &(chan->config);
-		}
-		else {
-			audiochannel* chan = &(channels[channelnum].audio);
-			switch (reg) {
-				case 0:
-					return &(chan->config);
-				case 1:
-					return &(chan->samplepointer);
-				case 2:
-					return &(chan->samplelength);
-				case 3:
-					return &(chan->samplepos);
-			}
-		}
-
-		return NULL;
-
+	int channelnum = 0;
+	int reg = address - channelregisterbase;
+	if (reg != 0) {
+		reg /= 2;
 	}
 
-	static uint16_t soundcard_read_word(uint32_t address) {
-
-		if (address < channelregisterbase) {
-			return READ_WORD(sampleram, address);
+	if (channelnum == 0) {
+		masterchannel* chan = &(channels[channelnum].master);
+		return &(chan->config);
+	}
+	else {
+		audiochannel* chan = &(channels[channelnum].audio);
+		switch (reg) {
+			case 0:
+				return &(chan->config);
+			case 1:
+				return &(chan->samplepointer);
+			case 2:
+				return &(chan->samplelength);
+			case 3:
+				return &(chan->samplepos);
 		}
-		else {
-			return *(soundcard_decodereg(address));
-		}
-
 	}
 
-	static void soundcard_write_word(uint32_t address, uint16_t value) {
+	return NULL;
 
-		if (address < channelregisterbase) {
-			WRITE_WORD(sampleram, address, value);
-		}
-		else {
-			*(soundcard_decodereg(address)) = value;
-		}
+}
 
+static uint16_t soundcard_read_word(uint32_t address) {
+
+	if (address < channelregisterbase) {
+		return READ_WORD(sampleram, address);
+	}
+	else {
+		return *(soundcard_decodereg(address));
 	}
 
-	const card soundcard = { "SOUND CARD", soundcard_init, soundcard_dispose, soundcard_tick, NULL, NULL, NULL,
-			soundcard_read_word, NULL, NULL, soundcard_write_word, NULL };
+}
+
+static void soundcard_write_word(uint32_t address, uint16_t value) {
+
+	if (address < channelregisterbase) {
+		WRITE_WORD(sampleram, address, value);
+	}
+	else {
+		*(soundcard_decodereg(address)) = value;
+	}
+
+}
+
+const card soundcard = { "SOUND CARD", soundcard_init, soundcard_dispose, soundcard_tick, NULL, NULL, NULL,
+		soundcard_read_word, NULL, NULL, soundcard_write_word, NULL };
