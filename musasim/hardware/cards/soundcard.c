@@ -31,14 +31,17 @@ static char TAG[] = "sound";
 #define SAMPLEPAGESIZE 0xFFFF
 #define SAMPLETOTAL (SAMPLEPAGESIZE * SAMPLEPAGES)
 static uint8_t* sampleram;
+#define BUFFERSIZE (SAMPLETOTAL * 16)
+static uint8_t* audiobuffer;
 
 /*
- *	15	4	3	2	1	0
- *	i	[R	]	S	I	E
+ *	15	5	4	3	2	1	0
+ *	i	[R	]	r	l	I	E
  *
  *	E - Enabled
  *	I - Interrupt
- *	S - Side
+ *	r - Right Side
+ *	l - Left Side
  *	R - Rate, divisor of the master clock
  *	i - Interrupt fired
  */
@@ -79,10 +82,11 @@ static bool active = false;
 static void soundcard_init() {
 
 	sampleram = malloc(SAMPLETOTAL);
+	audiobuffer = malloc(BUFFERSIZE);
 
 	//FILE* rand = fopen("/dev/urandom", "r");
-	//for (int i = 0; i < SAMPLETOTAL; i++) {
-	//	fread(&(sampleram[i]), 1, 1, rand);
+	//for (int i = 0; i < SAMPLETOTAL; i += 4) {
+	//	fread(&(sampleram[i]), 1, 2, rand);
 	//}
 	//fclose(rand);
 
@@ -128,10 +132,12 @@ static void soundcard_init() {
 static void soundcard_dispose() {
 	SDL_CloseAudio();
 	free(sampleram);
-
+	free(audiobuffer);
 }
 
 static void soundcard_tick() {
+
+	SDL_LockAudio();
 
 	for (int i = 1; i < TOTALCHANNELS; i++) {
 
@@ -140,6 +146,8 @@ static void soundcard_tick() {
 		audiochannel* chan = &(channelslatched[i].audio);
 		chan->samplepos++;
 	}
+
+	SDL_UnlockAudio();
 
 }
 
