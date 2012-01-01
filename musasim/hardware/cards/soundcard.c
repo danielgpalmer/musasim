@@ -168,7 +168,9 @@ static void soundcard_tick() {
 				// chan is all out of samples..
 				chan->samplepos++;
 				if (chan->samplepos == chan->samplelength) {
-					// fire interrupts here
+					if(chan->config & SOUND_CHANNEL_INTERRUPT){
+						// fire interrupt
+					}
 				}
 			}
 		}
