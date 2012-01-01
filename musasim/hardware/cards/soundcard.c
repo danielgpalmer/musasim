@@ -24,7 +24,8 @@
 
 static char TAG[] = "sound";
 
-#define NUMCHANNELS 8
+#define NUMAUDIOCHANNELS 8
+#define TOTALCHANNELS (NUMAUDIOCHANNELS + 1)
 
 #define SAMPLEPAGES 4
 #define SAMPLEPAGESIZE 0xFFFF
@@ -44,17 +45,26 @@ static uint8_t* sampleram;
 
 typedef struct {
 	uint16_t config;
+} masterchannel;
+
+typedef struct {
+	uint16_t config;
 	uint16_t samplepointer;
 	uint16_t samplelength;
 	uint16_t samplepos;
 
+} audiochannel;
+
+typedef union {
+	masterchannel master;
+	audiochannel audio;
 } channel;
 
-static channel channels[NUMCHANNELS];
-static channel channelslatched[NUMCHANNELS];
+static channel channels[TOTALCHANNELS]; // +1 for the master channel
+static channel channelslatched[TOTALCHANNELS];
 
 static uint32_t channelregisterbase;
-static uint32_t channelbases[NUMCHANNELS];
+static uint32_t channelbases[TOTALCHANNELS];
 
 static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 
@@ -68,18 +78,24 @@ static void soundcard_init() {
 
 	sampleram = malloc(SAMPLETOTAL);
 
-	for (int i = 0; i < NUMCHANNELS; i++) {
-		channel* chan = &(channels[i]);
-		chan->samplepointer = 0;
-		chan->samplelength = 0;
+	for (int i = 0; i < TOTALCHANNELS; i++) {
+		if (i == 0) {
+			masterchannel* chan = &(channels[i].master);
+			chan->config = 0;
+		}
+		else {
+			audiochannel* chan = &(channels[i].audio);
+			chan->samplepointer = 0;
+			chan->samplelength = 0;
+		}
 	}
 
 	channelregisterbase = utils_nextpow(SAMPLETOTAL);
 
 	log_println(LEVEL_DEBUG, TAG, "registers start at 0x%08x", channelregisterbase);
 
-	int registerspaddedsize = utils_nextpow(sizeof(channel));
-	for (int i = 0; i < NUMCHANNELS; i++) {
+	int registerspaddedsize = utils_nextpow(sizeof(audiochannel));
+	for (int i = 0; i < TOTALCHANNELS; i++) {
 		channelbases[i] = channelregisterbase + (registerspaddedsize * i);
 		log_println(LEVEL_DEBUG, TAG, "channel %d base is at 0x%08x ", i, channelbases[i]);
 	}
@@ -109,11 +125,11 @@ static void soundcard_dispose() {
 
 static void soundcard_tick() {
 
-	for (int i = 0; i < NUMCHANNELS; i++) {
+	for (int i = 1; i < TOTALCHANNELS; i++) {
 
 		channelslatched[i] = channels[i]; // when the channel should be latched
 
-		channel* chan = &(channelslatched[i]);
+		audiochannel* chan = &(channelslatched[i].audio);
 		chan->samplepos++;
 	}
 
@@ -126,15 +142,23 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 	if (reg != 0) {
 		reg /= 2;
 	}
-	switch (reg) {
-		case 0:
-			return &(channels[channelnum].config);
-		case 1:
-			return &(channels[channelnum].samplepointer);
-		case 2:
-			return &(channels[channelnum].samplelength);
-		case 3:
-			return &(channels[channelnum].samplepos);
+
+	if (channelnum == 0) {
+		masterchannel* chan = &(channels[channelnum].master);
+		return &(chan->config);
+	}
+	else {
+		audiochannel* chan = &(channels[channelnum].audio);
+		switch (reg) {
+			case 0:
+				return &(chan->config);
+			case 1:
+				return &(chan->samplepointer);
+			case 2:
+				return &(chan->samplelength);
+			case 3:
+				return &(chan->samplepos);
+		}
 	}
 
 	return NULL;
