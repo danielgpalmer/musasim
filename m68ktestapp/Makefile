@@ -33,6 +33,9 @@ cfimage.bin:
 	dd if=/dev/zero of=cfimage.bin bs=1MB count=64
 	/sbin/mkfs.vfat cfimage.bin
 
+blip.be16: blip.wav
+	 sox blip.wav -t raw -b 16 --endian big blip.be16
+
 clean:
 	rm -f *.o
 	rm -f *.bin
