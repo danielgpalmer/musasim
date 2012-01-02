@@ -17,6 +17,7 @@
 #include "../util.h"
 #include "../../utils.h"
 #include "../../logging.h"
+#include "../../sim.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -24,6 +25,9 @@
 #include <SDL.h>
 
 static char TAG[] = "sound";
+
+#define RATE 22050
+#define SAMPLESPERTICK (SIM_TICKS_PERSECOND / RATE)
 
 #define NUMAUDIOCHANNELS 8
 #define TOTALCHANNELS (NUMAUDIOCHANNELS + 1)
@@ -117,12 +121,14 @@ static void soundcard_init() {
 
 	//FIXME this is just pasted from the docs
 	SDL_AudioSpec fmt;
-	fmt.freq = 22050;
+	fmt.freq = RATE;
 	fmt.format = AUDIO_S16SYS;
 	fmt.channels = 2;
 	fmt.samples = 512;
 	fmt.callback = soundcard_sdlcallback;
 	fmt.userdata = NULL;
+
+	log_println(LEVEL_DEBUG, TAG, "samples per tick %d", SAMPLESPERTICK);
 
 	if (SDL_OpenAudio(&fmt, NULL) == 0) {
 		active = true;
@@ -146,42 +152,44 @@ static void soundcard_tick() {
 
 		SDL_LockAudio();
 
-		for (int i = 1; i < TOTALCHANNELS; i++) {
-			if (channels[i].audio.config & SOUND_CHANNEL_ENABLED) {
+		for (int sample = 0; sample < SAMPLESPERTICK; sample++) {
 
-				// channel ran out of samples.. so latch it again
-				audiochannel* chan = &(channelslatched[i].audio);
-				if (chan->samplepos == chan->samplelength) {
-					channelslatched[i] = channels[i];
-					chan = &(channelslatched[i].audio);
-				}
+			for (int i = 1; i < TOTALCHANNELS; i++) {
+				if (channels[i].audio.config & SOUND_CHANNEL_ENABLED) {
 
-				int page = chan->config & (SOUND_CHANNEL_PAGE >> SOUND_CHANNEL_PAGE_SHIFT);
-				uint32_t pageoffset = SAMPLEPAGESIZE * page;
-				uint32_t sampleoffset = pageoffset + chan->samplepointer + (chan->samplepos * 2);
+					// channel ran out of samples.. so latch it again
+					audiochannel* chan = &(channelslatched[i].audio);
+					if (chan->samplepos == chan->samplelength) {
+						channelslatched[i] = channels[i];
+						chan = &(channelslatched[i].audio);
+					}
 
-				// LEFT
-				if (chan->config & SOUND_CHANNEL_LEFT) {
-					audiobuffer[audiobufferhead] = READ_WORD(sampleram, sampleoffset);
-				}
+					int page = chan->config & (SOUND_CHANNEL_PAGE >> SOUND_CHANNEL_PAGE_SHIFT);
+					uint32_t pageoffset = SAMPLEPAGESIZE * page;
+					uint32_t sampleoffset = pageoffset + chan->samplepointer + (chan->samplepos * 2);
 
-				// RIGHT
-				if (chan->config & SOUND_CHANNEL_RIGHT) {
-					audiobuffer[audiobufferhead + 1] = READ_WORD(sampleram, sampleoffset);
-				}
+					// LEFT
+					if (chan->config & SOUND_CHANNEL_LEFT) {
+						audiobuffer[audiobufferhead] = READ_WORD(sampleram, sampleoffset);
+					}
 
-				// chan is all out of samples..
-				chan->samplepos++;
-				if (chan->samplepos == chan->samplelength) {
-					if (chan->config & SOUND_CHANNEL_INTERRUPT) {
-						chan->config |= SOUND_CHANNEL_RELOAD;
-						// fire interrupt
+					// RIGHT
+					if (chan->config & SOUND_CHANNEL_RIGHT) {
+						audiobuffer[audiobufferhead + 1] = READ_WORD(sampleram, sampleoffset);
+					}
+
+					// chan is all out of samples..
+					chan->samplepos++;
+					if (chan->samplepos == chan->samplelength) {
+						if (chan->config & SOUND_CHANNEL_INTERRUPT) {
+							chan->config |= SOUND_CHANNEL_RELOAD;
+							// fire interrupt
+						}
 					}
 				}
 			}
+			audiobufferhead++;
 		}
-
-		audiobufferhead++;
 
 		SDL_UnlockAudio();
 	}
