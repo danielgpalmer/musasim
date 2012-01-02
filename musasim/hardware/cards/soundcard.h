@@ -12,7 +12,53 @@
 
 const card soundcard;
 
+#define RATE 22050
+#define SAMPLESPERTICK (SIM_TICKS_PERSECOND / RATE)
+
+#define NUMAUDIOCHANNELS 8
+#define TOTALCHANNELS (NUMAUDIOCHANNELS + 1)
+
+#define SAMPLETOTAL (SAMPLEPAGESIZE * SAMPLEPAGES)
+
 #define SAMPLEPAGES 4
 #define SAMPLEPAGESIZE 0xFFFF
+
+/*
+ *	15	10	09	08	07	06	05	04	03	02	01	00
+ *	i	[ P	]	[	v	]	[R	]	l	r	I	E
+ *
+ *	E - Enabled
+ *	I - Interrupt
+ *	r - Right Side
+ *	l - Left Side
+ *	R - Rate, divisor of the master clock
+ *	P - Page
+ *	i - Interrupt fired
+ */
+
+typedef struct {
+	uint16_t config;
+} masterchannel;
+
+typedef struct {
+	uint16_t config;
+	uint16_t samplepointer;
+	uint16_t samplelength;
+	uint16_t samplepos;
+
+} audiochannel;
+
+typedef union {
+	masterchannel master;
+	audiochannel audio;
+} channel;
+
+#include "../../utils.h"
+static void soundcard_channelbases(uint32_t* channelbases, uint32_t channelregisterbase) {
+	int registerspaddedsize = utils_nextpow(sizeof(channel));
+	for (int i = 0; i < TOTALCHANNELS; i++) {
+		channelbases[i] = channelregisterbase + (registerspaddedsize * i);
+	}
+}
 
 #endif /* SOUNDCARD_H_ */

@@ -26,47 +26,10 @@
 
 static char TAG[] = "sound";
 
-#define RATE 22050
-#define SAMPLESPERTICK (SIM_TICKS_PERSECOND / RATE)
-
-#define NUMAUDIOCHANNELS 8
-#define TOTALCHANNELS (NUMAUDIOCHANNELS + 1)
-
-#define SAMPLETOTAL (SAMPLEPAGESIZE * SAMPLEPAGES)
 static uint8_t* sampleram;
 #define BUFFERSIZE (SAMPLETOTAL * 16)
 static int16_t* audiobuffer;
 static unsigned int audiobufferhead = 0;
-
-/*
- *	15	10	09	08	07	06	05	04	03	02	01	00
- *	i	[ P	]	[	v	]	[R	]	l	r	I	E
- *
- *	E - Enabled
- *	I - Interrupt
- *	r - Right Side
- *	l - Left Side
- *	R - Rate, divisor of the master clock
- *	P - Page
- *	i - Interrupt fired
- */
-
-typedef struct {
-	uint16_t config;
-} masterchannel;
-
-typedef struct {
-	uint16_t config;
-	uint16_t samplepointer;
-	uint16_t samplelength;
-	uint16_t samplepos;
-
-} audiochannel;
-
-typedef union {
-	masterchannel master;
-	audiochannel audio;
-} channel;
 
 static channel channels[TOTALCHANNELS];
 static channel channelslatched[TOTALCHANNELS];
@@ -111,11 +74,7 @@ static void soundcard_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "registers start at 0x%08x", channelregisterbase);
 
-	int registerspaddedsize = utils_nextpow(sizeof(audiochannel));
-	for (int i = 0; i < TOTALCHANNELS; i++) {
-		channelbases[i] = channelregisterbase + (registerspaddedsize * i);
-		log_println(LEVEL_DEBUG, TAG, "channel %d base is at 0x%08x ", i, channelbases[i]);
-	}
+	soundcard_channelbases(channelbases, channelregisterbase);
 
 	//FIXME this is just pasted from the docs
 	SDL_AudioSpec fmt;

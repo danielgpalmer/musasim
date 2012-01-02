@@ -121,7 +121,26 @@ void video() {
 }
 
 void sound() {
+
+	uint32_t channelregisterbase;
+	uint32_t channelbases[TOTALCHANNELS];
+
+	channelregisterbase = utils_nextpow(SAMPLETOTAL);
+
+	soundcard_channelbases(channelbases, channelregisterbase);
 	printf("volatile uint16_t* sound_bank_0 = (uint16_t*) 0x%x;\n", SLOT_OFFSET(SLOT_SOUNDCARD));
+
+	for (int i = 0; i < TOTALCHANNELS; i++) {
+		if (i == 0) {
+			printf("volatile uint16_t* sound_channel_master = (uint16_t*) 0x%x;\n",
+					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i]);
+		}
+		else {
+			printf("volatile uint16_t* sound_channel_%d = (uint16_t*) 0x%x;\n", i - 1,
+					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i]);
+		}
+	}
+
 }
 
 void uart() {
