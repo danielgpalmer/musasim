@@ -15,6 +15,7 @@
 #include "../hardware/cards/videocard.h"
 #include "../hardware/cards/uartcard.h"
 #include "../hardware/cards/dmacard.h"
+#include "../hardware/cards/soundcard.h"
 #include "../utils.h"
 
 char headers[] = "#include <stdint.h>\n"
@@ -48,6 +49,7 @@ int main(int argc, char* argv[]) {
 		else if (strcmp(argv[1], "sound") == 0) {
 			printf("/* sound.h */\n\n");
 			common();
+			sound();
 			printf("\n");
 		}
 		else if (strcmp(argv[1], "input") == 0) {
@@ -84,7 +86,7 @@ void machine() {
 			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DATAH);
 
 	printf("volatile uint16_t* dma_register_datal = (uint16_t*) 0x%x;\n",
-				SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DATAL);
+			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DATAL);
 
 	printf("volatile uint16_t* dma_register_counth = (uint16_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_COUNTH);
@@ -119,7 +121,7 @@ void video() {
 }
 
 void sound() {
-
+	printf("volatile uint16_t* sound_bank_0 = (uint16_t*) 0x%x;\n", SLOT_OFFSET(SLOT_SOUNDCARD));
 }
 
 void uart() {

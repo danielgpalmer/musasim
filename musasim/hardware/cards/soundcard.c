@@ -32,8 +32,6 @@ static char TAG[] = "sound";
 #define NUMAUDIOCHANNELS 8
 #define TOTALCHANNELS (NUMAUDIOCHANNELS + 1)
 
-#define SAMPLEPAGES 4
-#define SAMPLEPAGESIZE 0xFFFF
 #define SAMPLETOTAL (SAMPLEPAGESIZE * SAMPLEPAGES)
 static uint8_t* sampleram;
 #define BUFFERSIZE (SAMPLETOTAL * 16)
@@ -239,6 +237,7 @@ static uint16_t soundcard_read_word(uint32_t address) {
 static void soundcard_write_word(uint32_t address, uint16_t value) {
 
 	if (address < channelregisterbase) {
+		log_println(LEVEL_DEBUG, TAG, "write to sample ram at 0x%08x, %d", address, (int16_t) value);
 		WRITE_WORD(sampleram, address, value);
 	}
 	else {

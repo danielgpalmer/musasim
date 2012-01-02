@@ -11,7 +11,9 @@
 #include "../musasim/genheader/video.h"
 #include "../musasim/genheader/input.h"
 #include "../musasim/genheader/uart.h"
+#include "../musasim/genheader/sound.h"
 
+#include "blip.c" // cant be arsed with linking right now
 #define PIXELSIZE 2
 #define WIDTH 480
 #define HEIGHT 272
@@ -185,6 +187,12 @@ int main(void) {
 
 	*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
 	*ide_register_command = ATA_IDENTIFYDRIVE;
+
+	uint16_t* blip = _binary_blip_start;
+
+	for (int i = 0; i < sizeof(_binary_blip_start) / 2; i++) {
+		*(sound_bank_0 + i) = *blip++;
+	}
 
 	while (1) {
 

@@ -20,7 +20,7 @@ prog.srec: prog.elf
 prog.elf: crt.o main.o fontrom.o rom.lds
 	$(CC) $(LFLAGS) -o prog.elf crt.o main.o fontrom.o
 
-main.o: main.c ../musasim/genheader/machine.h ../musasim/genheader/video.h ../musasim/genheader/input.h ../musasim/genheader/uart.h
+main.o: blip.c main.c ../musasim/genheader/machine.h ../musasim/genheader/video.h ../musasim/genheader/input.h ../musasim/genheader/uart.h
 	$(CC) $(CFLAGS) -c main.c --save-temps
 
 crt.o: crt.s
@@ -32,6 +32,9 @@ fontrom.o: fontrom/fontrom.c
 cfimage.bin:
 	dd if=/dev/zero of=cfimage.bin bs=1MB count=64
 	/sbin/mkfs.vfat cfimage.bin
+
+blip.c: blip.be16
+	../tools/bin2c blip.be16 blip blip
 
 blip.be16: blip.wav
 	 sox blip.wav -t raw -b 16 --endian big blip.be16

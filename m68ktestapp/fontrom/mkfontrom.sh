@@ -10,10 +10,6 @@ CHARS="${CHARS} [ \\ ] ^ _ \`";
 CHARS="${CHARS} a b c d e f g h i j k l m n o p q r s t u v w x y z";
 CHARS="${CHARS} { | } ~";
 
-if [ ! -x ./bin2c ]; then
-	gcc -o bin2c bin2c.c;
-fi
-
 rm -f fontrom.bin;
 
 
@@ -26,7 +22,7 @@ done;
 
 rm *.tmp;
 
-./bin2c fontrom.bin fontrom fontrom
+../../tools/bin2c fontrom.bin fontrom fontrom
 
 ACTUALBYTES=`stat --printf=%s fontrom.bin`;
 

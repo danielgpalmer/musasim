@@ -12,4 +12,7 @@
 
 const card soundcard;
 
+#define SAMPLEPAGES 4
+#define SAMPLEPAGESIZE 0xFFFF
+
 #endif /* SOUNDCARD_H_ */
