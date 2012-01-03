@@ -43,7 +43,10 @@ static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 	// TODO mixing here
 	//log_println(LEVEL_DEBUG, TAG, "sdlcallback len %d", len);
 
+	//log_printhexblock(LEVEL_INFO, TAG, audiobuffer, 0x0F);
 	SDL_MixAudio(stream, (uint8_t*) audiobuffer, len, SDL_MIX_MAXVOLUME);
+	//audiobufferhead = 0;
+
 }
 
 static bool active = false;
@@ -96,6 +99,11 @@ static void soundcard_init() {
 
 }
 
+static void soundcard_dump_config(audiochannel* chan) {
+	log_println(LEVEL_DEBUG, TAG, "config 0x%04x, pointer 0x%04x, len 0x%04x, pos 0x%04x", chan->config,
+			chan->samplepointer, chan->samplelength, chan->samplepos);
+
+}
 static void soundcard_dispose() {
 	SDL_CloseAudio();
 	free(sampleram);
@@ -118,11 +126,12 @@ static void soundcard_tick() {
 					// channel ran out of samples.. so latch it again
 					audiochannel* chan = &(channelslatched[i].audio);
 					if (chan->samplepos == chan->samplelength) {
+						//log_println(LEVEL_DEBUG, TAG, "latching channel");
 						channelslatched[i] = channels[i];
 						chan = &(channelslatched[i].audio);
 					}
 
-					int page = chan->config & (SOUND_CHANNEL_PAGE >> SOUND_CHANNEL_PAGE_SHIFT);
+					int page = (chan->config & SOUND_CHANNEL_PAGE) >> SOUND_CHANNEL_PAGE_SHIFT;
 					uint32_t pageoffset = SAMPLEPAGESIZE * page;
 					uint32_t sampleoffset = pageoffset + chan->samplepointer + (chan->samplepos * 2);
 
@@ -144,10 +153,11 @@ static void soundcard_tick() {
 							// fire interrupt
 						}
 					}
+					//soundcard_dump_config(chan);
 				}
 			}
-			audiobufferhead++;
-			if (audiobufferhead == sizeof(audiobuffer) / 2) {
+			audiobufferhead += 2;
+			if (audiobufferhead == BUFFERSIZE / 2) {
 				log_println(LEVEL_WARNING, TAG, "audio buffer has overflowed");
 				audiobufferhead = 0;
 			}
@@ -166,12 +176,10 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 	}
 
 	if (channelnum == 0) {
-		log_println(LEVEL_DEBUG, TAG, "something is happening to the master channel");
 		masterchannel* chan = &(channels[channelnum].master);
 		return &(chan->config);
 	}
 	else {
-		log_println(LEVEL_DEBUG, TAG, "something is happening channel %d", channelnum);
 		audiochannel* chan = &(channels[channelnum].audio);
 		switch (reg) {
 			case 0:
@@ -186,6 +194,7 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 				log_println(LEVEL_DEBUG, TAG, "invalid register %d", reg);
 				return NULL;
 		}
+
 	}
 }
 
@@ -206,17 +215,19 @@ static uint16_t soundcard_read_word(uint32_t address) {
 
 static void soundcard_write_word(uint32_t address, uint16_t value) {
 
-	log_println(LEVEL_DEBUG, TAG, "write to 0x%08x, %d", address, (int16_t) value);
 	if (address < channelregisterbase) {
 		WRITE_WORD(sampleram, address, value);
 	}
 	else {
-		log_println(LEVEL_DEBUG, TAG, "decoding reg");
 		uint16_t* reg = soundcard_decodereg(address);
 		if (reg != NULL) {
 			*reg = value;
+			for (int i = 1; i < NUMAUDIOCHANNELS; i++) {
+				soundcard_dump_config(&(channels[i].audio));
+			}
 		}
 	}
+
 }
 
 const card soundcard = { "SOUND CARD", soundcard_init, soundcard_dispose, soundcard_tick, NULL, NULL, NULL,
