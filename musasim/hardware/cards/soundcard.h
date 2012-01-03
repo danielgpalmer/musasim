@@ -48,11 +48,17 @@ typedef struct {
 
 } audiochannel;
 
+#define SOUND_REGISTER_CONFIG 0
+#define SOUND_REGISTER_SAMPLEPOINTER 2
+#define SOUND_REGISTER_SAMPLELENGTH 4
+#define SOUND_REGISTER_SAMPLEPOS 6
+
 typedef union {
 	masterchannel master;
 	audiochannel audio;
 } channel;
 
+#ifdef WANTSOUNDFUNC
 #include "../../utils.h"
 static void soundcard_channelbases(uint32_t* channelbases, uint32_t channelregisterbase) {
 	int registerspaddedsize = utils_nextpow(sizeof(channel));
@@ -60,5 +66,6 @@ static void soundcard_channelbases(uint32_t* channelbases, uint32_t channelregis
 		channelbases[i] = channelregisterbase + (registerspaddedsize * i);
 	}
 }
+#endif
 
 #endif /* SOUNDCARD_H_ */

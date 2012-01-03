@@ -12,6 +12,7 @@
  * 			Online copy of the amiga hardware reference
  */
 
+#define WANTSOUNDFUNC
 #include "soundcard.h"
 #include "soundregistermasks.h"
 #include "../util.h"
@@ -146,6 +147,10 @@ static void soundcard_tick() {
 				}
 			}
 			audiobufferhead++;
+			if (audiobufferhead == sizeof(audiobuffer) / 2) {
+				log_println(LEVEL_WARNING, TAG, "audio buffer has overflowed");
+				audiobufferhead = 0;
+			}
 		}
 
 		SDL_UnlockAudio();
@@ -154,17 +159,19 @@ static void soundcard_tick() {
 
 static uint16_t* soundcard_decodereg(uint32_t address) {
 
-	int channelnum = 0;
-	int reg = address - channelregisterbase;
+	int channelnum = (address & 0x78) >> 3;
+	int reg = address - channelbases[channelnum];
 	if (reg != 0) {
 		reg /= 2;
 	}
 
 	if (channelnum == 0) {
+		log_println(LEVEL_DEBUG, TAG, "something is happening to the master channel");
 		masterchannel* chan = &(channels[channelnum].master);
 		return &(chan->config);
 	}
 	else {
+		log_println(LEVEL_DEBUG, TAG, "something is happening channel %d", channelnum);
 		audiochannel* chan = &(channels[channelnum].audio);
 		switch (reg) {
 			case 0:
@@ -175,11 +182,11 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 				return &(chan->samplelength);
 			case 3:
 				return &(chan->samplepos);
+			default:
+				log_println(LEVEL_DEBUG, TAG, "invalid register %d", reg);
+				return NULL;
 		}
 	}
-
-	return NULL;
-
 }
 
 static uint16_t soundcard_read_word(uint32_t address) {
@@ -188,21 +195,28 @@ static uint16_t soundcard_read_word(uint32_t address) {
 		return READ_WORD(sampleram, address);
 	}
 	else {
-		return *(soundcard_decodereg(address));
+		uint16_t* reg = soundcard_decodereg(address);
+		if (reg != NULL) {
+			return *reg;
+		}
 	}
 
+	return 0;
 }
 
 static void soundcard_write_word(uint32_t address, uint16_t value) {
 
+	log_println(LEVEL_DEBUG, TAG, "write to 0x%08x, %d", address, (int16_t) value);
 	if (address < channelregisterbase) {
-		log_println(LEVEL_DEBUG, TAG, "write to sample ram at 0x%08x, %d", address, (int16_t) value);
 		WRITE_WORD(sampleram, address, value);
 	}
 	else {
-		*(soundcard_decodereg(address)) = value;
+		log_println(LEVEL_DEBUG, TAG, "decoding reg");
+		uint16_t* reg = soundcard_decodereg(address);
+		if (reg != NULL) {
+			*reg = value;
+		}
 	}
-
 }
 
 const card soundcard = { "SOUND CARD", soundcard_init, soundcard_dispose, soundcard_tick, NULL, NULL, NULL,

@@ -183,21 +183,24 @@ int main(void) {
 
 //puts(helloworld);
 
-	initvideo();
+	//initvideo();
 
-	*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
+	//*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
 	*ide_register_command = ATA_IDENTIFYDRIVE;
 
 	uint16_t* blip = _binary_blip_start;
 
-	for (int i = 0; i < sizeof(_binary_blip_start) / 2; i++) {
-		*(sound_bank_0 + i) = *blip++;
-	}
+	//for (int i = 0; i < sizeof(_binary_blip_start) / 2; i++) {
+	//	*(sound_bank_0 + i) = *blip++;
+	//}
+		*sound_channel_0_samplelength = sizeof(_binary_blip_start);
+	*sound_channel_master_config = 0xFFFF;
+	*sound_channel_0_config = 0xFFFF;
 
 	while (1) {
 
 		//gputs("Hello World!");
-		sputs("Hello World!\n");
+		//sputs("Hello World!\n");
 
 	}
 
