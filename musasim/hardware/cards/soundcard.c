@@ -38,29 +38,25 @@ static uint32_t channelbases[TOTALCHANNELS];
 
 // This is a ring buffer for the computed audio
 #define SAMPLESIZE (sizeof(int16_t) * 2)
-#define BUFFERSIZE (10000 * SAMPLESIZE)
+#define BUFFERSIZE (4 * (RATE * SAMPLESIZE)) // 1s of audio..
 static int16_t* audiobuffer;
 static unsigned int audiobufferhead = 0;
+static unsigned int audiobuffertail = 0;
 //
 
 static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 
-	static unsigned int audiopos = 0;
-	static unsigned int localhead;
-
-	localhead = audiobufferhead;
-
 	for (int i = 0; i < len; i++) {
 
-		if (audiopos == localhead) {
+		if (audiobuffertail == audiobufferhead) {
 			log_println(LEVEL_INFO, TAG, "audio underrun");
 			break;
 		}
 
-		*stream++ = *((uint8_t*) audiobuffer + audiopos);
-		audiopos++;
-		if (audiopos == BUFFERSIZE) {
-			audiopos = 0;
+		*stream++ = *((uint8_t*) audiobuffer + audiobuffertail);
+		audiobuffertail++;
+		if (audiobuffertail == BUFFERSIZE) {
+			audiobuffertail = 0;
 		}
 	}
 
@@ -101,7 +97,7 @@ static void soundcard_init() {
 	//FIXME this is just pasted from the docs
 	SDL_AudioSpec fmt;
 	fmt.freq = RATE;
-	fmt.format = AUDIO_S16SYS;
+	fmt.format = AUDIO_S16SYS; // BE samples will get converted to the local format
 	fmt.channels = 2;
 	fmt.samples = 512;
 	fmt.callback = soundcard_sdlcallback;
@@ -131,7 +127,11 @@ static void soundcard_tick() {
 	static unsigned int bufferindex = 0;
 	static int scaler = 0;
 
-	if (scaler < TICKSPERSAMPLE - 1) { // Fudge
+	if (!active) {
+		return;
+	}
+
+	if (scaler < TICKSPERSAMPLE) { // Fudge
 		scaler++;
 		return;
 	}
@@ -191,6 +191,11 @@ static void soundcard_tick() {
 		}
 
 		audiobufferhead = bufferindex * SAMPLESIZE;
+
+		// we have caught up with the output
+		if (audiobufferhead == audiobuffertail) {
+			log_println(LEVEL_INFO, TAG, "audio buffer has overflown");
+		}
 
 		SDL_UnlockAudio();
 	}

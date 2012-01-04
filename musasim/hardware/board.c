@@ -256,6 +256,7 @@ void board_write_byte(unsigned int address, unsigned int value) {
 }
 
 void board_write_word(unsigned int address, unsigned int value) {
+
 	if (address % 2 != 0) {
 		log_println(LEVEL_DEBUG, TAG, "Word writes must be aligned, PC @ 0x%x", m68k_get_reg(NULL, M68K_REG_PC));
 		return;

@@ -54,7 +54,7 @@ void sim_init() {
  storing the result in RESULT.
  Return 1 if the difference is negative, otherwise 0.  */
 
-int timeval_subtract(result, x, y)
+static int timeval_subtract(result, x, y)
 	struct timeval *result, *x, *y; {
 	/* Perform the carry for the later subtraction by updating y. */
 	if (x->tv_usec < y->tv_usec) {
@@ -119,7 +119,7 @@ void sim_tick() {
 
 	sleep = SIM_USECSPERTICK - average;
 	if (sleep > 0) {
-		usleep(sleep);
+		//usleep(sleep);
 	}
 
 }
