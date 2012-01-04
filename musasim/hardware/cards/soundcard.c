@@ -20,6 +20,7 @@
 #include "../../logging.h"
 #include "../../sim.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -28,7 +29,8 @@
 static char TAG[] = "sound";
 
 static uint8_t* sampleram;
-#define BUFFERSIZE (5000 * 4)
+#define SAMPLESIZE 4
+#define BUFFERSIZE (5000 * SAMPLESIZE)
 static int16_t* audiobuffer;
 
 static channel channels[TOTALCHANNELS];
@@ -39,10 +41,14 @@ static uint32_t channelbases[TOTALCHANNELS];
 
 static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 
-	//static int audiopos = 0;
+	static unsigned int audiopos = 0;
 
 	for (int i = 0; i < len; i++) {
-		*stream++ = ((uint8_t*) audiobuffer)[i];
+		*stream++ = *((uint8_t*) audiobuffer + audiopos);
+		audiopos++;
+		if (audiopos == BUFFERSIZE) {
+			audiopos = 0;
+		}
 	}
 
 }
@@ -123,13 +129,13 @@ static void soundcard_tick() {
 		return;
 	}
 
+	assert(audiobufferhead * SAMPLESIZE < BUFFERSIZE);
+
 	scaler = 0;
 
 	masterchannel* master = &(channels[0].master);
 
 	if (master->config && SOUND_CHANNEL_ENABLED) { // sound is enabled
-
-		log_println(LEVEL_DEBUG, TAG, "head %d", audiobufferhead);
 
 		SDL_LockAudio();
 
@@ -171,9 +177,9 @@ static void soundcard_tick() {
 
 		}
 
-		audiobufferhead += 4;
+		audiobufferhead++;
 		// wraparound
-		if (audiobufferhead >= BUFFERSIZE) {
+		if (audiobufferhead * SAMPLESIZE == BUFFERSIZE) {
 			audiobufferhead = 0;
 		}
 
