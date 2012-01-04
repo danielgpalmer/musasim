@@ -28,6 +28,9 @@
 
 static char TAG[] = "sound";
 
+#define VOLLEFT(volreg) ((volreg & 0xFF00) >> 8)
+#define VOLRIGHT(volreg) (volreg & 0x00FF)
+
 // "Hardware"
 static uint8_t* sampleram;
 static channel channels[TOTALCHANNELS];
@@ -93,8 +96,10 @@ static void soundcard_init() {
 	channelregisterbase = utils_nextpow(SAMPLETOTAL);
 
 	log_println(LEVEL_DEBUG, TAG, "registers start at 0x%08x", channelregisterbase);
-
 	soundcard_channelbases(channelbases, channelregisterbase);
+	for (int i = 1; i < TOTALCHANNELS; i++) {
+		log_println(LEVEL_INFO, TAG, "Channel %d is at 0x%08x", i - 1, channelbases[i]);
+	}
 
 	//FIXME this is just pasted from the docs
 	SDL_AudioSpec fmt;
@@ -114,8 +119,9 @@ static void soundcard_init() {
 }
 
 static void soundcard_dump_config(audiochannel* chan) {
-	log_println(LEVEL_DEBUG, TAG, "config 0x%04x, pointer 0x%04x, len 0x%04x, pos 0x%04x", chan->config,
-			chan->samplepointer, chan->samplelength, chan->samplepos);
+	log_println(LEVEL_DEBUG, TAG, "config 0x%04x, pointer 0x%04x, len 0x%04x, pos 0x%04x, volume left %d right %d",
+			chan->config, chan->samplepointer, chan->samplelength, chan->samplepos, VOLLEFT(chan->volume),
+			VOLRIGHT(chan->volume));
 
 }
 static void soundcard_dispose() {
@@ -126,7 +132,9 @@ static void soundcard_dispose() {
 
 static int16_t soundcard_mixsamples(int16_t sample1, int16_t sample2, uint8_t volume) {
 
-	int32_t mixed = sample1 + sample2;
+	float fvolume = volume / UINT8_MAX;
+
+	int32_t mixed = sample1 + (sample2 * fvolume);
 
 	// clamp
 	if (mixed > INT16_MAX) {
@@ -180,13 +188,13 @@ static void soundcard_tick() {
 				// LEFT
 				if (chan->config & SOUND_CHANNEL_LEFT) {
 					audiobuffer[bufferindex] = soundcard_mixsamples(audiobuffer[bufferindex],
-							READ_WORD(sampleram, sampleoffset), 0xff);
+							READ_WORD(sampleram, sampleoffset), VOLLEFT(chan->volume));
 				}
 
 				// RIGHT
 				if (chan->config & SOUND_CHANNEL_RIGHT) {
 					audiobuffer[bufferindex + 1] = soundcard_mixsamples(audiobuffer[bufferindex + 1],
-							READ_WORD(sampleram, sampleoffset), 0xff);
+							READ_WORD(sampleram, sampleoffset), VOLRIGHT(chan->volume));
 				}
 
 				// chan is all out of samples..
@@ -221,8 +229,12 @@ static void soundcard_tick() {
 
 static uint16_t* soundcard_decodereg(uint32_t address) {
 
-	int channelnum = (address & 0x78) >> 3;
-	int reg = address - channelbases[channelnum];
+	unsigned int channelnum = (address & 0xF0) >> 4;
+	uint32_t base = channelbases[channelnum];
+	unsigned int reg = address - base;
+
+	log_println(LEVEL_DEBUG, TAG, "offset is %d, 0x%x", reg, base);
+
 	if (reg != 0) {
 		reg /= 2;
 	}
@@ -242,8 +254,11 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 				return &(chan->samplelength);
 			case 3:
 				return &(chan->samplepos);
+			case 4:
+				return &(chan->volume);
 			default:
-				log_println(LEVEL_DEBUG, TAG, "invalid register %d", reg);
+				log_println(LEVEL_DEBUG, TAG, "invalid register %d, address was 0x%08x, chan is %d", reg, address,
+						channelnum - 1);
 				return NULL;
 		}
 

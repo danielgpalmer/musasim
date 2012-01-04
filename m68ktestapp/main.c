@@ -195,7 +195,9 @@ int main(void) {
 	}
 	*sound_channel_0_samplelength = sizeof(_binary_blip_start);
 	*sound_channel_master_config = 0xFFFF;
+	*sound_channel_0_volume = 0xFF22;
 	*sound_channel_0_config = 0xF9FF;
+
 
 	while (1) {
 
