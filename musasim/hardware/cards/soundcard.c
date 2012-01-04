@@ -124,8 +124,19 @@ static void soundcard_dispose() {
 	free(audiobuffer);
 }
 
-static int16_t soundcard_mixsamples(int16_t sample1, int16_t sample2) {
-	return sample2;
+static int16_t soundcard_mixsamples(int16_t sample1, int16_t sample2, uint8_t volume) {
+
+	int32_t mixed = sample1 + sample2;
+
+	// clamp
+	if (mixed > INT16_MAX) {
+		mixed = INT16_MAX;
+	}
+	else if (mixed < INT16_MIN) {
+		mixed = INT16_MIN;
+	}
+
+	return (int16_t) mixed;
 }
 
 static void soundcard_tick() {
@@ -169,13 +180,13 @@ static void soundcard_tick() {
 				// LEFT
 				if (chan->config & SOUND_CHANNEL_LEFT) {
 					audiobuffer[bufferindex] = soundcard_mixsamples(audiobuffer[bufferindex],
-							READ_WORD(sampleram, sampleoffset));
+							READ_WORD(sampleram, sampleoffset), 0xff);
 				}
 
 				// RIGHT
 				if (chan->config & SOUND_CHANNEL_RIGHT) {
 					audiobuffer[bufferindex + 1] = soundcard_mixsamples(audiobuffer[bufferindex + 1],
-							READ_WORD(sampleram, sampleoffset));
+							READ_WORD(sampleram, sampleoffset), 0xff);
 				}
 
 				// chan is all out of samples..
