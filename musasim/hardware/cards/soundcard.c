@@ -28,9 +28,8 @@
 static char TAG[] = "sound";
 
 static uint8_t* sampleram;
-#define BUFFERSIZE (SAMPLETOTAL * 16)
+#define BUFFERSIZE (5000 * 4)
 static int16_t* audiobuffer;
-static unsigned int audiobufferhead = 0;
 
 static channel channels[TOTALCHANNELS];
 static channel channelslatched[TOTALCHANNELS];
@@ -40,12 +39,11 @@ static uint32_t channelbases[TOTALCHANNELS];
 
 static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 
-	// TODO mixing here
-	//log_println(LEVEL_DEBUG, TAG, "sdlcallback len %d", len);
+	//static int audiopos = 0;
 
-	//log_printhexblock(LEVEL_INFO, TAG, audiobuffer, 0x0F);
-	SDL_MixAudio(stream, (uint8_t*) audiobuffer, len, SDL_MIX_MAXVOLUME);
-	//audiobufferhead = 0;
+	for (int i = 0; i < len; i++) {
+		*stream++ = ((uint8_t*) audiobuffer)[i];
+	}
 
 }
 
@@ -54,7 +52,14 @@ static bool active = false;
 static void soundcard_init() {
 
 	sampleram = malloc(SAMPLETOTAL);
+	if (sampleram == NULL) {
+		log_println(LEVEL_DEBUG, TAG, "sample ram malloc failed");
+	}
+
 	audiobuffer = malloc(BUFFERSIZE);
+	if (audiobuffer == NULL) {
+		log_println(LEVEL_DEBUG, TAG, "audiobuffer malloc failed");
+	}
 
 	//FILE* rand = fopen("/dev/urandom", "r");
 	//for (int i = 0; i < SAMPLETOTAL; i += 4) {
@@ -89,8 +94,6 @@ static void soundcard_init() {
 	fmt.callback = soundcard_sdlcallback;
 	fmt.userdata = NULL;
 
-	log_println(LEVEL_DEBUG, TAG, "samples per tick %d", SAMPLESPERTICK);
-
 	if (SDL_OpenAudio(&fmt, NULL) == 0) {
 		active = true;
 		SDL_PauseAudio(0);
@@ -112,55 +115,66 @@ static void soundcard_dispose() {
 
 static void soundcard_tick() {
 
+	static unsigned int audiobufferhead = 0;
+	static int scaler = 0;
+
+	if (scaler < TICKSPERSAMPLE) {
+		scaler++;
+		return;
+	}
+
+	scaler = 0;
+
 	masterchannel* master = &(channels[0].master);
 
 	if (master->config && SOUND_CHANNEL_ENABLED) { // sound is enabled
 
+		log_println(LEVEL_DEBUG, TAG, "head %d", audiobufferhead);
+
 		SDL_LockAudio();
 
-		for (int sample = 0; sample < SAMPLESPERTICK; sample++) {
+		for (int i = 1; i < TOTALCHANNELS; i++) {
+			if (channels[i].audio.config & SOUND_CHANNEL_ENABLED) {
 
-			for (int i = 1; i < TOTALCHANNELS; i++) {
-				if (channels[i].audio.config & SOUND_CHANNEL_ENABLED) {
-
-					// channel ran out of samples.. so latch it again
-					audiochannel* chan = &(channelslatched[i].audio);
-					if (chan->samplepos == chan->samplelength) {
-						//log_println(LEVEL_DEBUG, TAG, "latching channel");
-						channelslatched[i] = channels[i];
-						chan = &(channelslatched[i].audio);
-					}
-
-					int page = (chan->config & SOUND_CHANNEL_PAGE) >> SOUND_CHANNEL_PAGE_SHIFT;
-					uint32_t pageoffset = SAMPLEPAGESIZE * page;
-					uint32_t sampleoffset = pageoffset + chan->samplepointer + (chan->samplepos * 2);
-
-					// LEFT
-					if (chan->config & SOUND_CHANNEL_LEFT) {
-						audiobuffer[audiobufferhead] = READ_WORD(sampleram, sampleoffset);
-					}
-
-					// RIGHT
-					if (chan->config & SOUND_CHANNEL_RIGHT) {
-						audiobuffer[audiobufferhead + 1] = READ_WORD(sampleram, sampleoffset);
-					}
-
-					// chan is all out of samples..
-					chan->samplepos++;
-					if (chan->samplepos == chan->samplelength) {
-						if (chan->config & SOUND_CHANNEL_INTERRUPT) {
-							chan->config |= SOUND_CHANNEL_RELOAD;
-							// fire interrupt
-						}
-					}
-					//soundcard_dump_config(chan);
+				// channel ran out of samples.. so latch it again
+				audiochannel* chan = &(channelslatched[i].audio);
+				if (chan->samplepos == chan->samplelength) {
+					//log_println(LEVEL_DEBUG, TAG, "latching channel");
+					channelslatched[i] = channels[i];
+					chan = &(channelslatched[i].audio);
 				}
+
+				int page = (chan->config & SOUND_CHANNEL_PAGE) >> SOUND_CHANNEL_PAGE_SHIFT;
+				uint32_t pageoffset = SAMPLEPAGESIZE * page;
+				uint32_t sampleoffset = pageoffset + chan->samplepointer + (chan->samplepos * 2);
+
+				// LEFT
+				if (chan->config & SOUND_CHANNEL_LEFT) {
+					audiobuffer[audiobufferhead] = READ_WORD(sampleram, sampleoffset);
+				}
+
+				// RIGHT
+				if (chan->config & SOUND_CHANNEL_RIGHT) {
+					audiobuffer[audiobufferhead + 1] = READ_WORD(sampleram, sampleoffset);
+				}
+
+				// chan is all out of samples..
+				chan->samplepos++;
+				if (chan->samplepos == chan->samplelength) {
+					if (chan->config & SOUND_CHANNEL_INTERRUPT) {
+						chan->config |= SOUND_CHANNEL_RELOAD;
+						// fire interrupt
+					}
+				}
+				//soundcard_dump_config(chan);
 			}
-			audiobufferhead += 2;
-			if (audiobufferhead == BUFFERSIZE / 2) {
-				log_println(LEVEL_WARNING, TAG, "audio buffer has overflowed");
-				audiobufferhead = 0;
-			}
+
+		}
+
+		audiobufferhead += 4;
+		// wraparound
+		if (audiobufferhead >= BUFFERSIZE) {
+			audiobufferhead = 0;
 		}
 
 		SDL_UnlockAudio();
