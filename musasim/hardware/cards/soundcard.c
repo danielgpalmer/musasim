@@ -28,25 +28,27 @@
 
 static char TAG[] = "sound";
 
+// "Hardware"
 static uint8_t* sampleram;
-#define SAMPLESIZE 4
-#define BUFFERSIZE (10000 * SAMPLESIZE)
-static int16_t* audiobuffer;
-
 static channel channels[TOTALCHANNELS];
 static channel channelslatched[TOTALCHANNELS];
-
 static uint32_t channelregisterbase;
 static uint32_t channelbases[TOTALCHANNELS];
+//
 
-static unsigned int audiohead = 0;
+// This is a ring buffer for the computed audio
+#define SAMPLESIZE (sizeof(int16_t) * 2)
+#define BUFFERSIZE (10000 * SAMPLESIZE)
+static int16_t* audiobuffer;
+static unsigned int audiobufferhead = 0;
+//
 
 static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 
 	static unsigned int audiopos = 0;
 	static unsigned int localhead;
 
-	localhead = audiohead;
+	localhead = audiobufferhead;
 
 	for (int i = 0; i < len; i++) {
 
@@ -77,12 +79,6 @@ static void soundcard_init() {
 	if (audiobuffer == NULL) {
 		log_println(LEVEL_DEBUG, TAG, "audiobuffer malloc failed");
 	}
-
-	//FILE* rand = fopen("/dev/urandom", "r");
-	//for (int i = 0; i < SAMPLETOTAL; i += 4) {
-	//	fread(&(sampleram[i]), 1, 2, rand);
-	//}
-	//fclose(rand);
 
 	for (int i = 0; i < TOTALCHANNELS; i++) {
 		if (i == 0) {
@@ -135,7 +131,7 @@ static void soundcard_tick() {
 	static unsigned int bufferindex = 0;
 	static int scaler = 0;
 
-	if (scaler < 1) {
+	if (scaler < TICKSPERSAMPLE - 1) { // Fudge
 		scaler++;
 		return;
 	}
@@ -194,7 +190,7 @@ static void soundcard_tick() {
 			bufferindex = 0;
 		}
 
-		audiohead = bufferindex * SAMPLESIZE;
+		audiobufferhead = bufferindex * SAMPLESIZE;
 
 		SDL_UnlockAudio();
 	}

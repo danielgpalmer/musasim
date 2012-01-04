@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "stdio.h"
 #include "board.h"
 #include "../logging.h"
 #include "../m68kcpu.h"
@@ -14,7 +13,7 @@ static char TAG[] = "board";
  *
  */
 
-const card* slots[NUM_SLOTS];
+static const card* slots[NUM_SLOTS];
 static bool interruptswaiting[NUM_SLOTS];
 static bool busrequestwaiting[NUM_SLOTS];
 
@@ -83,7 +82,7 @@ static uint8_t board_which_slot(const card* card) {
 
 // Bus mastering stuff
 
-bool buslocked = false;
+static bool buslocked = false;
 
 void board_lock_bus(const card* card) {
 
@@ -121,7 +120,7 @@ bool board_bus_locked() {
 
 int curslot = 0; // the slot that is driving atm
 
-bool board_interrupt_sanitycheck(int slot) {
+static bool board_interrupt_sanitycheck(int slot) {
 	if (slot != NOCARD && slot != 0 && slot != 7) {
 		return true;
 	}
@@ -205,7 +204,7 @@ unsigned int board_read_byte(unsigned int address) {
 			return (slots[slot]->read_byte)(address & SLOT_ADDRESS_MASK);
 		}
 		else {
-			printf("*** slot doesn't support byte read ***\n");
+			log_println(LEVEL_INFO, TAG, "slot doesn't support byte read");
 		}
 	}
 	return 0;
@@ -224,7 +223,7 @@ unsigned int board_read_word(unsigned int address) {
 			return (slots[slot]->read_word)(address & SLOT_ADDRESS_MASK);
 		}
 		else {
-			printf("*** slot doesn't support word read ***\n");
+			log_println(LEVEL_INFO, TAG, "slot doesn't support word read");
 		}
 	}
 	return 0;
@@ -238,7 +237,7 @@ unsigned int board_read_long(unsigned int address) {
 
 		}
 		else {
-			printf("*** slot doesn't support long read ***\n");
+			log_println(LEVEL_INFO, TAG, "slot doesn't support long read");
 		}
 	}
 	return 0;
@@ -251,7 +250,7 @@ void board_write_byte(unsigned int address, unsigned int value) {
 			(slots[slot]->write_byte)(address & SLOT_ADDRESS_MASK, value);
 		}
 		else {
-			printf("*** slot doesn't support byte write***\n");
+			log_println(LEVEL_INFO, TAG, "slot doesn't support byte write");
 		}
 	}
 }
@@ -268,7 +267,7 @@ void board_write_word(unsigned int address, unsigned int value) {
 			(slots[slot]->write_word)(address & SLOT_ADDRESS_MASK, value);
 		}
 		else {
-			printf("*** slot doesn't support word write***\n");
+			log_println(LEVEL_INFO, TAG, "slot doesn't support word write");
 		}
 	}
 }
@@ -280,7 +279,7 @@ void board_write_long(unsigned int address, unsigned int value) {
 			(slots[slot]->write_long)(address & SLOT_ADDRESS_MASK, value);
 		}
 		else {
-			printf("*** slot doesn't support long write***\n");
+			log_println(LEVEL_INFO, TAG, "slot doesn't support long write");
 		}
 	}
 }
