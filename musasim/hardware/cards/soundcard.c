@@ -30,7 +30,7 @@ static char TAG[] = "sound";
 
 static uint8_t* sampleram;
 #define SAMPLESIZE 4
-#define BUFFERSIZE (5000 * SAMPLESIZE)
+#define BUFFERSIZE (10000 * SAMPLESIZE)
 static int16_t* audiobuffer;
 
 static channel channels[TOTALCHANNELS];
@@ -39,11 +39,22 @@ static channel channelslatched[TOTALCHANNELS];
 static uint32_t channelregisterbase;
 static uint32_t channelbases[TOTALCHANNELS];
 
+static unsigned int audiohead = 0;
+
 static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 
 	static unsigned int audiopos = 0;
+	static unsigned int localhead;
+
+	localhead = audiohead;
 
 	for (int i = 0; i < len; i++) {
+
+		if (audiopos == localhead) {
+			log_println(LEVEL_INFO, TAG, "audio underrun");
+			break;
+		}
+
 		*stream++ = *((uint8_t*) audiobuffer + audiopos);
 		audiopos++;
 		if (audiopos == BUFFERSIZE) {
@@ -121,15 +132,15 @@ static void soundcard_dispose() {
 
 static void soundcard_tick() {
 
-	static unsigned int audiobufferhead = 0;
+	static unsigned int bufferindex = 0;
 	static int scaler = 0;
 
-	if (scaler < TICKSPERSAMPLE) {
+	if (scaler < 1) {
 		scaler++;
 		return;
 	}
 
-	assert(audiobufferhead * SAMPLESIZE < BUFFERSIZE);
+	assert(bufferindex * SAMPLESIZE < BUFFERSIZE);
 
 	scaler = 0;
 
@@ -156,12 +167,12 @@ static void soundcard_tick() {
 
 				// LEFT
 				if (chan->config & SOUND_CHANNEL_LEFT) {
-					audiobuffer[audiobufferhead] = READ_WORD(sampleram, sampleoffset);
+					audiobuffer[bufferindex] = READ_WORD(sampleram, sampleoffset);
 				}
 
 				// RIGHT
 				if (chan->config & SOUND_CHANNEL_RIGHT) {
-					audiobuffer[audiobufferhead + 1] = READ_WORD(sampleram, sampleoffset);
+					audiobuffer[bufferindex + 1] = READ_WORD(sampleram, sampleoffset);
 				}
 
 				// chan is all out of samples..
@@ -177,11 +188,13 @@ static void soundcard_tick() {
 
 		}
 
-		audiobufferhead++;
+		bufferindex++;
 		// wraparound
-		if (audiobufferhead * SAMPLESIZE == BUFFERSIZE) {
-			audiobufferhead = 0;
+		if (bufferindex * SAMPLESIZE == BUFFERSIZE) {
+			bufferindex = 0;
 		}
+
+		audiohead = bufferindex * SAMPLESIZE;
 
 		SDL_UnlockAudio();
 	}
