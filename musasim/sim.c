@@ -119,7 +119,7 @@ void sim_tick() {
 
 	sleep = SIM_USECSPERTICK - average;
 	if (sleep > 0) {
-		//usleep(sleep);
+		usleep(sleep);
 	}
 
 }

@@ -37,8 +37,10 @@ static uint32_t channelbases[TOTALCHANNELS];
 //
 
 // This is a ring buffer for the computed audio
-#define SAMPLESIZE (sizeof(int16_t) * 2)
-#define BUFFERSIZE (4 * (RATE * SAMPLESIZE)) // 1s of audio..
+#define OUTPUTCHANNELS 2
+#define BUFFER ((10 * RATE) * OUTPUTCHANNELS) // 10s
+#define SAMPLESIZE (sizeof(int16_t))
+#define BUFFERSIZE (BUFFER * SAMPLESIZE) // FUDGE
 static int16_t* audiobuffer;
 static unsigned int audiobufferhead = 0;
 static unsigned int audiobuffertail = 0;
@@ -50,7 +52,7 @@ static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 
 		if (audiobuffertail == audiobufferhead) {
 			log_println(LEVEL_INFO, TAG, "audio underrun");
-			break;
+			*stream++ = 0x00;
 		}
 
 		*stream++ = *((uint8_t*) audiobuffer + audiobuffertail);
@@ -98,8 +100,8 @@ static void soundcard_init() {
 	SDL_AudioSpec fmt;
 	fmt.freq = RATE;
 	fmt.format = AUDIO_S16SYS; // BE samples will get converted to the local format
-	fmt.channels = 2;
-	fmt.samples = 512;
+	fmt.channels = OUTPUTCHANNELS;
+	fmt.samples = 1;
 	fmt.callback = soundcard_sdlcallback;
 	fmt.userdata = NULL;
 
@@ -135,9 +137,6 @@ static void soundcard_tick() {
 		scaler++;
 		return;
 	}
-
-	assert(bufferindex * SAMPLESIZE < BUFFERSIZE);
-
 	scaler = 0;
 
 	masterchannel* master = &(channels[0].master);
@@ -146,13 +145,15 @@ static void soundcard_tick() {
 
 		SDL_LockAudio();
 
+		audiobuffer[bufferindex] = 0;
+		audiobuffer[bufferindex + 1] = 0;
+
 		for (int i = 1; i < TOTALCHANNELS; i++) {
 			if (channels[i].audio.config & SOUND_CHANNEL_ENABLED) {
 
 				// channel ran out of samples.. so latch it again
 				audiochannel* chan = &(channelslatched[i].audio);
 				if (chan->samplepos == chan->samplelength) {
-					//log_println(LEVEL_DEBUG, TAG, "latching channel");
 					channelslatched[i] = channels[i];
 					chan = &(channelslatched[i].audio);
 				}
@@ -179,14 +180,14 @@ static void soundcard_tick() {
 						// fire interrupt
 					}
 				}
-				//soundcard_dump_config(chan);
 			}
 
 		}
 
-		bufferindex++;
+		bufferindex += OUTPUTCHANNELS;
+
 		// wraparound
-		if (bufferindex * SAMPLESIZE == BUFFERSIZE) {
+		if (bufferindex == BUFFER) {
 			bufferindex = 0;
 		}
 
