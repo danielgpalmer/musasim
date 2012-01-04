@@ -101,7 +101,7 @@ static void soundcard_init() {
 	fmt.freq = RATE;
 	fmt.format = AUDIO_S16SYS; // BE samples will get converted to the local format
 	fmt.channels = OUTPUTCHANNELS;
-	fmt.samples = 1;
+	fmt.samples = 512;
 	fmt.callback = soundcard_sdlcallback;
 	fmt.userdata = NULL;
 
@@ -122,6 +122,10 @@ static void soundcard_dispose() {
 	SDL_CloseAudio();
 	free(sampleram);
 	free(audiobuffer);
+}
+
+static int16_t soundcard_mixsamples(int16_t sample1, int16_t sample2) {
+	return sample2;
 }
 
 static void soundcard_tick() {
@@ -164,12 +168,14 @@ static void soundcard_tick() {
 
 				// LEFT
 				if (chan->config & SOUND_CHANNEL_LEFT) {
-					audiobuffer[bufferindex] = READ_WORD(sampleram, sampleoffset);
+					audiobuffer[bufferindex] = soundcard_mixsamples(audiobuffer[bufferindex],
+							READ_WORD(sampleram, sampleoffset));
 				}
 
 				// RIGHT
 				if (chan->config & SOUND_CHANNEL_RIGHT) {
-					audiobuffer[bufferindex + 1] = READ_WORD(sampleram, sampleoffset);
+					audiobuffer[bufferindex + 1] = soundcard_mixsamples(audiobuffer[bufferindex + 1],
+							READ_WORD(sampleram, sampleoffset));
 				}
 
 				// chan is all out of samples..
