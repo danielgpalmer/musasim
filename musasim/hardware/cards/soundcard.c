@@ -319,7 +319,7 @@ static void soundcard_write_word(uint32_t address, uint16_t value) {
 }
 
 static void soundcard_irqack() {
-
+	board_lower_interrupt(&soundcard);
 }
 
 const card soundcard = { "SOUND CARD", soundcard_init, soundcard_dispose, soundcard_tick, soundcard_irqack, NULL, NULL,
