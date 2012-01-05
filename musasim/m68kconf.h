@@ -93,6 +93,13 @@
 #define M68K_EMULATE_RESET          OPT_SPECIFY_HANDLER
 #define M68K_RESET_CALLBACK()       cpu_pulse_reset()
 
+/* If on, CPU will call the output reset callback when it encounters a stop
+ * instruction.
+ */
+#define M68K_EMULATE_STOP          OPT_SPECIFY_HANDLER
+#define M68K_STOP_CALLBACK()       cpu_pulse_stop()
+
+
 /* If on, CPU will call the set fc callback on every memory access to
  * differentiate between user/supervisor, program/data access like a real
  * 68000 would.  This should be enabled and the callback should be set if you

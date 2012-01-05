@@ -36,7 +36,7 @@ vectors:
 	dc.l	INT		/* Spurious Interrupt */
 	dc.l	vblank_handler/* IRQ Level 1 */
 	dc.l	uart_handler/* IRQ Level 2 */
-	dc.l	interrupthandler/* IRQ Level 3 */
+	dc.l	INT/* IRQ Level 3 */
 	dc.l	interrupthandler/* IRQ Level 4 */
 	dc.l	interrupthandler/* IRQ Level 5 */
 	dc.l	interrupthandler/* IRQ Level 6 */

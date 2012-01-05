@@ -16,6 +16,7 @@
 #include "soundcard.h"
 #include "soundregistermasks.h"
 #include "../util.h"
+#include "../board.h"
 #include "../../utils.h"
 #include "../../logging.h"
 #include "../../sim.h"
@@ -211,7 +212,7 @@ static void soundcard_tick() {
 				if (chan->samplepos == chan->samplelength) {
 					if (chan->config & SOUND_CHANNEL_INTERRUPT) {
 						chan->config |= SOUND_CHANNEL_RELOAD;
-						// fire interrupt
+						board_raise_interrupt(&soundcard);
 					}
 				}
 			}
@@ -317,5 +318,9 @@ static void soundcard_write_word(uint32_t address, uint16_t value) {
 
 }
 
-const card soundcard = { "SOUND CARD", soundcard_init, soundcard_dispose, soundcard_tick, NULL, NULL, NULL,
+static void soundcard_irqack() {
+
+}
+
+const card soundcard = { "SOUND CARD", soundcard_init, soundcard_dispose, soundcard_tick, soundcard_irqack, NULL, NULL,
 		soundcard_read_word, NULL, NULL, soundcard_write_word, NULL };

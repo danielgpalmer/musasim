@@ -30,6 +30,11 @@ void cpu_pulse_reset(void) {
 
 }
 
+void cpu_pulse_stop(void) {
+	log_println(LEVEL_INFO, TAG, "CPU stopped");
+	shouldexit = true;
+}
+
 /* Called when the CPU changes the function code pins */
 void cpu_set_fc(unsigned int fc) {
 	g_fc = fc;
@@ -94,6 +99,9 @@ void sim_tick() {
 
 	if (!board_bus_locked()) {
 		m68k_execute(SIM_CLOCKS_PERTICK);
+		if (shouldexit) {
+			return;
+		}
 	}
 
 	board_tick();

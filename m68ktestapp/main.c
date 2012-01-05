@@ -63,6 +63,11 @@ void interrupthandler() {
 
 }
 
+void sound_handler() __attribute__((interrupt));
+void sound_handler() {
+
+}
+
 void vblank_handler() __attribute (( interrupt));
 void vblank_handler() {
 
@@ -198,7 +203,6 @@ int main(void) {
 	*sound_channel_master_volume = 0xFF99;
 	*sound_channel_0_volume = 0xFF22;
 	*sound_channel_0_config = 0xF9FF;
-
 
 	while (1) {
 

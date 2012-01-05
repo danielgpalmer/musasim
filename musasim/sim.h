@@ -10,6 +10,7 @@ void sim_tick();
 bool sim_has_quit();
 
 void cpu_pulse_reset(void);
+void cpu_pulse_stop(void);
 void cpu_set_fc(unsigned int fc);
 
 #define SIM_TARGET_FREQUENCY 10000000 // 10mhz

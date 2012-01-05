@@ -9519,6 +9519,7 @@ M68KMAKE_OP(stop, 0, ., .)
 		CPU_STOPPED |= STOP_LEVEL_STOP;
 		m68ki_set_sr(new_sr);
 		m68ki_remaining_cycles = 0;
+		m68ki_output_stop();
 		return;
 	}
 	m68ki_exception_privilege_violation();

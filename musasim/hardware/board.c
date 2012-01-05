@@ -190,9 +190,15 @@ int board_ack_interrupt(int level) {
 
 	log_println(LEVEL_INSANE, TAG, "board_ack_interrupt(%d)", level);
 
-	(slots[curslot]->irqack)();
-	//slot = board_which_slot()
-	return M68K_INT_ACK_AUTOVECTOR;
+	if (slots[curslot]->irqack != NULL) {
+		(slots[curslot]->irqack)();
+		return M68K_INT_ACK_AUTOVECTOR;
+	}
+	else {
+		log_println(LEVEL_WARNING, TAG, "card in %d doesn't have interrupt ack", curslot);
+		return M68K_INT_ACK_SPURIOUS;
+	}
+
 }
 
 //

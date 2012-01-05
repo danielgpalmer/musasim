@@ -353,6 +353,7 @@
 #define CALLBACK_INT_ACK      m68ki_cpu.int_ack_callback
 #define CALLBACK_BKPT_ACK     m68ki_cpu.bkpt_ack_callback
 #define CALLBACK_RESET_INSTR  m68ki_cpu.reset_instr_callback
+#define CALLBACK_STOP_INSTR	  m68ki_cpu.stop_instr_callback
 #define CALLBACK_CMPILD_INSTR m68ki_cpu.cmpild_instr_callback
 #define CALLBACK_RTE_INSTR    m68ki_cpu.rte_instr_callback
 #define CALLBACK_PC_CHANGED   m68ki_cpu.pc_changed_callback
@@ -453,6 +454,16 @@
 	#endif
 #else
 	#define m68ki_output_reset()
+#endif /* M68K_EMULATE_RESET */
+
+#if M68K_EMULATE_STOP
+	#if M68K_EMULATE_STOP == OPT_SPECIFY_HANDLER
+		#define m68ki_output_stop() M68K_STOP_CALLBACK()
+	#else
+		#define m68ki_output_stop() CALLBACK_STOP_INSTR()
+	#endif
+#else
+	#define m68ki_output_stop()
 #endif /* M68K_EMULATE_RESET */
 
 #if M68K_CMPILD_HAS_CALLBACK
@@ -878,6 +889,7 @@ typedef struct
 	void (*pc_changed_callback)(unsigned int new_pc); /* Called when the PC changes by a large amount */
 	void (*set_fc_callback)(unsigned int new_fc);     /* Called when the CPU function code changes */
 	void (*instr_hook_callback)(void);                /* Called every instruction cycle prior to execution */
+	void (*stop_instr_callback)(void);				  /* Called when a STOP instruction is encountered */
 
 } m68ki_cpu_core;
 

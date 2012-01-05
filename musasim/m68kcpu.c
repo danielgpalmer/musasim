@@ -462,6 +462,11 @@ static void default_reset_instr_callback(void)
 {
 }
 
+/* Called when a stop instruction is executed */
+static void default_stop_instr_callback(void)
+{
+}
+
 /* Called when a cmpi.l #v, dn instruction is executed */
 static void default_cmpild_instr_callback(unsigned int val, int reg)
 {
@@ -625,6 +630,10 @@ void m68k_set_bkpt_ack_callback(void  (*callback)(unsigned int data))
 void m68k_set_reset_instr_callback(void  (*callback)(void))
 {
 	CALLBACK_RESET_INSTR = callback ? callback : default_reset_instr_callback;
+}
+
+void m68k_set_stop_instr_callback(void (*callback)(void)){
+	CALLBACK_STOP_INSTR = callback ? callback : default_stop_instr_callback;
 }
 
 void m68k_set_cmpild_instr_callback(void  (*callback)(unsigned int, int))
