@@ -38,22 +38,23 @@ const card soundcard;
 
 typedef struct {
 	uint16_t config;
+	uint16_t volume;
 } masterchannel;
 
 typedef struct {
 	uint16_t config;
+	uint16_t volume;
 	uint16_t samplepointer;
 	uint16_t samplelength;
 	uint16_t samplepos;
-	uint16_t volume;
 
 } audiochannel;
 
 #define SOUND_REGISTER_CONFIG 0
-#define SOUND_REGISTER_SAMPLEPOINTER 2
-#define SOUND_REGISTER_SAMPLELENGTH 4
-#define SOUND_REGISTER_SAMPLEPOS 6
-#define SOUND_REGISTER_VOLUME 8
+#define SOUND_REGISTER_VOLUME 2
+#define SOUND_REGISTER_SAMPLEPOINTER 4
+#define SOUND_REGISTER_SAMPLELENGTH 6
+#define SOUND_REGISTER_SAMPLEPOS 8
 
 typedef union {
 	masterchannel master;

@@ -139,18 +139,20 @@ void sound() {
 		if (i == 0) {
 			printf("volatile uint16_t* const sound_channel_master_config = (uint16_t*) 0x%x;\n",
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_CONFIG);
+			printf("volatile uint16_t* const sound_channel_master_volume = (uint16_t*) 0x%x;\n",
+								SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_VOLUME);
 		}
 		else {
 			printf("volatile uint16_t* const sound_channel_%d_config = (uint16_t*) 0x%x;\n", i - 1,
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_CONFIG);
+			printf("volatile uint16_t* const sound_channel_%d_volume= (uint16_t*) 0x%x;\n", i - 1,
+					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_VOLUME);
 			printf("volatile uint16_t* const sound_channel_%d_samplepointer = (uint16_t*) 0x%x;\n", i - 1,
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_SAMPLEPOINTER);
 			printf("volatile uint16_t* const sound_channel_%d_samplelength = (uint16_t*) 0x%x;\n", i - 1,
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_SAMPLELENGTH);
 			printf("volatile uint16_t* const sound_channel_%d_samplepos= (uint16_t*) 0x%x;\n", i - 1,
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_SAMPLEPOS);
-			printf("volatile uint16_t* const sound_channel_%d_volume= (uint16_t*) 0x%x;\n", i - 1,
-					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_VOLUME);
 		}
 	}
 

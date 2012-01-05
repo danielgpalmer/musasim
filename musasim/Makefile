@@ -54,6 +54,16 @@ obj/m68kops.h: obj/m68kmake
 obj/m68kmake: m68kmake.c m68k_in.c
 	$(CC) $(WARNINGS) m68kmake.c -o obj/m68kmake
 
+# these are made by the called to m68kmake for m68kops.h
+obj/m68kops.c: obj/m68kops.h
+
+obj/m68kopac.c: obj/m68kops.h
+
+obj/m68kopdm.c: obj/m68kops.h
+
+obj/m68kopnz.c: obj/m68kops.h
+#
+
 
 obj/logging.o: logging.c logging.h
 	$(CC) $(CFLAGS) -std=gnu99 logging.c -o obj/logging.o

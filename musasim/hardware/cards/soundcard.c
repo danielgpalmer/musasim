@@ -118,11 +118,20 @@ static void soundcard_init() {
 
 }
 
-static void soundcard_dump_config(audiochannel* chan) {
-	log_println(LEVEL_DEBUG, TAG, "config 0x%04x, pointer 0x%04x, len 0x%04x, pos 0x%04x, volume left %d right %d",
-			chan->config, chan->samplepointer, chan->samplelength, chan->samplepos, VOLLEFT(chan->volume),
-			VOLRIGHT(chan->volume));
+static void soundcard_dump_config(int channel) {
 
+	if (channel == 0) {
+		masterchannel* chan = &(channels[channel].master);
+		log_println(LEVEL_DEBUG, TAG, "master channel, config 0x%04x, volume left %d right %d", chan->config,
+				VOLLEFT(chan->volume), VOLRIGHT(chan->volume));
+	}
+	else {
+		audiochannel* chan = &(channels[channel].audio);
+		log_println(LEVEL_DEBUG, TAG,
+				"channel %d, config 0x%04x, pointer 0x%04x, len 0x%04x, pos 0x%04x, volume left %d right %d",
+				channel - 1, chan->config, chan->samplepointer, chan->samplelength, chan->samplepos,
+				VOLLEFT(chan->volume), VOLRIGHT(chan->volume));
+	}
 }
 static void soundcard_dispose() {
 	SDL_CloseAudio();
@@ -209,6 +218,10 @@ static void soundcard_tick() {
 
 		}
 
+		// Adjust the output to the master volume.
+		audiobuffer[bufferindex] *= VOLLEFT(master->volume) / UINT8_MAX;
+		audiobuffer[bufferindex + 1] *= VOLLEFT(master->volume) / UINT8_MAX;
+
 		bufferindex += OUTPUTCHANNELS;
 
 		// wraparound
@@ -241,7 +254,14 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 
 	if (channelnum == 0) {
 		masterchannel* chan = &(channels[channelnum].master);
-		return &(chan->config);
+		switch (reg) {
+			case 0:
+				return &(chan->config);
+			case 1:
+				return &(chan->volume);
+			default:
+				return NULL;
+		}
 	}
 	else {
 		audiochannel* chan = &(channels[channelnum].audio);
@@ -249,13 +269,13 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 			case 0:
 				return &(chan->config);
 			case 1:
-				return &(chan->samplepointer);
-			case 2:
-				return &(chan->samplelength);
-			case 3:
-				return &(chan->samplepos);
-			case 4:
 				return &(chan->volume);
+			case 2:
+				return &(chan->samplepointer);
+			case 3:
+				return &(chan->samplelength);
+			case 4:
+				return &(chan->samplepos);
 			default:
 				log_println(LEVEL_DEBUG, TAG, "invalid register %d, address was 0x%08x, chan is %d", reg, address,
 						channelnum - 1);
@@ -289,8 +309,8 @@ static void soundcard_write_word(uint32_t address, uint16_t value) {
 		uint16_t* reg = soundcard_decodereg(address);
 		if (reg != NULL) {
 			*reg = value;
-			for (int i = 1; i < NUMAUDIOCHANNELS; i++) {
-				soundcard_dump_config(&(channels[i].audio));
+			for (int i = 0; i < NUMAUDIOCHANNELS; i++) {
+				soundcard_dump_config(i);
 			}
 		}
 	}
