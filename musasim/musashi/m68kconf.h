@@ -26,7 +26,7 @@
 #include "../hardware/board.h"
 
 #ifdef GDBSERVER
-#include "gdbserver.h"
+#include "../gdbserver.h"
 #endif
 
 /* Configuration switches.

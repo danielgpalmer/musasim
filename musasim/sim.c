@@ -11,7 +11,7 @@
 
 #include "sim.h"
 #include "logging.h"
-#include "m68k.h"
+#include "musashi/m68k.h"
 
 #include "hardware/board.h"
 #include "hardware/cards/romcard.h"

@@ -14,7 +14,7 @@
 #include <glib.h>
 
 #include "sim.h"
-#include "m68k.h"
+#include "musashi/m68k.h"
 #include "gdbserver.h"
 #include "args.h"
 

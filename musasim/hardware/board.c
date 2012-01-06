@@ -3,7 +3,7 @@
 
 #include "board.h"
 #include "../logging.h"
-#include "../m68kcpu.h"
+#include "../musashi/m68kcpu.h"
 
 static char TAG[] = "board";
 

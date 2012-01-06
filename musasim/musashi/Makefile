@@ -1,3 +1,14 @@
+include ../common.mk 
+
+all: musashi.o musashigdb.o
+
+#single object files
+musashi.o: m68kcpu.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o
+	ld -r m68kcpu.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o -o musashi.o
+
+musashigdb.o: m68kcpugdb.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o
+	ld -r m68kcpugdb.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o -o musashigdb.o
+
 m68kcpu.o: ../sim.h m68kops.h m68k.h m68kconf.h
 	$(CC) $(CFLAGS) m68kcpu.c -o m68kcpu.o
 
@@ -33,4 +44,4 @@ m68kopnz.c: m68kops.h
 #
 
 clean:
-	rm -f m68kmake m68kops.c m68kopac.c m68kopdm.c m68kopnz.c m68kops.h
+	rm -f m68kmake m68kops.c m68kopac.c m68kopdm.c m68kopnz.c m68kops.h *.o

@@ -12,4 +12,6 @@ int main(int argc, char* argv[]) {
 			sim_tick();
 		}
 	}
+
+	return 0;
 }
