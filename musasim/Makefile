@@ -5,7 +5,7 @@ LIBCARDS=./hardware/cards/libcards.a
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
 BASESTUFF=sim.o logging.o utils.o
 
-all: gdbserver musasim genheader
+all: gdbserver musasim genheader dist
 	
 gdbserver: musashi $(BASESTUFF) $(HARDWARE) gdbserver.o argsgdb.o libcards.a 
 	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o gdbserver
@@ -63,6 +63,7 @@ dist:	musasim gdbserver
 	strip dist/musasim
 	strip dist/gdbserver
 	tar czf musasim.tar.gz dist/
+	rm -r dist
 
 clean:
 	rm -f gdbserver musasim *.o
