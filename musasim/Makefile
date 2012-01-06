@@ -2,7 +2,7 @@ include common.mk
 
 CARDSDIR=./hardware/cards/
 LIBCARDS=./hardware/cards/libcards.a
-LOCALCFLAGS=--std=gnu99
+LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
 BASESTUFF=sim.o board.o logging.o utils.o
 
 all: gdbserver musasim genheader
@@ -57,6 +57,13 @@ genheader:
 docs:
 	rm -rf ../docs/html
 	doxygen DoxyFile
+
+dist:	musasim gdbserver
+	mkdir dist
+	cp musasim gdbserver dist/
+	strip dist/musasim
+	strip dist/gdbserver
+	tar czf musasim.tar.gz dist/
 
 clean:
 	rm -f gdbserver musasim *.o

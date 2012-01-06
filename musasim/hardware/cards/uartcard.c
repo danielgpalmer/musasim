@@ -5,6 +5,9 @@
  *      Author: daniel
  */
 
+#define _XOPEN_SOURCE 600 // to get the pts shizzle
+#define _BSD_SOURCE // for cfmakeraw
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

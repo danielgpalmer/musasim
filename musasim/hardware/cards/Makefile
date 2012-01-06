@@ -1,6 +1,6 @@
 include ../../common.mk
 
-LOCALCFLAGS=--std=gnu99
+LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(SDL)`
 
 libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o
 	ar cr libcards.a romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o
