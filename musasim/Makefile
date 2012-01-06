@@ -3,15 +3,15 @@ include common.mk
 CARDSDIR=./hardware/cards/
 LIBCARDS=./hardware/cards/libcards.a
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
-BASESTUFF=sim.o board.o logging.o utils.o
+BASESTUFF=sim.o logging.o utils.o
 
 all: gdbserver musasim genheader
 	
-gdbserver: musashi $(BASESTUFF) gdbserver.o argsgdb.o libcards.a 
-	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o $(BASESTUFF) $(LIBCARDS) -o gdbserver
+gdbserver: musashi $(BASESTUFF) $(HARDWARE) gdbserver.o argsgdb.o libcards.a 
+	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o gdbserver
 
-musasim: musashi $(BASESTUFF) musasim.o args.o libcards.a 
-	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) -o musasim
+musasim: musashi $(BASESTUFF) $(HARDWARE) musasim.o args.o libcards.a 
+	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o musasim
 
 gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) gdbserver.c -o gdbserver.o
@@ -39,12 +39,11 @@ argsgdb.o: args.h args.c
 
 # hardware 
 
-board.o: hardware/board.c hardware/board.h
-	$(CC) $(CFLAGS) $(LOCALCFLAGS) hardware/board.c -o board.o	
-
-
 .PHONY: libcards.a docs genheader musashi clean
-	
+
+hardware:
+	$(MAKE) -C hardware
+
 musashi:
 	$(MAKE) -C musashi
 
