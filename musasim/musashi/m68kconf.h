@@ -22,8 +22,8 @@
 #ifndef M68KCONF__HEADER
 #define M68KCONF__HEADER
 
-#include "sim.h"
-#include "hardware/board.h"
+#include "../sim.h"
+#include "../hardware/board.h"
 
 #ifdef GDBSERVER
 #include "gdbserver.h"
@@ -163,8 +163,12 @@
 /* If on, the enulation core will use 64-bit integers to speed up some
  * operations.
  */
-#define M68K_USE_64_BIT  OPT_OFF
 
+#ifdef __x86_64__
+	#define M68K_USE_64_BIT  OPT_ON
+#else
+	#define M68K_USE_64_BIT  OPT_OFF
+#endif
 /* Set to your compiler's static inline keyword to enable it, or
  * set it to blank to disable it.
  * If you define INLINE in the makefile, it will override this value.
