@@ -6,6 +6,7 @@
 #include <time.h>
 #include <glib.h>
 #include <unistd.h>
+#include <SDL.h>
 
 #include <sys/time.h>
 
@@ -43,7 +44,7 @@ void cpu_set_fc(unsigned int fc) {
 void sim_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "sim_init()");
-	g_thread_init(NULL);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
 	board_add_device(SLOT_ROMCARD, &romcard);
 	board_add_device(SLOT_VIDEOCARD, &videocard);

@@ -66,7 +66,7 @@ static void video_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
-	SDL_Init(SDL_INIT_EVERYTHING);
+
 	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, SDL_SWSURFACE);
 
 	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
