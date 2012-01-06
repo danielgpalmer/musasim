@@ -3,53 +3,50 @@ include common.mk
 CARDSDIR=./hardware/cards/
 LIBCARDS=./hardware/cards/libcards.a
 
-all: obj gdbserver musasim genheader
+all: gdbserver musasim genheader
 
 clean:
-	rm -rf obj
-	rm -f gdbserver
-	rm -f musasim
+	rm -f gdbserver musasim *.o
 	$(MAKE) -C musashi clean
 	$(MAKE) -C genheader clean
 	$(MAKE) -C $(CARDSDIR) clean
 	
-obj:
-	mkdir obj
+BASESTUFF=sim.o board.o logging.o utils.o
 
-gdbserver: musashi obj/gdbserver.o obj/sim.o obj/logging.o obj/utils.o obj/argsgdb.o libcards.a 
-	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o obj/gdbserver.o obj/sim.o obj/board.o obj/logging.o obj/utils.o obj/argsgdb.o $(LIBCARDS) -o gdbserver
+gdbserver: musashi $(BASESTUFF) gdbserver.o argsgdb.o libcards.a 
+	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o $(BASESTUFF) $(LIBCARDS) -o gdbserver
 
-musasim: musashi musasim.o obj/sim.o obj/logging.o obj/utils.o obj/args.o libcards.a 
-	$(CC) $(LFLAGS) musasim.o obj/sim.o musashi/musashi.o obj/board.o obj/logging.o obj/utils.o obj/args.o $(LIBCARDS) -o musasim
+musasim: musashi $(BASESTUFF) musasim.o args.o libcards.a 
+	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) -o musasim
 
-obj/gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h
-	$(CC) $(CFLAGS) --std=gnu99 gdbserver.c -o obj/gdbserver.o
+gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h
+	$(CC) $(CFLAGS) --std=gnu99 gdbserver.c -o gdbserver.o
 
 musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
         $(CC) $(CFLAGS) --std=gnu99 musasim.c -o musasim.o
 
-obj/gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h
-        $(CC) $(CFLAGS) --std=gnu99 gdbserver.c -o obj/gdbserver.o
+gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h
+        $(CC) $(CFLAGS) --std=gnu99 gdbserver.c -o gdbserver.o
 
-obj/sim.o: sim.c sim.h musashi/m68k.h musashi/m68kconf.h obj/board.o
-	$(CC) $(CFLAGS) --std=gnu99 sim.c -o obj/sim.o
+sim.o: sim.c sim.h musashi/m68k.h musashi/m68kconf.h obj/board.o
+	$(CC) $(CFLAGS) --std=gnu99 sim.c -o sim.o
 
-obj/logging.o: logging.c logging.h
-	$(CC) $(CFLAGS) -std=gnu99 logging.c -o obj/logging.o
+logging.o: logging.c logging.h
+	$(CC) $(CFLAGS) -std=gnu99 logging.c -o logging.o
 
-obj/utils.o: utils.c utils.h
-	$(CC) $(CFLAGS) utils.c -o obj/utils.o
+utils.o: utils.c utils.h
+	$(CC) $(CFLAGS) utils.c -o utils.o
 
-obj/args.o: args.h args.c
-	$(CC) $(CFLAGS) -std=gnu99 args.c -o obj/args.o
+args.o: args.h args.c
+	$(CC) $(CFLAGS) -std=gnu99 args.c -o args.o
 
-obj/argsgdb.o: args.h args.c
-	$(CC) $(CFLAGS) -std=gnu99 -D GDBSERVER args.c -o obj/argsgdb.o
+argsgdb.o: args.h args.c
+	$(CC) $(CFLAGS) -std=gnu99 -D GDBSERVER args.c -o argsgdb.o
 
 # hardware 
 
-obj/board.o: hardware/board.c hardware/board.h
-	$(CC) $(CFLAGS) --std=gnu99 hardware/board.c -o obj/board.o	
+board.o: hardware/board.c hardware/board.h
+	$(CC) $(CFLAGS) --std=gnu99 hardware/board.c -o board.o	
 
 
 .PHONY: libcards.a docs genheader musashi
