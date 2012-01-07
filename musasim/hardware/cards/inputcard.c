@@ -124,21 +124,17 @@ void inputcard_decodekey(SDLKey key, bool up) {
 void inputcard_tick() {
 	// "latch" stuff here
 
-	SDL_Event event;
+	static SDL_Event events[10];
 
-	while (SDL_PollEvent(&event)) {
-		switch (event.type) {
-			case SDL_QUIT:
-				log_println(LEVEL_INFO, TAG, "Window was closed");
-				sim_quit();
-				break;
+	for (int i = 0; i < SDL_PeepEvents(events, 10, SDL_GETEVENT, SDL_KEYDOWNMASK | SDL_KEYUPMASK); i++) {
+		switch (events[i].type) {
 			case SDL_KEYDOWN:
 				log_println(LEVEL_DEBUG, TAG, "key down");
-				inputcard_decodekey(event.key.keysym.sym, false);
+				inputcard_decodekey(events[i].key.keysym.sym, false);
 				break;
 			case SDL_KEYUP:
 				log_println(LEVEL_DEBUG, TAG, "key up");
-				inputcard_decodekey(event.key.keysym.sym, true);
+				inputcard_decodekey(events[i].key.keysym.sym, true);
 				break;
 		}
 	}

@@ -23,6 +23,10 @@
 #include "hardware/cards/inputcard.h"
 #include "hardware/cards/dmacard.h"
 
+#define SIM_KEY_RESET	SDLK_r
+#define SIM_KEY_NMI		SDLK_n
+#define SIM_KEY_QUIT	SDLK_ESCAPE
+
 bool shouldexit = false;
 
 static const char TAG[] = "sim";
@@ -95,6 +99,35 @@ void sim_tick() {
 	if (shouldexit) {
 		return;
 	}
+
+	// Check some keys
+	SDL_PumpEvents();
+	static SDL_Event events[10];
+	if (SDL_PeepEvents(events, 1, SDL_GETEVENT, SDL_QUITMASK)) {
+		log_println(LEVEL_INFO, TAG, "Window was closed");
+		sim_quit();
+		return;
+	}
+
+	for (int i = 0; i < SDL_PeepEvents(events, 10, SDL_PEEKEVENT, SDL_KEYDOWNMASK | SDL_KEYUPMASK); i++) {
+		if (events[i].type == SDL_KEYDOWN || events[i].type == SDL_KEYUP) {
+			switch (events[i].key.keysym.sym) {
+				case SIM_KEY_NMI:
+					m68k_set_irq(7);
+					break;
+				case SIM_KEY_RESET:
+					break;
+				case SIM_KEY_QUIT:
+					sim_quit();
+					return;
+				default:
+					break;
+			}
+			break;
+		}
+	}
+
+	//
 
 	gettimeofday(&start, NULL);
 
