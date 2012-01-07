@@ -24,10 +24,12 @@
 #include "hardware/cards/dmacard.h"
 
 #define SIM_KEY_RESET	SDLK_r
+#define SIM_KEY_PAUSE	SDLK_p
 #define SIM_KEY_NMI		SDLK_n
 #define SIM_KEY_QUIT	SDLK_ESCAPE
 
-bool shouldexit = false;
+static bool shouldexit = false;
+static bool paused = false;
 
 static const char TAG[] = "sim";
 
@@ -110,13 +112,25 @@ void sim_tick() {
 	}
 
 	for (int i = 0; i < SDL_PeepEvents(events, 10, SDL_PEEKEVENT, SDL_KEYDOWNMASK | SDL_KEYUPMASK); i++) {
-		if (events[i].type == SDL_KEYDOWN || events[i].type == SDL_KEYUP) {
+		if (events[i].type == SDL_KEYUP) {
 			switch (events[i].key.keysym.sym) {
 				case SIM_KEY_NMI:
 					m68k_set_irq(7);
 					break;
 				case SIM_KEY_RESET:
 					break;
+				case SIM_KEY_PAUSE:
+					paused = !paused;
+					if (paused) {
+						log_println(LEVEL_INFO, TAG, "sim is now paused");
+					}
+					else {
+						log_println(LEVEL_INFO, TAG, "sim is now running");
+					}
+					// drain all the events.. better way to fix this?
+					while(SDL_PollEvent(events));
+
+					return;
 				case SIM_KEY_QUIT:
 					sim_quit();
 					return;
@@ -128,6 +142,11 @@ void sim_tick() {
 	}
 
 	//
+
+	if (paused) {
+		usleep(5000);
+		return;
+	}
 
 	gettimeofday(&start, NULL);
 
