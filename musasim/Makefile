@@ -22,7 +22,7 @@ musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
 gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) gdbserver.c -o gdbserver.o
 
-sim.o: sim.c sim.h musashi/m68k.h musashi/m68kconf.h obj/board.o
+sim.o: sim.c sim.h musashi/m68k.h musashi/m68kconf.h hardware/board.o
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) sim.c -o sim.o
 
 logging.o: logging.c logging.h
