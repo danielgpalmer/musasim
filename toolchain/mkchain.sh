@@ -22,14 +22,14 @@ GDBTAR="${TARDIR}/gdb-7.3a.tar.gz";
 BINUTILSSRC="${SRCDIR}/binutils-2.22"
 GCCSRC="${SRCDIR}/gcc-4.6.2"
 NEWLIBSRC="${SRCDIR}/newlib-1.20.0";
-GDBSRC="${SRCDIR}/gdb-7.3a";
+GDBSRC="${SRCDIR}/gdb-7.3";
 
 TARGET="m68k-elf"
 
 BINUTILSBUILD="${BUILDDIR}/${TARGET}-binutils"
 GCCBUILD="${BUILDDIR}/${TARGET}-gcc"
 NEWLIBBUILD="${BUILDDIR}/${TARGET}-newlib"
-NEWLIBBUILD="${BUILDDIR}/${TARGET}-gdb"
+GDBBUILD="${BUILDDIR}/${TARGET}-gdb"
 
 PREFIX="${INSTDIR}/${TARGET}";
 
@@ -67,55 +67,37 @@ function stageprep {
 
 echo "*** BUILDING BINUTILS ***";
 
-
-if [ ! -e ${BINUTILSTAR} ]; then
-	wget -O ${BINUTILSTAR} ${BINUTILSURL};
-fi
-
-if [ ! -d ${BINUTILSSRC} ]; then
-	cd ${SRCDIR} && tar xzf ${BINUTILSTAR};
-fi 
-
-if [ -d ${BINUTILSBUILD} ]; then
-	rm -rf ${BINUTILSBUILD};
-fi
-
-#mkdir ${BINUTILSBUILD}
-#cd ${BINUTILSBUILD}
-#${BINUTILSSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
-#make -j "${NCPUS}"
-#make install
+stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD}
+cd ${BINUTILSBUILD}
+${BINUTILSSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
+make -j "${NCPUS}"
+make install
 
 echo "*** BUILDING INITIAL GCC***"
-if [ ! -e ${GCCTAR} ]; then
-        wget -O ${GCCTAR} ${GCCURL};
-fi
- 
-if [ ! -d ${GCCSRC} ]; then
-        cd ${SRCDIR} && tar xzf ${GCCTAR};
-fi 
- 
-#if [ -d ${GCCBUILD} ]; then
-#        rm -rf ${GCCBUILD};
-#fi
 
-#mkdir ${GCCBUILD}
-#cd ${GCCBUILD}
-#${GCCSRC}/configure --target="${TARGET}" --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix="${PREFIX}" --disable-shared --with-newlib=yes
-#make -j "${NCPUS}"
-#make install
+stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD}
+
+mkdir ${GCCBUILD}
+cd ${GCCBUILD}
+${GCCSRC}/configure --target="${TARGET}" --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix="${PREFIX}" --disable-shared --with-newlib=yes
+make -j "${NCPUS}"
+make install
 
 echo "*** BUILDING NEWLIB ***"
 
-stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD;
+stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD
 cd ${NEWLIBBUILD}
 ${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
 make -j "${NCPUS}"
 make install
 
-
 echo "*** BUILDING FINAL GCC***"
 
 echo "*** BUILDING GDB***"
 
-stageprep $GDBTAR $GDBURL $GDBSRC $GDBBUILD;
+stageprep $GDBTAR $GDBURL $GDBSRC $GDBBUILD
+${GDBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
+make -j "${NCPUS}"
+make install
+
+echo "*** ALL DONE! ***";
