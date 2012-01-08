@@ -2,6 +2,8 @@ include ../../common.mk
 
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(SDL)`
 
+all: libcards.a
+
 libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o
 	ar cr libcards.a romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o
 
@@ -26,6 +28,7 @@ inputcard.o: inputcard.c inputcard.h card.h
 dmacard.o: dmacard.c dmacard.h card.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c dmacard.c -o dmacard.o
 
+.PHONY: clean
 
 clean:
 	rm -f *.o *.a

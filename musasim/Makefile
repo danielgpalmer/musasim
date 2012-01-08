@@ -1,16 +1,15 @@
 include common.mk
 
-CARDSDIR=./hardware/cards/
 LIBCARDS=./hardware/cards/libcards.a
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
 BASESTUFF=sim.o logging.o utils.o
 
 all: gdbserver musasim genheader dist
 	
-gdbserver: musashi $(BASESTUFF) hardware gdbserver.o argsgdb.o libcards.a 
+gdbserver: musashi $(BASESTUFF) hardware gdbserver.o argsgdb.o
 	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o gdbserver
 
-musasim: musashi $(BASESTUFF) hardware musasim.o args.o libcards.a 
+musasim: musashi $(BASESTUFF) hardware musasim.o args.o 
 	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o musasim
 
 gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h
@@ -39,16 +38,13 @@ argsgdb.o: args.h args.c
 
 # hardware 
 
-.PHONY: libcards.a docs genheader musashi hardware clean
+.PHONY: docs genheader musashi hardware clean
 
 hardware:
 	$(MAKE) -C hardware
 
 musashi:
 	$(MAKE) -C musashi
-
-libcards.a:
-	$(MAKE) -C $(CARDSDIR) libcards.a
 
 genheader:
 	$(MAKE) -C genheader
