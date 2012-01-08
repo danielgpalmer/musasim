@@ -7,10 +7,10 @@ BASESTUFF=sim.o logging.o utils.o
 
 all: gdbserver musasim genheader dist
 	
-gdbserver: musashi $(BASESTUFF) $(HARDWARE) gdbserver.o argsgdb.o libcards.a 
+gdbserver: musashi $(BASESTUFF) hardware gdbserver.o argsgdb.o libcards.a 
 	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o gdbserver
 
-musasim: musashi $(BASESTUFF) $(HARDWARE) musasim.o args.o libcards.a 
+musasim: musashi $(BASESTUFF) hardware musasim.o args.o libcards.a 
 	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o musasim
 
 gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h
@@ -22,7 +22,7 @@ musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
 gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) gdbserver.c -o gdbserver.o
 
-sim.o: sim.c sim.h musashi/m68k.h musashi/m68kconf.h hardware/board.o
+sim.o: sim.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) sim.c -o sim.o
 
 logging.o: logging.c logging.h
@@ -39,7 +39,7 @@ argsgdb.o: args.h args.c
 
 # hardware 
 
-.PHONY: libcards.a docs genheader musashi clean
+.PHONY: libcards.a docs genheader musashi hardware clean
 
 hardware:
 	$(MAKE) -C hardware
@@ -70,3 +70,4 @@ clean:
 	$(MAKE) -C musashi clean
 	$(MAKE) -C genheader clean
 	$(MAKE) -C $(CARDSDIR) clean
+	$(MAKE) -C hardware clean
