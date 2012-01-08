@@ -1,8 +1,5 @@
 #!/bin/bash
 
-set -x
-set -e
-
 ROOTDIR=`pwd`
 SRCDIR="${ROOTDIR}/src"
 TARDIR="${ROOTDIR}/tarballs"
@@ -68,6 +65,17 @@ if [ -d $PREFIX ]; then
 	rm -r $PREFIX;
 fi
 
+
+REQUIREDPKGS="build-essential libgmp-dev libmpc-dev libmpfr-dev xxx"
+
+for PKG in $REQUIREDPKGS; do
+	dpkg -s  $PKG 2>/dev/null | grep Status > /dev/null
+	if [ "$?" -ne "0" ]; then
+		echo "Build dep $PKG is missing, install it!";
+		exit 1;
+	fi
+done
+
 echo "*** BUILDING BINUTILS ***";
 stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD}
 cd ${BINUTILSBUILD}
@@ -90,6 +98,12 @@ make -j "${NCPUS}"
 make install
 
 echo "*** BUILDING FINAL GCC***"
+stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD}
+cd ${GCCBUILD}
+${GCCSRC}/configure --target="${TARGET}" --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix="${PREFIX}" --disable-shared --with-newlib=yes
+make -j "${NCPUS}"
+make install
+
 
 echo "*** BUILDING GDB***"
 stageprep $GDBTAR $GDBURL $GDBSRC $GDBBUILD
