@@ -96,6 +96,7 @@ echo "*** BUILDING FINAL GCC***"
 echo "*** BUILDING GDB***"
 
 stageprep $GDBTAR $GDBURL $GDBSRC $GDBBUILD
+cd ${GDBSRC}
 ${GDBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
 make -j "${NCPUS}"
 make install
