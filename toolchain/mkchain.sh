@@ -88,7 +88,7 @@ stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD}
 cd ${GCCBUILD}
 ${GCCSRC}/configure --target="${TARGET}" --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix="${PREFIX}" --disable-shared --with-newlib=yes
 make -j "${NCPUS}"
-make install
+make -k install
 
 echo "*** BUILDING NEWLIB ***"
 stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD
@@ -112,4 +112,5 @@ ${GDBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
 make -j "${NCPUS}"
 make install
 
+tar cpzvf toolchain.tar.gz inst
 echo "*** ALL DONE! ***";
