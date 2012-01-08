@@ -64,9 +64,11 @@ function stageprep {
 	mkdir ${BUILD}
 }
 
+if [ -d $PREFIX ]; then
+	rm -r $PREFIX;
+fi
 
 echo "*** BUILDING BINUTILS ***";
-
 stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD}
 cd ${BINUTILSBUILD}
 ${BINUTILSSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
@@ -74,17 +76,13 @@ make -j "${NCPUS}"
 make install
 
 echo "*** BUILDING INITIAL GCC***"
-
 stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD}
-
-mkdir ${GCCBUILD}
 cd ${GCCBUILD}
 ${GCCSRC}/configure --target="${TARGET}" --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix="${PREFIX}" --disable-shared --with-newlib=yes
 make -j "${NCPUS}"
 make install
 
 echo "*** BUILDING NEWLIB ***"
-
 stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD
 cd ${NEWLIBBUILD}
 ${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
@@ -94,7 +92,6 @@ make install
 echo "*** BUILDING FINAL GCC***"
 
 echo "*** BUILDING GDB***"
-
 stageprep $GDBTAR $GDBURL $GDBSRC $GDBBUILD
 cd ${GDBSRC}
 ${GDBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
