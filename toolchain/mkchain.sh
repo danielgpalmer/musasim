@@ -66,7 +66,7 @@ if [ -d $PREFIX ]; then
 fi
 
 
-REQUIREDPKGS="build-essential libgmp-dev libmpc-dev libmpfr-dev xxx"
+REQUIREDPKGS="build-essential libgmp-dev libmpc-dev libmpfr-dev"
 
 for PKG in $REQUIREDPKGS; do
 	dpkg -s  $PKG 2>/dev/null | grep Status > /dev/null
