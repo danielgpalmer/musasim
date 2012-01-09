@@ -37,7 +37,7 @@ INSTBIN="${PREFIX}/bin"
 mkdir -p ${INSTBIN}
 
 PATH="${INSTBIN}:${PATH}"
-
+TOOLCHAINTAR="${ROOTDIR}/toolchain.tar.gz"
 
 function stageprep {
 
@@ -68,6 +68,18 @@ fi
 
 REQUIREDPKGS="build-essential libgmp-dev libmpc-dev libmpfr-dev"
 
+
+if [ -e $TOOLCHAINTAR ]; then
+	TOOLCHAINSTAMP=`stat -c %Z ${TOOLCHAINTAR}`
+	SCRIPTSTAMP=`stat -c %Z ${ROOTDIR}/mkchain.sh`
+
+	if [ "$TOOLCHAINSTAMP" -gt "$SCRIPTSTAMP" ]; then
+		echo "Toolchain tar is up to date";
+		exit 0;
+	fi 
+fi;
+
+
 for PKG in $REQUIREDPKGS; do
 	dpkg -s  $PKG 2>/dev/null | grep Status > /dev/null
 	if [ "$?" -ne "0" ]; then
@@ -75,6 +87,9 @@ for PKG in $REQUIREDPKGS; do
 		exit 1;
 	fi
 done
+
+
+
 
 echo "*** BUILDING BINUTILS ***";
 stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD}
@@ -112,5 +127,6 @@ ${GDBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
 make -j "${NCPUS}"
 make install
 
-tar cpzvf toolchain.tar.gz inst
+cd $ROOTDIR
+tar cpzvf $TOOLCHAINTAR inst
 echo "*** ALL DONE! ***";
