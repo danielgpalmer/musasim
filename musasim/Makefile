@@ -65,5 +65,4 @@ clean:
 	rm -f gdbserver musasim *.o
 	$(MAKE) -C musashi clean
 	$(MAKE) -C genheader clean
-	$(MAKE) -C $(CARDSDIR) clean
 	$(MAKE) -C hardware clean

@@ -8,3 +8,4 @@ board.o: board.c board.h
 
 clean:
 	rm *.o
+	$(MAKE) -C cards clean
