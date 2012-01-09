@@ -31,6 +31,9 @@ GDBBUILD="${BUILDDIR}/${TARGET}-gdb"
 PREFIX="${INSTDIR}/${TARGET}";
 
 NCPUS="3"
+if [ -x /usr/bin/distcc ]; then
+	NCPUS=`distcc -j`
+fi
 
 INSTBIN="${PREFIX}/bin"
 
