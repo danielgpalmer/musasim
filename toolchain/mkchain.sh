@@ -153,7 +153,7 @@ echo "*** BUILDING GDB***"
 stageprep $GDBTAR $GDBURL $GDBSRC $GDBBUILD
 cd ${GDBBUILD}
 ${GDBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
-make -j "${NCPUS}"
+make
 make install
 
 cd $ROOTDIR
