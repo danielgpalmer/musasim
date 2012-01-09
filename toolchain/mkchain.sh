@@ -117,15 +117,26 @@ echo "*** BUILDING INITIAL GCC***"
 stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD}
 cd ${GCCBUILD}
 ${GCCSRC}/configure ${GCCCONFOPTS}
-make -j "${NCPUS}"
-make -k install
+# This might fail.. we shouldn't care.. it should give us enough of a compiler to compile newlib
+{
+	set +e;
+	make -j "${NCPUS}";
+	make -k install
+	set -e;
+}
 
-echo "*** BUILDING NEWLIB ***"
+echo "*** BUILDING INITIAL NEWLIB ***"
 stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD
 cd ${NEWLIBBUILD}
 ${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
-make -j "${NCPUS}"
-make install
+# This might fail.. we shouldn't care.. 
+{
+	set +e;
+	make -j "${NCPUS}";
+	make -k install
+	set -e;
+}
+
 
 echo "*** BUILDING FINAL GCC***"
 stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD}
@@ -134,14 +145,20 @@ ${GCCSRC}/configure ${GCCCONFOPTS}
 make -j "${NCPUS}"
 make install
 
+echo "*** BUILDING FINAL NEWLIB ***"
+stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD
+cd ${NEWLIBBUILD}
+${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
+make -j "${NCPUS}";
+make install
 
 echo "*** BUILDING GDB***"
 stageprep $GDBTAR $GDBURL $GDBSRC $GDBBUILD
-cd ${GDBSRC}
+cd ${GDBBUILD}
 ${GDBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
 make -j "${NCPUS}"
 make install
 
 cd $ROOTDIR
-tar cpzvf $TOOLCHAINTAR inst
+tar cpzvf $TOOLCHAINTAR inst/${TARGET}
 echo "*** ALL DONE! ***";
