@@ -2,12 +2,12 @@
 
 set -x
 set -e
-set -u 
+set -u
 
-TARGET="$1"
-
-if [ "$TARGET" = "" ]; then
-	TARGET="m68000-softfloat-elf";
+if [ "$#" -eq "1" ]; then
+	TARGET="$1"
+else
+	TARGET="m68k-elf";
 fi
 
 ROOTDIR=`pwd`
@@ -113,29 +113,26 @@ ${BINUTILSSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
 make -j "${NCPUS}"
 make install
 
+
 echo "*** BUILDING INITIAL GCC***"
 stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD}
 cd ${GCCBUILD}
-${GCCSRC}/configure ${GCCCONFOPTS}
 # This might fail.. we shouldn't care.. it should give us enough of a compiler to compile newlib
-{
-	set +e;
-	make -j "${NCPUS}";
-	make -k install
-	set -e;
-}
+${GCCSRC}/configure ${GCCCONFOPTS}
+set +e;
+make -k -j "${NCPUS}";
+make -k install
+set -e;
 
-echo "*** BUILDING INITIAL NEWLIB ***"
+echo "*** BUILDING INITIAL NEWLIB ***";
 stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD
 cd ${NEWLIBBUILD}
-${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
 # This might fail.. we shouldn't care.. 
-{
-	set +e;
-	make -j "${NCPUS}";
-	make -k install
-	set -e;
-}
+${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
+set +e;
+make -k -j "${NCPUS}";
+make -k install
+set -e;
 
 
 echo "*** BUILDING FINAL GCC***"
