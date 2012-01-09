@@ -1,5 +1,15 @@
 #!/bin/bash
 
+set -x
+set -e
+set -u 
+
+TARGET="$1"
+
+if [ "$TARGET" = "" ]; then
+	TARGET="m68000-softfloat-elf";
+fi
+
 ROOTDIR=`pwd`
 SRCDIR="${ROOTDIR}/src"
 TARDIR="${ROOTDIR}/tarballs"
@@ -21,7 +31,6 @@ GCCSRC="${SRCDIR}/gcc-4.6.2"
 NEWLIBSRC="${SRCDIR}/newlib-1.20.0";
 GDBSRC="${SRCDIR}/gdb-7.3";
 
-TARGET="m68k-elf"
 
 BINUTILSBUILD="${BUILDDIR}/${TARGET}-binutils"
 GCCBUILD="${BUILDDIR}/${TARGET}-gcc"
@@ -31,16 +40,19 @@ GDBBUILD="${BUILDDIR}/${TARGET}-gdb"
 PREFIX="${INSTDIR}/${TARGET}";
 
 NCPUS="3"
-if [ -x /usr/bin/distcc ]; then
-	NCPUS=`distcc -j`
-fi
+#if [ -x /usr/bin/distcc ]; then
+#	NCPUS=`distcc -j`
+#	if [ "${NCPUS}" -gt "0" ]; then
+#		NCPUS="3"
+#	fi
+#fi
 
 INSTBIN="${PREFIX}/bin"
 
 mkdir -p ${INSTBIN}
 
 PATH="${INSTBIN}:${PATH}"
-TOOLCHAINTAR="${ROOTDIR}/toolchain.tar.gz"
+TOOLCHAINTAR="${ROOTDIR}/toolchain-${TARGET}.tar.gz"
 
 if [ -e $TOOLCHAINTAR ]; then
 	TOOLCHAINSTAMP=`stat -c %Z ${TOOLCHAINTAR}`
@@ -92,7 +104,7 @@ for PKG in $REQUIREDPKGS; do
 done
 
 
-
+GCCCONFOPTS="--target=${TARGET} --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix=${PREFIX} --disable-shared --with-newlib=yes"
 
 echo "*** BUILDING BINUTILS ***";
 stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD}
@@ -104,7 +116,7 @@ make install
 echo "*** BUILDING INITIAL GCC***"
 stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD}
 cd ${GCCBUILD}
-${GCCSRC}/configure --target="${TARGET}" --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix="${PREFIX}" --disable-shared --with-newlib=yes
+${GCCSRC}/configure ${GCCCONFOPTS}
 make -j "${NCPUS}"
 make -k install
 
@@ -118,7 +130,7 @@ make install
 echo "*** BUILDING FINAL GCC***"
 stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD}
 cd ${GCCBUILD}
-${GCCSRC}/configure --target="${TARGET}" --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix="${PREFIX}" --disable-shared --with-newlib=yes
+${GCCSRC}/configure ${GCCCONFOPTS}
 make -j "${NCPUS}"
 make install
 
