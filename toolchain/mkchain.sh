@@ -39,6 +39,17 @@ mkdir -p ${INSTBIN}
 PATH="${INSTBIN}:${PATH}"
 TOOLCHAINTAR="${ROOTDIR}/toolchain.tar.gz"
 
+if [ -e $TOOLCHAINTAR ]; then
+	TOOLCHAINSTAMP=`stat -c %Z ${TOOLCHAINTAR}`
+	SCRIPTSTAMP=`stat -c %Z ${ROOTDIR}/mkchain.sh`
+
+	if [ "$TOOLCHAINSTAMP" -gt "$SCRIPTSTAMP" ]; then
+		echo "Toolchain tar is up to date";
+		exit 0;
+	fi 
+fi;
+
+
 function stageprep {
 
 	TAR=$1;
@@ -67,17 +78,6 @@ fi
 
 
 REQUIREDPKGS="build-essential libgmp-dev libmpc-dev libmpfr-dev"
-
-
-if [ -e $TOOLCHAINTAR ]; then
-	TOOLCHAINSTAMP=`stat -c %Z ${TOOLCHAINTAR}`
-	SCRIPTSTAMP=`stat -c %Z ${ROOTDIR}/mkchain.sh`
-
-	if [ "$TOOLCHAINSTAMP" -gt "$SCRIPTSTAMP" ]; then
-		echo "Toolchain tar is up to date";
-		exit 0;
-	fi 
-fi;
 
 
 for PKG in $REQUIREDPKGS; do
