@@ -32,8 +32,8 @@ typedef enum ReadState {
 } ReadState;
 
 static char OK[] = "OK";
-#define GDBACK '+';
-#define GDBNAK '-';
+static char GDBACK = '+';
+//static char GDBNAK = '-';
 
 #define MAXPACKETLENGTH 256
 
@@ -43,9 +43,9 @@ void request_exit();
 static void termination_handler(int signum);
 static void registersighandler();
 static void gdbwrite(int s, char* buffer, int len);
-static void gdbread(int s, char *buffer);
+static void gdbserver_gdbread(int s, char *buffer);
 static bool sendpacket(int s, char* data);
-static int calcchecksum(char *data);
+static int gdbserver_calcchecksum(char *data);
 static char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7, int a0, int a1, int a2,
 		int a3, int a4, int a5, int fp, int sp, int ps, int pc);
 static char* getmemorystring(unsigned int address, int len);
@@ -150,10 +150,9 @@ static void gdbserver_readcommand(int s) {
 	State newstate = WAITING;
 
 	static char inputbuffer[MAXPACKETLENGTH];
-	static char res[] = { '+', '-' };
 
 	memset(inputbuffer, 0, MAXPACKETLENGTH);
-	gdbread(s, inputbuffer);
+	gdbserver_gdbread(s, inputbuffer);
 	if (verbose) {
 		printf("<-- %s\n", inputbuffer);
 	}
@@ -189,14 +188,14 @@ static void gdbserver_readcommand(int s) {
 			if (verbose) {
 				printf("GDB wants to write to memory\n");
 			}
-			data = "OK";
+			data = OK;
 
 			break;
 		case 'c':
 			if (verbose) {
 				printf("GDB wants execution to continue\n");
 			}
-			data = "OK";
+			data = OK;
 			newstate = RUNNING;
 			break;
 		case 's':
@@ -204,7 +203,7 @@ static void gdbserver_readcommand(int s) {
 				printf("GDB wants execution to step\n");
 			}
 			sim_tick(); // FIXME check if this actually works
-			data = "S05";
+			data = OK;
 			break;
 		case '?':
 			if (verbose) {
@@ -217,7 +216,7 @@ static void gdbserver_readcommand(int s) {
 				printf("GDB wants the processor to reset\n");
 			}
 			sim_reset();
-			data = "OK";
+			data = OK;
 			break;
 
 		case 'q':
@@ -226,13 +225,13 @@ static void gdbserver_readcommand(int s) {
 
 		case 'D':
 			printf("GDB is detaching!\n");
-			data = "OK";
+			data = OK;
 			newstate = LISTENING;
 			break;
 
 		case 'k':
 			printf("GDB killed us\n");
-			data = "OK";
+			data = OK;
 			newstate = LISTENING;
 			break;
 
@@ -256,7 +255,7 @@ static void gdbserver_readcommand(int s) {
 			strtok(NULL, "Z,#");
 
 			gbserver_set_breakpoint(strtoul(breakaddress, NULL, 16));
-			data = "OK";
+			data = OK;
 
 			if (verbose) {
 				printf("GDB is setting a breakpoint at 0x%s\n", breakaddress);
@@ -270,8 +269,6 @@ static void gdbserver_readcommand(int s) {
 			}
 			break;
 	}
-
-	gdbwrite(s, &res[0], 1);
 
 	if (sendpacket(s, data)) {
 		state = newstate;
@@ -295,9 +292,9 @@ static bool sendpacket(int s, char* data) {
 
 	outputlen = sprintf(outputbuffer, "$%s#", data);
 
-	outputlen += sprintf(outputbuffer + outputlen, "%02x", calcchecksum(data));
+	outputlen += sprintf(outputbuffer + outputlen, "%02x", gdbserver_calcchecksum(data));
 
-	while (res != '+') {
+	while (res != GDBACK) {
 		gdbwrite(s, outputbuffer, outputlen);
 		int result = read(s, &res, 1);
 		if (result == 0) {
@@ -334,29 +331,28 @@ static void gdbwrite(int s, char* buffer, int len) {
 	write(s, buffer, len);
 }
 
-#define INCOMINGPACKETBUFFERSIZE 32
+#define GDBPACKETSTART '$'
+#define GDBDATAEND '#'
 
-static void gdbread(int s, char *buffer) {
+static void gdbserver_gdbread(int s, char *buffer) {
 
 	ReadState readstate = WAITINGFORSTART;
-	static char readbuffer[INCOMINGPACKETBUFFERSIZE];
+	static char readbuffer[MAXPACKETLENGTH];
 	int bytessofar = 0;
 	int bufferpos = 0;
 
 	while (readstate != DONE) {
-
-		bytessofar += read(s, readbuffer + bytessofar, INCOMINGPACKETBUFFERSIZE);
+		bytessofar += read(s, readbuffer + bytessofar, MAXPACKETLENGTH);
 		switch (readstate) {
 			case WAITINGFORSTART:
-				//printf("waiting for start\n");
+				// Wait until we get a dollar
 				for (; bufferpos < bytessofar; bufferpos++) {
-					if (readbuffer[bufferpos] == '$') {
-						//printf("Got packet start at %d\n", bufferpos);
+					if (readbuffer[bufferpos] == GDBPACKETSTART) {
 						readstate = READINGPACKET;
 						break;
 					}
 				}
-
+				// If we are still waiting or we ate all the buffer here.. read some more from the socket
 				if (readstate == WAITINGFORSTART || bufferpos == bytessofar) {
 					break;
 				}
@@ -366,7 +362,7 @@ static void gdbread(int s, char *buffer) {
 
 			case READINGPACKET:
 				for (; bufferpos < bytessofar; bufferpos++) {
-					if (readbuffer[bufferpos] == '#') {
+					if (readbuffer[bufferpos] == GDBDATAEND) {
 						readstate = CHECKSUMDIGITONE;
 						break;
 					}
@@ -405,13 +401,14 @@ static void gdbread(int s, char *buffer) {
 
 				readstate = DONE;
 			case DONE:
+				gdbwrite(s, &GDBACK, 1);
 				break;
 		}
 	}
 
 }
 
-int calcchecksum(char *data) {
+static int gdbserver_calcchecksum(char *data) {
 
 	int len = strlen(data);
 
