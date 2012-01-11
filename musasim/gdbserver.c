@@ -1,5 +1,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,6 +47,8 @@ static char WEBROKE[] = "S05";
 static void gdbserver_cleanup();
 static void termination_handler(int signum);
 static void registersighandler();
+
+void gdbserver_armtimer();
 
 // tcp/ip connection related stuff
 static int port;
@@ -134,6 +137,7 @@ int main(int argc, char* argv[]) {
 
 			case WAITING:
 				gdbserver_readcommand(socketconnection);
+				gdbserver_armtimer();
 				break;
 
 			case RUNNING:
@@ -426,11 +430,34 @@ void io_handler(int signum) {
 	}
 }
 
+void gdbserver_armtimer() {
+
+	static struct itimerval tout_val;
+	tout_val.it_interval.tv_sec = 0;
+	tout_val.it_interval.tv_usec = 0;
+	tout_val.it_value.tv_sec = 1;
+	tout_val.it_value.tv_usec = 0;
+
+	setitimer(ITIMER_REAL, &tout_val, 0);
+}
+
+void gdbserver_timeouthandler(int signum) {
+
+	if (state != WAITING) {
+		return;
+	}
+
+	log_println(LEVEL_INFO, TAG, "timeout");
+	gdbserver_armtimer();
+	gdbserver_sendpacket(socketconnection, &GDBNAK);
+
+}
+
 void registersighandler() {
 
 	// stolen from; http://www.gnu.org/s/hello/manual/libc/Sigaction-Function-Example.html
 
-	struct sigaction new_action, old_action, io_action;
+	struct sigaction new_action, old_action, io_action, alarm_action;
 
 	/* Set up the structure to specify the new action. */
 	new_action.sa_handler = termination_handler;
@@ -456,6 +483,13 @@ void registersighandler() {
 	sigaction(SIGIO, NULL, &old_action);
 	if (old_action.sa_handler != SIG_IGN)
 		sigaction(SIGIO, &io_action, NULL);
+
+	alarm_action.sa_handler = gdbserver_timeouthandler;
+	sigemptyset(&alarm_action.sa_mask);
+	alarm_action.sa_flags = 0;
+	sigaction(SIGALRM, NULL, &old_action);
+	if (old_action.sa_handler != SIG_IGN)
+		sigaction(SIGALRM, &alarm_action, NULL);
 
 }
 
@@ -611,3 +645,4 @@ void gdbserver_check_breakpoints() {
 void gdbserver_setport(int p) {
 	port = p;
 }
+
