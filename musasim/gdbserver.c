@@ -419,6 +419,7 @@ static void gdbserver_cleanup() {
 void termination_handler(int signum) {
 
 	printf("Caught interrupt\n");
+	close(socketconnection);
 	state = EXIT;
 }
 
@@ -435,7 +436,7 @@ void gdbserver_armtimer() {
 	static struct itimerval tout_val;
 	tout_val.it_interval.tv_sec = 0;
 	tout_val.it_interval.tv_usec = 0;
-	tout_val.it_value.tv_sec = 1;
+	tout_val.it_value.tv_sec = 10;
 	tout_val.it_value.tv_usec = 0;
 
 	setitimer(ITIMER_REAL, &tout_val, 0);
@@ -449,7 +450,7 @@ void gdbserver_timeouthandler(int signum) {
 
 	log_println(LEVEL_INFO, TAG, "timeout");
 	gdbserver_armtimer();
-	gdbserver_sendpacket(socketconnection, &GDBNAK);
+	write(socketconnection, &GDBNAK, 1);
 
 }
 
