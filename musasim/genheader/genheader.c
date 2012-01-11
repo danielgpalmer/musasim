@@ -140,7 +140,7 @@ void sound() {
 			printf("volatile uint16_t* const sound_channel_master_config = (uint16_t*) 0x%x;\n",
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_CONFIG);
 			printf("volatile uint16_t* const sound_channel_master_volume = (uint16_t*) 0x%x;\n",
-								SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_VOLUME);
+					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_VOLUME);
 		}
 		else {
 			printf("volatile uint16_t* const sound_channel_%d_config = (uint16_t*) 0x%x;\n", i - 1,
@@ -159,13 +159,13 @@ void sound() {
 }
 
 void uart() {
-	printf("volatile uint8_t* const uart_chan0_rxtx = (uint8_t*) 0x%x;\n",
+	printf("static volatile uint8_t* const uart_chan0_rxtx = (uint8_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_RXTXBUFFER);
-	printf("volatile uint8_t* const uart_chan0_interruptenable = (uint8_t*) 0x%x;\n",
+	printf("static volatile uint8_t* const uart_chan0_interruptenable = (uint8_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_INTERRUPTENABLE);
-	printf("volatile uint8_t* const uart_chan0_linecontrol = (uint8_t*) 0x%x;\n",
+	printf("static volatile uint8_t* const uart_chan0_linecontrol = (uint8_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINECONTROL);
-	printf("volatile uint8_t* const uart_chan0_linestatus = (uint8_t*) 0x%x;\n",
+	printf("static volatile uint8_t* const uart_chan0_linestatus = (uint8_t*) 0x%x;\n",
 			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINESTATUS);
 
 }

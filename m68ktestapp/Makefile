@@ -18,7 +18,7 @@ prog.srec: prog.elf
 	$(CP) -O srec prog.elf prog.srec
 	
 prog.elf: syscalls.o crt.o main.o fontrom.o rom.lds
-	$(CC) $(LFLAGS) -o prog.elf crt.o main.o fontrom.o syscalls.o
+	$(CC) $(LFLAGS) -o prog.elf crt.o syscalls.o main.o fontrom.o
 
 main.o: blip.c main.c ../musasim/genheader/machine.h ../musasim/genheader/video.h ../musasim/genheader/input.h ../musasim/genheader/uart.h
 	$(CC) $(CFLAGS) -c main.c --save-temps

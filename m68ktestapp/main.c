@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include <stdio.h>
 #include <stdint.h>
 #include "fontrom/fontrom.h"
 #include "../musasim/genheader/machine.h"
@@ -207,7 +208,7 @@ int main(void) {
 	while (1) {
 
 		//gputs("Hello World!");
-		sputs("Hello World!\n");
+		printf("Whassup homes!\n");
 
 	}
 
