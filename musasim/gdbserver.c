@@ -22,34 +22,6 @@
 
 #include "gdbserver.h"
 
-static char OK[] = "OK";
-
-#define GDBACK '+';
-#define GDBNAK '-';
-
-#define MAXPACKETLENGTH 256
-
-static void readcommand(int s);
-static void gdbserver_cleanup();
-void request_exit();
-void termination_handler(int signum);
-void registersighandler();
-static void gdbwrite(int s, char* buffer, int len);
-static void gdbread(int s, char *buffer);
-bool sendpacket(int s, char* data);
-int calcchecksum(char *data);
-char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7, int a0, int a1, int a2, int a3,
-		int a4, int a5, int fp, int sp, int ps, int pc);
-char* getmemorystring(unsigned int address, int len);
-
-void gbserver_set_breakpoint(uint32_t address);
-void gdbserver_clear_breakpoint(uint32_t address);
-char* gdbserver_query(char* commandbuffer);
-char* gbdserver_readregs(char* commandbuffer);
-static char* readmem(char* commandbuffer);
-
-static int port;
-
 typedef enum State {
 	LISTENING, WAITING, RUNNING, BREAKING, EXIT
 
@@ -59,21 +31,45 @@ typedef enum ReadState {
 	WAITINGFORSTART, READINGPACKET, CHECKSUMDIGITONE, CHECKSUMDIGITTWO, DONE
 } ReadState;
 
-static GSList* breakpoints;
+static char OK[] = "OK";
+#define GDBACK '+';
+#define GDBNAK '-';
 
+#define MAXPACKETLENGTH 256
+
+static void gdbserver_readcommand(int s);
+static void gdbserver_cleanup();
+void request_exit();
+static void termination_handler(int signum);
+static void registersighandler();
+static void gdbwrite(int s, char* buffer, int len);
+static void gdbread(int s, char *buffer);
+static bool sendpacket(int s, char* data);
+static int calcchecksum(char *data);
+static char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7, int a0, int a1, int a2,
+		int a3, int a4, int a5, int fp, int sp, int ps, int pc);
+static char* getmemorystring(unsigned int address, int len);
+
+static void gbserver_set_breakpoint(uint32_t address);
+static void gdbserver_clear_breakpoint(uint32_t address);
+static char* gdbserver_query(char* commandbuffer);
+static char* gbdserver_readregs(char* commandbuffer);
+static char* readmem(char* commandbuffer);
+
+static int port;
+
+static GSList* breakpoints;
 static int socketlistening;
 static int socketconnection;
-
 static State state = LISTENING;
-
 static bool verbose = true;
 
-char* endpointer;
+static const char TAG[] = "gdbserver";
 
 int main(int argc, char* argv[]) {
 
-	printf("musashi m68k emulator\tKarl Stenerud with patches from MAME up to 0105\n"
-			"gdbserver for musashi\tDaniel Palmer (daniel@0x0f.com)\n");
+	log_println(LEVEL_INFO, TAG, "musashi m68k emulator\tKarl Stenerud with patches from MAME up to 0105");
+	log_println(LEVEL_INFO, TAG, "gdbserver for musashi\tDaniel Palmer (daniel@0x0f.com)");
 
 	struct sockaddr_in servaddr;
 
@@ -82,8 +78,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	if ((socketlistening = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		fprintf(stderr, "Failed to create socket\n");
-		exit(EXIT_FAILURE);
+		log_println(LEVEL_WARNING, TAG, "Failed to create socket");
+		return 1;
 	}
 
 	memset(&servaddr, 0, sizeof(servaddr));
@@ -92,21 +88,17 @@ int main(int argc, char* argv[]) {
 	servaddr.sin_port = htons(port);
 
 	if (bind(socketlistening, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
-		fprintf(stderr, "bind() failed\n");
-		exit(EXIT_FAILURE);
+		log_println(LEVEL_WARNING, TAG, "bind() failed");
+		return 1;
 	}
 
 	if (listen(socketlistening, 0) < 0) {
-		fprintf(stderr, "listen() failed\n");
-		exit(EXIT_FAILURE);
+		log_println(LEVEL_WARNING, TAG, "listen() failed");
+		return 1;
 	}
 
 	sim_init();
-
-	printf("Registering signal handlers\n");
 	registersighandler();
-
-	printf("Resetting CPU\n");
 	sim_reset();
 
 	while (state != EXIT) {
@@ -114,10 +106,10 @@ int main(int argc, char* argv[]) {
 		switch (state) {
 
 			case LISTENING:
-				printf("Listening for GDB connection on %d\n", port);
+				log_println(LEVEL_INFO, TAG, "Listening for GDB connection on %d", port);
 
 				if ((socketconnection = accept(socketlistening, NULL, NULL)) > 0) {
-					printf("Got connection from GDB\n");
+					log_println(LEVEL_INFO, TAG, "Got connection from GDB");
 
 					fcntl(socketconnection, F_SETOWN, getpid());
 					int flags = fcntl(socketconnection, F_GETFL, 0);
@@ -130,7 +122,7 @@ int main(int argc, char* argv[]) {
 				break;
 
 			case WAITING:
-				readcommand(socketconnection);
+				gdbserver_readcommand(socketconnection);
 				break;
 
 			case RUNNING:
@@ -149,11 +141,11 @@ int main(int argc, char* argv[]) {
 	};
 
 	gdbserver_cleanup();
-	exit(EXIT_SUCCESS);
+	return 0;
 
 }
 
-static void readcommand(int s) {
+static void gdbserver_readcommand(int s) {
 
 	State newstate = WAITING;
 
@@ -293,7 +285,7 @@ static void readcommand(int s) {
 
 #define MAXSENDTRIES 10
 
-bool sendpacket(int s, char* data) {
+static bool sendpacket(int s, char* data) {
 
 	int triesleft = MAXSENDTRIES;
 	char res;
@@ -342,20 +334,18 @@ static void gdbwrite(int s, char* buffer, int len) {
 	write(s, buffer, len);
 }
 
+#define INCOMINGPACKETBUFFERSIZE 32
+
 static void gdbread(int s, char *buffer) {
 
 	ReadState readstate = WAITINGFORSTART;
+	static char readbuffer[INCOMINGPACKETBUFFERSIZE];
 	int bytessofar = 0;
 	int bufferpos = 0;
 
 	while (readstate != DONE) {
 
-		static char readbuffer[32];
-		//printf("pulling from socket\n");
-		bytessofar += read(s, readbuffer + bytessofar, 32);
-
-		//printf("%d total, at %d, state %d\n", bytessofar, bufferpos, readstate);
-
+		bytessofar += read(s, readbuffer + bytessofar, INCOMINGPACKETBUFFERSIZE);
 		switch (readstate) {
 			case WAITINGFORSTART:
 				//printf("waiting for start\n");
