@@ -66,7 +66,7 @@ bool args_parse(int argc, char* argv[]) {
 		}
 
 #ifdef GDBSERVER
-		port = *(gdbport->ival);
+		gdbserver_setport(*(gdbport->ival));
 #endif
 
 		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));

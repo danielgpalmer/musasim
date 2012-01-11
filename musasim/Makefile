@@ -12,13 +12,10 @@ gdbserver: musashi $(BASESTUFF) hardware gdbserver.o argsgdb.o
 musasim: musashi $(BASESTUFF) hardware musasim.o args.o 
 	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o musasim
 
-gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h
-	$(CC) $(CFLAGS) $(LOCALCFLAGS) gdbserver.c -o gdbserver.o
-
 musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) musasim.c -o musasim.o
 
-gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h
+gdbserver.o: gdbserver.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) gdbserver.c -o gdbserver.o
 
 sim.o: sim.c sim.h musashi/m68k.h musashi/m68kconf.h

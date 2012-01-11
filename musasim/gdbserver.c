@@ -15,25 +15,59 @@
 
 #include "sim.h"
 #include "musashi/m68k.h"
-#include "gdbserver.h"
 #include "args.h"
 
 #include "hardware/cards/romcard.h"
+#include "logging.h"
 
-void cleanup();
+#include "gdbserver.h"
 
-char OK[] = "OK";
+static char OK[] = "OK";
 
-GSList* breakpoints;
+#define GDBACK '+';
+#define GDBNAK '-';
 
-int socketlistening;
-int socketconnection;
+#define MAXPACKETLENGTH 256
+
+static void readcommand(int s);
+static void gdbserver_cleanup();
+void request_exit();
+void termination_handler(int signum);
+void registersighandler();
+static void gdbwrite(int s, char* buffer, int len);
+static void gdbread(int s, char *buffer);
+bool sendpacket(int s, char* data);
+int calcchecksum(char *data);
+char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7, int a0, int a1, int a2, int a3,
+		int a4, int a5, int fp, int sp, int ps, int pc);
+char* getmemorystring(unsigned int address, int len);
+
+void gbserver_set_breakpoint(uint32_t address);
+void gdbserver_clear_breakpoint(uint32_t address);
+char* gdbserver_query(char* commandbuffer);
+char* gbdserver_readregs(char* commandbuffer);
+static char* readmem(char* commandbuffer);
+
+static int port;
+
+typedef enum State {
+	LISTENING, WAITING, RUNNING, BREAKING, EXIT
+
+} State;
+
+typedef enum ReadState {
+	WAITINGFORSTART, READINGPACKET, CHECKSUMDIGITONE, CHECKSUMDIGITTWO, DONE
+} ReadState;
+
+static GSList* breakpoints;
+
+static int socketlistening;
+static int socketconnection;
 
 static State state = LISTENING;
 
 static bool verbose = true;
 
-int port;
 char* endpointer;
 
 int main(int argc, char* argv[]) {
@@ -114,12 +148,12 @@ int main(int argc, char* argv[]) {
 		}
 	};
 
-	cleanup();
+	gdbserver_cleanup();
 	exit(EXIT_SUCCESS);
 
 }
 
-void readcommand(int s) {
+static void readcommand(int s) {
 
 	State newstate = WAITING;
 
@@ -294,7 +328,7 @@ bool sendpacket(int s, char* data) {
 
 }
 
-void gdbwrite(int s, char* buffer, int len) {
+static void gdbwrite(int s, char* buffer, int len) {
 
 	if (verbose) {
 		printf("--> \"");
@@ -308,7 +342,7 @@ void gdbwrite(int s, char* buffer, int len) {
 	write(s, buffer, len);
 }
 
-void gdbread(int s, char *buffer) {
+static void gdbread(int s, char *buffer) {
 
 	ReadState readstate = WAITINGFORSTART;
 	int bytessofar = 0;
@@ -402,7 +436,7 @@ int calcchecksum(char *data) {
 	return checksum;
 }
 
-void cleanup() {
+static void gdbserver_cleanup() {
 	printf("Cleaning up\n");
 	sim_quit();
 	close(socketlistening);
@@ -583,7 +617,7 @@ char* gbdserver_readregs(char* commandbuffer) {
 			m68k_get_reg(NULL, M68K_REG_PC));
 }
 
-char* readmem(char* commandbuffer) {
+static char* readmem(char* commandbuffer) {
 	if (verbose) {
 		printf("GDB wants to read from memory\n");
 	}
@@ -618,3 +652,6 @@ void gdbserver_check_breakpoints() {
 	}
 }
 
+void gdbserver_setport(int p) {
+	port = p;
+}
