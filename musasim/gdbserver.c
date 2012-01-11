@@ -22,50 +22,58 @@
 
 #include "gdbserver.h"
 
+// the overall state of the program
 typedef enum State {
 	LISTENING, WAITING, RUNNING, BREAKING, EXIT
 
 } State;
 
+// the state of the packet reader
 typedef enum ReadState {
 	WAITINGFORSTART, READINGPACKET, CHECKSUMDIGITONE, CHECKSUMDIGITTWO, DONE
 } ReadState;
 
+// some constants for the GDB proto
 static char OK[] = "OK";
 static char GDBACK = '+';
-//static char GDBNAK = '-';
+static char GDBNAK = '-';
 #define GDBPACKETSTART '$'
 #define GDBDATAEND '#'
 static char WEBROKE[] = "S05";
 
 #define MAXPACKETLENGTH 256
 
-static void gdbserver_readcommand(int s);
 static void gdbserver_cleanup();
-void request_exit();
 static void termination_handler(int signum);
 static void registersighandler();
-static void gdbwrite(int s, char* buffer, int len);
-static bool gdbserver_gdbread(int s, char *buffer);
-static bool sendpacket(int s, char* data);
+
+// tcp/ip connection related stuff
+static int port;
+static int socketlistening;
+static int socketconnection;
+
+// stuff that talks to gdb
+static void gdbserver_readcommand(int s);
+static bool gdbserver_readpacket(int s, char *buffer);
+static bool gdbserver_sendpacket(int s, char* data);
+static char* gdbserver_query(char* commandbuffer);
+
+// breakpoint stuff
+static GSList* breakpoints;
+static void gbserver_set_breakpoint(uint32_t address);
+static void gdbserver_clear_breakpoint(uint32_t address);
+
+// stuff that pokes the sim
+static char* readmem(char* commandbuffer);
+
+// utils
+static char* getmemorystring(unsigned int address, int len);
+static char* gbdserver_readregs(char* commandbuffer);
 static int gdbserver_calcchecksum(char *data);
 static char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7, int a0, int a1, int a2,
 		int a3, int a4, int a5, int fp, int sp, int ps, int pc);
-static char* getmemorystring(unsigned int address, int len);
 
-static void gbserver_set_breakpoint(uint32_t address);
-static void gdbserver_clear_breakpoint(uint32_t address);
-static char* gdbserver_query(char* commandbuffer);
-static char* gbdserver_readregs(char* commandbuffer);
-static char* readmem(char* commandbuffer);
-
-static int port;
-
-static GSList* breakpoints;
-static int socketlistening;
-static int socketconnection;
 static State state = LISTENING;
-static bool verbose = true;
 
 static const char TAG[] = "gdbserver";
 
@@ -131,10 +139,13 @@ int main(int argc, char* argv[]) {
 			case RUNNING:
 				printf("--tick --\n");
 				sim_tick();
+				if (sim_has_quit()) {
+					state = EXIT;
+				}
 				break;
 
 			case BREAKING:
-				sendpacket(socketconnection, WEBROKE); // alert GDB to the fact that execution has stopped
+				gdbserver_sendpacket(socketconnection, WEBROKE); // alert GDB to the fact that execution has stopped
 				state = WAITING;
 				break;
 
@@ -148,144 +159,134 @@ int main(int argc, char* argv[]) {
 
 }
 
+static bool step = false;
+
 static void gdbserver_readcommand(int s) {
 
 	State newstate = WAITING;
-
 	static char inputbuffer[MAXPACKETLENGTH];
-
 	memset(inputbuffer, 0, MAXPACKETLENGTH);
-	gdbserver_gdbread(s, inputbuffer);
 
-	char* data = OK; // by default we send OK
+	if (gdbserver_readpacket(s, inputbuffer)) {
 
-	char command = inputbuffer[0];
-	switch (command) {
-		case 'g':
-			data = gbdserver_readregs(inputbuffer);
-			break;
-		case 'G':
-			if (verbose) {
+		char* data = OK; // by default we send OK
+
+		char command = inputbuffer[0];
+		switch (command) {
+			case 'g':
+				printf("GDB wants to read the registers\n");
+				data = gbdserver_readregs(inputbuffer);
+				break;
+			case 'G':
 				printf("GDB wants to write the registers\n");
-			}
-			break;
-		case 'p':
-			if (verbose) {
+				break;
+			case 'p':
 				printf("GDB wants to read a single register\n");
-			}
-			data = "00000000";
-			break;
-		case 'P':
-			if (verbose) {
+				data = "00000000";
+				break;
+			case 'P':
 				printf("GDB wants to write a single register\n");
-			}
-			break;
-		case 'm':
-			data = readmem(inputbuffer);
-			break;
-		case 'M':
-			if (verbose) {
+				break;
+			case 'm':
+				printf("GDB wants to read from memory\n");
+				data = readmem(inputbuffer);
+				break;
+			case 'M':
 				printf("GDB wants to write to memory\n");
-			}
-			break;
-		case 'c':
-			if (verbose) {
-				printf("GDB wants execution to continue\n");
-			}
-			newstate = RUNNING;
-			break;
-		case 's':
-			if (verbose) {
+
+				break;
+			case 'c':
+				log_println(LEVEL_INFO, TAG, "GDB wants execution to continue");
+				newstate = RUNNING;
+				break;
+			case 's':
 				printf("GDB wants execution to step\n");
-			}
-			sim_tick(); // FIXME check if this actually works
-			break;
-		case '?':
-			if (verbose) {
+				step = true;
+				sim_tick(); // FIXME check if this actually works
+
+				break;
+			case '?':
 				printf("GDB wants to know why we halted\n");
-			}
-			data = WEBROKE;
-			break;
-		case 'r':
-			if (verbose) {
+				data = WEBROKE;
+				break;
+			case 'r':
 				printf("GDB wants the processor to reset\n");
-			}
-			sim_reset();
-			break;
 
-		case 'q':
-			data = gdbserver_query(inputbuffer);
-			break;
+				sim_reset();
+				break;
 
-		case 'D':
-			printf("GDB is detaching!\n");
-			newstate = LISTENING;
-			break;
+			case 'q':
+				printf("GDB is querying something\n");
+				data = gdbserver_query(inputbuffer);
+				break;
 
-		case 'k':
-			printf("GDB killed us\n");
-			newstate = LISTENING;
-			break;
+			case 'D':
+				printf("GDB is detaching!\n");
+				newstate = LISTENING;
+				break;
 
-		case 'z': {
-			strtok(inputbuffer, "Z,#");
-			char *breakaddress = strtok(NULL, "Z,#");
-			strtok(NULL, "Z,#");
+			case 'k':
+				printf("GDB killed us\n");
+				newstate = LISTENING;
+				break;
 
-			gdbserver_clear_breakpoint(strtoul(breakaddress, NULL, 16));
+			case 'z': {
+				strtok(inputbuffer, "Z,#");
+				char *breakaddress = strtok(NULL, "Z,#");
+				strtok(NULL, "Z,#");
 
-			if (verbose) {
+				gdbserver_clear_breakpoint(strtoul(breakaddress, NULL, 16));
+
 				printf("GDB is unsetting a breakpoint at 0x%s\n", breakaddress);
+
 			}
-		}
-			break;
+				break;
 
-		case 'Z': {
-			strtok(inputbuffer, "Z,#");
-			char *breakaddress = strtok(NULL, "Z,#");
-			strtok(NULL, "Z,#");
+			case 'Z': {
+				strtok(inputbuffer, "Z,#");
+				char *breakaddress = strtok(NULL, "Z,#");
+				strtok(NULL, "Z,#");
 
-			gbserver_set_breakpoint(strtoul(breakaddress, NULL, 16));
+				gbserver_set_breakpoint(strtoul(breakaddress, NULL, 16));
 
-			if (verbose) {
 				printf("GDB is setting a breakpoint at 0x%s\n", breakaddress);
-			}
-		}
-			break;
 
-		default:
-			if (verbose) {
+			}
+				break;
+
+			default:
+
 				fprintf(stderr, "Command %c is unknown\n", command);
-			}
-			break;
-	}
+				data = "";
+				break;
+		}
 
-	if (sendpacket(s, data)) {
-		state = newstate;
+		if (gdbserver_sendpacket(s, data)) {
+			state = newstate;
+		}
+		else {
+			close(s);
+			state = LISTENING;
+		}
 	}
 	else {
-		close(s);
-		state = LISTENING;
+		log_println(LEVEL_INFO, TAG, "no packet");
 	}
 
 }
 
 #define MAXSENDTRIES 10
+static bool gdbserver_sendpacket(int s, char* data) {
 
-static bool sendpacket(int s, char* data) {
-
-	int triesleft = MAXSENDTRIES;
-	char res;
 	static char outputbuffer[MAXPACKETLENGTH];
 	memset(outputbuffer, 0, MAXPACKETLENGTH);
-	static int outputlen;
-
-	outputlen = sprintf(outputbuffer, "$%s#", data);
-
+	int triesleft = MAXSENDTRIES;
+	int outputlen = sprintf(outputbuffer, "$%s#", data);
 	outputlen += sprintf(outputbuffer + outputlen, "%02x", gdbserver_calcchecksum(data));
 
+	char res = GDBNAK;
 	while (res != GDBACK) {
-		gdbwrite(s, outputbuffer, outputlen);
+		write(s, outputbuffer, outputlen);
 		int result = read(s, &res, 1);
 		if (result == 0) {
 			printf("EOF!\n");
@@ -302,31 +303,17 @@ static bool sendpacket(int s, char* data) {
 			return false;
 		}
 	}
-
 	return true;
-
 }
 
-static void gdbwrite(int s, char* buffer, int len) {
-
-	if (verbose) {
-		printf("--> \"");
-		int i;
-		for (i = 0; i < len; i++) {
-			printf("%c", buffer[i]);
-		}
-		printf("\"\n");
-	}
-
-	write(s, buffer, len);
-}
-
-static bool gdbserver_gdbread(int s, char *buffer) {
+static bool gdbserver_readpacket(int s, char *buffer) {
 
 	ReadState readstate = WAITINGFORSTART;
 	static char readbuffer[MAXPACKETLENGTH];
+	//static char checksum[3];
 	int bytessofar = 0;
 	int bufferpos = 0;
+	//int check = 0;
 
 	while (readstate != DONE) {
 		bytessofar += read(s, readbuffer + bytessofar, MAXPACKETLENGTH);
@@ -373,6 +360,7 @@ static bool gdbserver_gdbread(int s, char *buffer) {
 					break;
 				}
 
+				//checksum[0] = readbuffer[bufferpos];
 				//printf("checkone %c\n", readbuffer[bufferpos]);
 				bufferpos++;
 
@@ -383,12 +371,16 @@ static bool gdbserver_gdbread(int s, char *buffer) {
 				if (bufferpos > bytessofar) {
 					break;
 				}
-
+				//checksum[1] = readbuffer[bufferpos];
 				//printf("checktwo %c\n", readbuffer[bufferpos]);
 
 				readstate = DONE;
 			case DONE:
-				gdbwrite(s, &GDBACK, 1);
+
+				//checksum[2] = '\0';
+				//check = sscanf(checksum, "%02x", &check);
+				//log_println(LEVEL_DEBUG, TAG, "check sum is 0x%02x", check);
+				write(s, &GDBACK, 1);
 				return true;
 		}
 	}
@@ -414,15 +406,10 @@ static int gdbserver_calcchecksum(char *data) {
 static void gdbserver_cleanup() {
 	printf("Cleaning up\n");
 	sim_quit();
+	shutdown(socketconnection, SHUT_RDWR);
 	close(socketlistening);
 	close(socketconnection);
 	g_slist_free(breakpoints);
-}
-
-void request_exit() {
-	printf("Exit requested\n");
-	state = EXIT;
-	kill(0, SIGINT);
 }
 
 void termination_handler(int signum) {
@@ -472,8 +459,8 @@ void registersighandler() {
 
 }
 
-char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7, int a0, int a1, int a2, int a3,
-		int a4, int a5, int fp, int sp, int ps, int pc) {
+static char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7, int a0, int a1, int a2,
+		int a3, int a4, int a5, int fp, int sp, int ps, int pc) {
 
 	static char registersstring[168];
 	memset(registersstring, 0, 168);
@@ -485,7 +472,7 @@ char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6,
 
 }
 
-char* getmemorystring(unsigned int address, int len) {
+static char* getmemorystring(unsigned int address, int len) {
 
 	static char memorystring[256];
 	memset(memorystring, 0, 256);
@@ -537,10 +524,6 @@ char* gbdserver_munchhexstring(char* buffer) {
 char* gdbserver_query(char* commandbuffer) {
 
 	char* ret = "";
-
-	if (verbose) {
-		printf("GDB is querying something\n");
-	}
 	int result = strncmp(commandbuffer, "qRcmd", 4);
 	if (result == 0) {
 
@@ -562,13 +545,11 @@ char* gdbserver_query(char* commandbuffer) {
 
 		else if (strncmp(monitorcommand, "stfu", 4) == 0) {
 			printf("User has requested we keep quiet\n");
-			verbose = false;
 			ret = "OK";
 		}
 
 		else if (strncmp(monitorcommand, "talktome", 8) == 0) {
 			printf("User wants to know whats going down\n");
-			verbose = true;
 			ret = "OK";
 		}
 
@@ -578,9 +559,7 @@ char* gdbserver_query(char* commandbuffer) {
 }
 
 char* gbdserver_readregs(char* commandbuffer) {
-	if (verbose) {
-		printf("GDB wants to read the registers\n");
-	}
+
 	return getregistersstring(m68k_get_reg(NULL, M68K_REG_D0), m68k_get_reg(NULL, M68K_REG_D1),
 			m68k_get_reg(NULL, M68K_REG_D2), m68k_get_reg(NULL, M68K_REG_D3), m68k_get_reg(NULL, M68K_REG_D4),
 			m68k_get_reg(NULL, M68K_REG_D5), m68k_get_reg(NULL, M68K_REG_D6), m68k_get_reg(NULL, M68K_REG_D7),
@@ -593,10 +572,6 @@ char* gbdserver_readregs(char* commandbuffer) {
 }
 
 static char* readmem(char* commandbuffer) {
-	if (verbose) {
-		printf("GDB wants to read from memory\n");
-	}
-
 	char *address = strtok(&commandbuffer[1], "m,#");
 	char *size = strtok(NULL, "m,#");
 
@@ -609,6 +584,12 @@ static char* readmem(char* commandbuffer) {
 
 void gdbserver_check_breakpoints() {
 
+	if (step) {
+		m68k_end_timeslice();
+		step = false;
+		gdbserver_sendpacket(socketconnection, WEBROKE);
+	}
+
 	uint32_t address = m68k_get_reg(NULL, M68K_REG_PC);
 
 #ifdef DEBUG
@@ -620,7 +601,7 @@ void gdbserver_check_breakpoints() {
 		if (GPOINTER_TO_UINT(iterator->data) == address) {
 			printf("*** breaking at 0x%x ***\n", address);
 			state = WAITING;
-			sendpacket(socketconnection, "S05");
+			gdbserver_sendpacket(socketconnection, WEBROKE);
 			m68k_end_timeslice();
 			break;
 		}

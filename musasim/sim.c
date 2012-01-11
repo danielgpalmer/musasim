@@ -50,7 +50,7 @@ void cpu_set_fc(unsigned int fc) {
 void sim_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "sim_init()");
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE);
 
 	board_add_device(SLOT_ROMCARD, &romcard);
 	board_add_device(SLOT_VIDEOCARD, &videocard);
