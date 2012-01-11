@@ -6,8 +6,10 @@ set -u
 
 if [ "$#" -eq "1" ]; then
 	TARGET="$1"
+	TARGETOPTS=""
 else
 	TARGET="m68k-elf";
+	TARGETOPTS="--with-arch=m68k"
 fi
 
 ROOTDIR=`pwd`
@@ -104,7 +106,7 @@ for PKG in $REQUIREDPKGS; do
 done
 
 
-GCCCONFOPTS="--target=${TARGET} --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix=${PREFIX} --disable-shared --with-newlib=yes"
+GCCCONFOPTS="--target=${TARGET} --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix=${PREFIX} --disable-shared --with-newlib=yes ${TARGETOPTS}"
 
 echo "*** BUILDING BINUTILS ***";
 stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD}
