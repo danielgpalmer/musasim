@@ -300,6 +300,8 @@ static bool gdbserver_sendpacket(int s, char* data) {
 
 static bool gdbserver_readpacket(int s, char *buffer) {
 
+	// FIXME I have no idea WTF I was thinking when I wrote this.. clean this shit up
+
 	// the state of the packet reader
 	typedef enum ReadState {
 		WAITINGFORSTART, READINGPACKET, CHECKSUMDIGITONE, CHECKSUMDIGITTWO, DONE
