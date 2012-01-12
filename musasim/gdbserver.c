@@ -130,8 +130,10 @@ int main(int argc, char* argv[]) {
 					fcntl(socketconnection, F_SETOWN, getpid());
 					int flags = fcntl(socketconnection, F_GETFL, 0);
 					fcntl(socketconnection, F_SETFL, flags | FASYNC);
-					setsockopt(socketconnection, SOL_SOCKET, SO_RCVTIMEO, &tout_val, sizeof(tout_val));
-					setsockopt(socketlistening, SOL_SOCKET, SO_RCVTIMEO, &tout_val, sizeof(tout_val));
+
+					if (setsockopt(socketconnection, SOL_SOCKET, SO_RCVTIMEO, &tout_val, sizeof(tout_val)) != 0) {
+						log_println(LEVEL_WARNING, TAG, "Failed to set socket options");
+					}
 					state = WAITING;
 				}
 				else {
@@ -323,7 +325,16 @@ static bool gdbserver_readpacket(int s, char *buffer) {
 	//int check = 0;
 
 	while (readstate != DONE) {
-		bytessofar += read(s, readbuffer + bytessofar, MAXPACKETLENGTH);
+
+		int res = read(s, readbuffer + bytessofar, MAXPACKETLENGTH);
+
+		if (res < 0) {
+			log_println(LEVEL_INFO, TAG, "timeout");
+			write(socketconnection, &GDBNAK, 1);
+			break;
+		}
+
+		bytessofar += res;
 		switch (readstate) {
 			case WAITINGFORSTART:
 				// Wait until we get a dollar
