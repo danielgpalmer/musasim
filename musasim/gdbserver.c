@@ -121,7 +121,6 @@ static void mainloop() {
 				break;
 			case STEPPING:
 				sim_tick();
-				state = BREAKING;
 				break;
 
 			case BREAKING:
@@ -599,6 +598,7 @@ void gdbserver_check_breakpoints() {
 	if (state == STEPPING) {
 		printf("step\n");
 		m68k_end_timeslice();
+		state = BREAKING;
 	}
 
 	GSList* iterator;
