@@ -155,9 +155,12 @@ int main(int argc, char* argv[]) {
 
 static void gdbserver_readcommand(int s) {
 
-	State newstate = WAITING;
+	printf("readcommand\n");
+
 	static char inputbuffer[MAXPACKETLENGTH];
 	memset(inputbuffer, 0, MAXPACKETLENGTH);
+
+	State newstate = WAITING;
 
 	if (gdbserver_readpacket(s, inputbuffer)) {
 
