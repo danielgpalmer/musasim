@@ -128,7 +128,8 @@ void sim_tick() {
 						log_println(LEVEL_INFO, TAG, "sim is now running");
 					}
 					// drain all the events.. better way to fix this?
-					while(SDL_PollEvent(events));
+					while (SDL_PollEvent(events))
+						;
 
 					return;
 				case SIM_KEY_QUIT:
@@ -190,7 +191,6 @@ void sim_quit() {
 	board_poweroff();
 	m68k_end_timeslice();
 	shouldexit = true;
-
 }
 
 void sim_reset() {

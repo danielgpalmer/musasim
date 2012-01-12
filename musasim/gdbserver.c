@@ -69,10 +69,10 @@ static char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, 
 		int a3, int a4, int a5, int fp, int sp, int ps, int pc);
 
 typedef enum State {
-	LISTENING, WAITING, RUNNING, BREAKING, EXIT
+	INIT, LISTENING, WAITING, RUNNING, STEPPING, BREAKING, EXIT
 
 } State;
-static State state = LISTENING;
+static State state = INIT;
 static const char TAG[] = "gdbserver";
 
 static void mainloop() {
@@ -91,8 +91,14 @@ static void mainloop() {
 
 		switch (state) {
 
-			case LISTENING:
+			case INIT:
+				sim_init();
+				registersighandler();
+				sim_reset();
+				state = LISTENING;
+				break;
 
+			case LISTENING:
 				if ((socketconnection = accept(socketlistening, NULL, NULL)) > 0) {
 					log_println(LEVEL_INFO, TAG, "Got connection from GDB");
 
@@ -107,6 +113,7 @@ static void mainloop() {
 				}
 				else {
 					printf("YAR!\n");
+					state = EXIT;
 				}
 				break;
 
@@ -115,9 +122,11 @@ static void mainloop() {
 				break;
 
 			case RUNNING:
-				printf("--tick --\n");
 				sim_tick();
-
+				break;
+			case STEPPING:
+				sim_tick();
+				state = BREAKING;
 				break;
 
 			case BREAKING:
@@ -142,18 +151,12 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	sim_init();
-	registersighandler();
-	sim_reset();
-
 	mainloop();
 
 	gdbserver_cleanup();
 	return 0;
 
 }
-
-static bool step = false;
 
 static void gdbserver_readcommand(int s) {
 
@@ -195,9 +198,7 @@ static void gdbserver_readcommand(int s) {
 				break;
 			case 's':
 				printf("GDB wants execution to step\n");
-				step = true;
-				sim_tick(); // FIXME check if this actually works
-
+				newstate = STEPPING;
 				break;
 			case '?':
 				printf("GDB wants to know why we halted\n");
@@ -293,7 +294,7 @@ static bool gdbserver_sendpacket(int s, char* data) {
 
 		triesleft--;
 		if (triesleft == 0) {
-			printf("Sent packet %d times, giving up!\n", MAXSENDTRIES);
+			log_println(LEVEL_WARNING, TAG, "Sent packet [%s] %d times, giving up!", &outputbuffer, MAXSENDTRIES);
 			return false;
 		}
 	}
@@ -315,7 +316,7 @@ static bool gdbserver_readpacket(int s, char *buffer) {
 
 		if (res < 0) {
 			log_println(LEVEL_INFO, TAG, "timeout");
-			write(socketconnection, &GDBNAK, 1);
+			//write(socketconnection, &GDBNAK, 1);
 			break;
 		}
 
@@ -407,11 +408,11 @@ static int gdbserver_calcchecksum(char *data) {
 }
 
 static void gdbserver_cleanup() {
-	printf("Cleaning up\n");
+	log_println(LEVEL_INFO, TAG, "Cleaning up");
 	sim_quit();
-	shutdown(socketconnection, SHUT_RDWR);
-	close(socketlistening);
-	close(socketconnection);
+	//shutdown(socketconnection, SHUT_RDWR);
+	//close(socketlistening);
+	//close(socketconnection);
 	g_slist_free(breakpoints);
 }
 
@@ -589,17 +590,13 @@ static char* readmem(char* commandbuffer) {
 
 void gdbserver_check_breakpoints() {
 
-	if (step) {
-		m68k_end_timeslice();
-		step = false;
-		gdbserver_sendpacket(socketconnection, WEBROKE);
-	}
-
 	uint32_t address = m68k_get_reg(NULL, M68K_REG_PC);
-
-#ifdef DEBUG
 	printf("gdbserver_check_breakpoints(0x%x)\n", address);
-#endif
+
+	if (state == STEPPING) {
+		printf("step\n");
+		m68k_end_timeslice();
+	}
 
 	GSList* iterator;
 	for (iterator = breakpoints; iterator; iterator = iterator->next) {
@@ -627,12 +624,14 @@ void gdbserver_setport(int port) {
 
 	if (bind(socketlistening, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
 		log_println(LEVEL_WARNING, TAG, "bind() failed");
-		//return 1;
+		state = EXIT;
+		return;
 	}
 
 	if (listen(socketlistening, 0) < 0) {
 		log_println(LEVEL_WARNING, TAG, "listen() failed");
-		//return 1;
+		state = EXIT;
+		return;
 	}
 
 	log_println(LEVEL_INFO, TAG, "Listening for GDB connection on %d", port);
