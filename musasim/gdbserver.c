@@ -24,12 +24,6 @@
 
 #include "gdbserver.h"
 
-// the overall state of the program
-typedef enum State {
-	LISTENING, WAITING, RUNNING, BREAKING, EXIT
-
-} State;
-
 // the state of the packet reader
 typedef enum ReadState {
 	WAITINGFORSTART, READINGPACKET, CHECKSUMDIGITONE, CHECKSUMDIGITTWO, DONE
@@ -50,7 +44,6 @@ static void termination_handler(int signum);
 static void registersighandler();
 
 // tcp/ip connection related stuff
-static int port;
 static int socketlistening;
 static int socketconnection;
 
@@ -75,54 +68,30 @@ static int gdbserver_calcchecksum(char *data);
 static char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7, int a0, int a1, int a2,
 		int a3, int a4, int a5, int fp, int sp, int ps, int pc);
 
-static State state = LISTENING;
+typedef enum State {
+	LISTENING, WAITING, RUNNING, BREAKING, EXIT
 
+} State;
+static State state = LISTENING;
 static const char TAG[] = "gdbserver";
 
-int main(int argc, char* argv[]) {
+static void mainloop() {
 
-	log_println(LEVEL_INFO, TAG, "musashi m68k emulator\tKarl Stenerud with patches from MAME up to 0105");
-	log_println(LEVEL_INFO, TAG, "gdbserver for musashi\tDaniel Palmer (daniel@0x0f.com)");
+	// the overall state of the program
 
-	struct sockaddr_in servaddr;
-
-	if (!args_parse(argc, argv)) {
-		return 0;
-	}
-
-	if ((socketlistening = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		log_println(LEVEL_WARNING, TAG, "Failed to create socket");
-		return 1;
-	}
-
-	memset(&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	servaddr.sin_port = htons(port);
-
-	if (bind(socketlistening, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
-		log_println(LEVEL_WARNING, TAG, "bind() failed");
-		return 1;
-	}
-
-	if (listen(socketlistening, 0) < 0) {
-		log_println(LEVEL_WARNING, TAG, "listen() failed");
-		return 1;
-	}
-
-	sim_init();
-	registersighandler();
-	sim_reset();
 	struct timeval tout_val;
 	tout_val.tv_sec = 2;
 	tout_val.tv_usec = 0;
 
 	while (state != EXIT) {
 
+		if (sim_has_quit()) {
+			state = EXIT;
+		}
+
 		switch (state) {
 
 			case LISTENING:
-				log_println(LEVEL_INFO, TAG, "Listening for GDB connection on %d", port);
 
 				if ((socketconnection = accept(socketlistening, NULL, NULL)) > 0) {
 					log_println(LEVEL_INFO, TAG, "Got connection from GDB");
@@ -148,9 +117,7 @@ int main(int argc, char* argv[]) {
 			case RUNNING:
 				printf("--tick --\n");
 				sim_tick();
-				if (sim_has_quit()) {
-					state = EXIT;
-				}
+
 				break;
 
 			case BREAKING:
@@ -161,7 +128,25 @@ int main(int argc, char* argv[]) {
 			default:
 				break;
 		}
-	};
+
+	}
+
+}
+
+int main(int argc, char* argv[]) {
+
+	log_println(LEVEL_INFO, TAG, "musashi m68k emulator\tKarl Stenerud with patches from MAME up to 0105");
+	log_println(LEVEL_INFO, TAG, "gdbserver for musashi\tDaniel Palmer (daniel@0x0f.com)");
+
+	if (!args_parse(argc, argv)) {
+		return 0;
+	}
+
+	sim_init();
+	registersighandler();
+	sim_reset();
+
+	mainloop();
 
 	gdbserver_cleanup();
 	return 0;
@@ -628,7 +613,28 @@ void gdbserver_check_breakpoints() {
 	}
 }
 
-void gdbserver_setport(int p) {
-	port = p;
+void gdbserver_setport(int port) {
+	struct sockaddr_in servaddr;
+	if ((socketlistening = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		log_println(LEVEL_WARNING, TAG, "Failed to create socket");
+		//return 1;
+	}
+
+	memset(&servaddr, 0, sizeof(servaddr));
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	servaddr.sin_port = htons(port);
+
+	if (bind(socketlistening, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
+		log_println(LEVEL_WARNING, TAG, "bind() failed");
+		//return 1;
+	}
+
+	if (listen(socketlistening, 0) < 0) {
+		log_println(LEVEL_WARNING, TAG, "listen() failed");
+		//return 1;
+	}
+
+	log_println(LEVEL_INFO, TAG, "Listening for GDB connection on %d", port);
 }
 
