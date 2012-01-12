@@ -24,11 +24,6 @@
 
 #include "gdbserver.h"
 
-// the state of the packet reader
-typedef enum ReadState {
-	WAITINGFORSTART, READINGPACKET, CHECKSUMDIGITONE, CHECKSUMDIGITTWO, DONE
-} ReadState;
-
 // some constants for the GDB proto
 static char OK[] = "OK";
 static char GDBACK = '+';
@@ -79,9 +74,9 @@ static void mainloop() {
 
 	// the overall state of the program
 
-	struct timeval tout_val;
-	tout_val.tv_sec = 2;
-	tout_val.tv_usec = 0;
+	//struct timeval tout_val;
+	//tout_val.tv_sec = 2;
+	//tout_val.tv_usec = 0;
 
 	while (state != EXIT) {
 
@@ -106,9 +101,9 @@ static void mainloop() {
 					int flags = fcntl(socketconnection, F_GETFL, 0);
 					fcntl(socketconnection, F_SETFL, flags | FASYNC);
 
-					if (setsockopt(socketconnection, SOL_SOCKET, SO_RCVTIMEO, &tout_val, sizeof(tout_val)) != 0) {
-						log_println(LEVEL_WARNING, TAG, "Failed to set socket options");
-					}
+					//if (setsockopt(socketconnection, SOL_SOCKET, SO_RCVTIMEO, &tout_val, sizeof(tout_val)) != 0) {
+					//	log_println(LEVEL_WARNING, TAG, "Failed to set socket options");
+					//}
 					state = WAITING;
 				}
 				else {
@@ -303,6 +298,11 @@ static bool gdbserver_sendpacket(int s, char* data) {
 
 static bool gdbserver_readpacket(int s, char *buffer) {
 
+	// the state of the packet reader
+	typedef enum ReadState {
+		WAITINGFORSTART, READINGPACKET, CHECKSUMDIGITONE, CHECKSUMDIGITTWO, DONE
+	} ReadState;
+
 	ReadState readstate = WAITINGFORSTART;
 	static char readbuffer[MAXPACKETLENGTH];
 	//static char checksum[3];
@@ -315,8 +315,8 @@ static bool gdbserver_readpacket(int s, char *buffer) {
 		int res = read(s, readbuffer + bytessofar, MAXPACKETLENGTH);
 
 		if (res < 0) {
-			log_println(LEVEL_INFO, TAG, "timeout");
-			//write(socketconnection, &GDBNAK, 1);
+			log_println(LEVEL_INFO, TAG, "failed to read from socket %d", res);
+			write(socketconnection, &GDBNAK, 1);
 			break;
 		}
 
