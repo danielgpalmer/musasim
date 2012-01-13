@@ -12,8 +12,8 @@ vectors:
 	dc.l	0x200000
 	dc.l	start		/* Start of program Code */
 	dc.l	INT		/* Bus error */
-	dc.l	INT		/* Address error */
-	dc.l	INT		/* Illegal instruction */
+	dc.l	INT 	/* Address error */
+	dc.l	ILL		/* Illegal instruction */
 	dc.l	INT		/* Division by zero */
 	dc.l	INT		/* CHK exception */
 	dc.l	INT		/* TRAPV exception */
@@ -87,7 +87,7 @@ start:
 
 	#copy data
 
-	lea.l	_text_end,%a0	/* data is initiall located after the text */
+	lea.l	_text_end,%a0	/* data is located after the text */
 	lea.l	_data_start,%a1 /* the data's real start address */
 	move.l	#_data_end,%d0  /* the data's real end address */
 1:	cmp.l	%a1,%d0		/* copy data from where ever a0 points until a1 equals the end of the data */
@@ -99,5 +99,11 @@ start:
 
 	jmp	main
 
+
+ILL:
+	stop	#0x0003
+
 INT:
-	stop	#0
+	stop	#0x0001
+
+

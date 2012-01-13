@@ -38,7 +38,23 @@ void cpu_pulse_reset(void) {
 }
 
 void cpu_pulse_stop(void) {
-	log_println(LEVEL_INFO, TAG, "CPU stopped");
+
+	uint16_t sr = (uint16_t) m68k_get_reg(NULL, M68K_REG_SR);
+	uint32_t ssp = m68k_get_reg(NULL, M68K_REG_ISP);
+
+	log_println(LEVEL_INFO, TAG, "CPU stopped SR:[0x%04x] SSP:[0x%08x]", sr, ssp);
+
+	switch (sr) {
+		case 0x0003: {
+			uint32_t returnadd = board_read_long(ssp + 2);
+			log_println(LEVEL_INFO, TAG, "Stop came from Illegal instruction at [0x%08x]", returnadd);
+			char buff[1024];
+			m68k_disassemble(buff, returnadd, M68K_CPU_TYPE_68000);
+			log_println(LEVEL_INFO, TAG, "dis -> %s", buff);
+		}
+			break;
+	}
+
 	shouldexit = true;
 }
 

@@ -3,11 +3,11 @@ include ../common.mk
 all: musashi.o musashigdb.o
 
 #single object files
-musashi.o: m68kcpu.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o
-	ld -r m68kcpu.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o -o musashi.o
+musashi.o: m68kcpu.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o m68kdasm.o
+	ld -r m68kcpu.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o -o musashi.o m68kdasm.o
 
-musashigdb.o: m68kcpugdb.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o
-	ld -r m68kcpugdb.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o -o musashigdb.o
+musashigdb.o: m68kcpugdb.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o m68kdasm.o
+	ld -r m68kcpugdb.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o -o musashigdb.o m68kdasm.o
 
 m68kcpu.o: ../sim.h m68kops.h m68k.h m68kconf.h
 	$(CC) $(CFLAGS) m68kcpu.c -o m68kcpu.o
@@ -32,6 +32,9 @@ m68kops.h: m68kmake
 
 m68kmake: m68kmake.c m68k_in.c
 	$(CC) $(WARNINGS) m68kmake.c -o m68kmake
+
+m68kdasm.o: m68kdasm.c
+	$(CC) $(CFLAGS) m68kdasm.c -o m68kdasm.o
 
 # these are made by the called to m68kmake for m68kops.h
 m68kops.c: m68kops.h

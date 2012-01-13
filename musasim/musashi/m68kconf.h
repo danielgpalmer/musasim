@@ -50,10 +50,6 @@
 #define M68K_COMPILE_FOR_MAME      OPT_OFF
 #endif /* M68K_COMPILE_FOR_MAME */
 
-#if M68K_COMPILE_FOR_MAME == OPT_ON
-#include "m68kmame.h"
-#else
-
 /* ======================================================================== */
 /* ============================= CONFIGURATION ============================ */
 /* ======================================================================== */
@@ -185,11 +181,11 @@
 #define DECL_SPEC
 #endif
 
-#endif /* M68K_COMPILE_FOR_MAME */
-
 #define m68k_read_memory_8(A) board_read_byte(A)
 #define m68k_read_memory_16(A) board_read_word(A)
 #define m68k_read_memory_32(A) board_read_long(A)
+
+
 
 #define m68k_write_memory_8(A, V) board_write_byte(A, V)
 #define m68k_write_memory_16(A, V) board_write_word(A, V)

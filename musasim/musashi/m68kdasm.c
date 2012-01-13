@@ -30,6 +30,10 @@
 #include <string.h>
 #include "m68k.h"
 
+#define m68k_read_disassembler_8(A) board_read_byte(A)
+#define m68k_read_disassembler_16(A) board_read_word(A)
+#define m68k_read_disassembler_32(A) board_read_long(A)
+
 #ifndef DECL_SPEC
 #define DECL_SPEC
 #endif
