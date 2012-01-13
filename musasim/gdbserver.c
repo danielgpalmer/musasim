@@ -154,8 +154,6 @@ int main(int argc, char* argv[]) {
 
 static void gdbserver_readcommand(int s) {
 
-	printf("readcommand\n");
-
 	static char inputbuffer[MAXPACKETLENGTH];
 	memset(inputbuffer, 0, MAXPACKETLENGTH);
 
@@ -182,7 +180,7 @@ static void gdbserver_readcommand(int s) {
 				printf("GDB wants to write a single register\n");
 				break;
 			case 'm':
-				printf("GDB wants to read from memory\n");
+				log_println(LEVEL_INSANE, TAG, "GDB wants to read from memory\n");
 				data = readmem(inputbuffer);
 				break;
 			case 'M':
@@ -592,24 +590,27 @@ static char* readmem(char* commandbuffer) {
 	return getmemorystring(ad, sz);
 }
 
+char crap[1024];
+
 void gdbserver_check_breakpoints() {
 
 	uint32_t address = m68k_get_reg(NULL, M68K_REG_PC);
-	printf("gdbserver_check_breakpoints(0x%x)\n", address);
 
 	if (state == STEPPING) {
-		printf("step\n");
 		m68k_end_timeslice();
+		m68k_disassemble(crap, address, M68K_CPU_TYPE_68000);
+		log_println(LEVEL_INFO, TAG, "Stepped to 0x%08x; %s", address, crap);
 		state = BREAKING;
 	}
 
 	GSList* iterator;
 	for (iterator = breakpoints; iterator; iterator = iterator->next) {
 		if (GPOINTER_TO_UINT(iterator->data) == address) {
-			printf("*** breaking at 0x%x ***\n", address);
+			m68k_end_timeslice();
+			m68k_disassemble(crap, address, M68K_CPU_TYPE_68000);
+			log_println(LEVEL_INFO, TAG, "Broke at 0x%08x; %s", address, crap);
 			state = WAITING;
 			gdbserver_sendpacket(socketconnection, WEBROKE);
-			m68k_end_timeslice();
 			break;
 		}
 	}
