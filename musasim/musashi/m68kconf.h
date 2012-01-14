@@ -93,8 +93,11 @@
  * instruction.
  */
 #define M68K_EMULATE_STOP          OPT_SPECIFY_HANDLER
+#ifdef GDBSERVER
+	#define M68K_STOP_CALLBACK()       gdb_hitstop()
+#else
 #define M68K_STOP_CALLBACK()       cpu_pulse_stop()
-
+#endif
 
 /* If on, CPU will call the set fc callback on every memory access to
  * differentiate between user/supervisor, program/data access like a real

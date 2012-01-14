@@ -10,5 +10,6 @@
 
 void gdbserver_check_breakpoints();
 void gdbserver_setport(int p);
+void gdb_hitstop();
 
 #endif /* GDBSERVER_H_ */

@@ -24,6 +24,9 @@
 
 #include "gdbserver.h"
 
+#define GDB_RDP_BACKSTEP bs
+#define GDB_RDP_BACKCONTINUE bc
+
 // some constants for the GDB proto
 static char OK[] = "OK";
 static char GDBACK = '+';
@@ -50,6 +53,7 @@ static char* gdbserver_query(char* commandbuffer);
 
 // breakpoint stuff
 static GSList* breakpoints;
+static GSList* trace;
 static void gbserver_set_breakpoint(uint32_t address);
 static void gdbserver_clear_breakpoint(uint32_t address);
 
@@ -244,6 +248,14 @@ static void gdbserver_readcommand(int s) {
 			}
 				break;
 
+				/*
+				 case GDB_RDP_BACKCONTINUE:
+				 break;
+
+				 case GDB_RDP_BACKSTEP:
+				 break;
+				 */
+
 			default:
 
 				fprintf(stderr, "Command %c is unknown\n", command);
@@ -409,13 +421,25 @@ static int gdbserver_calcchecksum(char *data) {
 	return checksum;
 }
 
+
 static void gdbserver_cleanup() {
-	log_println(LEVEL_INFO, TAG, "Cleaning up");
-	sim_quit();
 	//shutdown(socketconnection, SHUT_RDWR);
 	//close(socketlistening);
 	//close(socketconnection);
+
+	char xxx[1024];
+	GSList* iterator;
+	for (iterator = trace; iterator; iterator = iterator->next) {
+		uint32_t pc = GPOINTER_TO_UINT(iterator->data);
+		m68k_disassemble(xxx, pc, M68K_CPU_TYPE_68000);
+		log_println(LEVEL_INFO, TAG, "0x%08x; %s", pc, xxx);
+	}
+
+	log_println(LEVEL_INFO, TAG, "Cleaning up");
+	sim_quit();
+
 	g_slist_free(breakpoints);
+	g_slist_free(trace);
 }
 
 void termination_handler(int signum) {
@@ -427,7 +451,7 @@ void termination_handler(int signum) {
 }
 
 void io_handler(int signum) {
-	//printf("IO\n");
+//printf("IO\n");
 	if (state == RUNNING) {
 		printf("IO has happened on the the socket, breaking\n");
 		state = BREAKING;
@@ -436,7 +460,7 @@ void io_handler(int signum) {
 
 void registersighandler() {
 
-	// stolen from; http://www.gnu.org/s/hello/manual/libc/Sigaction-Function-Example.html
+// stolen from; http://www.gnu.org/s/hello/manual/libc/Sigaction-Function-Example.html
 
 	struct sigaction new_action, old_action, io_action;
 
@@ -497,20 +521,11 @@ static char* getmemorystring(unsigned int address, int len) {
 }
 
 void gbserver_set_breakpoint(uint32_t address) {
-
-#ifdef DEBUG
-	printf("Setting break at 0x%x\n", address);
-#endif
 	breakpoints = g_slist_append(breakpoints, GUINT_TO_POINTER(address));
 }
 
 void gdbserver_clear_breakpoint(uint32_t address) {
-
-#ifdef DEBUG
-	printf("Clearing break at 0x%x\n", address);
-#endif
 	breakpoints = g_slist_remove(breakpoints, GUINT_TO_POINTER(address));
-
 }
 
 char* gbdserver_munchhexstring(char* buffer) {
@@ -585,7 +600,7 @@ static char* readmem(char* commandbuffer) {
 
 	unsigned int ad = strtoul(address, NULL, 16);
 	int sz = strtol(size, NULL, 16);
-	//printf("address %s, %d , size %s, %d", address, ad, size, sz);
+//printf("address %s, %d , size %s, %d", address, ad, size, sz);
 
 	return getmemorystring(ad, sz);
 }
@@ -595,6 +610,7 @@ char crap[1024];
 void gdbserver_check_breakpoints() {
 
 	uint32_t address = m68k_get_reg(NULL, M68K_REG_PC);
+	trace = g_slist_append(trace, GUINT_TO_POINTER(address));
 
 	if (state == STEPPING) {
 		m68k_end_timeslice();
@@ -641,5 +657,10 @@ void gdbserver_setport(int port) {
 	}
 
 	log_println(LEVEL_INFO, TAG, "Listening for GDB connection on %d", port);
+}
+
+void gdb_hitstop() {
+	log_println(LEVEL_INFO, TAG, "hit stop");
+	cpu_pulse_stop();
 }
 
