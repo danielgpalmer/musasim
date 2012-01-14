@@ -88,7 +88,7 @@ int _fstat(int file, struct stat * st) {
 }
 
 int _fstat_r(int file, struct stat * st) {
-	return _fstat_r(file, st);
+	return _fstat(file, st);
 }
 
 /* Register name faking - works in collusion with the linker.  */

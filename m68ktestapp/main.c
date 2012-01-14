@@ -205,8 +205,8 @@ int main(void) {
 	*sound_channel_0_volume = 0xFF22;
 	//*sound_channel_0_config = 0xF9FF;
 
-		printf("Whassup homes!\n");
 	while (1) {
+		printf("Whassup homes!\n");
 
 		//gputs("Hello World!");
 
