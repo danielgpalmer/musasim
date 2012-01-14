@@ -427,13 +427,13 @@ static void gdbserver_cleanup() {
 	//close(socketlistening);
 	//close(socketconnection);
 
-	char xxx[1024];
-	GSList* iterator;
-	for (iterator = trace; iterator; iterator = iterator->next) {
-		uint32_t pc = GPOINTER_TO_UINT(iterator->data);
-		m68k_disassemble(xxx, pc, M68K_CPU_TYPE_68000);
-		log_println(LEVEL_INFO, TAG, "0x%08x; %s", pc, xxx);
-	}
+	//char xxx[1024];
+	//GSList* iterator;
+	//for (iterator = trace; iterator; iterator = iterator->next) {
+	//	uint32_t pc = GPOINTER_TO_UINT(iterator->data);
+	//	m68k_disassemble(xxx, pc, M68K_CPU_TYPE_68000);
+	//	log_println(LEVEL_INFO, TAG, "0x%08x; %s", pc, xxx);
+	//}
 
 	log_println(LEVEL_INFO, TAG, "Cleaning up");
 	sim_quit();

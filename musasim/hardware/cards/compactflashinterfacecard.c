@@ -135,19 +135,44 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 }
 
 static uint8_t cfintf_read_byte(uint32_t address) {
-	return *((uint8_t*) cfintf_decodereg(address, false, false));
+
+	uint8_t* reg = ((uint8_t*) cfintf_decodereg(address, false, false));
+
+	if (reg == NULL) {
+		return 0;
+	}
+
+	return *reg;
 }
 
 static uint16_t cfintf_read_word(uint32_t address) {
-	return *((uint16_t*) cfintf_decodereg(address, false, true));
+
+	uint16_t* reg = ((uint16_t*) cfintf_decodereg(address, false, true));
+
+	if (reg == NULL) {
+		return 0;
+	}
+
+	return *reg;
 }
 
 static void cfintf_write_byte(uint32_t address, uint8_t value) {
-	*((uint8_t*) cfintf_decodereg(address, true, false)) = value;
+
+	uint8_t* reg = cfintf_decodereg(address, true, false);
+	if (reg != NULL) {
+		*reg = value;
+	}
+
 }
 
 static void cfintf_write_word(uint32_t address, uint16_t value) {
-	*((uint16_t*) cfintf_decodereg(address, true, true)) = value;
+
+	uint16_t* reg = (uint16_t*) cfintf_decodereg(address, true, true);
+
+	if (reg != NULL) {
+		*reg = value;
+	}
+
 }
 
 static void cfint_dispose() {
