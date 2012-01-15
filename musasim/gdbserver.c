@@ -62,6 +62,7 @@ static GSList* trace;
 static void gbserver_set_breakpoint(uint32_t address);
 static void gdbserver_clear_breakpoint(uint32_t address);
 static void gdbserver_set_watchpoint(uint32_t address, bool write);
+static void gdbserver_clear_watchpoint(uint32_t address, bool write);
 
 // stuff that pokes the sim
 static char* readmem(char* commandbuffer);
@@ -163,21 +164,19 @@ int main(int argc, char* argv[]) {
 }
 
 static bool gdbserver_setbreakpoint(char* packet) {
+	const char tokens[] = "Z,#";
+	unsigned int type = strtoul(strtok(packet, tokens), NULL, 16);
+	uint32_t breakaddress = strtoul(strtok(NULL, tokens), NULL, 16);
+	strtok(NULL, tokens);
 
-	unsigned int type = strtoul(strtok(packet, "Z,#"), NULL, 16);
-	uint32_t breakaddress = strtoul(strtok(NULL, "Z,#"), NULL, 16);
-	strtok(NULL, "Z,#");
-
-	printf("type is %d\n", type);
+	printf("GDB is setting a type %d breakpoint at 0x%08x\n", type, breakaddress);
 
 	switch (type) {
 		case GDB_BREAKPOINTTYPE_SOFT:
-			printf("GDB is setting a breakpoint at 0x%08x\n", breakaddress);
 			gbserver_set_breakpoint(breakaddress);
 			break;
 
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE:
-			printf("GDB is setting a write watch point\n");
 			gdbserver_set_watchpoint(breakaddress, true);
 			break;
 		default:
@@ -189,20 +188,19 @@ static bool gdbserver_setbreakpoint(char* packet) {
 }
 
 static bool gdbserver_unsetbreakpoint(char* packet) {
-	unsigned int type = strtoul(strtok(packet, "Z,#"), NULL, 16);
-	uint32_t breakaddress = strtoul(strtok(NULL, "z,#"), NULL, 16);
-	strtok(NULL, "z,#");
+	const char tokens[] = "z,#";
+	unsigned int type = strtoul(strtok(packet, tokens), NULL, 16);
+	uint32_t breakaddress = strtoul(strtok(NULL, tokens), NULL, 16);
+	strtok(NULL, tokens); // length
 
-	printf("type is %d\n", type);
+	printf("GDB is unsetting a type %d breakpoint at 0x%08x\n", type, breakaddress);
 
 	switch (type) {
 		case GDB_BREAKPOINTTYPE_SOFT:
-			printf("GDB is unsetting a breakpoint at 0x%08x\n", breakaddress);
 			gdbserver_clear_breakpoint(breakaddress);
 			break;
-
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE:
-			printf("GDB is unsetting a write watch point");
+			gdbserver_clear_watchpoint(breakaddress, true);
 			break;
 		default:
 			printf("unsupported breakpoint type\n");
@@ -576,6 +574,12 @@ void gdbserver_clear_breakpoint(uint32_t address) {
 void gdbserver_set_watchpoint(uint32_t address, bool write) {
 	if (write) {
 		watchpoints_write = g_slist_append(watchpoints_write, GUINT_TO_POINTER(address));
+	}
+}
+
+void gdbserver_clear_watchpoint(uint32_t address, bool write) {
+	if (write) {
+		watchpoints_write = g_slist_remove(watchpoints_write, GUINT_TO_POINTER(address));
 	}
 }
 
