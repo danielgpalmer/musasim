@@ -171,9 +171,9 @@ static bool gdbserver_setbreakpoint(char* packet) {
 	const char tokens[] = "Z,#";
 	unsigned int type = strtoul(strtok(packet, tokens), NULL, 16);
 	uint32_t breakaddress = strtoul(strtok(NULL, tokens), NULL, 16);
-	strtok(NULL, tokens);
+	unsigned int length = strtoul(strtok(NULL, tokens), NULL, 16); // length
 
-	printf("GDB is setting a type %d breakpoint at 0x%08x\n", type, breakaddress);
+	printf("GDB is setting a type %d breakpoint at 0x%08x with length %d\n", type, breakaddress, length);
 
 	switch (type) {
 		case GDB_BREAKPOINTTYPE_SOFT:
@@ -201,9 +201,9 @@ static bool gdbserver_unsetbreakpoint(char* packet) {
 	const char tokens[] = "z,#";
 	unsigned int type = strtoul(strtok(packet, tokens), NULL, 16);
 	uint32_t breakaddress = strtoul(strtok(NULL, tokens), NULL, 16);
-	strtok(NULL, tokens); // length
+	unsigned int length = strtoul(strtok(NULL, tokens), NULL, 16); // length
 
-	printf("GDB is unsetting a type %d breakpoint at 0x%08x\n", type, breakaddress);
+	printf("GDB is unsetting a type %d breakpoint at 0x%08x with length %d\n", type, breakaddress, length);
 
 	switch (type) {
 		case GDB_BREAKPOINTTYPE_SOFT:
@@ -617,6 +617,10 @@ void gdbserver_clear_watchpoint(uint32_t address, bool read, bool write) {
 	}
 }
 
+void gdbserver_check_watchpoints(uint32_t address, bool write, int size){
+
+}
+
 char* gbdserver_munchhexstring(char* buffer) {
 
 	static char string[256];
@@ -754,25 +758,31 @@ void gdb_hitstop() {
 }
 
 uint8_t gdbserver_m68k_read_byte(uint32_t address) {
+	gdbserver_check_watchpoints(address, false, 1);
 	return board_read_byte(address);
 }
 
 uint16_t gdbserver_m68k_read_word(uint32_t address) {
+	gdbserver_check_watchpoints(address, false, 2);
 	return board_read_word(address);
 }
 
 uint32_t gdbserver_m68k_read_long(uint32_t address) {
+	gdbserver_check_watchpoints(address, false, 4);
 	return board_read_long(address);
 }
 
 void gdbserver_m68k_write_byte(uint32_t address, uint8_t value) {
+	gdbserver_check_watchpoints(address, true, 1);
 	return board_write_byte(address, value);
 }
 
 void gdbserver_m68k_write_word(uint32_t address, uint16_t value) {
+	gdbserver_check_watchpoints(address, true, 2);
 	return board_write_word(address, value);
 }
 
 void gdbserver_m68k_write_long(uint32_t address, uint32_t value) {
+	gdbserver_check_watchpoints(address, true, 4);
 	return board_write_long(address, value);
 }
