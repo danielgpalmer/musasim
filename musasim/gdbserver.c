@@ -617,7 +617,46 @@ void gdbserver_clear_watchpoint(uint32_t address, bool read, bool write) {
 	}
 }
 
-void gdbserver_check_watchpoints(uint32_t address, bool write, int size){
+char crap[1024];
+
+void gdbserver_check_watchpoints(uint32_t address, bool write, int size) {
+
+	printf("checking watchpoints for 0x%08x\n", address);
+
+	GSList* iterator;
+	for (iterator = watchpoints_access; iterator; iterator = iterator->next) {
+		if (GPOINTER_TO_UINT(iterator->data) == address) {
+			m68k_end_timeslice();
+			log_println(LEVEL_INFO, TAG, "Access at 0x%08x;", address);
+			state = WAITING;
+			gdbserver_sendpacket(socketconnection, WEBROKE);
+			break;
+		}
+	}
+
+	if (write) {
+		for (iterator = watchpoints_write; iterator; iterator = iterator->next) {
+			if (GPOINTER_TO_UINT(iterator->data) == address) {
+				m68k_end_timeslice();
+				log_println(LEVEL_INFO, TAG, "Write at 0x%08x; %s", address);
+				state = WAITING;
+				gdbserver_sendpacket(socketconnection, WEBROKE);
+				break;
+			}
+		}
+	}
+
+	else {
+		for (iterator = watchpoints_read; iterator; iterator = iterator->next) {
+			if (GPOINTER_TO_UINT(iterator->data) == address) {
+				m68k_end_timeslice();
+				log_println(LEVEL_INFO, TAG, "Read at 0x%08x; %s", address);
+				state = WAITING;
+				gdbserver_sendpacket(socketconnection, WEBROKE);
+				break;
+			}
+		}
+	}
 
 }
 
@@ -697,8 +736,6 @@ static char* readmem(char* commandbuffer) {
 
 	return getmemorystring(ad, sz);
 }
-
-char crap[1024];
 
 void gdbserver_check_breakpoints() {
 
