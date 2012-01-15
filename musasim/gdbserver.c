@@ -753,3 +753,26 @@ void gdb_hitstop() {
 	cpu_pulse_stop();
 }
 
+uint8_t gdbserver_m68k_read_byte(uint32_t address) {
+	return board_read_byte(address);
+}
+
+uint16_t gdbserver_m68k_read_word(uint32_t address) {
+	return board_read_word(address);
+}
+
+uint32_t gdbserver_m68k_read_long(uint32_t address) {
+	return board_read_long(address);
+}
+
+void gdbserver_m68k_write_byte(uint32_t address, uint8_t value) {
+	return board_write_byte(address, value);
+}
+
+void gdbserver_m68k_write_word(uint32_t address, uint16_t value) {
+	return board_write_word(address, value);
+}
+
+void gdbserver_m68k_write_long(uint32_t address, uint32_t value) {
+	return board_write_long(address, value);
+}

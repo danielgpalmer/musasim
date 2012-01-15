@@ -94,7 +94,7 @@
  */
 #define M68K_EMULATE_STOP          OPT_SPECIFY_HANDLER
 #ifdef GDBSERVER
-	#define M68K_STOP_CALLBACK()       gdb_hitstop()
+#define M68K_STOP_CALLBACK()       gdb_hitstop()
 #else
 #define M68K_STOP_CALLBACK()       cpu_pulse_stop()
 #endif
@@ -164,9 +164,9 @@
  */
 
 #ifdef __x86_64__
-	#define M68K_USE_64_BIT  OPT_ON
+#define M68K_USE_64_BIT  OPT_ON
 #else
-	#define M68K_USE_64_BIT  OPT_OFF
+#define M68K_USE_64_BIT  OPT_OFF
 #endif
 /* Set to your compiler's static inline keyword to enable it, or
  * set it to blank to disable it.
@@ -184,15 +184,25 @@
 #define DECL_SPEC
 #endif
 
+#ifdef GDBSERVER
+
+#define m68k_read_memory_8(A) gdbserver_m68k_read_byte(A)
+#define m68k_read_memory_16(A) gdbserver_m68k_read_word(A)
+#define m68k_read_memory_32(A) gdbserver_m68k_read_long(A)
+#define m68k_write_memory_8(A, V) gdbserver_m68k_write_byte(A, V)
+#define m68k_write_memory_16(A, V) gdbserver_m68k_write_word(A, V)
+#define m68k_write_memory_32(A, V) gdbserver_m68k_write_long(A, V)
+
+#else
+
 #define m68k_read_memory_8(A) board_read_byte(A)
 #define m68k_read_memory_16(A) board_read_word(A)
 #define m68k_read_memory_32(A) board_read_long(A)
-
-
-
 #define m68k_write_memory_8(A, V) board_write_byte(A, V)
 #define m68k_write_memory_16(A, V) board_write_word(A, V)
 #define m68k_write_memory_32(A, V) board_write_long(A, V)
+
+#endif
 
 /* ======================================================================== */
 /* ============================== END OF FILE ============================= */
