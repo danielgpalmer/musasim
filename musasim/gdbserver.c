@@ -33,7 +33,7 @@ static char GDBACK = '+';
 static char GDBNAK = '-';
 #define GDBPACKETSTART '$'
 #define GDBDATAEND '#'
-static char WEBROKE[] = "S05";
+static char STOP_WEBROKE[] = "S05";
 
 #define GDB_BREAKPOINTTYPE_SOFT 0
 #define GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE 2
@@ -139,7 +139,7 @@ static void mainloop() {
 				break;
 
 			case BREAKING:
-				gdbserver_sendpacket(socketconnection, WEBROKE); // alert GDB to the fact that execution has stopped
+				gdbserver_sendpacket(socketconnection, STOP_WEBROKE); // alert GDB to the fact that execution has stopped
 				state = WAITING;
 				break;
 
@@ -273,7 +273,7 @@ static void gdbserver_readcommand(int s) {
 				break;
 			case '?':
 				printf("GDB wants to know why we halted\n");
-				data = WEBROKE;
+				data = STOP_WEBROKE;
 				break;
 			case 'r':
 				printf("GDB wants the processor to reset\n");
@@ -318,7 +318,7 @@ static void gdbserver_readcommand(int s) {
 
 			default:
 
-				fprintf(stderr, "Command %c is unknown\n", command);
+				fprintf(stderr, "Command %c is unknown, packet was %s\n", command, inputbuffer);
 				data = "";
 				break;
 		}
@@ -621,7 +621,7 @@ char crap[1024];
 
 void gdbserver_check_watchpoints(uint32_t address, bool write, int size) {
 
-	printf("checking watchpoints for 0x%08x\n", address);
+	static char stopreply[256];
 
 	GSList* iterator;
 	for (iterator = watchpoints_access; iterator; iterator = iterator->next) {
@@ -629,7 +629,8 @@ void gdbserver_check_watchpoints(uint32_t address, bool write, int size) {
 			m68k_end_timeslice();
 			log_println(LEVEL_INFO, TAG, "Access at 0x%08x;", address);
 			state = WAITING;
-			gdbserver_sendpacket(socketconnection, WEBROKE);
+			sprintf(stopreply, "T05awatch:%08x;", address);
+			gdbserver_sendpacket(socketconnection, stopreply);
 			break;
 		}
 	}
@@ -640,7 +641,8 @@ void gdbserver_check_watchpoints(uint32_t address, bool write, int size) {
 				m68k_end_timeslice();
 				log_println(LEVEL_INFO, TAG, "Write at 0x%08x; %s", address);
 				state = WAITING;
-				gdbserver_sendpacket(socketconnection, WEBROKE);
+				sprintf(stopreply, "T05watch:%08x;", address);
+				gdbserver_sendpacket(socketconnection, stopreply);
 				break;
 			}
 		}
@@ -652,7 +654,8 @@ void gdbserver_check_watchpoints(uint32_t address, bool write, int size) {
 				m68k_end_timeslice();
 				log_println(LEVEL_INFO, TAG, "Read at 0x%08x; %s", address);
 				state = WAITING;
-				gdbserver_sendpacket(socketconnection, WEBROKE);
+				sprintf(stopreply, "T05rwatch:%08x;", address);
+				gdbserver_sendpacket(socketconnection, stopreply);
 				break;
 			}
 		}
@@ -679,8 +682,7 @@ char* gbdserver_munchhexstring(char* buffer) {
 char* gdbserver_query(char* commandbuffer) {
 
 	char* ret = "";
-	int result = strncmp(commandbuffer, "qRcmd", 4);
-	if (result == 0) {
+	if (strncmp(commandbuffer, "qRcmd", 4) == 0) {
 
 		char* offset = strchr(commandbuffer, ',') + 1;
 		printf("GDB is sending a monitor command; %s\n", offset);
@@ -708,6 +710,10 @@ char* gdbserver_query(char* commandbuffer) {
 			ret = "OK";
 		}
 
+	}
+
+	else {
+		printf("Dunno what %s is\n", commandbuffer);
 	}
 
 	return ret;
@@ -756,7 +762,7 @@ void gdbserver_check_breakpoints() {
 			m68k_disassemble(crap, address, M68K_CPU_TYPE_68000);
 			log_println(LEVEL_INFO, TAG, "Broke at 0x%08x; %s", address, crap);
 			state = WAITING;
-			gdbserver_sendpacket(socketconnection, WEBROKE);
+			gdbserver_sendpacket(socketconnection, STOP_WEBROKE);
 			break;
 		}
 	}
