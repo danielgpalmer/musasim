@@ -19,6 +19,8 @@ static bool busrequestwaiting[NUM_SLOTS];
 
 #define NOCARD 0xFF
 
+#define GETPC m68k_get_reg(NULL, M68K_REG_PC)
+
 /**
  *
  */
@@ -30,7 +32,8 @@ static uint8_t board_decode_slot(uint32_t address) {
 	uint8_t slot = (address & SLOTADDRESSMASK) >> 21;
 
 	if (slots[slot] == NULL) {
-		log_println(LEVEL_DEBUG, TAG, "Address decoded to slot %d but there is no card in that slot", slot);
+		log_println(LEVEL_DEBUG, TAG, "Address decoded to slot %d but there is no card in that slot, PC[0x%08x]", slot,
+				GETPC);
 		return NOCARD;
 	}
 
@@ -210,7 +213,7 @@ unsigned int board_read_byte(unsigned int address) {
 			return (slots[slot]->read_byte)(address & SLOT_ADDRESS_MASK);
 		}
 		else {
-			log_println(LEVEL_INFO, TAG, "slot doesn't support byte read");
+			log_println(LEVEL_INFO, TAG, "slot %d doesn't support byte read", slot);
 		}
 	}
 	return 0;
@@ -229,7 +232,7 @@ unsigned int board_read_word(unsigned int address) {
 			return (slots[slot]->read_word)(address & SLOT_ADDRESS_MASK);
 		}
 		else {
-			log_println(LEVEL_INFO, TAG, "slot doesn't support word read");
+			log_println(LEVEL_INFO, TAG, "slot %d doesn't support word read", slot);
 		}
 	}
 	return 0;
@@ -243,7 +246,7 @@ unsigned int board_read_long(unsigned int address) {
 
 		}
 		else {
-			log_println(LEVEL_INFO, TAG, "slot doesn't support long read");
+			log_println(LEVEL_INFO, TAG, "slot %d doesn't support long read", slot);
 		}
 	}
 	return 0;
@@ -256,7 +259,7 @@ void board_write_byte(unsigned int address, unsigned int value) {
 			(slots[slot]->write_byte)(address & SLOT_ADDRESS_MASK, value);
 		}
 		else {
-			log_println(LEVEL_INFO, TAG, "slot doesn't support byte write");
+			log_println(LEVEL_INFO, TAG, "slot %d doesn't support byte write", slot);
 		}
 	}
 }
@@ -264,7 +267,7 @@ void board_write_byte(unsigned int address, unsigned int value) {
 void board_write_word(unsigned int address, unsigned int value) {
 
 	if (address % 2 != 0) {
-		log_println(LEVEL_DEBUG, TAG, "Word writes must be aligned, PC @ 0x%x", m68k_get_reg(NULL, M68K_REG_PC));
+		log_println(LEVEL_DEBUG, TAG, "Word writes must be aligned, PC[0x%08x]", GETPC);
 		return;
 	}
 
@@ -274,7 +277,7 @@ void board_write_word(unsigned int address, unsigned int value) {
 			(slots[slot]->write_word)(address & SLOT_ADDRESS_MASK, value);
 		}
 		else {
-			log_println(LEVEL_INFO, TAG, "slot doesn't support word write");
+			log_println(LEVEL_INFO, TAG, "slot %d doesn't support word write, PC[0x%08x]", slot, GETPC);
 		}
 	}
 }
@@ -286,7 +289,7 @@ void board_write_long(unsigned int address, unsigned int value) {
 			(slots[slot]->write_long)(address & SLOT_ADDRESS_MASK, value);
 		}
 		else {
-			log_println(LEVEL_INFO, TAG, "slot doesn't support long write");
+			log_println(LEVEL_INFO, TAG, "slot %d doesn't support long write", slot);
 		}
 	}
 }

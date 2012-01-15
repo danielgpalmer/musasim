@@ -35,6 +35,9 @@ static char GDBNAK = '-';
 #define GDBDATAEND '#'
 static char WEBROKE[] = "S05";
 
+#define GDB_BREAKPOINTTYPE_SOFT 0
+#define GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE 2
+
 #define MAXPACKETLENGTH 256
 
 static void gdbserver_cleanup();
@@ -53,9 +56,12 @@ static char* gdbserver_query(char* commandbuffer);
 
 // breakpoint stuff
 static GSList* breakpoints;
+static GSList* watchpoints_write;
 static GSList* trace;
+
 static void gbserver_set_breakpoint(uint32_t address);
 static void gdbserver_clear_breakpoint(uint32_t address);
+static void gdbserver_set_watchpoint(uint32_t address, bool write);
 
 // stuff that pokes the sim
 static char* readmem(char* commandbuffer);
@@ -156,6 +162,58 @@ int main(int argc, char* argv[]) {
 
 }
 
+static bool gdbserver_setbreakpoint(char* packet) {
+
+	unsigned int type = strtoul(strtok(packet, "Z,#"), NULL, 16);
+	uint32_t breakaddress = strtoul(strtok(NULL, "Z,#"), NULL, 16);
+	strtok(NULL, "Z,#");
+
+	printf("type is %d\n", type);
+
+	switch (type) {
+		case GDB_BREAKPOINTTYPE_SOFT:
+			printf("GDB is setting a breakpoint at 0x%08x\n", breakaddress);
+			gbserver_set_breakpoint(breakaddress);
+			break;
+
+		case GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE:
+			printf("GDB is setting a write watch point\n");
+			gdbserver_set_watchpoint(breakaddress, true);
+			break;
+		default:
+			printf("unsupported breakpoint type\n");
+			return false;
+	}
+
+	return true;
+}
+
+static bool gdbserver_unsetbreakpoint(char* packet) {
+	unsigned int type = strtoul(strtok(packet, "Z,#"), NULL, 16);
+	uint32_t breakaddress = strtoul(strtok(NULL, "z,#"), NULL, 16);
+	strtok(NULL, "z,#");
+
+	printf("type is %d\n", type);
+
+	switch (type) {
+		case GDB_BREAKPOINTTYPE_SOFT:
+			printf("GDB is unsetting a breakpoint at 0x%08x\n", breakaddress);
+			gdbserver_clear_breakpoint(breakaddress);
+			break;
+
+		case GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE:
+			printf("GDB is unsetting a write watch point");
+			break;
+		default:
+			printf("unsupported breakpoint type\n");
+			return false;
+
+	}
+
+	return true;
+
+}
+
 static void gdbserver_readcommand(int s) {
 
 	static char inputbuffer[MAXPACKETLENGTH];
@@ -177,14 +235,14 @@ static void gdbserver_readcommand(int s) {
 				printf("GDB wants to write the registers\n");
 				break;
 			case 'p':
-				printf("GDB wants to read a single register\n");
+				log_println(LEVEL_INSANE, TAG, "GDB wants to read a single register");
 				data = "00000000";
 				break;
 			case 'P':
-				printf("GDB wants to write a single register\n");
+				log_println(LEVEL_INSANE, TAG, "GDB wants to write a single register");
 				break;
 			case 'm':
-				log_println(LEVEL_INSANE, TAG, "GDB wants to read from memory\n");
+				log_println(LEVEL_INSANE, TAG, "GDB wants to read from memory");
 				data = readmem(inputbuffer);
 				break;
 			case 'M':
@@ -224,28 +282,16 @@ static void gdbserver_readcommand(int s) {
 				newstate = LISTENING;
 				break;
 
-			case 'z': {
-				strtok(inputbuffer, "Z,#");
-				char *breakaddress = strtok(NULL, "Z,#");
-				strtok(NULL, "Z,#");
-
-				gdbserver_clear_breakpoint(strtoul(breakaddress, NULL, 16));
-
-				printf("GDB is unsetting a breakpoint at 0x%s\n", breakaddress);
-
-			}
+			case 'z':
+				if (!gdbserver_unsetbreakpoint(inputbuffer)) {
+					data = "";
+				}
 				break;
 
-			case 'Z': {
-				strtok(inputbuffer, "Z,#");
-				char *breakaddress = strtok(NULL, "Z,#");
-				strtok(NULL, "Z,#");
-
-				gbserver_set_breakpoint(strtoul(breakaddress, NULL, 16));
-
-				printf("GDB is setting a breakpoint at 0x%s\n", breakaddress);
-
-			}
+			case 'Z':
+				if (!gdbserver_setbreakpoint(inputbuffer)) {
+					data = "";
+				}
 				break;
 
 				/*
@@ -421,7 +467,6 @@ static int gdbserver_calcchecksum(char *data) {
 	return checksum;
 }
 
-
 static void gdbserver_cleanup() {
 	//shutdown(socketconnection, SHUT_RDWR);
 	//close(socketlistening);
@@ -526,6 +571,12 @@ void gbserver_set_breakpoint(uint32_t address) {
 
 void gdbserver_clear_breakpoint(uint32_t address) {
 	breakpoints = g_slist_remove(breakpoints, GUINT_TO_POINTER(address));
+}
+
+void gdbserver_set_watchpoint(uint32_t address, bool write) {
+	if (write) {
+		watchpoints_write = g_slist_append(watchpoints_write, GUINT_TO_POINTER(address));
+	}
 }
 
 char* gbdserver_munchhexstring(char* buffer) {

@@ -64,18 +64,18 @@ void interrupthandler() {
 
 }
 
-void sound_handler() __attribute__((interrupt));
+void sound_handler() __attribute__ ((interrupt));
 void sound_handler() {
 
 }
 
-void vblank_handler() __attribute (( interrupt));
+void vblank_handler() __attribute__ (( interrupt));
 void vblank_handler() {
 
-	static uint16_t lastframe;
+	static uint16_t lastframe = 0;
 	static uint16_t thisframe;
-	static int y, x;
-	static int xinc = 1, yinc = 1;
+	static unsigned int y = 0, x = 0;
+	static unsigned int xinc = 1, yinc = 1;
 
 	uint16_t vidflags = *video_register_flags;
 	uint8_t port0 = *input_start;
@@ -103,7 +103,7 @@ void vblank_handler() {
 	lastframe = thisframe;
 }
 
-void uart_handler() __attribute (( interrupt));
+void uart_handler() __attribute__ (( interrupt));
 void uart_handler() {
 	//sputch(sgetch());
 }
@@ -205,8 +205,8 @@ int main(void) {
 	*sound_channel_0_volume = 0xFF22;
 	//*sound_channel_0_config = 0xF9FF;
 
+	//printf("Whassup homes! %d\n", 1);
 	while (1) {
-		printf("Whassup homes!\n");
 
 		//gputs("Hello World!");
 
