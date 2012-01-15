@@ -37,6 +37,8 @@ static char WEBROKE[] = "S05";
 
 #define GDB_BREAKPOINTTYPE_SOFT 0
 #define GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE 2
+#define GDB_BREAKPOINTTYPE_WATCHPOINT_READ 3
+#define GDB_BREAKPOINTTYPE_WATCHPOINT_ACCESS 4
 
 #define MAXPACKETLENGTH 256
 
@@ -57,12 +59,14 @@ static char* gdbserver_query(char* commandbuffer);
 // breakpoint stuff
 static GSList* breakpoints;
 static GSList* watchpoints_write;
+static GSList* watchpoints_read;
+static GSList* watchpoints_access;
 static GSList* trace;
 
 static void gbserver_set_breakpoint(uint32_t address);
 static void gdbserver_clear_breakpoint(uint32_t address);
-static void gdbserver_set_watchpoint(uint32_t address, bool write);
-static void gdbserver_clear_watchpoint(uint32_t address, bool write);
+static void gdbserver_set_watchpoint(uint32_t address, bool read, bool write);
+static void gdbserver_clear_watchpoint(uint32_t address, bool read, bool write);
 
 // stuff that pokes the sim
 static char* readmem(char* commandbuffer);
@@ -177,7 +181,13 @@ static bool gdbserver_setbreakpoint(char* packet) {
 			break;
 
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE:
-			gdbserver_set_watchpoint(breakaddress, true);
+			gdbserver_set_watchpoint(breakaddress, false, true);
+			break;
+		case GDB_BREAKPOINTTYPE_WATCHPOINT_READ:
+			gdbserver_set_watchpoint(breakaddress, true, false);
+			break;
+		case GDB_BREAKPOINTTYPE_WATCHPOINT_ACCESS:
+			gdbserver_set_watchpoint(breakaddress, true, true);
 			break;
 		default:
 			printf("unsupported breakpoint type\n");
@@ -200,7 +210,13 @@ static bool gdbserver_unsetbreakpoint(char* packet) {
 			gdbserver_clear_breakpoint(breakaddress);
 			break;
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE:
-			gdbserver_clear_watchpoint(breakaddress, true);
+			gdbserver_clear_watchpoint(breakaddress, false, true);
+			break;
+		case GDB_BREAKPOINTTYPE_WATCHPOINT_READ:
+			gdbserver_clear_watchpoint(breakaddress, true, false);
+			break;
+		case GDB_BREAKPOINTTYPE_WATCHPOINT_ACCESS:
+			gdbserver_clear_watchpoint(breakaddress, true, true);
 			break;
 		default:
 			printf("unsupported breakpoint type\n");
@@ -571,14 +587,32 @@ void gdbserver_clear_breakpoint(uint32_t address) {
 	breakpoints = g_slist_remove(breakpoints, GUINT_TO_POINTER(address));
 }
 
-void gdbserver_set_watchpoint(uint32_t address, bool write) {
-	if (write) {
+void gdbserver_set_watchpoint(uint32_t address, bool read, bool write) {
+
+	if (read && write) {
+		watchpoints_access = g_slist_append(watchpoints_access, GUINT_TO_POINTER(address));
+	}
+
+	else if (read) {
+		watchpoints_read = g_slist_append(watchpoints_read, GUINT_TO_POINTER(address));
+	}
+
+	else if (write) {
 		watchpoints_write = g_slist_append(watchpoints_write, GUINT_TO_POINTER(address));
 	}
 }
 
-void gdbserver_clear_watchpoint(uint32_t address, bool write) {
-	if (write) {
+void gdbserver_clear_watchpoint(uint32_t address, bool read, bool write) {
+
+	if (read && write) {
+		watchpoints_access = g_slist_remove(watchpoints_access, GUINT_TO_POINTER(address));
+	}
+
+	else if (read) {
+		watchpoints_read = g_slist_remove(watchpoints_read, GUINT_TO_POINTER(address));
+	}
+
+	else if (write) {
 		watchpoints_write = g_slist_remove(watchpoints_write, GUINT_TO_POINTER(address));
 	}
 }

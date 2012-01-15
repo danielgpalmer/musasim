@@ -14,8 +14,8 @@
 
 static const char TAG[] = "video";
 
-static uint16_t flags;
-static uint16_t config;
+static uint16_t flags = 0;
+static uint16_t config = 0;
 static uint16_t pixel = 0;
 static uint16_t line = 0;
 static uint16_t frame = 0;
@@ -65,7 +65,6 @@ static uint32_t registersstart;
 static void video_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
-
 
 	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, SDL_SWSURFACE);
 

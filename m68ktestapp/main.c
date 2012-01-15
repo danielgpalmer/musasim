@@ -75,7 +75,7 @@ void vblank_handler() {
 	static uint16_t lastframe = 0;
 	static uint16_t thisframe;
 	static unsigned int y = 0, x = 0;
-	static unsigned int xinc = 1, yinc = 1;
+	static int xinc = 1, yinc = 1;
 
 	uint16_t vidflags = *video_register_flags;
 	uint8_t port0 = *input_start;
