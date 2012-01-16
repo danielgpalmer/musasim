@@ -616,15 +616,26 @@ static GSList* clearwatchpoint(GSList* list, uint32_t address, unsigned int leng
 
 }
 
-static bool checkwatchpoints(GSList* list, uint32_t address) {
+static bool checkwatchpoints(GSList* list, uint32_t address, int size) {
 
 	GSList* iterator;
 	for (iterator = list; iterator; iterator = iterator->next) {
 		watchpoint* wp = iterator->data;
 
-		printf("Checking watchpoint 0x%08x:%d with 0x%08x\n", wp->address, wp->length, address);
+		int wpmin = wp->address;
+		int wpmax = wp->address + (wp->length - 1);
+		int actionmin = address;
+		int actionmax = address + (size - 1);
 
-		if (wp->address == address) {
+		printf("Checking watchpoint 0x%08x:%d with 0x%08x:%d\n", wp->address, wp->length, address, size);
+
+		printf("watch point range %x -> %x\n", wpmin, wpmax);
+		printf("action range %x -> %x\n", actionmin, actionmax);
+
+		if ((actionmin >= wpmin && actionmin <= wpmax) || (actionmax >= wpmin && actionmax <= wpmax)) {
+
+			printf("ranges overlap\n");
+
 			return true;
 		}
 	}
@@ -669,7 +680,7 @@ void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, i
 
 	static char stopreply[256];
 
-	if (checkwatchpoints(watchpoints_access, address)) {
+	if (checkwatchpoints(watchpoints_access, address, size)) {
 		m68k_end_timeslice();
 		log_println(LEVEL_INFO, TAG, "Access at 0x%08x;", address);
 		state = WAITING;
@@ -678,7 +689,7 @@ void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, i
 	}
 
 	if (write) {
-		if (checkwatchpoints(watchpoints_write, address)) {
+		if (checkwatchpoints(watchpoints_write, address, size)) {
 			m68k_end_timeslice();
 			log_println(LEVEL_INFO, TAG, "Write 0x%08x to 0x%08x PC[0x%08x]", value, address,
 					m68k_get_reg(NULL, M68K_REG_PC));
@@ -689,7 +700,7 @@ void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, i
 	}
 
 	else {
-		if (checkwatchpoints(watchpoints_read, address)) {
+		if (checkwatchpoints(watchpoints_read, address, size)) {
 			m68k_end_timeslice();
 			log_println(LEVEL_INFO, TAG, "Read at 0x%08x; %s", address);
 			state = WAITING;
