@@ -84,7 +84,7 @@ void vblank_handler() {
 
 	for (int i = 0; i < thisframe - lastframe; i++) {
 
-		*(video_start + (WIDTH * y) + x) = x * y;
+		//*(video_start + (WIDTH * y) + x) = x * y;
 
 		x += xinc;
 
@@ -205,7 +205,9 @@ int main(void) {
 	*sound_channel_0_volume = 0xFF22;
 	//*sound_channel_0_config = 0xF9FF;
 
-	//printf("Whassup homes! %d\n", 1);
+	printf("Whassup homes! %d\n", 1);
+
+
 	while (1) {
 
 		//gputs("Hello World!");

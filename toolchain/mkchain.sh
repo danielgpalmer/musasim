@@ -21,7 +21,7 @@ INSTDIR="${ROOTDIR}/inst"
 BINUTILSURL="http://ftp.gnu.org/gnu/binutils/binutils-2.22.tar.gz"
 GCCURL="http://ftp.gnu.org/gnu/gcc/gcc-4.6.2/gcc-core-4.6.2.tar.gz"
 NEWLIBURL="ftp://sources.redhat.com/pub/newlib/newlib-1.20.0.tar.gz"
-GDBURL="http://ftp.gnu.org/gnu/gdb/gdb-7.3a.tar.gz"
+GDBURL="http://ftp.gnu.org/gnu/gdb/gdb-7.3.1.tar.gz"
 
 BINUTILSTAR="${TARDIR}/binutils-2.22.tar.gz"
 GCCTAR="${TARDIR}/gcc-core-4.6.2.tar.gz"

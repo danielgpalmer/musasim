@@ -63,10 +63,15 @@ static GSList* watchpoints_read;
 static GSList* watchpoints_access;
 static GSList* trace;
 
+typedef struct {
+	uint32_t address;
+	unsigned int length;
+} watchpoint;
+
 static void gbserver_set_breakpoint(uint32_t address);
 static void gdbserver_clear_breakpoint(uint32_t address);
-static void gdbserver_set_watchpoint(uint32_t address, bool read, bool write);
-static void gdbserver_clear_watchpoint(uint32_t address, bool read, bool write);
+static void gdbserver_set_watchpoint(uint32_t address, unsigned int length, bool read, bool write);
+static void gdbserver_clear_watchpoint(uint32_t address, unsigned int length, bool read, bool write);
 
 // stuff that pokes the sim
 static char* readmem(char* commandbuffer);
@@ -181,13 +186,13 @@ static bool gdbserver_setbreakpoint(char* packet) {
 			break;
 
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE:
-			gdbserver_set_watchpoint(breakaddress, false, true);
+			gdbserver_set_watchpoint(breakaddress, length, false, true);
 			break;
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_READ:
-			gdbserver_set_watchpoint(breakaddress, true, false);
+			gdbserver_set_watchpoint(breakaddress, length, true, false);
 			break;
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_ACCESS:
-			gdbserver_set_watchpoint(breakaddress, true, true);
+			gdbserver_set_watchpoint(breakaddress, length, true, true);
 			break;
 		default:
 			printf("unsupported breakpoint type\n");
@@ -210,13 +215,13 @@ static bool gdbserver_unsetbreakpoint(char* packet) {
 			gdbserver_clear_breakpoint(breakaddress);
 			break;
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE:
-			gdbserver_clear_watchpoint(breakaddress, false, true);
+			gdbserver_clear_watchpoint(breakaddress, length, false, true);
 			break;
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_READ:
-			gdbserver_clear_watchpoint(breakaddress, true, false);
+			gdbserver_clear_watchpoint(breakaddress, length, true, false);
 			break;
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_ACCESS:
-			gdbserver_clear_watchpoint(breakaddress, true, true);
+			gdbserver_clear_watchpoint(breakaddress, length, true, true);
 			break;
 		default:
 			printf("unsupported breakpoint type\n");
@@ -587,77 +592,109 @@ void gdbserver_clear_breakpoint(uint32_t address) {
 	breakpoints = g_slist_remove(breakpoints, GUINT_TO_POINTER(address));
 }
 
-void gdbserver_set_watchpoint(uint32_t address, bool read, bool write) {
+static GSList* addwatchpoint(GSList* list, uint32_t address, unsigned int length) {
+
+	watchpoint* wp = malloc(sizeof(wp));
+	wp->address = address;
+	wp->length = length;
+
+	return g_slist_append(list, wp);
+
+}
+
+static GSList* clearwatchpoint(GSList* list, uint32_t address, unsigned int length) {
+
+	GSList* iterator;
+	for (iterator = list; iterator; iterator = iterator->next) {
+		watchpoint* wp = iterator->data;
+		if (wp->address == address && wp->length == length) {
+			return g_slist_remove(list, wp);
+		}
+	}
+
+	return list;
+
+}
+
+static bool checkwatchpoints(GSList* list, uint32_t address) {
+
+	GSList* iterator;
+	for (iterator = list; iterator; iterator = iterator->next) {
+		watchpoint* wp = iterator->data;
+
+		printf("Checking watchpoint 0x%08x:%d with 0x%08x\n", wp->address, wp->length, address);
+
+		if (wp->address == address) {
+			return true;
+		}
+	}
+
+	return false;
+
+}
+
+void gdbserver_set_watchpoint(uint32_t address, unsigned int length, bool read, bool write) {
 
 	if (read && write) {
-		watchpoints_access = g_slist_append(watchpoints_access, GUINT_TO_POINTER(address));
+		watchpoints_access = addwatchpoint(watchpoints_access, address, length);
 	}
 
 	else if (read) {
-		watchpoints_read = g_slist_append(watchpoints_read, GUINT_TO_POINTER(address));
+		watchpoints_read = addwatchpoint(watchpoints_read, address, length);
 	}
 
 	else if (write) {
-		watchpoints_write = g_slist_append(watchpoints_write, GUINT_TO_POINTER(address));
+		watchpoints_write = addwatchpoint(watchpoints_write, address, length);
 	}
 }
 
-void gdbserver_clear_watchpoint(uint32_t address, bool read, bool write) {
+void gdbserver_clear_watchpoint(uint32_t address, unsigned int length, bool read, bool write) {
 
 	if (read && write) {
-		watchpoints_access = g_slist_remove(watchpoints_access, GUINT_TO_POINTER(address));
+		watchpoints_access = clearwatchpoint(watchpoints_access, address, length);
 	}
 
 	else if (read) {
-		watchpoints_read = g_slist_remove(watchpoints_read, GUINT_TO_POINTER(address));
+		watchpoints_read = clearwatchpoint(watchpoints_read, address, length);
 	}
 
 	else if (write) {
-		watchpoints_write = g_slist_remove(watchpoints_write, GUINT_TO_POINTER(address));
+		watchpoints_write = clearwatchpoint(watchpoints_write, address, length);
 	}
 }
 
 char crap[1024];
 
-void gdbserver_check_watchpoints(uint32_t address, bool write, int size) {
+void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, int size) {
 
 	static char stopreply[256];
 
-	GSList* iterator;
-	for (iterator = watchpoints_access; iterator; iterator = iterator->next) {
-		if (GPOINTER_TO_UINT(iterator->data) == address) {
-			m68k_end_timeslice();
-			log_println(LEVEL_INFO, TAG, "Access at 0x%08x;", address);
-			state = WAITING;
-			sprintf(stopreply, "T05awatch:%08x;", address);
-			gdbserver_sendpacket(socketconnection, stopreply);
-			break;
-		}
+	if (checkwatchpoints(watchpoints_access, address)) {
+		m68k_end_timeslice();
+		log_println(LEVEL_INFO, TAG, "Access at 0x%08x;", address);
+		state = WAITING;
+		sprintf(stopreply, "T05awatch:%08x;", address);
+		gdbserver_sendpacket(socketconnection, stopreply);
 	}
 
 	if (write) {
-		for (iterator = watchpoints_write; iterator; iterator = iterator->next) {
-			if (GPOINTER_TO_UINT(iterator->data) == address) {
-				m68k_end_timeslice();
-				log_println(LEVEL_INFO, TAG, "Write at 0x%08x; %s", address);
-				state = WAITING;
-				sprintf(stopreply, "T05watch:%08x;", address);
-				gdbserver_sendpacket(socketconnection, stopreply);
-				break;
-			}
+		if (checkwatchpoints(watchpoints_write, address)) {
+			m68k_end_timeslice();
+			log_println(LEVEL_INFO, TAG, "Write 0x%08x to 0x%08x PC[0x%08x]", value, address,
+					m68k_get_reg(NULL, M68K_REG_PC));
+			state = WAITING;
+			sprintf(stopreply, "T05watch:%08x;", address);
+			gdbserver_sendpacket(socketconnection, stopreply);
 		}
 	}
 
 	else {
-		for (iterator = watchpoints_read; iterator; iterator = iterator->next) {
-			if (GPOINTER_TO_UINT(iterator->data) == address) {
-				m68k_end_timeslice();
-				log_println(LEVEL_INFO, TAG, "Read at 0x%08x; %s", address);
-				state = WAITING;
-				sprintf(stopreply, "T05rwatch:%08x;", address);
-				gdbserver_sendpacket(socketconnection, stopreply);
-				break;
-			}
+		if (checkwatchpoints(watchpoints_read, address)) {
+			m68k_end_timeslice();
+			log_println(LEVEL_INFO, TAG, "Read at 0x%08x; %s", address);
+			state = WAITING;
+			sprintf(stopreply, "T05rwatch:%08x;", address);
+			gdbserver_sendpacket(socketconnection, stopreply);
 		}
 	}
 
@@ -801,31 +838,31 @@ void gdb_hitstop() {
 }
 
 uint8_t gdbserver_m68k_read_byte(uint32_t address) {
-	gdbserver_check_watchpoints(address, false, 1);
+	gdbserver_check_watchpoints(address, 0, false, 1);
 	return board_read_byte(address);
 }
 
 uint16_t gdbserver_m68k_read_word(uint32_t address) {
-	gdbserver_check_watchpoints(address, false, 2);
+	gdbserver_check_watchpoints(address, 0, false, 2);
 	return board_read_word(address);
 }
 
 uint32_t gdbserver_m68k_read_long(uint32_t address) {
-	gdbserver_check_watchpoints(address, false, 4);
+	gdbserver_check_watchpoints(address, 0, false, 4);
 	return board_read_long(address);
 }
 
 void gdbserver_m68k_write_byte(uint32_t address, uint8_t value) {
-	gdbserver_check_watchpoints(address, true, 1);
+	gdbserver_check_watchpoints(address, value, true, 1);
 	return board_write_byte(address, value);
 }
 
 void gdbserver_m68k_write_word(uint32_t address, uint16_t value) {
-	gdbserver_check_watchpoints(address, true, 2);
+	gdbserver_check_watchpoints(address, value, true, 2);
 	return board_write_word(address, value);
 }
 
 void gdbserver_m68k_write_long(uint32_t address, uint32_t value) {
-	gdbserver_check_watchpoints(address, true, 4);
+	gdbserver_check_watchpoints(address, value, true, 4);
 	return board_write_long(address, value);
 }
