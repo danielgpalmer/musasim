@@ -76,6 +76,7 @@ vectors:
 
 start:
 
+clearbss:
 	#clear bss
 	lea.l	_bss_start,%a0	/* Clear bss */
 	move.l	#_bss_end,%d0
@@ -85,6 +86,7 @@ start:
 	bra.s	1b
 2:
 
+copydata:
 	#copy data
 
 	lea.l	_text_end,%a0	/* data is located after the text */

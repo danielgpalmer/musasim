@@ -71,7 +71,7 @@ int _isatty(int file) {
 	return 0;
 }
 
-int _isatty_r( file) {
+int _isatty_r(int file) {
 	return _isatty(file);
 }
 

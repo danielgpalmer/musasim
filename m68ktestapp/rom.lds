@@ -13,14 +13,17 @@ SECTIONS
 		*(.text)
 	} >flash
 
+	. = ALIGN(2);
+
         .text :                                                          
         {
                 *(.text)                                                
                 *(.rodata)                                              /* all .rodata sections (constants, strings, etc.)  */
                 *(.rodata*)                                             /* all .rodata* sections (constants, strings, etc.)  */
-                _text_end = .;                                             /* define a global symbol _etext just after the last code byte */
-        } >flash                                                        /* put all the above into FLASH */
-
+		*(.eh_frame)
+		. = ALIGN(2);
+		_text_end = .;                                             /* define a global symbol _etext just after the last code byte */
+	} >flash                                                        /* put all the above into FLASH */
 
         .data :                                                         /* collect all initialized .data sections that go into RAM  */ 
         {
@@ -28,7 +31,8 @@ SECTIONS
                 *(.data)                                                /* all .data sections  */
                 _data_end = .;                                             /* define a global symbol marking the end of the .data section  */
         } >ram AT >flash                                        /* put all the above into RAM (but load the LMA copy into FLASH) */
-
+	. = ALIGN(2);
+	
         .bss :                                                          /* collect all uninitialized .bss sections that go into RAM  */
         {
                 _bss_start = .;                                 /* define a global symbol marking the start of the .bss section */

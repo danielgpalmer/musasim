@@ -608,6 +608,7 @@ static GSList* clearwatchpoint(GSList* list, uint32_t address, unsigned int leng
 	for (iterator = list; iterator; iterator = iterator->next) {
 		watchpoint* wp = iterator->data;
 		if (wp->address == address && wp->length == length) {
+			free(wp);
 			return g_slist_remove(list, wp);
 		}
 	}

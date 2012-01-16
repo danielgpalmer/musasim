@@ -7,7 +7,7 @@ CP=m68k-elf-objcopy
 
 AFLAGS=-ahls -m68000
 CFLAGS=-mc68000 -ggdb -std=gnu99
-LFLAGS=-mc68000 -Trom.lds -nostartfiles  -Wl,-Map=prog.map
+LFLAGS=-mc68000 -Trom.lds -nostartfiles  -Wl,-Map=prog.map,--cref
 
 all: prog.bin prog.srec cfimage.bin
 
@@ -15,7 +15,7 @@ prog.bin: prog.elf
 	$(CP) -O binary prog.elf prog.bin
 
 prog.srec: prog.elf
-	$(CP) -O srec prog.elf prog.srec
+	$(CP) -S -O srec prog.elf prog.srec
 	
 prog.elf: syscalls.o crt.o main.o fontrom.o rom.lds
 	$(CC) $(LFLAGS) -o prog.elf crt.o syscalls.o main.o fontrom.o

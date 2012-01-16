@@ -24,6 +24,7 @@ int16_t initedvar = 0;
 //volatile char* magic = (volatile char*) 0x200000;
 //volatile uint16_t* video = (volatile uint16_t*) 0x300000;
 
+char astring[] = "this is a string";
 volatile char something[4] = { 0xff, 0xaa, 0xff, 0xaa };
 
 void sputch(char ch) {
@@ -84,7 +85,7 @@ void vblank_handler() {
 
 	for (int i = 0; i < thisframe - lastframe; i++) {
 
-		//*(video_start + (WIDTH * y) + x) = x * y;
+		*(video_start + (WIDTH * y) + x) = x * y;
 
 		x += xinc;
 
@@ -205,11 +206,9 @@ int main(void) {
 	*sound_channel_0_volume = 0xFF22;
 	//*sound_channel_0_config = 0xF9FF;
 
-	printf("Whassup homes! %d\n", 1);
-
-
 	while (1) {
 
+		printf("Whassup homes! %d\n", 1);
 		//gputs("Hello World!");
 
 	}
