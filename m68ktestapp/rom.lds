@@ -41,6 +41,7 @@ SECTIONS
 
         . = ALIGN(2);                                           /* advance location counter to the next 32-bit boundary */
         _bss_end = . ;                                          /* define a global symbol marking the end of the .bss section */
+	
 }
         _end = .;                                                       /* define a global symbol marking the end of application RAM */
         end = .;
