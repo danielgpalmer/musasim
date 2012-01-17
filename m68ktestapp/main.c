@@ -35,12 +35,6 @@ void sputch(char ch) {
 	*uart_chan0_rxtx = ch;
 }
 
-void sputs(char* string) {
-	char c;
-	while ((c = *string++) != 0) {
-		sputch(c);
-	}
-}
 
 char sgetch() {
 
@@ -208,7 +202,7 @@ int main(void) {
 
 	while (1) {
 
-		printf("Whassup homes! %d\n", 1);
+		printf("Whassup homes\n");
 		//gputs("Hello World!");
 
 	}
