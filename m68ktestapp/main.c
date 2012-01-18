@@ -176,28 +176,28 @@ void initvideo() {
 
 int main(void) {
 
-	uint16_t sr = getstatusregister();
-	setstatusregister((sr & 0xf8ff));
+	//uint16_t sr = getstatusregister();
+	//setstatusregister((sr & 0xf8ff));
 
 //char helloworld[] = "Hello, World!\n";
 //char* string = helloworld;
 
 //puts(helloworld);
 
-	initvideo();
+	//initvideo();
 
 	//*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
-	*ide_register_command = ATA_IDENTIFYDRIVE;
+	//*ide_register_command = ATA_IDENTIFYDRIVE;
 
-	uint16_t* blip = _binary_blip_start;
+	//uint16_t* blip = _binary_blip_start;
 
-	for (int i = 0; i < sizeof(_binary_blip_start) / 2; i++) {
-		*(sound_bank_0 + i) = *blip++;
-	}
-	*sound_channel_0_samplelength = sizeof(_binary_blip_start);
-	*sound_channel_master_config = 0xFFFF;
-	*sound_channel_master_volume = 0xFF99;
-	*sound_channel_0_volume = 0xFF22;
+	//for (int i = 0; i < sizeof(_binary_blip_start) / 2; i++) {
+	//	*(sound_bank_0 + i) = *blip++;
+	//}
+	//*sound_channel_0_samplelength = sizeof(_binary_blip_start);
+	//*sound_channel_master_config = 0xFFFF;
+	//*sound_channel_master_volume = 0xFF99;
+	//*sound_channel_0_volume = 0xFF22;
 	//*sound_channel_0_config = 0xF9FF;
 
 	while (1) {

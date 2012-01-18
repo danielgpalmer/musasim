@@ -4,7 +4,7 @@ CP=m68k-elf-objcopy
 
 AFLAGS=-ahls -m68000
 CFLAGS=-mc68000 -ggdb -std=gnu99 
-LFLAGS=-mc68000 -Trom.lds -nostartfiles  -Wl,-Map=prog.map,--cref,-lunagipai
+LFLAGS=-mc68000 -Trom.lds -nostartfiles -Wl,-Map=prog.map,--cref,-lunagipai
 
 all: prog.bin prog.srec cfimage.bin
 
@@ -14,17 +14,18 @@ prog.bin: prog.elf
 prog.srec: prog.elf
 	$(CP) -S -O srec prog.elf prog.srec
 	
-prog.elf: syscalls.o crt.o main.o fontrom.o rom.lds
-	$(CC) $(LFLAGS) -o prog.elf crt.o syscalls.o main.o fontrom.o
+prog.elf: crt.o syscalls.o main.o fontrom.o rom.lds
+	$(CC) $(LFLAGS) -o prog.elf crt.o main.o fontrom.o syscalls.o -lunagipai
 
 main.o: blip.c main.c ../musasim/genheader/machine.h ../musasim/genheader/video.h ../musasim/genheader/input.h ../musasim/genheader/uart.h
 	$(CC) $(CFLAGS) -c main.c --save-temps
 
-syscalls.o: syscalls.c
-	$(CC) $(CFLAGS) -c syscalls.c --save-temps
-
 crt.o: crt.s
 	$(AS) $(AFLAGS) crt.s -o crt.o > crt.lst
+
+syscalls.o: syscalls.c
+	$(CC) $(CFLAGS) -c syscalls.c
+
 
 fontrom.o: fontrom/fontrom.c
 	$(CC) $(CFLAGS) -c fontrom/fontrom.c

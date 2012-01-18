@@ -3,7 +3,8 @@
 #include <sys/stat.h>
 #include <string.h>
 
-#include "../musasim/genheader/uart.h"
+//#include <libunagipai/uart.h>
+#include <libunagipai/uart.h>
 
 #define STDIN_FILENO 0 /* standard input file descriptor */
 #define STDOUT_FILENO 1 /* standard output file descriptor */
@@ -12,11 +13,7 @@
 int _write(int file, char * ptr, int len) {
 	if (file == STDOUT_FILENO) {
 		for (int pos = 0; pos < len; pos++) {
-			while ((*(uart_chan0_linestatus) & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY)
-					!= LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) {
-				// nop
-			}
-			*uart_chan0_rxtx = *ptr++;
+			uart_putch(*ptr++);
 		}
 		return 0;
 	}

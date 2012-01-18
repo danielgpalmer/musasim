@@ -143,9 +143,9 @@ void sound() {
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_VOLUME);
 		}
 		else {
-			printf("volatile uint16_t* const sound_channel_%d_config = (uint16_t*) 0x%x;\n", i - 1,
+			printf("#define sound_channel_%d_config ((volatile uint16_t*) 0x%x)\n", i - 1,
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_CONFIG);
-			printf("volatile uint16_t* const sound_channel_%d_volume= (uint16_t*) 0x%x;\n", i - 1,
+			printf("#define sound_channel_%d_volume ((volatile uint16_t*) 0x%x)\n", i - 1,
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_VOLUME);
 			printf("volatile uint16_t* const sound_channel_%d_samplepointer = (uint16_t*) 0x%x;\n", i - 1,
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_SAMPLEPOINTER);
