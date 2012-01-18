@@ -7,10 +7,14 @@ set -u
 if [ "$#" -eq "1" ]; then
 	TARGET="$1"
 	TARGETOPTS=""
+	BINUTILSPOINT="22"
 else
 	TARGET="m68k-elf";
 	TARGETOPTS="--with-arch=m68k"
+	BINUTILSPOINT="21"
 fi
+
+NEWLIBPOINT="20"
 
 ROOTDIR=`pwd`
 SRCDIR="${ROOTDIR}/src"
@@ -18,19 +22,20 @@ TARDIR="${ROOTDIR}/tarballs"
 BUILDDIR="${ROOTDIR}/build"
 INSTDIR="${ROOTDIR}/inst"
 
-BINUTILSURL="http://ftp.gnu.org/gnu/binutils/binutils-2.22.tar.gz"
+#BINUTILSURL="http://ftp.gnu.org/gnu/binutils/binutils-2.${BINUTILSPOINT}.tar.gz"
+BINUTILSURL="ftp://aeneas.mit.edu/pub/gnu/binutils/binutils-2.${BINUTILSPOINT}.tar.gz"
 GCCURL="http://ftp.gnu.org/gnu/gcc/gcc-4.6.2/gcc-core-4.6.2.tar.gz"
-NEWLIBURL="ftp://sources.redhat.com/pub/newlib/newlib-1.20.0.tar.gz"
+NEWLIBURL="ftp://sources.redhat.com/pub/newlib/newlib-1.${NEWLIBPOINT}.0.tar.gz"
 GDBURL="http://ftp.gnu.org/gnu/gdb/gdb-7.3.1.tar.gz"
 
-BINUTILSTAR="${TARDIR}/binutils-2.22.tar.gz"
+BINUTILSTAR="${TARDIR}/binutils-2.${BINUTILSPOINT}.tar.gz"
 GCCTAR="${TARDIR}/gcc-core-4.6.2.tar.gz"
-NEWLIBTAR="${TARDIR}/newlib-1.20.0.tar.gz"
+NEWLIBTAR="${TARDIR}/newlib-1.${NEWLIBPOINT}.0.tar.gz"
 GDBTAR="${TARDIR}/gdb-7.3a.tar.gz";
 
-BINUTILSSRC="${SRCDIR}/binutils-2.22"
+BINUTILSSRC="${SRCDIR}/binutils-2.${BINUTILSPOINT}"
 GCCSRC="${SRCDIR}/gcc-4.6.2"
-NEWLIBSRC="${SRCDIR}/newlib-1.20.0";
+NEWLIBSRC="${SRCDIR}/newlib-1.${NEWLIBPOINT}.0";
 GDBSRC="${SRCDIR}/gdb-7.3";
 
 

@@ -2,7 +2,7 @@ AR=m68k-elf-ar
 CC=m68k-elf-gcc
 CFLAGS=-mc68000 -ggdb -std=gnu99 -I ./include
 
-INSTPATH="/home/daniel/toolchains/inst/m68k-elf/m68k-elf"
+INSTPATH="/home/daniel/coding/musasim/toolchain/inst/m68k-elf/m68k-elf"
 
 all: libunagipai.a
 

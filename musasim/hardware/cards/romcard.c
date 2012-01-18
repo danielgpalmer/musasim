@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "../../musashi/m68k.h"
 #include "romcard.h"
 #include "../util.h"
 #include "../../logging.h"
@@ -75,7 +76,7 @@ static bool romcard_valid_address(uint32_t address, bool write) {
 			return true;
 		}
 		else {
-			log_println(LEVEL_INFO, TAG, "invalid write to 0x%08x, write to ROM?", address);
+			log_println(LEVEL_INFO, TAG, "invalid write to 0x%08x, write to ROM? PC[0x%08x]", address, m68k_get_reg(NULL, M68K_REG_PC));
 			return false;
 		}
 	}
