@@ -1,13 +1,10 @@
-PKG_CONFIG_LIBDIR=/home/daniel/toolchains/inst/m68k-elf/lib/ 
-PKG_CONFIG_PATH=/home/daniel/toolchains/inst/m68k-elf/lib/pkgconfig
-
 CC=m68k-elf-gcc 
 AS=m68k-elf-as
 CP=m68k-elf-objcopy
 
 AFLAGS=-ahls -m68000
-CFLAGS=-mc68000 -ggdb -std=gnu99
-LFLAGS=-mc68000 -Trom.lds -nostartfiles  -Wl,-Map=prog.map,--cref
+CFLAGS=-mc68000 -ggdb -std=gnu99 
+LFLAGS=-mc68000 -Trom.lds -nostartfiles  -Wl,-Map=prog.map,--cref,-lunagipai
 
 all: prog.bin prog.srec cfimage.bin
 
