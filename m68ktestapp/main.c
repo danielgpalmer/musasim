@@ -34,24 +34,31 @@ void sound_handler() {
 static int col = 0;
 static int row = 0;
 
+#define CHARWIDTH 8
+#define CHARHEIGHT 16
+#define COLS (WIDTH/CHARWIDTH)
+#define ROWSIZE (COLS * CHARWIDTH * CHARHEIGHT)
+
 void gputs(char* string) {
 
-	int charoffset = 32 * 16;
+	int charoffset = 32 * CHARHEIGHT;
 	char c;
 
 	while ((c = *string++) != 0) {
-		for (int i = 0; i < 16; i++) {
+		for (int i = 0; i < CHARHEIGHT; i++) {
 
-			uint8_t character = _binary_fontrom_start[i + ((c * 16) - charoffset)];
+			uint8_t character = _binary_fontrom_start[i + ((c * CHARHEIGHT) - charoffset)];
 
-			for (int j = 0; j < 8; j++) {
+			for (int j = 0; j < CHARWIDTH; j++) {
+
+				int offset = (ROWSIZE * row) + ((WIDTH * i) + j + (col * CHARWIDTH));
 
 				int pixel = character & 0x01;
 				if (pixel) {
-					*(video_start + (WIDTH * i) + j + (col * 8)) = 0x000000;
+					*(video_start + offset) = 0x000000;
 				}
 				else {
-					*(video_start + (WIDTH * i) + j + (col * 8)) = 0xFFFFFF;
+					*(video_start + offset) = 0xFFFFFF;
 				}
 				character = (character >> 1);
 			}
@@ -91,8 +98,8 @@ void vblank_handler() {
 
 	}
 
-	col = 0;
-	row = 0;
+	col = 10;
+	row = 5;
 	gputs("Yo homes!");
 
 	lastframe = thisframe;
