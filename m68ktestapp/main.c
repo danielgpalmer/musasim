@@ -7,6 +7,8 @@
 
 #include <libunagipai/machine.h>
 
+#include "main.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include "fontrom/fontrom.h"
@@ -21,34 +23,44 @@
 #define WIDTH 480
 #define HEIGHT 272
 
-int16_t initedvar = 0;
-
-//volatile char* magic = (volatile char*) 0x200000;
-//volatile uint16_t* video = (volatile uint16_t*) 0x300000;
-
-char astring[] = "this is a string";
-volatile char something[4] = { 0xff, 0xaa, 0xff, 0xaa };
-
-//void puts(char* string) {
-//
-//	char c;
-//
-//	while ((c = *string++) != 0) {
-//		*magic = c;
-//	}
-//}
-
-void interrupthandler() __attribute__ (( interrupt ));
 void interrupthandler() {
 
 }
 
-void sound_handler() __attribute__ ((interrupt));
 void sound_handler() {
 
 }
 
-void vblank_handler() __attribute__ (( interrupt));
+static int col = 0;
+static int row = 0;
+
+void gputs(char* string) {
+
+	int charoffset = 33 * 16;
+	char c;
+
+	while ((c = *string++) != 0) {
+		for (int i = 0; i < 16; i++) {
+
+			uint8_t character = _binary_fontrom_start[i + ((c * 16) - charoffset)];
+
+			for (int j = 0; j < 8; j++) {
+
+				int pixel = character & 0x01;
+				if (pixel) {
+					*(video_start + (WIDTH * i) + j + (col * 8)) = 0x000000;
+				}
+				else {
+					*(video_start + (WIDTH * i) + j + (col * 8)) = 0xFFFFFF;
+				}
+				character = (character >> 1);
+			}
+		}
+
+		col++;
+	}
+}
+
 void vblank_handler() {
 
 	static uint16_t lastframe = 0;
@@ -79,40 +91,14 @@ void vblank_handler() {
 
 	}
 
+	col = 0;
+	row = 0;
+	gputs("Yo homes!");
+
 	lastframe = thisframe;
 }
 
-void uart_handler() __attribute__ (( interrupt));
 void uart_handler() {
-}
-
-int col = 0;
-
-void gputs(char* string) {
-
-	int charoffset = 33 * 16;
-	char c;
-
-	while ((c = *string++) != 0) {
-		for (int i = 0; i < 16; i++) {
-
-			uint8_t character = _binary_fontrom_start[i + ((c * 16) - charoffset)];
-
-			for (int j = 0; j < 8; j++) {
-
-				int pixel = character & 0x01;
-				if (pixel) {
-					*(video_start + (WIDTH * i) + j + (col * 8)) = 0x000000;
-				}
-				else {
-					*(video_start + (WIDTH * i) + j + (col * 8)) = 0xFFFFFF;
-				}
-				character = (character >> 1);
-			}
-		}
-
-		col++;
-	}
 }
 
 void initvideo() {
@@ -149,7 +135,7 @@ int main(void) {
 
 //puts(helloworld);
 
-	//initvideo();
+	initvideo();
 
 	//*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
 	//*ide_register_command = ATA_IDENTIFYDRIVE;
@@ -166,14 +152,11 @@ int main(void) {
 	//*sound_channel_0_config = 0xF9FF;
 
 	while (1) {
-
 		printf("Whassup homes\n");
 		//gputs("Hello World!");
-
 	}
 
 //*(video + (480 * 240) + 100) = 0xFFFF;
-	initedvar = 0;
 	return 0;
 
 }

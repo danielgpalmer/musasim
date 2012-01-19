@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef MACHINE_H_
-#define MACHINE_H_
+#ifndef LIBUNAGIPAI_MACHINE_H_
+#define LIBUNAGIPAI_MACHINE_H_
 
 #include <stdint.h>
 

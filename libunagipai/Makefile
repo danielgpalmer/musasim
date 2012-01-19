@@ -6,14 +6,17 @@ INSTPATH="../toolchain/inst/m68k-elf/m68k-elf"
 
 all: libunagipai.a
 
-libunagipai.a: uart.o machine.o
+libunagipai.a: uart.o machine.o video.o
 	ar cr libunagipai.a *.o
 
 uart.o: uart.c include/uart.h
 	$(CC) $(CFLAGS) -c uart.c
 
-machine.o: machine.o include/machine.h
+machine.o: machine.c include/machine.h
 	$(CC) $(CFLAGS) -c machine.c
+
+video.o: video.c include/video.h
+	$(CC) $(CFLAGS) -c video.c
 
 .PHONY: install uninstall clean
 
