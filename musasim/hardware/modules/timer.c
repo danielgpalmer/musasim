@@ -31,6 +31,8 @@ static uint8_t flags = 0;
 static uint32_t alarm0 = 0;
 static uint32_t alarm1 = 0;
 
+#define TIMER_EN ( 1 << 7)
+
 typedef struct {
 	//	7	6	5	4	3	2	1	0
 	//								E
@@ -60,9 +62,11 @@ void tick() {
 	}
 
 	for (int i = 0; i < TIMERCHANNELS; i++) {
-		timers[i].tickcounter++;
-		if (timers[i].tickcounter == timers[i].divider) {
-			timers[i].count++;
+		if (timers[i].flags & TIMER_EN) {
+			timers[i].tickcounter++;
+			if (timers[i].tickcounter == timers[i].divider) {
+				timers[i].count++;
+			}
 		}
 	}
 

@@ -2,15 +2,18 @@ AR=m68k-elf-ar
 CC=m68k-elf-gcc
 CFLAGS=-mc68000 -ggdb -std=gnu99 -I ./include
 
-INSTPATH="/home/daniel/coding/musasim/toolchain/inst/m68k-elf/m68k-elf"
+INSTPATH="../toolchain/inst/m68k-elf/m68k-elf"
 
 all: libunagipai.a
 
-libunagipai.a: uart.o
+libunagipai.a: uart.o machine.o
 	ar cr libunagipai.a *.o
 
 uart.o: uart.c include/uart.h
 	$(CC) $(CFLAGS) -c uart.c
+
+machine.o: machine.o include/machine.h
+	$(CC) $(CFLAGS) -c machine.c
 
 .PHONY: install uninstall clean
 

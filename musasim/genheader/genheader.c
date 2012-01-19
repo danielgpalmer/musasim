@@ -159,13 +159,13 @@ void sound() {
 }
 
 void uart() {
-	printf("static volatile uint8_t* const uart_chan0_rxtx = (uint8_t*) 0x%x;\n",
+	printf("#define uart_chan0_rxtx ((volatile uint8_t*) 0x%x)\n",
 			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_RXTXBUFFER);
-	printf("static volatile uint8_t* const uart_chan0_interruptenable = (uint8_t*) 0x%x;\n",
+	printf("#define uart_chan0_interruptenable (( volatile uint8_t*) 0x%x)\n",
 			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_INTERRUPTENABLE);
-	printf("static volatile uint8_t* const uart_chan0_linecontrol = (uint8_t*) 0x%x;\n",
+	printf("#define uart_chan0_linecontrol ((volatile uint8_t*) 0x%x)\n",
 			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINECONTROL);
-	printf("static volatile uint8_t* const uart_chan0_linestatus = (uint8_t*) 0x%x;\n",
+	printf("#define uart_chan0_linestatus ((volatile uint8_t*) 0x%x)\n",
 			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINESTATUS);
 
 }

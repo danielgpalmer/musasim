@@ -5,6 +5,8 @@
  *      Author: daniel
  */
 
+#include <libunagipai/machine.h>
+
 #include <stdio.h>
 #include <stdint.h>
 #include "fontrom/fontrom.h"
@@ -26,24 +28,6 @@ int16_t initedvar = 0;
 
 char astring[] = "this is a string";
 volatile char something[4] = { 0xff, 0xaa, 0xff, 0xaa };
-
-void sputch(char ch) {
-	while ((*(uart_chan0_linestatus) & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY)
-			!= LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) {
-		// nop
-	}
-	*uart_chan0_rxtx = ch;
-}
-
-
-char sgetch() {
-
-	while (!(*(uart_chan0_linestatus) & LINESTATUS_DATAREADY)) {
-
-	}
-
-	return *uart_chan0_rxtx;
-}
 
 //void puts(char* string) {
 //
@@ -100,25 +84,6 @@ void vblank_handler() {
 
 void uart_handler() __attribute__ (( interrupt));
 void uart_handler() {
-	//sputch(sgetch());
-}
-
-uint16_t getstatusregister() {
-	uint16_t temp;
-	asm volatile (
-			"move.w %%sr, %0\n\t"
-			:
-			: "g"(temp)
-			: );
-	return temp;
-}
-
-void setstatusregister(uint16_t value) {
-	asm volatile (
-			"move.w %0, %%sr\n\t"
-			:
-			: "g"(value)
-			: );
 }
 
 int col = 0;
@@ -176,8 +141,8 @@ void initvideo() {
 
 int main(void) {
 
-	//uint16_t sr = getstatusregister();
-	//setstatusregister((sr & 0xf8ff));
+	uint16_t sr = machine_getstatusregister();
+	machine_setstatusregister((sr & 0xf8ff));
 
 //char helloworld[] = "Hello, World!\n";
 //char* string = helloworld;

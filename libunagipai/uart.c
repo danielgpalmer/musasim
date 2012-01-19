@@ -2,8 +2,12 @@
 
 #include "../musasim/genheader/uart.h"
 
-void uart_readch() {
+char uart_getch() {
+	while (!(*(uart_chan0_linestatus) & LINESTATUS_DATAREADY)) {
 
+	}
+
+	return *uart_chan0_rxtx;
 }
 
 void uart_putch(char ch) {

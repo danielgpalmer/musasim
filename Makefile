@@ -5,6 +5,7 @@ all:
 	$(MAKE) -C musasim
 	$(MAKE) -C musasim docs
 	$(MAKE) -C m68ktestapp
+	$(MAKE) -C libunagipai install
 
 clean:
 	$(MAKE) -C musasim clean
