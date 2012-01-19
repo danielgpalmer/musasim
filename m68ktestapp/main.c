@@ -36,7 +36,7 @@ static int row = 0;
 
 void gputs(char* string) {
 
-	int charoffset = 33 * 16;
+	int charoffset = 32 * 16;
 	char c;
 
 	while ((c = *string++) != 0) {
@@ -117,11 +117,6 @@ void initvideo() {
 
 	}
 
-	//for (int y = 0; y < HEIGHT; y++) {
-	//	for (int x = 0; x < WIDTH; x++) {
-	//		*(video_start + (WIDTH * y) + x) = 0xffff;
-	//	}
-	//}
 	*video_register_config |= VIDEO_CONFIG_ENVBINT;
 }
 
@@ -129,11 +124,6 @@ int main(void) {
 
 	uint16_t sr = machine_getstatusregister();
 	machine_setstatusregister((sr & 0xf8ff));
-
-//char helloworld[] = "Hello, World!\n";
-//char* string = helloworld;
-
-//puts(helloworld);
 
 	initvideo();
 
@@ -156,7 +146,6 @@ int main(void) {
 		//gputs("Hello World!");
 	}
 
-//*(video + (480 * 240) + 100) = 0xFFFF;
 	return 0;
 
 }

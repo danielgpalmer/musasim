@@ -3,7 +3,7 @@
 #set -x;
 set -e;
 
-CHARS="! \" # \$ % & ' ( ) _ + , - . /";
+CHARS="_ ! \" # \$ % & ' ( ) _ + , - . /";
 CHARS="${CHARS} 0 1 2 3 4 5 6 7 8 9 \: \; < = > ? @ ";
 CHARS="${CHARS} A B C D E F G H I J K L M N O P Q R S T U V W X Y Z";
 CHARS="${CHARS} [ \\ ] ^ _ \`";
