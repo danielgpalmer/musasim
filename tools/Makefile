@@ -1,10 +1,13 @@
-all: png2bebin bin2c test 
+all: png2bebin bin2c mkfontrom test 
 
 bin2c: bin2c.c
 	gcc -o bin2c bin2c.c	
 
 png2bebin: png2bebin.c stb_image.o
 	gcc -std=gnu99 -o png2bebin png2bebin.c stb_image.o `pkg-config --cflags argtable2` `pkg-config --libs argtable2`
+
+mkfontrom: mkfontrom.c
+	gcc -std=gnu99 -o mkfontrom mkfontrom.c	
 
 stb_image.o: stb_image.c
 	gcc -D STBI_NO_HDR -c stb_image.c
