@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/stat.h>
+
 
 char* self = 0;
 
@@ -53,10 +55,15 @@ int main(int argc, char** argv)
   if ((fh = fopen(header, "w")) == 0)
     bail_out("Cannot open output file ", argv[2]);
 
+  struct stat binstat;
+
+  fstat(fileno(fi), &binstat);
+
+
   if ((c = fgetc(fi)) != EOF) {
-    fprintf(fh, "const uint8_t _binary_%s_start[];\n", argv[3]);
+    fprintf(fh, "const uint8_t _binary_%s_start[%d];\n", argv[3], binstat.st_size);
     fprintf(fc, "#include <stdint.h>\n", argv[3]);
-    fprintf(fc, "const uint8_t _binary_%s_start[] = {\n", argv[3]);
+    fprintf(fc, "const uint8_t _binary_%s_start[%d] = {\n", argv[3], binstat.st_size);
     fprintf(fc, c<16 ? "  0x%x" : " 0x%x", (unsigned char)c);
   }
 
