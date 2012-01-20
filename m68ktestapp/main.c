@@ -100,7 +100,7 @@ void vblank_handler() {
 
 	col = 10;
 	row = 5;
-	gputs("Yo homes!");
+	gputs("Shizzle me nizzle dizzle bizzle izzle.");
 
 	lastframe = thisframe;
 }

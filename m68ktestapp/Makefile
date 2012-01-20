@@ -28,7 +28,7 @@ syscalls.o: syscalls.c
 
 
 fontrom.o:
-	../tools/mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf -o fontrom.bin
+	../tools/mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf  -o fontrom.bin
 	../tools/bin2c fontrom.bin fontrom fontrom
 	$(CC) $(CFLAGS) -c fontrom.c
 

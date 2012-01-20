@@ -14,7 +14,7 @@ void renderbitmap(FT_GlyphSlot slot, FILE* output) {
 	memset(chardata, 0x00, sizeof(chardata));
 
 	int x = slot->bitmap_left;
-	int y = (pixelheight - slot->bitmap_top) - 1;
+	int y = (pixelheight - slot->bitmap_top) - 2;
 
 	printf("format is %d\n", slot->bitmap.pixel_mode);
 
@@ -51,7 +51,7 @@ void renderbitmap(FT_GlyphSlot slot, FILE* output) {
 					}
 				}
 
-				chardata[index] = flipped;
+				chardata[(y * (pixelwidth / 8)) + index] = flipped;
 				index++;
 				if ((col + 1) * 8 == pixelwidth) {
 					break;
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
 
 	error = FT_Set_Pixel_Sizes(face, /* handle to face object */
 	pixelwidth, /* pixel_width           */
-	pixelheight); /* pixel_height          */
+	pixelheight - 4); /* pixel_height          */
 
 	for (int i = 32; i <= 126; i++) { // FIXME not right?
 
