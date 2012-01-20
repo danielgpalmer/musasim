@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <argtable2.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -9,66 +10,80 @@ int pixelwidth, pixelheight;
 
 void renderbitmap(FT_GlyphSlot slot, FILE* output) {
 
-	uint8_t chardata[pixelwidth * pixelheight];
+	uint8_t chardata[(pixelwidth / 8) * pixelheight];
+	memset(chardata, 0x00, sizeof(chardata));
 
 	int x = slot->bitmap_left;
-	int y = slot->bitmap_top;
+	int y = (pixelheight - slot->bitmap_top) - 1;
 
 	printf("format is %d\n", slot->bitmap.pixel_mode);
 
-	if (slot->bitmap.buffer == NULL) {
-		printf("wtf\n");
-		return;
-	}
+	if (slot->bitmap.buffer != NULL) {
 
-	printf("Should render at %d:%d\n", x, y);
+		printf("Should render at %d:%d\n", x, y);
 
-	printf("rows %d, pitch %d\n", slot->bitmap.rows, slot->bitmap.pitch);
+		printf("rows %d, pitch %d\n", slot->bitmap.rows, slot->bitmap.pitch);
 
-	printf("----\n");
+		printf("----\n");
 
-	for (int i = 0; i < y; i++) {
-		for (int j = 0; j < pixelwidth; j++) {
-			printf(".");
-		}
-		printf("\n");
-	}
+		int index;
 
-	for (int row = 0; row < slot->bitmap.rows; row++) {
+		for (int row = 0; row < slot->bitmap.rows; row++) {
 
-		//for (int i = 0; i < x; i++) {
-		//	printf(".");
-		//}
+			//for (int i = 0; i < x; i++) {
+			//	printf(".");
+			//}
 
-		for (int col = 0; col < slot->bitmap.pitch; col++) {
-			char byte = *(slot->bitmap.buffer + col + ((row * slot->bitmap.pitch)));
+			for (int col = 0; col < slot->bitmap.pitch; col++) {
+				char byte = *(slot->bitmap.buffer + col + ((row * slot->bitmap.pitch)));
 
-			for (int i = 7; i > -1; i--) {
-				if ((byte >> i) & 0x01) {
-
-					printf("o");
+				uint8_t flipped = 0;
+				for (int i = 7; i > -1; i--) {
+					if ((byte >> i) & 0x1) {
+						flipped |= 0x80;
+						printf("o");
+					}
+					else {
+						printf("_");
+					}
+					if (i != 0) {
+						flipped = flipped >> 1;
+					}
 				}
-				else {
-					printf("_");
+
+				chardata[index] = flipped;
+				index++;
+				if ((col + 1) * 8 == pixelwidth) {
+					break;
 				}
+
 			}
 
-			if ((col + 1) * 8 == pixelwidth) {
-				break;
+			printf("\n");
+		}
+
+		printf("----\n");
+
+	}
+
+	for (int byte = 0; byte < sizeof(chardata); byte++) {
+		char data = chardata[byte];
+
+		for (int i = 7; i > -1; i--) {
+			if ((data >> i) & 0x01) {
+				printf("o");
+			}
+			else {
+				printf(".");
 			}
 		}
 
-		printf("\n");
-	}
+		if ((byte + 1) * 8 % pixelwidth == 0) {
+			printf("\n");
 
-	for (int i = slot->bitmap.rows + y; i < pixelheight; i++) {
-		for (int j = 0; j < pixelwidth; j++) {
-			printf(".");
 		}
-		printf("\n");
-	}
 
-	printf("----\n");
+	}
 
 	fwrite(chardata, 1, sizeof(chardata), output);
 }
@@ -78,10 +93,11 @@ int main(int argc, char* argv[]) {
 	struct arg_lit *help = arg_lit0(NULL, "help", "print this help and exit");
 	struct arg_int *w = arg_int1("w", "width", "integer", "the width of the chars");
 	struct arg_int *h = arg_int1("h", "height", "integer", "the height of the chars");
+	struct arg_file *fontfile = arg_file1("f", "font", "file", "the font you want to use");
 	struct arg_file *outputfile = arg_file1("o", "output", "file", "Where the generated font binary should go");
 	struct arg_end *end = arg_end(20);
 
-	void *argtable[] = { help, w, h, outputfile, end };
+	void *argtable[] = { help, w, h, fontfile, outputfile, end };
 
 	if (arg_nullcheck(argtable) != 0) {
 		/* NULL entries were detected, some allocations must have failed */
@@ -110,34 +126,35 @@ int main(int argc, char* argv[]) {
 	pixelheight = *h->ival;
 	FILE* output = fopen(*outputfile->filename, "w+");
 
-
-	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
-
 	FT_Library library;
 	FT_Face face; /* handle to face object */
 
 	int error = FT_Init_FreeType(&library);
 	if (error) {
 		printf("oh noes\n");
+		return 1;
 	}
 
-	error = FT_New_Face(library, "/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf", 0, &face);
+	error = FT_New_Face(library, *fontfile->filename, 0, &face);
 	if (error == FT_Err_Unknown_File_Format) {
 		printf("bad format\n");
 
 	}
 	else if (error) {
 		printf("file not found\n");
+		return 1;
 
 	}
+
+	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+
+	error = FT_Set_Pixel_Sizes(face, /* handle to face object */
+	pixelwidth, /* pixel_width           */
+	pixelheight); /* pixel_height          */
 
 	for (int i = 32; i <= 126; i++) { // FIXME not right?
 
 		printf("char is %c\n", (char) i);
-
-		error = FT_Set_Pixel_Sizes(face, /* handle to face object */
-		pixelwidth, /* pixel_width           */
-		pixelheight); /* pixel_height          */
 
 		FT_UInt glyph_index = FT_Get_Char_Index(face, i);
 
@@ -146,6 +163,7 @@ int main(int argc, char* argv[]) {
 		0); /* load flags, see below */
 		if (error) {
 			printf("error loading glyph\n");
+			return 1;
 		}
 
 		if (face->glyph->format != FT_GLYPH_FORMAT_BITMAP) {
@@ -154,6 +172,7 @@ int main(int argc, char* argv[]) {
 			FT_RENDER_MODE_MONO); /* render mode */
 			if (error) {
 				printf("couldnt render\n");
+				return 1;
 			}
 		}
 

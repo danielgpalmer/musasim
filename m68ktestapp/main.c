@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include "fontrom/fontrom.h"
+#include "fontrom.h"
 #include "../musasim/genheader/machine.h"
 #include "../musasim/genheader/video.h"
 #include "../musasim/genheader/input.h"

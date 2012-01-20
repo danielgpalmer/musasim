@@ -14,7 +14,7 @@ prog.bin: prog.elf
 prog.srec: prog.elf
 	$(CP) -S -O srec prog.elf prog.srec
 	
-prog.elf: crt.o syscalls.o main.o fontrom.o rom.lds
+prog.elf: fontrom.o crt.o syscalls.o main.o rom.lds
 	$(CC) $(LFLAGS) -o prog.elf crt.o main.o fontrom.o syscalls.o -lunagipai
 
 main.o: blip.c main.c ../musasim/genheader/machine.h ../musasim/genheader/video.h ../musasim/genheader/input.h ../musasim/genheader/uart.h
@@ -27,8 +27,10 @@ syscalls.o: syscalls.c
 	$(CC) $(CFLAGS) -c syscalls.c
 
 
-fontrom.o: fontrom/fontrom.c
-	$(CC) $(CFLAGS) -c fontrom/fontrom.c
+fontrom.o:
+	../tools/mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf -o fontrom.bin
+	../tools/bin2c fontrom.bin fontrom fontrom
+	$(CC) $(CFLAGS) -c fontrom.c
 
 cfimage.bin:
 	dd if=/dev/zero of=cfimage.bin bs=1MB count=64

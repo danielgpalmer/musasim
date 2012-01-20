@@ -18,7 +18,7 @@ stb_image.o: stb_image.c
 
 test:
 	./png2bebin -i test.png -o test.be16
-	./mkfontrom -w8 -h16 -o test.fontrom
+	./mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf -o test.fontrom
 	
 clean:
 	rm *.o
