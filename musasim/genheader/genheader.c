@@ -111,14 +111,33 @@ void video() {
 	uint32_t registers = VIDEO_MEMORYEND;
 	registers = utils_nextpow(registers);
 
-	printf("volatile uint16_t* const video_start = (uint16_t*) 0x%x;\n", SLOT_OFFSET(SLOT_VIDEOCARD));
-	printf("volatile uint16_t* const video_end = (uint16_t*) 0x%x;\n", SLOT_OFFSET(SLOT_VIDEOCARD) + VIDEO_MEMORYEND);
-	printf("volatile uint16_t* const video_register_flags = (uint16_t*) 0x%x;\n",
+	printf("#define VIDEO_WIDTH 0x%x\n", VIDEO_WIDTH);
+	printf("#define VIDEO_HEIGHT 0x%x\n", VIDEO_HEIGHT);
+
+	printf("#define video_start ((volatile uint16_t*) 0x%x)\n", SLOT_OFFSET(SLOT_VIDEOCARD));
+	printf("#define video_end ((volatile uint16_t*) 0x%x)\n", SLOT_OFFSET(SLOT_VIDEOCARD) + VIDEO_MEMORYEND);
+	printf("#define video_register_flags ((volatile uint16_t*) 0x%x)\n",
 			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_FLAGS);
-	printf("volatile uint16_t* const video_register_config = (uint16_t*) 0x%x;\n",
+	printf("#define video_register_config ((volatile uint16_t*) 0x%x)\n",
 			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_CONFIG);
-	printf("volatile uint16_t* const video_register_frame = (uint16_t*) 0x%x;\n",
+	printf("#define video_register_pixel ((volatile uint16_t*) 0x%x)\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_PIXEL);
+	printf("#define video_register_line ((volatile uint16_t*) 0x%x)\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_LINE);
+	printf("#define video_register_frame ((volatile uint16_t*) 0x%x)\n",
 			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_FRAME);
+	printf("#define video_register_posx ((volatile uint16_t*) 0x%x)\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_POSX);
+	printf("#define video_register_posy ((volatile uint16_t*) 0x%x)\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_POSY);
+	printf("#define video_register_winx ((volatile uint16_t*) 0x%x)\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_WINX);
+	printf("#define video_register_winy ((volatile uint16_t*) 0x%x)\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_WINY);
+	printf("#define video_register_winwidth ((volatile uint16_t*) 0x%x)\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_WINWIDTH);
+	printf("#define video_register_winheight ((volatile uint16_t*) 0x%x)\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_WINHEIGHT);
 }
 
 void sound() {

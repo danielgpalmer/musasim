@@ -19,7 +19,15 @@
 
 #define VIDEO_REG_FLAGS 0
 #define VIDEO_REG_CONFIG 2
-#define VIDEO_REG_FRAME 4
+#define VIDEO_REG_PIXEL 4
+#define VIDEO_REG_LINE 6
+#define VIDEO_REG_FRAME 8
+#define VIDEO_REG_POSX 10
+#define VIDEO_REG_POSY 12
+#define VIDEO_REG_WINX 14
+#define VIDEO_REG_WINY 16
+#define VIDEO_REG_WINWIDTH 18
+#define VIDEO_REG_WINHEIGHT 20
 
 #include "card.h"
 

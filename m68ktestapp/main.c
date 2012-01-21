@@ -75,6 +75,11 @@ void vblank_handler() {
 	static unsigned int y = 0, x = 0;
 	static int xinc = 1, yinc = 1;
 
+	*video_register_winx = 50;
+	*video_register_winy = 50;
+	*video_register_winwidth = VIDEO_WIDTH - 100;
+	*video_register_winheight = VIDEO_HEIGHT - 100;
+
 	uint16_t vidflags = *video_register_flags;
 	uint8_t port0 = *input_start;
 

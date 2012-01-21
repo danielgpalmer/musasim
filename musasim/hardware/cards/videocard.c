@@ -19,8 +19,15 @@ static uint16_t config = 0;
 static uint16_t pixel = 0;
 static uint16_t line = 0;
 static uint16_t frame = 0;
+static uint16_t posx = 0;
+static uint16_t posy = 0;
+static uint16_t winx = 0;
+static uint16_t winy = 0;
+static uint16_t winwidth = VIDEO_WIDTH;
+static uint16_t winheight = VIDEO_HEIGHT;
 
-static uint16_t* video_registers[] = { &flags, &config, &pixel, &line, &frame };
+static uint16_t* video_registers[] = { &flags, &config, &pixel, &line, &frame, &posx, &posy, &winx, &winy, &winwidth,
+		&winheight };
 
 static SDL_Surface* screen = NULL;
 static SDL_Surface* rendersurface = NULL;
@@ -43,25 +50,6 @@ static void video_init() {
 
 	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
 			screen->format->BitsPerPixel);
-
-	int srcx = 50;
-	int srcy = 50;
-
-	int winx = 0;
-	int winy = 0;
-
-	int winwidth = VIDEO_WIDTH;
-	int winheight = VIDEO_HEIGHT;
-
-	region.x = srcx + winx;
-	region.y = srcy + winy;
-	region.w = winwidth;
-	region.h = winheight;
-
-	window.x = winx;
-	window.y = winy;
-	window.w = 0;
-	window.h = 0;
 
 	registersstart = utils_nextpow(VIDEO_MEMORYEND);
 	log_println(LEVEL_DEBUG, TAG, "Memory size is 0x%x, registers start at 0x%x", VIDEO_MEMORYEND, registersstart);
@@ -131,6 +119,17 @@ static void video_tick() {
 			if (line == VIDEO_HEIGHT) {
 				flags |= FLAG_VBLANK;
 				if (config & VIDEO_CONFIG_ENVBINT) {
+
+					region.x = posx + winx;
+					region.y = posy + winy;
+					region.w = winwidth;
+					region.h = winheight;
+
+					window.x = winx;
+					window.y = winy;
+					window.w = 0;
+					window.h = 0;
+
 					SDL_FillRect(screen, NULL, 0x0);
 					SDL_BlitSurface(rendersurface, &region, screen, &window);
 					board_raise_interrupt(&videocard);
@@ -186,7 +185,6 @@ static void video_write_word(uint32_t address, uint16_t data) {
 	else {
 		uint8_t reg = GETVIDREG(address);
 		*video_registers[reg] = data;
-		log_println(LEVEL_DEBUG, TAG, "Wrote to video register %d", reg);
 	}
 
 }
