@@ -22,40 +22,8 @@ static uint16_t frame = 0;
 
 static uint16_t* video_registers[] = { &flags, &config, &pixel, &line, &frame };
 
-//
-
-// maps
-
-// tile index 0 is special and is a nop
-
-//static uint8_t bg0mapflags;
-//static uint8_t bg1mapflags;
-//static uint8_t bg0map[256];
-//static uint8_t bg1map[256];
-
-// TILE FORMATS
-
-// SMALL 	8x8
-// NORMAL	16x16
-// SKINNY	8x16
-// FAT		32x32
-
-#define TILEFORMAT_SIZE_FAT 32
-
-// Tile memory map
-// 0x0 -- Tile format
-// 0x1 -- Title data
-// ..
-
-#define BGTILEARRAYSIZE 255 * ((TILEFORMAT_SIZE_FAT/8) * TILEFORMAT_SIZE_FAT)
-
-//static uint8_t bg0tileflags = 0;
-//static uint8_t bg0tiles[BGTILEARRAYSIZE];
-
-//static uint8_t bg1tileflags = 0;
-//static uint8_t bg1tiles[BGTILEARRAYSIZE];
-
 static SDL_Surface* screen = NULL;
+static SDL_Surface* rendersurface = NULL;
 
 static void* pixels;
 static uint32_t registersstart;
@@ -67,6 +35,7 @@ static void video_init() {
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
 	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, SDL_SWSURFACE);
+	rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE, 512, 512, VIDEO_PIXELFORMAT, 0, 0, 0, 0);
 
 	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
 			screen->format->BitsPerPixel);
@@ -225,16 +194,7 @@ static uint16_t video_read_word(uint32_t address) {
 
 }
 
-/*static void dumpregs() {
-
- printf("-- REGS --\n");
-
- if ((flags & FLAG_VBLANK) == FLAG_VBLANK) {
- printf("VBlank\n");
- }*/
-
 static void videocard_irqack() {
-	log_println(LEVEL_INSANE, TAG, "videocard_irqack()");
 	board_lower_interrupt(&videocard);
 }
 
