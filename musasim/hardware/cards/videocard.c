@@ -39,19 +39,29 @@ static void video_init() {
 	rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_BUFFERWIDTH, VIDEO_BUFFERHEIGHT, VIDEO_PIXELFORMAT, 0, 0,
 			0, 0);
 
+	SDL_FillRect(rendersurface, NULL, 0xFF0000FF);
+
 	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
 			screen->format->BitsPerPixel);
 
+	int srcx = 50;
+	int srcy = 50;
 
-	region.x = 0;
-	region.y = 0;
-	region.w = VIDEO_WIDTH;
-	region.h = VIDEO_HEIGHT;
+	int winx = 0;
+	int winy = 0;
 
-	window.x = 100;
-	window.y = 100;
-	window.w = 10;
-	window.h = 10;
+	int winwidth = VIDEO_WIDTH;
+	int winheight = VIDEO_HEIGHT;
+
+	region.x = srcx + winx;
+	region.y = srcy + winy;
+	region.w = winwidth;
+	region.h = winheight;
+
+	window.x = winx;
+	window.y = winy;
+	window.w = 0;
+	window.h = 0;
 
 	registersstart = utils_nextpow(VIDEO_MEMORYEND);
 	log_println(LEVEL_DEBUG, TAG, "Memory size is 0x%x, registers start at 0x%x", VIDEO_MEMORYEND, registersstart);
