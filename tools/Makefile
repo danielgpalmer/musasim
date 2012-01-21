@@ -18,11 +18,14 @@ stb_image.o: stb_image.c
 
 test:
 	./png2bebin -i test.png -o test.be16
-	./mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf -o test.fontrom
+	./mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf -o test.fontrom.def
+	./mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf -o test.fontrom.ascii -c ascii
+	./mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/sazanami/sazanami-mincho.ttf -o test.fontrom.kana -c kana
+
 	
 clean:
 	rm *.o
 	rm test.be16
-	rm test.fontrom
+	rm test.fontrom.*
 	rm png2bebin
 	rm mkfontrom
