@@ -24,8 +24,9 @@ static uint16_t* video_registers[] = { &flags, &config, &pixel, &line, &frame };
 
 static SDL_Surface* screen = NULL;
 static SDL_Surface* rendersurface = NULL;
+static SDL_Rect region;
+static SDL_Rect window;
 
-static void* pixels;
 static uint32_t registersstart;
 
 #define GETVIDREG(x) ( x = 0 ? 0 : (x & ~registersstart) / 2)
@@ -35,12 +36,22 @@ static void video_init() {
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
 	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, SDL_SWSURFACE);
-	rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE, 512, 512, VIDEO_PIXELFORMAT, 0, 0, 0, 0);
+	rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_BUFFERWIDTH, VIDEO_BUFFERHEIGHT, VIDEO_PIXELFORMAT, 0, 0,
+			0, 0);
 
 	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
 			screen->format->BitsPerPixel);
 
-	pixels = (void*) screen->pixels;
+
+	region.x = 0;
+	region.y = 0;
+	region.w = VIDEO_WIDTH;
+	region.h = VIDEO_HEIGHT;
+
+	window.x = 100;
+	window.y = 100;
+	window.w = 10;
+	window.h = 10;
 
 	registersstart = utils_nextpow(VIDEO_MEMORYEND);
 	log_println(LEVEL_DEBUG, TAG, "Memory size is 0x%x, registers start at 0x%x", VIDEO_MEMORYEND, registersstart);
@@ -110,6 +121,8 @@ static void video_tick() {
 			if (line == VIDEO_HEIGHT) {
 				flags |= FLAG_VBLANK;
 				if (config & VIDEO_CONFIG_ENVBINT) {
+					SDL_FillRect(screen, NULL, 0x0);
+					SDL_BlitSurface(rendersurface, &region, screen, &window);
 					board_raise_interrupt(&videocard);
 				}
 
@@ -134,12 +147,12 @@ static void video_write_byte(uint32_t address, uint8_t data) {
 	}
 
 	if (address < registersstart) {
-		if (SDL_MUSTLOCK(screen)) {
-			SDL_LockSurface(screen);
+		if (SDL_MUSTLOCK(rendersurface)) {
+			SDL_LockSurface(rendersurface);
 		}
-		*((uint8_t*) screen->pixels + address) = data;
-		if (SDL_MUSTLOCK(screen)) {
-			SDL_UnlockSurface(screen);
+		*((uint8_t*) rendersurface->pixels + address) = data;
+		if (SDL_MUSTLOCK(rendersurface)) {
+			SDL_UnlockSurface(rendersurface);
 		}
 	}
 }
@@ -152,10 +165,10 @@ static void video_write_word(uint32_t address, uint16_t data) {
 
 	if (address < registersstart) {
 		if (SDL_MUSTLOCK(screen)) {
-			SDL_LockSurface(screen);
+			SDL_LockSurface(rendersurface);
 		}
-		*((uint16_t*) screen->pixels + (address / 2)) = data;
-		if (SDL_MUSTLOCK(screen)) {
+		*((uint16_t*) rendersurface->pixels + (address / 2)) = data;
+		if (SDL_MUSTLOCK(rendersurface)) {
 			SDL_UnlockSurface(screen);
 		}
 	}
