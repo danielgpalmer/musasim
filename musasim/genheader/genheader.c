@@ -113,6 +113,8 @@ void video() {
 
 	printf("#define VIDEO_WIDTH 0x%x\n", VIDEO_WIDTH);
 	printf("#define VIDEO_HEIGHT 0x%x\n", VIDEO_HEIGHT);
+	printf("#define VIDEO_PLAYFIELDWIDTH 0x%x\n", VIDEO_PLAYFIELDWIDTH);
+	printf("#define VIDEO_PLAYFIELDHEIGHT 0x%x\n", VIDEO_PLAYFIELDHEIGHT);
 
 	printf("#define video_start ((volatile uint16_t*) 0x%x)\n", SLOT_OFFSET(SLOT_VIDEOCARD));
 	printf("#define video_end ((volatile uint16_t*) 0x%x)\n", SLOT_OFFSET(SLOT_VIDEOCARD) + VIDEO_MEMORYEND);

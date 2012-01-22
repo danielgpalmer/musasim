@@ -115,9 +115,13 @@ void uart_handler() {
 
 void initvideo() {
 	*video_register_config |= VIDEO_CONFIG_MODE_BITMAP;
-	*dma_register_counth = 0x0001;
-	*dma_register_countl = 0xFE00;
+
+	static uint32_t count = VIDEO_PLAYFIELDWIDTH * VIDEO_PLAYFIELDHEIGHT;
+
+	*dma_register_counth = (count >> 16) & 0xFFFF;
+	*dma_register_countl = (count & 0xFFFF);
 	*dma_register_desth = 0x0020;
+	*dma_register_destl = 0x0000;
 	*dma_register_datal = 0xFFFF;
 	//*dma_register_config |= DMA_REGISTER_CONFIG_START | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE
 	//		| DMA_REGISTER_CONFIG_DATAACT_INVERSE | DMA_REGISTER_CONFIG_DSTACT_INCTWO;

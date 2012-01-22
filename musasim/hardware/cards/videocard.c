@@ -43,7 +43,7 @@ static void video_init() {
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
 	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, SDL_SWSURFACE);
-	rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_BUFFERWIDTH, VIDEO_BUFFERHEIGHT, VIDEO_PIXELFORMAT, 0, 0,
+	rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_PLAYFIELDWIDTH, VIDEO_PLAYFIELDHEIGHT, VIDEO_PIXELFORMAT, 0, 0,
 			0, 0);
 
 	SDL_FillRect(rendersurface, NULL, 0xFF0000FF);
