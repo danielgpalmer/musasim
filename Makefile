@@ -13,4 +13,4 @@ clean:
 	
 
 toolchain: 
-	cd toolchains && ./mkchain m68k-elf
+	cd toolchains && ./mkchain.sh m68k-elf
