@@ -1,6 +1,7 @@
-CC=m68k-elf-gcc 
-AS=m68k-elf-as
-CP=m68k-elf-objcopy
+TCPREFIX=../toolchains/inst/m68k-elf/bin
+CC=$(TCPREFIX)/m68k-elf-gcc 
+AS=$(TCPREFIX)/m68k-elf-as
+CP=$(TCPREFIX)/m68k-elf-objcopy
 
 AFLAGS=-ahls -m68000
 CFLAGS=-mc68000 -ggdb -std=gnu99 -Wall
