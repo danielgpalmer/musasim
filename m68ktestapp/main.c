@@ -20,8 +20,8 @@
 
 #include "blip.c" // cant be arsed with linking right now
 #define PIXELSIZE 2
-#define WIDTH 480
-#define HEIGHT 272
+#define WIDTH 512
+#define HEIGHT 512
 
 void interrupthandler() {
 
