@@ -140,10 +140,17 @@ void board_raise_interrupt(const card* card) {
 	}
 
 	// The current driver is requesting interrupt again?
+	if (curslot == slot) {
+		log_println(LEVEL_DEBUG, TAG,
+				"Slot %d tried to raise an interrupt while it's interrupt is apparently being serviced", slot);
+		return;
+	}
+
+	// The current driver is requesting interrupt again?
 	if (interruptswaiting[slot] || curslot == slot) {
 		log_println(LEVEL_DEBUG, TAG,
-				"Slot %d tried to raise an interrupt while it is already scheduled to have it's interrupt serviced",
-				slot);
+				"Slot %d tried to raise an interrupt while it is already scheduled to have it's interrupt serviced. %d is being serviced.",
+				slot, curslot);
 		return;
 	}
 
@@ -171,7 +178,7 @@ void board_lower_interrupt(const card* card) {
 
 	// If this card is the current driver..
 	if (curslot == slot) {
-//		printf("board_lower_interrupt(%d)\n", slot);
+		//printf("board_lower_interrupt(%d)\n", slot);
 
 		// check the queue for a waiting card
 		int newslot = 0;

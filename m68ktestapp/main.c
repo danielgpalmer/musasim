@@ -55,10 +55,10 @@ void gputs(char* string) {
 
 				int pixel = character & 0x01;
 				if (pixel) {
-					*(video_start + offset) = 0x000000;
+					*(video_start + offset) = 0x0000;
 				}
 				else {
-					*(video_start + offset) = 0xFFFFFF;
+					*(video_start + offset) = 0xFFFF;
 				}
 				character = (character >> 1);
 			}
@@ -75,10 +75,10 @@ void vblank_handler() {
 	static unsigned int y = 0, x = 0;
 	static int xinc = 1, yinc = 1;
 
-	*video_register_winx = 50;
-	*video_register_winy = 50;
-	*video_register_winwidth = VIDEO_WIDTH - 100;
-	*video_register_winheight = VIDEO_HEIGHT - 100;
+	//*video_register_winx = 50;
+	//*video_register_winy = 50;
+	//*video_register_winwidth = VIDEO_WIDTH - 100;
+	//*video_register_winheight = VIDEO_HEIGHT - 100;
 
 	uint16_t vidflags = *video_register_flags;
 	uint8_t port0 = *input_start;
@@ -87,6 +87,7 @@ void vblank_handler() {
 
 	for (int i = 0; i < thisframe - lastframe; i++) {
 
+		printf("%d:%d @ 0x%08x\n", x, y, (unsigned int)(video_start + (WIDTH * y) + x));
 		*(video_start + (WIDTH * y) + x) = x * y;
 
 		x += xinc;
@@ -100,12 +101,11 @@ void vblank_handler() {
 		if (y == HEIGHT - 1 || y == 0) {
 			yinc = -yinc;
 		}
-
 	}
 
 	col = 0;
 	row = 0;
-	gputs("Shizzle me nizzle dizzle bizzle izzle. ABCDEFGHI");
+	//gputs("Shizzle me nizzle dizzle bizzle izzle. ABCDEFGHI");
 
 	lastframe = thisframe;
 }
@@ -158,7 +158,7 @@ int main(void) {
 	//*sound_channel_0_config = 0xF9FF;
 
 	while (1) {
-		printf("Whassup homes\n");
+		//printf("Whassup homes\n");
 		//gputs("Hello World!");
 	}
 

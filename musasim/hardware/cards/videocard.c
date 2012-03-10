@@ -43,8 +43,8 @@ static void video_init() {
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
 	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, SDL_SWSURFACE);
-	rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_PLAYFIELDWIDTH, VIDEO_PLAYFIELDHEIGHT, VIDEO_PIXELFORMAT, 0, 0,
-			0, 0);
+	rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_PLAYFIELDWIDTH, VIDEO_PLAYFIELDHEIGHT, VIDEO_PIXELFORMAT,
+			0, 0, 0, 0);
 
 	SDL_FillRect(rendersurface, NULL, 0xFF0000FF);
 
@@ -53,9 +53,7 @@ static void video_init() {
 
 	registersstart = utils_nextpow(VIDEO_MEMORYEND);
 	log_println(LEVEL_DEBUG, TAG, "Memory size is 0x%x, registers start at 0x%x", VIDEO_MEMORYEND, registersstart);
-	log_println(
-			LEVEL_DEBUG,
-			TAG,
+	log_println(LEVEL_DEBUG, TAG,
 			"Active area is %d pixel, Total area  is %d pixels, refresh rate %d, pixels per second %d, pixels per tick %d",
 			VIDEO_ACTIVEPIXELS, VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELSPERSECOND, PIXELSPERTICK);
 
@@ -132,7 +130,9 @@ static void video_tick() {
 
 					SDL_FillRect(screen, NULL, 0x0);
 					SDL_BlitSurface(rendersurface, &region, screen, &window);
-					board_raise_interrupt(&videocard);
+					if (config & VIDEO_CONFIG_ENVBINT) {
+						board_raise_interrupt(&videocard);
+					}
 				}
 
 			}
