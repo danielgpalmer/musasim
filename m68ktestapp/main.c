@@ -19,9 +19,7 @@
 #include "../musasim/genheader/sound.h"
 
 #include "blip.c" // cant be arsed with linking right now
-#define PIXELSIZE 2
-#define WIDTH 512
-#define HEIGHT 512
+
 
 void interrupthandler() {
 
@@ -36,7 +34,7 @@ static int row = 0;
 
 #define CHARWIDTH 8
 #define CHARHEIGHT 16
-#define COLS (WIDTH/CHARWIDTH)
+#define COLS (VIDEO_PLAYFIELDWIDTH/CHARWIDTH)
 #define ROWSIZE (COLS * CHARWIDTH * CHARHEIGHT)
 
 void gputs(char* string) {
@@ -51,7 +49,7 @@ void gputs(char* string) {
 
 			for (int j = 0; j < CHARWIDTH; j++) {
 
-				int offset = (ROWSIZE * row) + ((WIDTH * i) + j + (col * CHARWIDTH));
+				int offset = (ROWSIZE * row) + ((VIDEO_PLAYFIELDWIDTH * i) + j + (col * CHARWIDTH));
 
 				int pixel = character & 0x01;
 				if (pixel) {
@@ -87,25 +85,25 @@ void vblank_handler() {
 
 	for (int i = 0; i < thisframe - lastframe; i++) {
 
-		printf("%d:%d @ 0x%08x\n", x, y, (unsigned int)(video_start + (WIDTH * y) + x));
-		*(video_start + (WIDTH * y) + x) = x * y;
+		printf("%d:%d @ 0x%08x\n", x, y, (unsigned int)(video_start + (VIDEO_PLAYFIELDWIDTH * y) + x));
+		*(video_start + (VIDEO_PLAYFIELDWIDTH * y) + x) = x * y;
 
 		x += xinc;
 
-		if (x == WIDTH - 1 || x == 0) {
+		if (x == VIDEO_PLAYFIELDWIDTH - 1 || x == 0) {
 			xinc = -xinc;
 		}
 
 		y += yinc;
 
-		if (y == HEIGHT - 1 || y == 0) {
+		if (y == VIDEO_PLAYFIELDHEIGHT - 1 || y == 0) {
 			yinc = -yinc;
 		}
 	}
 
 	col = 0;
 	row = 0;
-	//gputs("Shizzle me nizzle dizzle bizzle izzle. ABCDEFGHI");
+	gputs("Shizzle me nizzle dizzle bizzle izzle. ABCDEFGHI");
 
 	lastframe = thisframe;
 }
