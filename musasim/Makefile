@@ -2,15 +2,15 @@ include common.mk
 
 LIBCARDS=./hardware/cards/libcards.a
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
-BASESTUFF=sim.o logging.o utils.o
+BASESTUFF=sim.o logging.o utils.o elfloader.o
 
 all: gdbserver musasim genheader dist
 	
 gdbserver: musashi $(BASESTUFF) hardware gdbserver.o argsgdb.o
-	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o gdbserver
+	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o gdbserver -lelf
 
 musasim: musashi $(BASESTUFF) hardware musasim.o args.o 
-	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o musasim
+	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o $@ -lelf
 
 musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) musasim.c -o musasim.o
@@ -22,16 +22,19 @@ sim.o: sim.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) sim.c -o sim.o
 
 logging.o: logging.c logging.h
-	$(CC) $(CFLAGS) $(LOCALCFLAGS) logging.c -o logging.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) logging.c -o $@
 
 utils.o: utils.c utils.h
-	$(CC) $(CFLAGS) $(LOCALCLAGS) utils.c -o utils.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) utils.c -o $@
 
 args.o: args.h args.c
-	$(CC) $(CFLAGS) $(LOCALCLAGS) args.c -o args.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) args.c -o $@
 
 argsgdb.o: args.h args.c
-	$(CC) $(CFLAGS) $(LOCALCLAGS) -D GDBSERVER args.c -o argsgdb.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) -D GDBSERVER args.c -o argsgdb.o
+
+elfloader.o: elfloader.c elfloader.h
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
 
 # hardware 
 
