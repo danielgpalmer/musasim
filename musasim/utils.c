@@ -6,6 +6,7 @@
  */
 
 #include "utils.h"
+#include <stdint.h>
 
 uint32_t utils_nextpow(uint32_t value) {
 	value--;

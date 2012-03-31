@@ -16,6 +16,7 @@
 
 #ifdef GDBSERVER
 #include "gdbserver.h"
+#include "profiler.h"
 #endif
 
 bool args_parse(int argc, char* argv[]) {
@@ -28,7 +29,9 @@ bool args_parse(int argc, char* argv[]) {
 
 #ifdef GDBSERVER
 	struct arg_int *gdbport = arg_int1("p", "port", "", "Port to listen for GDB connections");
-	void *argtable[] = { help, rompath, elfpath, cfpath, gdbport, end };
+	struct arg_file *profile = arg_file0("m", "profileroutput", "",
+			"Trace program execution and write it to a gprof file");
+	void *argtable[] = { help, rompath, elfpath, cfpath, gdbport, profile, end };
 #else
 	void *argtable[] = {help, rompath, elfpath, cfpath, end};
 #endif
@@ -58,12 +61,15 @@ bool args_parse(int argc, char* argv[]) {
 
 	else {
 
+// FIXME the gdbserver shouldnt have to have a rom or elf loaded as gdb can do that
+//#ifndef GDBSERVER
 		if (rompath->count == 0 && elfpath->count == 0) {
 			printf("You must pass either a rom or elf to load\n");
 			return false;
 		}
+//#endif
 
-		else if (rompath->count > 0 && elfpath->count > 0) {
+		if (rompath->count > 0 && elfpath->count > 0) {
 			printf("You can either load a rom or an elf, not both\n");
 			return false;
 		}
@@ -87,6 +93,12 @@ bool args_parse(int argc, char* argv[]) {
 
 #ifdef GDBSERVER
 		gdbserver_setport(*(gdbport->ival));
+
+		if (profile->count == 1) {
+			printf("enabling profiler\n");
+			profiler_init();
+		}
+
 #endif
 
 		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));

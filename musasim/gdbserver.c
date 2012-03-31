@@ -23,6 +23,7 @@
 #include "logging.h"
 
 #include "gdbserver.h"
+#include "profiler.h"
 
 #define GDB_RDP_BACKSTEP bs
 #define GDB_RDP_BACKCONTINUE bc
@@ -61,7 +62,6 @@ static GSList* breakpoints;
 static GSList* watchpoints_write;
 static GSList* watchpoints_read;
 static GSList* watchpoints_access;
-static GSList* trace;
 
 typedef struct {
 	uint32_t address;
@@ -503,7 +503,7 @@ static void gdbserver_cleanup() {
 	sim_quit();
 
 	g_slist_free(breakpoints);
-	g_slist_free(trace);
+
 }
 
 void termination_handler(int signum) {
@@ -792,24 +792,27 @@ static char* readmem(char* commandbuffer) {
 	return getmemorystring(ad, sz);
 }
 
-void gdbserver_check_breakpoints() {
+void gdbserver_instruction_hook_callback() {
+	uint32_t pc = m68k_get_reg(NULL, M68K_REG_PC);
+	gdbserver_check_breakpoints(pc);
+	profiler_onpcchange(pc);
+}
 
-	uint32_t address = m68k_get_reg(NULL, M68K_REG_PC);
-	trace = g_slist_append(trace, GUINT_TO_POINTER(address));
+void gdbserver_check_breakpoints(uint32_t pc) {
 
 	if (state == STEPPING) {
 		m68k_end_timeslice();
-		m68k_disassemble(crap, address, M68K_CPU_TYPE_68000);
-		log_println(LEVEL_INFO, TAG, "Stepped to 0x%08x; %s", address, crap);
+		m68k_disassemble(crap, pc, M68K_CPU_TYPE_68000);
+		log_println(LEVEL_INFO, TAG, "Stepped to 0x%08x; %s", pc, crap);
 		state = BREAKING;
 	}
 
 	GSList* iterator;
 	for (iterator = breakpoints; iterator; iterator = iterator->next) {
-		if (GPOINTER_TO_UINT(iterator->data) == address) {
+		if (GPOINTER_TO_UINT(iterator->data) == pc) {
 			m68k_end_timeslice();
-			m68k_disassemble(crap, address, M68K_CPU_TYPE_68000);
-			log_println(LEVEL_INFO, TAG, "Broke at 0x%08x; %s", address, crap);
+			m68k_disassemble(crap, pc, M68K_CPU_TYPE_68000);
+			log_println(LEVEL_INFO, TAG, "Broke at 0x%08x; %s", pc, crap);
 			state = WAITING;
 			gdbserver_sendpacket(socketconnection, STOP_WEBROKE);
 			break;

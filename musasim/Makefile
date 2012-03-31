@@ -6,8 +6,8 @@ BASESTUFF=sim.o logging.o utils.o elfloader.o
 
 all: gdbserver musasim genheader dist
 	
-gdbserver: musashi $(BASESTUFF) hardware gdbserver.o argsgdb.o
-	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o gdbserver -lelf
+gdbserver: musashi $(BASESTUFF) hardware gdbserver.o argsgdb.o profiler.o
+	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o profiler.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o gdbserver -lelf
 
 musasim: musashi $(BASESTUFF) hardware musasim.o args.o 
 	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o $@ -lelf
@@ -34,6 +34,8 @@ argsgdb.o: args.h args.c
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -D GDBSERVER args.c -o argsgdb.o
 
 elfloader.o: elfloader.c elfloader.h
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
+profiler.o: profiler.c profiler.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
 
 # hardware 

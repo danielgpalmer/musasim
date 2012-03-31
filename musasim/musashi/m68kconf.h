@@ -127,7 +127,7 @@
 #ifdef GDBSERVER
 
 #define M68K_INSTRUCTION_HOOK       OPT_SPECIFY_HANDLER
-#define M68K_INSTRUCTION_CALLBACK() gdbserver_check_breakpoints()
+#define M68K_INSTRUCTION_CALLBACK() gdbserver_instruction_hook_callback()
 
 #else
 

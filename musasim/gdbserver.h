@@ -10,7 +10,8 @@
 
 #include <stdint.h>
 
-void gdbserver_check_breakpoints();
+void gdbserver_instruction_hook_callback();
+void gdbserver_check_breakpoints(uint32_t pc);
 void gdbserver_setport(int p);
 void gdb_hitstop();
 
