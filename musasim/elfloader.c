@@ -13,7 +13,7 @@
 #include <stdio.h>
 
 bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
-	int fd;
+	FILE* file;
 	Elf* e;
 
 	GElf_Ehdr ehdr;
@@ -23,12 +23,12 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 		return false;
 	}
 
-	if (!(fd = open(path, O_RDONLY, 0))) {
+	if (!(file = fopen(path, "r"))) {
 		printf("Failed to open file %s\n", path);
 		return false;
 	}
 
-	if ((e = elf_begin(fd, ELF_C_READ, NULL)) == NULL) {
+	if ((e = elf_begin(file->_fileno, ELF_C_READ, NULL)) == NULL) {
 		printf("Failed to open elf\n");
 		return false;
 	}
@@ -48,16 +48,21 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 		GElf_Phdr phdr;
 		gelf_getphdr(e, header, &phdr);
 		if (phdr.p_type == 0x1) {
-			printf("Loadable section starts at %lx and its length is %ld.. there is %ld bytes of it on disk starting at 0x%lx\n",
-					phdr.p_vaddr, phdr.p_memsz, phdr.p_filesz, phdr.p_offset);
 
-			if (phdr.p_vaddr >= destaddr + maxlen) {
+			printf("Phy address 0x%08lx, Virt address 0x%08lx\n", phdr.p_paddr, phdr.p_vaddr);
+			if (phdr.p_paddr >= destaddr + maxlen) {
 				printf("Section is past the end of the area being loaded to, ignored\n");
+				break;
 			}
+
+			if (fseek(file, phdr.p_offset, SEEK_SET) != 0) {
+				printf("Failed to seek\n");
+			}
+			printf("Read %ld bytes\n", fread(dest + (phdr.p_paddr - destaddr), 1, phdr.p_filesz, file));
 
 		}
 
 	}
 
-	return false;
+	return true;
 }
