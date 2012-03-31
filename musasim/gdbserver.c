@@ -739,7 +739,7 @@ char* gdbserver_query(char* commandbuffer) {
 
 		if (strncmp(monitorcommand, "load ", 5) == 0) {
 			printf("User has requested that a new binary is loaded into ROM\n");
-			romcard_loadrom(monitorcommand + 5);
+			romcard_loadrom(monitorcommand + 5, false);
 			ret = "OK";
 		}
 

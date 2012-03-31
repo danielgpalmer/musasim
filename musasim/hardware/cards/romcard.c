@@ -15,6 +15,7 @@
 #include "romcard.h"
 #include "../util.h"
 #include "../../logging.h"
+#include "../../elfloader.h"
 
 static uint8_t* rom; /* ROM */
 static uint8_t* ram; /* RAM */
@@ -48,24 +49,30 @@ static void romcard_dispose() {
 
 }
 
-bool romcard_loadrom(const char* path) {
+bool romcard_loadrom(const char* path, bool elf) {
 
 	romcard_init(); // FIXME hack
 
 	memset(rom, 0x00, SIZE_ROM);
-	FILE* fhandle;
-	if ((fhandle = fopen(path, "rb")) == NULL) {
-		log_println(LEVEL_WARNING, TAG, "Unable to open %s\n", path);
-		return false;
-	}
 
-	log_println(LEVEL_INFO, TAG, "Loading %s into ROM", path);
-	if (fread(rom, 1, SIZE_ROM + 1, fhandle) <= 0) {
-		log_println(LEVEL_WARNING, TAG, "Error reading %s\n", path);
-		return false;
+	if (elf) {
+		return elf_load(path, rom, 0, SIZE_ROM);
 	}
+	else {
+		FILE* fhandle;
+		if ((fhandle = fopen(path, "rb")) == NULL) {
+			log_println(LEVEL_WARNING, TAG, "Unable to open %s\n", path);
+			return false;
+		}
 
-	return true;
+		log_println(LEVEL_INFO, TAG, "Loading %s into ROM", path);
+		if (fread(rom, 1, SIZE_ROM + 1, fhandle) <= 0) {
+			log_println(LEVEL_WARNING, TAG, "Error reading %s\n", path);
+			return false;
+		}
+
+		return true;
+	}
 }
 
 static bool romcard_valid_address(uint32_t address, bool write) {
@@ -76,7 +83,8 @@ static bool romcard_valid_address(uint32_t address, bool write) {
 			return true;
 		}
 		else {
-			log_println(LEVEL_INFO, TAG, "invalid write to 0x%08x, write to ROM? PC[0x%08x]", address, m68k_get_reg(NULL, M68K_REG_PC));
+			log_println(LEVEL_INFO, TAG, "invalid write to 0x%08x, write to ROM? PC[0x%08x]", address,
+					m68k_get_reg(NULL, M68K_REG_PC));
 			return false;
 		}
 	}

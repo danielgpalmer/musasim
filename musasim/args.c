@@ -68,9 +68,17 @@ bool args_parse(int argc, char* argv[]) {
 			return false;
 		}
 
-		if (!romcard_loadrom(*(rompath->filename))) {
-			return false;
+		if (rompath->count == 1) {
+			if (!romcard_loadrom(*(rompath->filename), false)) {
+				return false;
+			}
 		}
+		else if (elfpath->count == 1) {
+			if (!romcard_loadrom(*(elfpath->filename), true)) {
+				return false;
+			}
+		}
+
 		if (cfpath->count > 0) {
 			if (!cfintf_load(*(cfpath->filename))) {
 				return false;

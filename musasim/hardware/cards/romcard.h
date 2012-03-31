@@ -11,7 +11,7 @@
 #include "card.h"
 #include "stdbool.h"
 
-bool romcard_loadrom(const char* path);
+bool romcard_loadrom(const char* path, bool elf);
 
 const card romcard;
 
