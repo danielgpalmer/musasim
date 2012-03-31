@@ -1,11 +1,14 @@
+TOP=$(shell pwd)
+PATH:=$(PATH):$(TOP)/toolchains/inst/m68k-elf/bin/
+
 .PHONY: all clean toolchain
 
 all: toolchain
 	$(MAKE) -C tools
 	$(MAKE) -C musasim
 	$(MAKE) -C musasim docs
-	$(MAKE) -C libunagipai install
-	$(MAKE) -C m68ktestapp
+	PATH=$(PATH) $(MAKE) -C libunagipai install
+	PATH=$(PATH) $(MAKE) -C m68ktestapp
 
 clean:
 	$(MAKE) -C musasim clean
