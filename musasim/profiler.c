@@ -117,7 +117,7 @@ void profiler_flush() {
 	while (g_hash_table_iter_next(&iter, &key, &value)) {
 		callarc_t* callarc = value;
 		printf("0x%08x -> 0x%08x, %d\n", callarc->from, callarc->to, callarc->count);
-		uint8_t tag = 0x1;
+		uint8_t tag = GMON_TAG_CG_ARC;
 		fwrite(&tag, 1, 1, file);
 		fwrite(pointertobeuint(callarc->from), 1, sizeof(uint32_t), file);
 		fwrite(pointertobeuint(callarc->to), 1, sizeof(uint32_t), file);
@@ -126,9 +126,10 @@ void profiler_flush() {
 
 //GMON_Record_Tag tag = GMON_TAG_BB_COUNT;
 	uint32_t records = g_hash_table_size(blockcounts);
-	uint8_t tag = 0x2;
+	printf("records - %d\n", records);
+	uint8_t tag = GMON_TAG_BB_COUNT;
 	fwrite(&tag, 1, 1, file);
-	fwrite(pointertobeuint(records), 1, sizeof(uint32_t), file);
+	fwrite(&records, 1, sizeof(uint32_t), file); // mmm it wants this in the host endian??!
 
 	g_hash_table_iter_init(&iter, blockcounts);
 	while (g_hash_table_iter_next(&iter, &key, &value)) {
