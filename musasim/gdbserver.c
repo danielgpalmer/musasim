@@ -860,7 +860,7 @@ void gdb_hitstop() {
 void gdb_onpcmodified(uint32_t a) {
 
 	if (state == RUNNING) {
-		profiler_onpcmodified(0x0, a);
+		profiler_onpcmodified(m68k_get_reg(NULL, M68K_REG_PPC), a);
 	}
 
 }
