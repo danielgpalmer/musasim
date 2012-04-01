@@ -117,8 +117,17 @@
  * Seems to only actually do something when interrupt handlers fire
  */
 
+#ifdef GDBSERVER
+
+#define M68K_MONITOR_PC             OPT_SPECIFY_HANDLER
+#define M68K_SET_PC_CALLBACK(A)     gdb_onpcmodified(A)
+
+#else
+
 #define M68K_MONITOR_PC             OPT_OFF
 #define M68K_SET_PC_CALLBACK(A)     your_pc_changed_handler_function(A)
+
+#endif
 
 /* If on, CPU will call the instruction hook callback before every
  * instruction.

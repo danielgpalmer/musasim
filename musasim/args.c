@@ -96,7 +96,7 @@ bool args_parse(int argc, char* argv[]) {
 
 		if (profile->count == 1) {
 			printf("enabling profiler\n");
-			profiler_init();
+			profiler_init(*(profile->filename));
 		}
 
 #endif

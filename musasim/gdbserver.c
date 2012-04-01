@@ -502,7 +502,12 @@ static void gdbserver_cleanup() {
 	log_println(LEVEL_INFO, TAG, "Cleaning up");
 	sim_quit();
 
+	profiler_flush();
+
 	g_slist_free(breakpoints);
+	g_slist_free(watchpoints_access);
+	g_slist_free(watchpoints_read);
+	g_slist_free(watchpoints_write);
 
 }
 
@@ -850,6 +855,14 @@ void gdbserver_setport(int port) {
 void gdb_hitstop() {
 	log_println(LEVEL_INFO, TAG, "hit stop");
 	cpu_pulse_stop();
+}
+
+void gdb_onpcmodified(uint32_t a) {
+
+	if (state == RUNNING) {
+		profiler_onpcmodified(0x0, a);
+	}
+
 }
 
 uint8_t gdbserver_m68k_read_byte(uint32_t address) {
