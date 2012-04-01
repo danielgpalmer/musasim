@@ -30,6 +30,17 @@ typedef struct {
 
 static bool enabled = false;
 static FILE* file;
+
+static uint32_t* pointertobeuint(uint32_t uint) {
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+	static uint32_t beuint;
+	beuint = GUINT32_TO_BE(uint);
+	return &beuint;
+#else
+	return &uint;
+#endif
+}
+
 void profiler_init(const char* filepath) {
 
 	struct gmon_hdr hdr = { .cookie = GMON_MAGIC, .version = { 0, 0, 0, GMON_VERSION } };
@@ -108,22 +119,22 @@ void profiler_flush() {
 		printf("0x%08x -> 0x%08x, %d\n", callarc->from, callarc->to, callarc->count);
 		uint8_t tag = 0x1;
 		fwrite(&tag, 1, 1, file);
-		fwrite(&(callarc->from), 1, sizeof(uint32_t), file);
-		fwrite(&(callarc->to), 1, sizeof(uint32_t), file);
-		fwrite(&(callarc->count), 1, sizeof(uint32_t), file);
+		fwrite(pointertobeuint(callarc->from), 1, sizeof(uint32_t), file);
+		fwrite(pointertobeuint(callarc->to), 1, sizeof(uint32_t), file);
+		fwrite(pointertobeuint(callarc->count), 1, sizeof(uint32_t), file);
 	}
 
-	//GMON_Record_Tag tag = GMON_TAG_BB_COUNT;
+//GMON_Record_Tag tag = GMON_TAG_BB_COUNT;
 	uint32_t records = g_hash_table_size(blockcounts);
 	uint8_t tag = 0x2;
 	fwrite(&tag, 1, 1, file);
-	fwrite(&records, 1, sizeof(uint32_t), file);
+	fwrite(pointertobeuint(records), 1, sizeof(uint32_t), file);
 
 	g_hash_table_iter_init(&iter, blockcounts);
 	while (g_hash_table_iter_next(&iter, &key, &value)) {
 		blockcount_t* blockcount = value;
-		fwrite(&(blockcount->address), 1, sizeof(uint32_t), file);
-		fwrite(&(blockcount->count), 1, sizeof(uint32_t), file);
+		fwrite(pointertobeuint(blockcount->address), 1, sizeof(uint32_t), file);
+		fwrite(pointertobeuint(blockcount->count), 1, sizeof(uint32_t), file);
 	}
 
 	g_hash_table_destroy(callarcs);
