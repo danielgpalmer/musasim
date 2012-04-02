@@ -20,7 +20,6 @@
 
 #include "blip.c" // cant be arsed with linking right now
 
-
 void interrupthandler() {
 
 }
@@ -40,7 +39,7 @@ static int row = 0;
 void gputs(char* string) {
 
 	int charoffset = 32 * CHARHEIGHT;
-	char c;
+	char c = 0;
 
 	while ((c = *string++) != 0) {
 		for (int i = 0; i < CHARHEIGHT; i++) {
@@ -85,7 +84,7 @@ void vblank_handler() {
 
 	for (int i = 0; i < thisframe - lastframe; i++) {
 
-		printf("%d:%d @ 0x%08x\n", x, y, (unsigned int)(video_start + (VIDEO_PLAYFIELDWIDTH * y) + x));
+		//printf("%d:%d @ 0x%08x\n", x, y, (unsigned int) (video_start + (VIDEO_PLAYFIELDWIDTH * y) + x));
 		*(video_start + (VIDEO_PLAYFIELDWIDTH * y) + x) = x * y;
 
 		x += xinc;

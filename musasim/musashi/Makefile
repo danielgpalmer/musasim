@@ -6,10 +6,10 @@ GDBFLAGS=-D GDBSERVER
 
 #single object files
 musashi.o: m68kcpu.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o m68kdasm.o
-	ld -r m68kcpu.o m68kops.o m68kopac.o m68kopdm.o m68kopnz.o -o musashi.o m68kdasm.o
+	ld -r $^ -o $@
 
 musashigdb.o: m68kcpugdb.o m68kopsgdb.o m68kopacgdb.o m68kopdmgdb.o m68kopnzgdb.o m68kdasm.o
-	ld -r m68kcpugdb.o m68kopsgdb.o m68kopacgdb.o m68kopdmgdb.o m68kopnzgdb.o -o musashigdb.o m68kdasm.o
+	ld -r $^ -o $@
 
 m68kcpu.o: ../sim.h m68kops.h m68k.h m68kconf.h
 	$(CC) $(CFLAGS) m68kcpu.c -o m68kcpu.o

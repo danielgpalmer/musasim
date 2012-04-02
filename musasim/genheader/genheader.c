@@ -22,6 +22,8 @@
 char headers[] = "#include <stdint.h>\n"
 		"\n\n";
 
+#define SIZEOFARRAY(A) (sizeof(A)/sizeof(A[0]))
+
 void common();
 void machine();
 void video();
@@ -78,31 +80,20 @@ void machine() {
 	//printf("volatile uint16_t* machine_ram_end = (uint16_t*) 0x%x;\n", MAX_RAM);
 	//printf("uint16_t machine_ram_size = (uint16_t) 0x%x;\n", SIZE_RAM);
 
-	printf("volatile uint8_t* const ide_register_command = (uint8_t*) 0x%x;\n", SLOT_OFFSET(SLOT_CFCARD) + 14);
+	printf("#define ide_register_command ((volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_CFCARD) + 14);
 
-	printf("volatile uint16_t* const dma_register_config = (uint16_t*) 0x%x;\n",
-			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_CONFIG);
+	char* dmaregisternames[] = { "dma_register_config", "dma_register_datah", "dma_register_datal",
+			"dma_register_counth", "dma_register_countl", "dma_register_srch", "dma_register_srcl",
+			"dma_register_desth", "dma_register_destl" };
+	uint32_t dmaregisteraddresses[] = { SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_CONFIG, SLOT_OFFSET(SLOT_DMACARD)
+			+ DMACARD_REGISTER_DATAH, SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DATAL, SLOT_OFFSET(SLOT_DMACARD)
+			+ DMACARD_REGISTER_COUNTH, SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_COUNTL, SLOT_OFFSET(SLOT_DMACARD)
+			+ DMACARD_REGISTER_SOURCEH, SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_SOURCEL, SLOT_OFFSET(SLOT_DMACARD)
+			+ DMACARD_REGISTER_DESTINATIONH, SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DESTINATIONL };
 
-	printf("volatile uint16_t* const dma_register_datah = (uint16_t*) 0x%x;\n",
-			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DATAH);
-
-	printf("volatile uint16_t* const dma_register_datal = (uint16_t*) 0x%x;\n",
-			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DATAL);
-
-	printf("volatile uint16_t* const dma_register_counth = (uint16_t*) 0x%x;\n",
-			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_COUNTH);
-	printf("volatile uint16_t* const dma_register_countl = (uint16_t*) 0x%x;\n",
-			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_COUNTL);
-
-	printf("volatile uint16_t* const dma_register_srch = (uint16_t*) 0x%x;\n",
-			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_SOURCEH);
-	printf("volatile uint16_t* const dma_register_srcl = (uint16_t*) 0x%x;\n",
-			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_SOURCEL);
-
-	printf("volatile uint16_t* const dma_register_desth = (uint16_t*) 0x%x;\n",
-			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DESTINATIONH);
-	printf("volatile uint16_t* const dma_register_destl = (uint16_t*) 0x%x;\n",
-			SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DESTINATIONL);
+	for (int i = 0; i < (sizeof(dmaregisternames) / sizeof(dmaregisternames[0])); i++) {
+		printf("#define %s ((volatile uint16_t*) 0x%x)\n", dmaregisternames[i], dmaregisteraddresses[i]);
+	}
 
 }
 
@@ -164,16 +155,18 @@ void sound() {
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_VOLUME);
 		}
 		else {
-			printf("#define sound_channel_%d_config ((volatile uint16_t*) 0x%x)\n", i - 1,
-					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_CONFIG);
-			printf("#define sound_channel_%d_volume ((volatile uint16_t*) 0x%x)\n", i - 1,
-					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_VOLUME);
-			printf("volatile uint16_t* const sound_channel_%d_samplepointer = (uint16_t*) 0x%x;\n", i - 1,
-					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_SAMPLEPOINTER);
-			printf("volatile uint16_t* const sound_channel_%d_samplelength = (uint16_t*) 0x%x;\n", i - 1,
-					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_SAMPLELENGTH);
-			printf("volatile uint16_t* const sound_channel_%d_samplepos= (uint16_t*) 0x%x;\n", i - 1,
-					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_SAMPLEPOS);
+
+			char* registers[] = { "config", "volume", "samplepointer", "samplelength", "samplepos" };
+			uint32_t offsets[] = { SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_CONFIG,
+					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_VOLUME, SLOT_OFFSET(SLOT_SOUNDCARD)
+							+ channelbases[i] + SOUND_REGISTER_SAMPLEPOINTER, SLOT_OFFSET(SLOT_SOUNDCARD)
+							+ channelbases[i] + SOUND_REGISTER_SAMPLELENGTH, SLOT_OFFSET(SLOT_SOUNDCARD)
+							+ channelbases[i] + SOUND_REGISTER_SAMPLEPOS };
+
+			for (int reg = 0; reg < SIZEOFARRAY(registers); reg++) {
+				printf("#define sound_channel_%d_%s ((volatile uint16_t*) 0x%x)\n", i - 1, registers[reg],
+						offsets[reg]);
+			}
 		}
 	}
 

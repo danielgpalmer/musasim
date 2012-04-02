@@ -865,6 +865,10 @@ void gdb_onpcmodified(uint32_t a) {
 
 }
 
+void gdb_break() {
+	state = BREAKING;
+}
+
 uint8_t gdbserver_m68k_read_byte(uint32_t address) {
 	gdbserver_check_watchpoints(address, 0, false, 1);
 	return board_read_byte(address);

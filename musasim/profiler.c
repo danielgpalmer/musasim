@@ -62,6 +62,11 @@ void profiler_init(const char* filepath) {
 }
 
 void profiler_onpcmodified(uint32_t a1, uint32_t a2) {
+
+	if (!enabled) {
+		return;
+	}
+
 	char key[17];
 	snprintf(key, 17, "%08x%08x", a1, a2);
 	if (!g_hash_table_contains(callarcs, &key)) {

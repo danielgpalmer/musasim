@@ -1394,7 +1394,7 @@ INLINE void m68ki_jump_vector(uint vector)
 {
 	REG_PC = (vector<<2) + REG_VBR;
 	REG_PC = m68ki_read_data_32(REG_PC);
-	//m68ki_pc_changed(REG_PC);
+	m68ki_pc_changed(REG_PC);
 }
 
 

@@ -15,6 +15,7 @@ void gdbserver_check_breakpoints(uint32_t pc);
 void gdbserver_setport(int p);
 void gdb_hitstop();
 void gdb_onpcmodified(uint32_t a);
+void gdb_break();
 
 uint8_t gdbserver_m68k_read_byte(uint32_t address);
 uint16_t gdbserver_m68k_read_word(uint32_t address);
