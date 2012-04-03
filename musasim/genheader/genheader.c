@@ -26,7 +26,7 @@ char headers[] = "#include <stdint.h>\n"
 
 void common();
 void machine();
-void video();
+static void video();
 void sound();
 void input();
 void uart();
@@ -97,7 +97,7 @@ void machine() {
 
 }
 
-void video() {
+static void video() {
 
 	uint32_t registers = VIDEO_MEMORYEND;
 	registers = utils_nextpow(registers);
@@ -107,30 +107,22 @@ void video() {
 	printf("#define VIDEO_PLAYFIELDWIDTH 0x%x\n", VIDEO_PLAYFIELDWIDTH);
 	printf("#define VIDEO_PLAYFIELDHEIGHT 0x%x\n", VIDEO_PLAYFIELDHEIGHT);
 
-	printf("#define video_start ((volatile uint16_t*) 0x%x)\n", SLOT_OFFSET(SLOT_VIDEOCARD));
-	printf("#define video_end ((volatile uint16_t*) 0x%x)\n", SLOT_OFFSET(SLOT_VIDEOCARD) + VIDEO_MEMORYEND);
-	printf("#define video_register_flags ((volatile uint16_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_FLAGS);
-	printf("#define video_register_config ((volatile uint16_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_CONFIG);
-	printf("#define video_register_pixel ((volatile uint16_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_PIXEL);
-	printf("#define video_register_line ((volatile uint16_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_LINE);
-	printf("#define video_register_frame ((volatile uint16_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_FRAME);
-	printf("#define video_register_posx ((volatile uint16_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_POSX);
-	printf("#define video_register_posy ((volatile uint16_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_POSY);
-	printf("#define video_register_winx ((volatile uint16_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_WINX);
-	printf("#define video_register_winy ((volatile uint16_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_WINY);
-	printf("#define video_register_winwidth ((volatile uint16_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_WINWIDTH);
-	printf("#define video_register_winheight ((volatile uint16_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_WINHEIGHT);
+	char* registernames[] = { "start", "end", "register_flags", "register_config", "register_pixel", "register_line",
+			"register_frame", "register_posx", "register_posy", "register_winx", "register_winy", "register_winwidth",
+			"register_winheight" };
+
+	uint32_t regoffset = SLOT_OFFSET(SLOT_VIDEOCARD) + registers;
+
+	uint32_t registeroffsets[] = { SLOT_OFFSET(SLOT_VIDEOCARD), SLOT_OFFSET(SLOT_VIDEOCARD) + VIDEO_MEMORYEND, regoffset
+			+ VIDEO_REG_FLAGS, regoffset + VIDEO_REG_CONFIG, regoffset + VIDEO_REG_PIXEL, regoffset + VIDEO_REG_LINE,
+			regoffset + VIDEO_REG_FRAME, regoffset + VIDEO_REG_POSX, regoffset + VIDEO_REG_POSY,
+			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_WINX, regoffset + VIDEO_REG_WINY, regoffset
+					+ VIDEO_REG_WINWIDTH, regoffset + VIDEO_REG_WINHEIGHT };
+
+	for (int reg = 0; reg < SIZEOFARRAY(registernames); reg++) {
+		printf("#define video_%s ((volatile uint16_t*) 0x%x)\n", registernames[reg], registeroffsets[reg]);
+	}
+
 }
 
 void sound() {
@@ -143,15 +135,15 @@ void sound() {
 	soundcard_channelbases(channelbases, channelregisterbase);
 
 	for (int i = 0; i < SAMPLEPAGES; i++) {
-		printf("volatile uint16_t* const sound_bank_%d = (uint16_t*) 0x%x;\n", i,
+		printf("#define sound_bank_%d ((volatile uint16_t*) 0x%x)\n", i,
 				SLOT_OFFSET(SLOT_SOUNDCARD) + SAMPLEPAGESIZE * i);
 	}
 
 	for (int i = 0; i < TOTALCHANNELS; i++) {
 		if (i == 0) {
-			printf("volatile uint16_t* const sound_channel_master_config = (uint16_t*) 0x%x;\n",
+			printf("#define sound_channel_master_config ((volatile uint16_t*) 0x%x)\n",
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_CONFIG);
-			printf("volatile uint16_t* const sound_channel_master_volume = (uint16_t*) 0x%x;\n",
+			printf("#define sound_channel_master_volume ((volailte uint16_t*) 0x%x)\n",
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_VOLUME);
 		}
 		else {
@@ -173,17 +165,18 @@ void sound() {
 }
 
 void uart() {
-	printf("#define uart_chan0_rxtx ((volatile uint8_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_RXTXBUFFER);
-	printf("#define uart_chan0_interruptenable (( volatile uint8_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_INTERRUPTENABLE);
-	printf("#define uart_chan0_linecontrol ((volatile uint8_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINECONTROL);
-	printf("#define uart_chan0_linestatus ((volatile uint8_t*) 0x%x)\n",
-			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINESTATUS);
 
+	char* registernames[] = { "rxtx", "interruptenable", "linecontrol", "linestatus" };
+
+	uint32_t registeroffsets[] = { SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_RXTXBUFFER, SLOT_OFFSET(SLOT_UARTCARD)
+			+ UART_REGISTER_INTERRUPTENABLE, SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINECONTROL,
+			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINESTATUS };
+
+	for (int reg = 0; reg < SIZEOFARRAY(registernames); reg++) {
+		printf("#define uart_chan0_%s ((volatile uint8_t*) 0x%x)\n", registernames[reg], registeroffsets[reg]);
+	}
 }
 
 void input() {
-	printf("volatile uint8_t* const input_start = (uint8_t*) 0x%x;\n", SLOT_OFFSET(SLOT_INPUTCARD));
+	printf("#define input_start ((volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_INPUTCARD));
 }

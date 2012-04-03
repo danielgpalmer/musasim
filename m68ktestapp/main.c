@@ -19,7 +19,6 @@
 #include "../musasim/genheader/sound.h"
 
 #include "blip.c" // cant be arsed with linking right now
-
 void interrupthandler() {
 
 }
@@ -84,8 +83,11 @@ void vblank_handler() {
 
 	for (int i = 0; i < thisframe - lastframe; i++) {
 
+		static volatile uint16_t* offset;
+		offset = video_start + (VIDEO_PLAYFIELDWIDTH * y) + x;
+
 		//printf("%d:%d @ 0x%08x\n", x, y, (unsigned int) (video_start + (VIDEO_PLAYFIELDWIDTH * y) + x));
-		*(video_start + (VIDEO_PLAYFIELDWIDTH * y) + x) = x * y;
+		*(offset) = x * y;
 
 		x += xinc;
 

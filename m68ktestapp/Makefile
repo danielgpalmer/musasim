@@ -4,7 +4,7 @@ AS=$(TCPREFIX)/m68k-elf-as
 CP=$(TCPREFIX)/m68k-elf-objcopy
 
 AFLAGS=-ahls -m68000
-CFLAGS=-mc68000 -ggdb -std=gnu99 -Wall
+CFLAGS=-mc68000 -ggdb -std=gnu99 -Wall -O2 -Wstrict-aliasing
 LFLAGS=-mc68000 -Trom.lds -nostartfiles -Wl,-Map=prog.map,--cref,-lunagipai
 
 all: prog.bin prog.srec cfimage.bin
