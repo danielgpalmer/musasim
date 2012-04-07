@@ -86,7 +86,7 @@ void vblank_handler() {
 		static volatile uint16_t* offset;
 		offset = video_start + (VIDEO_PLAYFIELDWIDTH * y) + x;
 
-		//printf("%d:%d @ 0x%08x\n", x, y, (unsigned int) (video_start + (VIDEO_PLAYFIELDWIDTH * y) + x));
+		printf("%d:%d @ 0x%08x\n", x, y, (unsigned int) (video_start + (VIDEO_PLAYFIELDWIDTH * y) + x));
 		*(offset) = x * y;
 
 		x += xinc;
@@ -158,7 +158,7 @@ int main(void) {
 
 	while (1) {
 		//printf("Whassup homes\n");
-		//gputs("Hello World!");
+		gputs("Hello World!");
 	}
 
 	return 0;

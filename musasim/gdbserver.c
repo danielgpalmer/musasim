@@ -680,8 +680,6 @@ void gdbserver_clear_watchpoint(uint32_t address, unsigned int length, bool read
 	}
 }
 
-char crap[1024];
-
 void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, int size) {
 
 	static char stopreply[256];
@@ -805,10 +803,12 @@ void gdbserver_instruction_hook_callback() {
 
 void gdbserver_check_breakpoints(uint32_t pc) {
 
+	char disasmbuffer[256];
+
 	if (state == STEPPING) {
 		m68k_end_timeslice();
-		m68k_disassemble(crap, pc, M68K_CPU_TYPE_68000);
-		log_println(LEVEL_INFO, TAG, "Stepped to 0x%08x; %s", pc, crap);
+		m68k_disassemble(disasmbuffer, pc, M68K_CPU_TYPE_68000);
+		log_println(LEVEL_INFO, TAG, "Stepped to 0x%08x; %s", pc, disasmbuffer);
 		state = BREAKING;
 	}
 
@@ -816,8 +816,8 @@ void gdbserver_check_breakpoints(uint32_t pc) {
 	for (iterator = breakpoints; iterator; iterator = iterator->next) {
 		if (GPOINTER_TO_UINT(iterator->data) == pc) {
 			m68k_end_timeslice();
-			m68k_disassemble(crap, pc, M68K_CPU_TYPE_68000);
-			log_println(LEVEL_INFO, TAG, "Broke at 0x%08x; %s", pc, crap);
+			m68k_disassemble(disasmbuffer, pc, M68K_CPU_TYPE_68000);
+			log_println(LEVEL_INFO, TAG, "Broke at 0x%08x; %s", pc, disasmbuffer);
 			state = WAITING;
 			gdbserver_sendpacket(socketconnection, STOP_WEBROKE);
 			break;
