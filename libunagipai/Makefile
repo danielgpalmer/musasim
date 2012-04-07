@@ -18,6 +18,9 @@ machine.o: machine.c include/machine.h
 video.o: video.c include/video.h
 	$(CC) $(CFLAGS) -c video.c
 
+ata.o: ata.c include/ata.h
+	$(CC) $(CFLAGS) -c $<
+
 .PHONY: install uninstall clean
 
 install: libunagipai.a
