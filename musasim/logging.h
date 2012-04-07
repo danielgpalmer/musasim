@@ -18,6 +18,9 @@ void log_setlevel(int newlevel);
 
 void log_printhexblock(int level, const char* tag, void* data, size_t len);
 
+void log_init();
+void log_shutdown();
+
 #define FILTERPRINTABLE(c) ((c >= 0x20 && c <= 0x7F) ? c : ' ')
 
 #endif /* LOGGING_H_ */

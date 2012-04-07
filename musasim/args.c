@@ -24,7 +24,7 @@ bool args_parse(int argc, char* argv[]) {
 	struct arg_lit *help = arg_lit0(NULL, "help", "print this help and exit");
 	struct arg_file *rompath = arg_file0("r", "rom", "binfile", "Path of the ROM binary");
 	struct arg_file *cfpath = arg_file0("c", "compactflash", "binfile", "Path of the Compact Flash binary image");
-	struct arg_file *elfpath = arg_file0("e", "elf", "binfile", "Path of an Elf binary to load into ROM");
+	struct arg_file *elfpath = arg_file0("e", "elf", "elf executable", "Path of an Elf binary to load into ROM");
 	struct arg_end *end = arg_end(20);
 
 #ifdef GDBSERVER
