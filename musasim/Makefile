@@ -1,7 +1,7 @@
 include common.mk
 
 LIBCARDS=./hardware/cards/libcards.a
-LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
+LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)` -I../libunagipai/include
 BASESTUFF=sim.o logging.o utils.o elfloader.o
 
 all: gdbserver musasim genheader dist
