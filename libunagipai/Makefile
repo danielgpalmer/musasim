@@ -1,3 +1,4 @@
+ROOT_DIR = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 AR=m68k-elf-ar
 CC=m68k-elf-gcc
 CFLAGS=-mc68000 -ggdb -std=gnu99 -I ./include
@@ -24,7 +25,7 @@ ata.o: ata.c include/ata.h
 .PHONY: genheader install uninstall clean
 
 genheader:
-	$(MAKE) INSTALLDIR="/home/daniel/coding/musasim/libunagipai/include" -C ../musasim/genheader/ install
+	$(MAKE) INSTALLDIR="$(ROOT_DIR)/include" -C ../musasim/genheader/ install
 
 install: libunagipai.a
 	cp libunagipai.a $(INSTPATH)/lib/m68000/
