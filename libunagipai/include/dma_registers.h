@@ -1,7 +1,7 @@
-/* dma.h */
+/* dma_registers.h */
 
-#ifndef _LIBUNAGIPAI_DMA
-#define _LIBUNAGIPAI_DMA
+#ifndef LIBUNAGIPAI_DMAREGISTERS_H_
+#define LIBUNAGIPAI_DMAREGISTERS_H_
 
 
 #include <stdint.h>
@@ -16,4 +16,4 @@
 #define dma_register_srcl ((volatile uint16_t*) 0xa0000c)
 #define dma_register_desth ((volatile uint16_t*) 0xa0000e)
 #define dma_register_destl ((volatile uint16_t*) 0xa00010)
-#endif
+#endif // DMAREGISTERS

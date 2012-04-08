@@ -32,8 +32,15 @@ static void sound(void);
 static void input(void);
 static void uart(void);
 
-#define PRE(tag) printf("#ifndef _LIBUNAGIPAI_%s\n#define _LIBUNAGIPAI_%s\n\n\n", tag, tag)
-#define POST(tag) printf("#endif\n")
+#define PRE(tag) printf("#ifndef LIBUNAGIPAI_%s_H_\n#define LIBUNAGIPAI_%s_H_\n\n\n", tag, tag)
+#define POST(tag) printf("#endif // %s\n", tag)
+
+#define TAG_DMA "DMAREGISTERS"
+#define TAG_ATA "ATAREGISTERS"
+#define TAG_VIDEO "VIDEOREGISTERS"
+#define TAG_SOUND "SOUNDREGISTERS"
+#define TAG_INPUT "INPUTREGISTERS"
+#define TAG_UART "UARTREGISTERS"
 
 int main(int argc, char* argv[]) {
 
@@ -42,42 +49,46 @@ int main(int argc, char* argv[]) {
 	}
 	else {
 		if (strcmp(argv[1], "dma") == 0) {
-			printf("/* dma.h */\n\n");
-			PRE("DMA");
+			printf("/* dma_registers.h */\n\n");
+			PRE(TAG_DMA);
 			common();
 			dma();
-			POST("DMA");
+			POST(TAG_DMA);
 		}
 		if (strcmp(argv[1], "ata") == 0) {
-			printf("/* ata.h */\n\n");
-			PRE("ATA");
+			printf("/* ata_registers.h */\n\n");
+			PRE(TAG_ATA);
 			common();
 			ata();
-			POST("ATA");
+			POST(TAG_ATA);
 		}
 		else if (strcmp(argv[1], "video") == 0) {
-			printf("/* video.h */\n\n");
+			printf("/* video_registers.h */\n\n");
+			PRE(TAG_VIDEO);
 			common();
 			video();
-			printf("\n");
+			POST(TAG_VIDEO);
 		}
 		else if (strcmp(argv[1], "sound") == 0) {
-			printf("/* sound.h */\n\n");
+			printf("/* sound_registers.h */\n\n");
+			PRE(TAG_SOUND);
 			common();
 			sound();
-			printf("\n");
+			POST(TAG_SOUND);
 		}
 		else if (strcmp(argv[1], "input") == 0) {
-			printf("/* input.h */\n\n");
+			printf("/* input_registers.h */\n\n");
+			PRE(TAG_INPUT);
 			common();
 			input();
-			printf("\n");
+			POST(TAG_INPUT);
 		}
 		else if (strcmp(argv[1], "uart") == 0) {
-			printf("/* uart.h */\n\n");
+			printf("/* uart_registers.h */\n\n");
+			PRE(TAG_UART);
 			common();
 			uart();
-			printf("\n");
+			POST(TAG_UART);
 		}
 	}
 	return 0;

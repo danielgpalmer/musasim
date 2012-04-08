@@ -1,11 +1,11 @@
-/* ata.h */
+/* ata_registers.h */
 
-#ifndef _LIBUNAGIPAI_ATA
-#define _LIBUNAGIPAI_ATA
+#ifndef LIBUNAGIPAI_ATAREGISTERS_H_
+#define LIBUNAGIPAI_ATAREGISTERS_H_
 
 
 #include <stdint.h>
 
 
 #define ide_register_command ((volatile uint8_t*) 0x80000e)
-#endif
+#endif // ATAREGISTERS

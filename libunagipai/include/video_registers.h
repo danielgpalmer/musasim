@@ -1,4 +1,8 @@
-/* video.h */
+/* video_registers.h */
+
+#ifndef LIBUNAGIPAI_VIDEOREGISTERS_H_
+#define LIBUNAGIPAI_VIDEOREGISTERS_H_
+
 
 #include <stdint.h>
 
@@ -20,4 +24,4 @@
 #define video_register_winy ((volatile uint16_t*) 0x280010)
 #define video_register_winwidth ((volatile uint16_t*) 0x280012)
 #define video_register_winheight ((volatile uint16_t*) 0x280014)
-
+#endif // VIDEOREGISTERS

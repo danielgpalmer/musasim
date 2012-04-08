@@ -1,4 +1,8 @@
-/* sound.h */
+/* sound_registers.h */
+
+#ifndef LIBUNAGIPAI_SOUNDREGISTERS_H_
+#define LIBUNAGIPAI_SOUNDREGISTERS_H_
+
 
 #include <stdint.h>
 
@@ -49,4 +53,4 @@
 #define sound_channel_7_samplepointer ((volatile uint16_t*) 0x640084)
 #define sound_channel_7_samplelength ((volatile uint16_t*) 0x640086)
 #define sound_channel_7_samplepos ((volatile uint16_t*) 0x640088)
-
+#endif // SOUNDREGISTERS

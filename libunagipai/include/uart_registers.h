@@ -1,4 +1,8 @@
-/* uart.h */
+/* uart_registers.h */
+
+#ifndef LIBUNAGIPAI_UARTREGISTERS_H_
+#define LIBUNAGIPAI_UARTREGISTERS_H_
+
 
 #include <stdint.h>
 
@@ -7,4 +11,4 @@
 #define uart_chan0_interruptenable ((volatile uint8_t*) 0x400001)
 #define uart_chan0_linecontrol ((volatile uint8_t*) 0x400003)
 #define uart_chan0_linestatus ((volatile uint8_t*) 0x400005)
-
+#endif // UARTREGISTERS
