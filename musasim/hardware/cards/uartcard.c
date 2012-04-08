@@ -15,7 +15,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include "uartcard.h"
-#include "uartregistermasks.h"
+#include <uart_registermasks.h>
 #include <unistd.h>
 #include <errno.h>
 

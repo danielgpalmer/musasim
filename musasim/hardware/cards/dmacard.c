@@ -5,8 +5,9 @@
  *      Author: daniel
  */
 
+#include <dma_registermasks.h>
+
 #include "dmacard.h"
-#include "dmaregisters.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include "../../logging.h"

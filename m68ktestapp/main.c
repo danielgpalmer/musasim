@@ -6,17 +6,18 @@
  */
 
 #include <libunagipai/machine.h>
+#include <libunagipai/video_registers.h>
+#include <libunagipai/video_registermasks.h>
+#include <libunagipai/dma_registers.h>
+#include <libunagipai/dma_registermasks.h>
+#include <libunagipai/input_registers.h>
+#include <libunagipai/sound_registers.h>
 
 #include "main.h"
 
 #include <stdio.h>
 #include <stdint.h>
 #include "fontrom.h"
-#include "../musasim/genheader/machine.h"
-#include "../musasim/genheader/video.h"
-#include "../musasim/genheader/input.h"
-#include "../musasim/genheader/uart.h"
-#include "../musasim/genheader/sound.h"
 
 #include "blip.c" // cant be arsed with linking right now
 void interrupthandler() {

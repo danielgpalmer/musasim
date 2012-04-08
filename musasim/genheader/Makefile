@@ -1,31 +1,36 @@
-all: machine.h video.h sound.h input.h uart.h
+all: dma_registers.h ata_registers.h video_registers.h sound_registers.h input_registers.h uart_registers.h
 
-machine.h: genheader ../hardware/cards/dmaregisters.h ../../libunagipai/include/atacommands.h
-	./genheader machine > machine.h
-	cat ../../libunagipai/include/atacommands.h >> machine.h
-	cat ../hardware/cards/dmaregisters.h >> machine.h
-	gcc -x c -fsyntax-only machine.h
+dma_registers.h: genheader
+	./genheader dma > dma_registers.h
+	gcc -x c -fsyntax-only dma_registers.h
 
-video.h: genheader ../hardware/cards/videoregistermasks.h
-	./genheader video > video.h
-	cat ../hardware/cards/videoregistermasks.h >> video.h
-	gcc -x c -fsyntax-only video.h
+ata_registers.h: genheader
+	./genheader ata > ata_registers.h
 
-sound.h: genheader
-	./genheader sound > sound.h
-	gcc -x c -fsyntax-only sound.h
+video_registers.h: genheader
+	./genheader video > video_registers.h
+	gcc -x c -fsyntax-only video_registers.h
 
-input.h: genheader
-	./genheader input > input.h
-	gcc -x c -fsyntax-only input.h
+sound_registers.h: genheader
+	./genheader sound > sound_registers.h
+	gcc -x c -fsyntax-only sound_registers.h
+
+input_registers.h: genheader
+	./genheader input > input_registers.h
+	gcc -x c -fsyntax-only input_registers.h
 	
-uart.h: genheader ../hardware/cards/uartregistermasks.h
-	./genheader uart > uart.h
-	cat ../hardware/cards/uartregistermasks.h >> uart.h
-	gcc -x c -fsyntax-only uart.h
+uart_registers.h: genheader
+	./genheader uart > uart_registers.h
+	gcc -x c -fsyntax-only uart_registers.h
 
 genheader: genheader.c Makefile ../utils.c ../hardware/cards/dmacard.h
 	gcc -std=gnu99 genheader.c ../utils.c -o genheader
 
+.PHONY: install clean
+
+install: all
+	echo "installing headers to $(INSTALLDIR)"
+	cp *.h $(INSTALLDIR)
+
 clean:
-	rm -f genheader video.h machine.h sound.h input.h uart.h
+	rm -f genheader *.h

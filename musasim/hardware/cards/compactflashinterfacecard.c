@@ -5,11 +5,9 @@
  *      Author: daniel
  */
 
-#include "compactflashinterfacecard.h"
-#include "atacommands.h"
-#include "ataidoffsets.h"
-
 #include <errno.h>
+#include <atacommands.h>
+#include <ataidoffsets.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -17,8 +15,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
-#include "../../logging.h"
 #include <stdlib.h>
+
+#include "compactflashinterfacecard.h"
+#include "../../logging.h"
 
 static const char TAG[] = "cfint";
 
@@ -83,49 +83,49 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 
 	if (!BLOCK(address)) { // Command block
 
-		switch(REG(address)) {
+		switch (REG(address)) {
 			case 0x00:
-			return &(tf.data);
+				return &(tf.data);
 			case 0x01:
-			if(write) {
-				return &(tf.error);
-			}
-			else {
-				return &(tf.feature);
-			}
+				if (write) {
+					return &(tf.error);
+				}
+				else {
+					return &(tf.feature);
+				}
 			case 0x02:
-			return &(tf.sectorcount);
+				return &(tf.sectorcount);
 			case 0x03:
-			return &(tf.sectornumber);
+				return &(tf.sectornumber);
 			case 0x04:
-			return &(tf.cylinderlow);
+				return &(tf.cylinderlow);
 			case 0x05:
-			return &(tf.cylinderhigh);
+				return &(tf.cylinderhigh);
 			case 0x06:
-			return &(tf.drivehead);
+				return &(tf.drivehead);
 			case 0x07:
-			if(write) {
-				log_println(LEVEL_DEBUG, TAG, "Command reg written.");
-				return &(tf.command);
-			}
-			else {
-				return &(tf.status);
-			}
+				if (write) {
+					log_println(LEVEL_DEBUG, TAG, "Command reg written.");
+					return &(tf.command);
+				}
+				else {
+					return &(tf.status);
+				}
 
 		}
 	}
 	else { // controlblock
 
-		switch(REG(address)) {
+		switch (REG(address)) {
 			case 0x06:
-			if(write) {
-				return &(c.altstatus);
-			}
-			else {
-				return &(c.devicecontrol);
-			}
+				if (write) {
+					return &(c.altstatus);
+				}
+				else {
+					return &(c.devicecontrol);
+				}
 			case 0x07:
-			return &(c.driveaddress);
+				return &(c.driveaddress);
 		}
 	}
 

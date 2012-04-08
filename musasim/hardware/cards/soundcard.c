@@ -13,8 +13,8 @@
  */
 
 #define WANTSOUNDFUNC
+#include <sound_registermasks.h>
 #include "soundcard.h"
-#include "soundregistermasks.h"
 #include "../util.h"
 #include "../board.h"
 #include "../../utils.h"

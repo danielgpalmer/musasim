@@ -6,7 +6,7 @@ INSTPATH="../toolchains/inst/m68k-elf/m68k-elf"
 
 all: libunagipai.a
 
-libunagipai.a: uart.o machine.o video.o
+libunagipai.a: genheader uart.o machine.o video.o
 	ar cr libunagipai.a *.o
 
 uart.o: uart.c include/uart.h
@@ -21,7 +21,10 @@ video.o: video.c include/video.h
 ata.o: ata.c include/ata.h
 	$(CC) $(CFLAGS) -c $<
 
-.PHONY: install uninstall clean
+.PHONY: genheader install uninstall clean
+
+genheader:
+	$(MAKE) INSTALLDIR="/home/daniel/coding/musasim/libunagipai/include" -C ../musasim/genheader/ install
 
 install: libunagipai.a
 	cp libunagipai.a $(INSTPATH)/lib/m68000/

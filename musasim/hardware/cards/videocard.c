@@ -2,10 +2,10 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <SDL/SDL.h>
+#include <video_registermasks.h>
 
 #include "../board.h"
 #include "videocard.h"
-#include "videoregistermasks.h"
 #include "../../sim.h"
 #include "../../logging.h"
 #include "../../utils.h"

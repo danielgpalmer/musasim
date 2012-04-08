@@ -24,12 +24,16 @@ char headers[] = "#include <stdint.h>\n"
 
 #define SIZEOFARRAY(A) (sizeof(A)/sizeof(A[0]))
 
-void common();
-void machine();
-static void video();
-void sound();
-void input();
-void uart();
+static void common(void);
+static void dma(void);
+static void ata(void);
+static void video(void);
+static void sound(void);
+static void input(void);
+static void uart(void);
+
+#define PRE(tag) printf("#ifndef _LIBUNAGIPAI_%s\n#define _LIBUNAGIPAI_%s\n\n\n", tag, tag)
+#define POST(tag) printf("#endif\n")
 
 int main(int argc, char* argv[]) {
 
@@ -37,11 +41,19 @@ int main(int argc, char* argv[]) {
 		printf("usage; ./%s [machine|video|sound]\n", argv[0]);
 	}
 	else {
-		if (strcmp(argv[1], "machine") == 0) {
-			printf("/* machine.h */\n\n");
+		if (strcmp(argv[1], "dma") == 0) {
+			printf("/* dma.h */\n\n");
+			PRE("DMA");
 			common();
-			machine();
-			printf("\n");
+			dma();
+			POST("DMA");
+		}
+		if (strcmp(argv[1], "ata") == 0) {
+			printf("/* ata.h */\n\n");
+			PRE("ATA");
+			common();
+			ata();
+			POST("ATA");
 		}
 		else if (strcmp(argv[1], "video") == 0) {
 			printf("/* video.h */\n\n");
@@ -75,12 +87,10 @@ void common() {
 	printf("%s", headers);
 }
 
-void machine() {
+void dma() {
 	//printf("volatile uint16_t* machine_ram_start = (uint16_t*) 0x%x;\n", OFFSET_RAM);
 	//printf("volatile uint16_t* machine_ram_end = (uint16_t*) 0x%x;\n", MAX_RAM);
 	//printf("uint16_t machine_ram_size = (uint16_t) 0x%x;\n", SIZE_RAM);
-
-	printf("#define ide_register_command ((volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_CFCARD) + 14);
 
 	char* dmaregisternames[] = { "dma_register_config", "dma_register_datah", "dma_register_datal",
 			"dma_register_counth", "dma_register_countl", "dma_register_srch", "dma_register_srcl",
@@ -94,6 +104,11 @@ void machine() {
 	for (int i = 0; i < (sizeof(dmaregisternames) / sizeof(dmaregisternames[0])); i++) {
 		printf("#define %s ((volatile uint16_t*) 0x%x)\n", dmaregisternames[i], dmaregisteraddresses[i]);
 	}
+
+}
+
+static void ata() {
+	printf("#define ide_register_command ((volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_CFCARD) + 14);
 
 }
 
