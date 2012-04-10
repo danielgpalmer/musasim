@@ -33,7 +33,7 @@ static void input(void);
 static void uart(void);
 
 #define PRE(tag) printf("#ifndef LIBUNAGIPAI_%s_H_\n#define LIBUNAGIPAI_%s_H_\n\n\n", tag, tag)
-#define POST(tag) printf("#endif // %s\n", tag)
+#define POST(tag) printf("\n#endif // %s\n", tag)
 
 #define TAG_DMA "DMAREGISTERS"
 #define TAG_ATA "ATAREGISTERS"
@@ -98,7 +98,7 @@ void common() {
 	printf("%s", headers);
 }
 
-void dma() {
+static void dma() {
 	//printf("volatile uint16_t* machine_ram_start = (uint16_t*) 0x%x;\n", OFFSET_RAM);
 	//printf("volatile uint16_t* machine_ram_end = (uint16_t*) 0x%x;\n", MAX_RAM);
 	//printf("uint16_t machine_ram_size = (uint16_t) 0x%x;\n", SIZE_RAM);
@@ -151,7 +151,7 @@ static void video() {
 
 }
 
-void sound() {
+static void sound() {
 
 	uint32_t channelregisterbase;
 	uint32_t channelbases[TOTALCHANNELS];
@@ -190,19 +190,24 @@ void sound() {
 
 }
 
-void uart() {
+static void uart() {
 
 	char* registernames[] = { "rxtx", "interruptenable", "linecontrol", "linestatus" };
+
+	uint8_t chanlen = 0x8;
 
 	uint32_t registeroffsets[] = { SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_RXTXBUFFER, SLOT_OFFSET(SLOT_UARTCARD)
 			+ UART_REGISTER_INTERRUPTENABLE, SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINECONTROL,
 			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINESTATUS };
 
-	for (int reg = 0; reg < SIZEOFARRAY(registernames); reg++) {
-		printf("#define uart_chan0_%s ((volatile uint8_t*) 0x%x)\n", registernames[reg], registeroffsets[reg]);
+	for (int chan = 0; chan < 2; chan++) {
+		for (int reg = 0; reg < SIZEOFARRAY(registernames); reg++) {
+			printf("#define uart_chan%d_%s ((volatile uint8_t*) 0x%x)\n", chan, registernames[reg],
+					(chanlen * chan) + registeroffsets[reg]);
+		}
 	}
 }
 
-void input() {
+static void input() {
 	printf("#define input_start ((volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_INPUTCARD));
 }

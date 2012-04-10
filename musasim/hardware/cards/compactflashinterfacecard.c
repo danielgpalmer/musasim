@@ -6,8 +6,8 @@
  */
 
 #include <errno.h>
-#include <atacommands.h>
-#include <ataidoffsets.h>
+#include <ata_commands.h>
+#include <ata_idoffsets.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdbool.h>

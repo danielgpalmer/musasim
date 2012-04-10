@@ -5,4 +5,6 @@
  *      Author: daniel
  */
 
+void ata_identify() {
 
+}

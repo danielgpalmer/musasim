@@ -5,9 +5,9 @@
  *      Author: daniel
  */
 
-#ifndef ATA_H_
-#define ATA_H_
+#ifndef LIBUNAGIPIE_ATA_H_
+#define LIBUNAGIPIE_ATA_H_
 
+void ata_identify();
 
-
-#endif /* ATA_H_ */
+#endif /* LIBUNAGIPIE_ATA_H_ */

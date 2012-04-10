@@ -24,4 +24,5 @@
 #define video_register_winy ((volatile uint16_t*) 0x280010)
 #define video_register_winwidth ((volatile uint16_t*) 0x280012)
 #define video_register_winheight ((volatile uint16_t*) 0x280014)
+
 #endif // VIDEOREGISTERS
