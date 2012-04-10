@@ -866,6 +866,7 @@ void gdb_onpcmodified(uint32_t a) {
 }
 
 void gdb_break() {
+	printf("gdb_break()\n");
 	state = BREAKING;
 }
 

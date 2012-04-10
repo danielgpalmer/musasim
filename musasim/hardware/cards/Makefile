@@ -2,13 +2,19 @@ include ../../common.mk
 
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(SDL)`
 
-all: libcards.a
+all: libcards.a libcardsgdb.a
+
+libcardsgdb.a: romcardgdb.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o
+	ar cr libcardsgdb.a $^
 
 libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o
-	ar cr libcards.a romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o
+	ar cr libcards.a $^
 
 romcard.o: romcard.c romcard.h card.h
-	gcc $(CFLAGS) $(LOCALCFLAGS) -c romcard.c -o romcard.o
+	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@
+
+romcardgdb.o: romcard.c romcard.h card.h
+	gcc $(CFLAGS) $(LOCALCFLAGS) -DGDBSERVER -c $< -o $@
 
 uartcard.o: uartcard.c uartcard.h card.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c uartcard.c -o uartcard.o	

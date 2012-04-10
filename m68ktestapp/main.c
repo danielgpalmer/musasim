@@ -6,6 +6,7 @@
  */
 
 #include <libunagipai/machine.h>
+#include <libunagipai/ata.h>
 #include <libunagipai/video_registers.h>
 #include <libunagipai/video_registermasks.h>
 #include <libunagipai/dma_registers.h>
@@ -156,6 +157,8 @@ int main(void) {
 	//*sound_channel_master_volume = 0xFF99;
 	//*sound_channel_0_volume = 0xFF22;
 	//*sound_channel_0_config = 0xF9FF;
+
+	ata_identify();
 
 	while (1) {
 		//printf("Whassup homes\n");
