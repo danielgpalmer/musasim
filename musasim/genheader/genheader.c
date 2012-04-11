@@ -119,7 +119,7 @@ static void dma() {
 }
 
 static void ata() {
-	printf("#define ide_register_command ((volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_CFCARD) + 14);
+	printf("#define ata_register_command *((volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_CFCARD) + 14);
 
 }
 

@@ -74,15 +74,16 @@ bool cfintf_load(const char* filename) {
 	return true;
 }
 
-#define BLOCKMASK 0b10000 // A4
-#define ADDRESSMASK 0b1110 //
+#define BLOCKMASK 0b10000 // A4, CS1FX and CS3FX
+#define ADDRESSMASK 0b1110 // DA2, DA1, DA0
 #define BLOCK(address) ((address & BLOCKMASK) >> 3)
 #define REG(address) ((address & ADDRESSMASK) >> 1)
 
 static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 
-	if (!BLOCK(address)) { // Command block
+	log_println(LEVEL_DEBUG, TAG, "Decoding 0x08x\n", address);
 
+	if (!BLOCK(address)) { // Command block
 		switch (REG(address)) {
 			case 0x00:
 				return &(tf.data);
@@ -210,20 +211,15 @@ static void cfint_init() {
 }
 
 static void cfint_decodecommand() {
-
 	switch (tf.command) {
-
 		case ATA_IDENTIFYDRIVE:
 			break;
-
 	}
 
 }
 
 static void cfint_tick() {
-
 	cfint_decodecommand();
-
 }
 
 const card compactflashinterfacecard = { "CF INTERFACE", cfint_init, cfint_dispose, cfint_tick, NULL, NULL,

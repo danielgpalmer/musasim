@@ -139,6 +139,8 @@ void initvideo() {
 
 int main(void) {
 
+	ata_identify();
+
 	uint16_t sr = machine_getstatusregister();
 	machine_setstatusregister((sr & 0xf8ff));
 
@@ -158,7 +160,6 @@ int main(void) {
 	//*sound_channel_0_volume = 0xFF22;
 	//*sound_channel_0_config = 0xF9FF;
 
-	ata_identify();
 
 	while (1) {
 		//printf("Whassup homes\n");
