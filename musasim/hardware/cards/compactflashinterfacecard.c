@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <ata_commands.h>
 #include <ata_idoffsets.h>
+#include <ata_registermasks.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -23,7 +24,6 @@
 static const char TAG[] = "cfint";
 
 typedef struct {
-	uint16_t data;
 	uint8_t error;
 	uint8_t feature;
 	uint8_t sectorcount;
@@ -36,7 +36,6 @@ typedef struct {
 } taskfile;
 
 typedef struct {
-	uint8_t altstatus;
 	uint8_t devicecontrol;
 	uint8_t driveaddress;
 } control;
@@ -48,6 +47,10 @@ static int fd;
 static uint8_t* idblock;
 static uint8_t* image;
 static size_t size;
+
+static int busycounter = 0;
+static int transfercount = 0;
+static int transfercounter = 0;
 
 bool cfintf_load(const char* filename) {
 	log_println(LEVEL_INFO, TAG, "Loading %s", filename);
@@ -74,19 +77,27 @@ bool cfintf_load(const char* filename) {
 	return true;
 }
 
-#define BLOCKMASK 0b10000 // A4, CS1FX and CS3FX
 #define ADDRESSMASK 0b1110 // DA2, DA1, DA0
 #define BLOCK(address) ((address & BLOCKMASK) >> 3)
 #define REG(address) ((address & ADDRESSMASK) >> 1)
 
+static bool commandregdirty = false;
+
 static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
-
-	log_println(LEVEL_DEBUG, TAG, "Decoding 0x08x\n", address);
-
 	if (!BLOCK(address)) { // Command block
 		switch (REG(address)) {
 			case 0x00:
-				return &(tf.data);
+
+				if (!sixteenbit) {
+					log_println(LEVEL_DEBUG, TAG, "reads/writes to the data reg should be 16bits");
+				}
+
+				log_println(LEVEL_DEBUG, TAG, "read from/write to data reg -- counter %d", transfercounter);
+				transfercounter++;
+				if (transfercounter == transfercount) {
+					tf.status &= ~ATA_STATUS_DRQ;
+				}
+				return &(idblock[0]);
 			case 0x01:
 				if (write) {
 					return &(tf.error);
@@ -107,6 +118,7 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 			case 0x07:
 				if (write) {
 					log_println(LEVEL_DEBUG, TAG, "Command reg written.");
+					commandregdirty = true;
 					return &(tf.command);
 				}
 				else {
@@ -116,14 +128,13 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 		}
 	}
 	else { // controlblock
-
 		switch (REG(address)) {
-			case 0x06:
+			case ALTSTATUSOFFSET:
 				if (write) {
-					return &(c.altstatus);
+					return &(c.devicecontrol);
 				}
 				else {
-					return &(c.devicecontrol);
+					return &(tf.status);
 				}
 			case 0x07:
 				return &(c.driveaddress);
@@ -133,6 +144,23 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 	// shouldnt get here
 
 	return NULL;
+}
+
+static void cfint_decodecommand() {
+
+	if (commandregdirty) {
+		log_println(LEVEL_DEBUG, TAG, "decoding command");
+		switch (tf.command) {
+			case ATA_IDENTIFYDRIVE:
+				log_println(LEVEL_DEBUG, TAG, "identify!");
+				tf.status |= ATA_STATUS_BSY;
+				busycounter = 10;
+				transfercounter = 0;
+				transfercount = 256;
+				break;
+		}
+		commandregdirty = false;
+	}
 }
 
 static uint8_t cfintf_read_byte(uint32_t address) {
@@ -158,22 +186,18 @@ static uint16_t cfintf_read_word(uint32_t address) {
 }
 
 static void cfintf_write_byte(uint32_t address, uint8_t value) {
-
 	uint8_t* reg = cfintf_decodereg(address, true, false);
 	if (reg != NULL) {
 		*reg = value;
+		cfint_decodecommand(); // only a byte write has the potential to cause the command register to be dirty
 	}
-
 }
 
 static void cfintf_write_word(uint32_t address, uint16_t value) {
-
 	uint16_t* reg = (uint16_t*) cfintf_decodereg(address, true, true);
-
 	if (reg != NULL) {
 		*reg = value;
 	}
-
 }
 
 static void cfint_dispose() {
@@ -210,16 +234,15 @@ static void cfint_init() {
 	idblock = cfint_createidblock();
 }
 
-static void cfint_decodecommand() {
-	switch (tf.command) {
-		case ATA_IDENTIFYDRIVE:
-			break;
-	}
-
-}
-
 static void cfint_tick() {
-	cfint_decodecommand();
+	if (busycounter > 0) {
+		busycounter--;
+		if (busycounter == 0) {
+			log_println(LEVEL_DEBUG, TAG, "transfer ready");
+			tf.status &= ~ATA_STATUS_BSY;
+			tf.status |= ATA_STATUS_DRQ;
+		}
+	}
 }
 
 const card compactflashinterfacecard = { "CF INTERFACE", cfint_init, cfint_dispose, cfint_tick, NULL, NULL,

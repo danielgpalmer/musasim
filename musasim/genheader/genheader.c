@@ -15,6 +15,7 @@
 #include "../hardware/cards/videocard.h"
 #include "../hardware/cards/uartcard.h"
 #include "../hardware/cards/dmacard.h"
+#include "../hardware/cards/compactflashinterfacecard.h"
 #define WANTSOUNDFUNC
 #include "../hardware/cards/soundcard.h"
 #include "../utils.h"
@@ -119,8 +120,11 @@ static void dma() {
 }
 
 static void ata() {
-	printf("#define ata_register_command *((volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_CFCARD) + 14);
-
+	uint32_t slotoffset = SLOT_OFFSET(SLOT_CFCARD);
+	printf("#define ata_register_data *((volatile uint16_t*) 0x%x)\n", slotoffset);
+	printf("#define ata_register_command *((volatile uint8_t*) 0x%x)\n", slotoffset + 14);
+	printf("#define ata_register_altstatus *((volatile uint8_t*) 0x%x)\n",
+			slotoffset + BLOCKMASK + (ALTSTATUSOFFSET << 1));
 }
 
 static void video() {

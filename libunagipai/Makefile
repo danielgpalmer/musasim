@@ -39,4 +39,4 @@ uninstall:
 	rm -f $(INSTPATH)/lib/m68000/libunagipai.a
 	rm -rf $(INSTPATH)/include/libunagipai
 clean:
-	rm *.a *.o
+	rm -f *.a *.o
