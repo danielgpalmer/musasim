@@ -19,7 +19,7 @@ SECTIONS
  		*(.text*)                                                
 		*(.rodata*)
 		*(.eh_frame)
-		. = ALIGN(2);
+		. = ALIGN(4);
 		_text_end = .;
 	} >rom                                                      
 	
@@ -27,7 +27,7 @@ SECTIONS
 	{
 		_data_start = .;                                         
 		*(.data*)                                              
-		. = ALIGN(2);
+		. = ALIGN(4);
 		_data_end = .;                           
 	} >ram AT >rom
 	
@@ -35,10 +35,10 @@ SECTIONS
 	{
 		_bss_start = .;
 		*(.bss*)                                                
-		. = ALIGN(2);                                           
+		. = ALIGN(4);                                           
 		_bss_end = . ;                                          
+		_end = .;                                                       
+		end = .;
 	} >ram                                                          	
 }
-	_end = .;                                                       
-	end = .;
 
