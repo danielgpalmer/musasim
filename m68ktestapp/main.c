@@ -87,8 +87,6 @@ void vblank_handler() {
 
 		static volatile uint16_t* offset;
 		offset = video_start + (VIDEO_PLAYFIELDWIDTH * y) + x;
-
-		printf("%d:%d @ 0x%08x\n", x, y, (unsigned int) (video_start + (VIDEO_PLAYFIELDWIDTH * y) + x));
 		*(offset) = x * y;
 
 		x += xinc;
@@ -139,7 +137,7 @@ void initvideo() {
 
 int main(void) {
 
-	ata_identify();
+	ata_id id;
 
 	uint16_t sr = machine_getstatusregister();
 	machine_setstatusregister((sr & 0xf8ff));
@@ -160,10 +158,14 @@ int main(void) {
 	//*sound_channel_0_volume = 0xFF22;
 	//*sound_channel_0_config = 0xF9FF;
 
-
 	while (1) {
 		//printf("Whassup homes\n");
-		gputs("Hello World!");
+		//gputs("Hello World!");
+		ata_identify(&id);
+		printf("model: [%s]\n", id.model);
+		printf("drive serial: [%s]\n", id.serial);
+		printf("fwrev: [%s]\n", id.fwrev);
+		ata_read_sector();
 	}
 
 	return 0;

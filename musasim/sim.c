@@ -64,7 +64,6 @@ void cpu_set_fc(unsigned int fc) {
 }
 
 void sim_init() {
-	log_init();
 	log_println(LEVEL_DEBUG, TAG, "sim_init()");
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE);
 	SDL_WM_SetCaption("musasim", "musasim");

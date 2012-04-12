@@ -15,6 +15,8 @@
 #define ATA_NOP 0x00
 #define ATA_READBUFFER 0xe4
 
+#define ATA_WRITEBUFFER 0xe8
+
 #define ATA_READDMA_RETRY 0xc8
 #define ATA_READDMA_NORETRY 0xc9
 #define ATA_READLONG_RETRY 0x22

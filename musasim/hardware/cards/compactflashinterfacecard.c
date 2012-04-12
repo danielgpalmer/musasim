@@ -24,6 +24,7 @@
 static const char TAG[] = "cfint";
 
 typedef struct {
+	uint16_t data;
 	uint8_t error;
 	uint8_t feature;
 	uint8_t sectorcount;
@@ -52,6 +53,34 @@ static int busycounter = 0;
 static int transfercount = 0;
 static int transfercounter = 0;
 
+#define SECTORSIZE 512
+
+static bool loaded = false;
+
+static uint32_t lbasectors = 0;
+
+#define IDSERIAL "THEONLYONE          "
+#define IDFWVER "0.01    "
+#define IDMODEL "SIMULATEDCFCARD                         "
+
+static uint8_t* cfint_createidblock() {
+
+	uint8_t* block = malloc(512);
+	memset(block, 0x00, 512);
+	memcpy(block + (ATA_ID_SERIAL * 2), IDSERIAL, (ATA_ID_SERIAL_LEN * 2));
+	memcpy(block + (ATA_ID_FIRMWAREVER * 2), IDFWVER, (ATA_ID_FIRMWAREVER_LEN * 2));
+	memcpy(block + (ATA_ID_MODELNUMBER * 2), IDMODEL, (ATA_ID_MODELNUMBER_LEN * 2));
+
+	//FIXME endian shit
+
+	*((uint32_t*) (block + (ATA_ID_LBASECTORS * 2))) = lbasectors;
+
+	log_printhexblock(LEVEL_INFO, TAG, block, 512);
+
+	return block;
+
+}
+
 bool cfintf_load(const char* filename) {
 	log_println(LEVEL_INFO, TAG, "Loading %s", filename);
 
@@ -66,6 +95,7 @@ bool cfintf_load(const char* filename) {
 	fstat(fd, &filestat);
 
 	size = filestat.st_size;
+	lbasectors = size / SECTORSIZE;
 
 	log_println(LEVEL_INFO, TAG, "Image is %d bytes", size);
 
@@ -74,6 +104,8 @@ bool cfintf_load(const char* filename) {
 		return false;
 	}
 
+	idblock = cfint_createidblock();
+	loaded = true;
 	return true;
 }
 
@@ -90,32 +122,47 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 
 				if (!sixteenbit) {
 					log_println(LEVEL_DEBUG, TAG, "reads/writes to the data reg should be 16bits");
+					return NULL;
 				}
 
-				log_println(LEVEL_DEBUG, TAG, "read from/write to data reg -- counter %d", transfercounter);
+				//log_println(LEVEL_DEBUG, TAG, "read from/write to data reg -- counter %d", transfercounter);
+
+				if (write) {
+				}
+				else {
+					switch (tf.command) {
+						case ATA_IDENTIFYDRIVE:
+							tf.data = (idblock[(transfercounter * 2) + 1] << 8) | idblock[(transfercounter * 2)];
+							break;
+						case ATA_READBUFFER: //TODO calculate the actual block that's being read
+							tf.data = (image[(transfercounter * 2) + 1] << 8) | image[(transfercounter * 2)];
+							break;
+					}
+				}
+
 				transfercounter++;
 				if (transfercounter == transfercount) {
 					tf.status &= ~ATA_STATUS_DRQ;
 				}
-				return &(idblock[0]);
-			case 0x01:
+				return &(tf.data);
+			case ERRORFEATURE:
 				if (write) {
-					return &(tf.error);
-				}
-				else {
 					return &(tf.feature);
 				}
-			case 0x02:
+				else {
+					return &(tf.error);
+				}
+			case SECTORCOUNT:
 				return &(tf.sectorcount);
-			case 0x03:
+			case SECTORNUMBER:
 				return &(tf.sectornumber);
-			case 0x04:
+			case CYLINDERLOW:
 				return &(tf.cylinderlow);
-			case 0x05:
+			case CYLINDERHIGH:
 				return &(tf.cylinderhigh);
-			case 0x06:
+			case DRIVEHEAD:
 				return &(tf.drivehead);
-			case 0x07:
+			case COMMANDSTATUS:
 				if (write) {
 					log_println(LEVEL_DEBUG, TAG, "Command reg written.");
 					commandregdirty = true;
@@ -137,7 +184,12 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 					return &(tf.status);
 				}
 			case 0x07:
-				return &(c.driveaddress);
+				if (write) {
+					return NULL;
+				}
+				else {
+					return &(c.driveaddress);
+				}
 		}
 	}
 
@@ -158,12 +210,24 @@ static void cfint_decodecommand() {
 				transfercounter = 0;
 				transfercount = 256;
 				break;
+			case ATA_READBUFFER:
+				log_println(LEVEL_DEBUG, TAG, "read!");
+				tf.status |= ATA_STATUS_BSY;
+				busycounter = 10;
+				transfercounter = 0;
+				transfercount = 256;
+				break;
+
 		}
 		commandregdirty = false;
 	}
 }
 
 static uint8_t cfintf_read_byte(uint32_t address) {
+
+	if (!loaded) {
+		return 0x0;
+	}
 
 	uint8_t* reg = ((uint8_t*) cfintf_decodereg(address, false, false));
 
@@ -176,6 +240,10 @@ static uint8_t cfintf_read_byte(uint32_t address) {
 
 static uint16_t cfintf_read_word(uint32_t address) {
 
+	if (!loaded) {
+		return 0x0;
+	}
+
 	uint16_t* reg = ((uint16_t*) cfintf_decodereg(address, false, true));
 
 	if (reg == NULL) {
@@ -186,6 +254,11 @@ static uint16_t cfintf_read_word(uint32_t address) {
 }
 
 static void cfintf_write_byte(uint32_t address, uint8_t value) {
+
+	if (!loaded) {
+		return;
+	}
+
 	uint8_t* reg = cfintf_decodereg(address, true, false);
 	if (reg != NULL) {
 		*reg = value;
@@ -194,6 +267,10 @@ static void cfintf_write_byte(uint32_t address, uint8_t value) {
 }
 
 static void cfintf_write_word(uint32_t address, uint16_t value) {
+	if (!loaded) {
+		return;
+	}
+
 	uint16_t* reg = (uint16_t*) cfintf_decodereg(address, true, true);
 	if (reg != NULL) {
 		*reg = value;
@@ -201,6 +278,7 @@ static void cfintf_write_word(uint32_t address, uint16_t value) {
 }
 
 static void cfint_dispose() {
+	loaded = false;
 	if (munmap(image, size) > 0) {
 		log_println(LEVEL_WARNING, TAG, "Failed to unmap image", errno);
 	}
@@ -208,30 +286,7 @@ static void cfint_dispose() {
 	free((void*) idblock);
 }
 
-#define IDSERIAL "THEONLYONE          "
-#define IDFWVER "0.01    "
-#define IDMODEL "SIMULATEDCFCARD                         "
-
-static uint8_t* cfint_createidblock() {
-
-	uint8_t* block = malloc(512);
-	memset(block, 0x00, 512);
-	memcpy(block + (ATA_ID_SERIAL * 2), IDSERIAL, (ATA_ID_SERIAL_LEN * 2));
-	memcpy(block + (ATA_ID_FIRMWAREVER * 2), IDFWVER, (ATA_ID_FIRMWAREVER_LEN * 2));
-	memcpy(block + (ATA_ID_MODELNUMBER * 2), IDMODEL, (ATA_ID_MODELNUMBER_LEN * 2));
-
-	//FIXME endian shit
-
-	*((uint32_t*) (block + (ATA_ID_LBASECTORS * 2))) = size / 512;
-
-	log_printhexblock(LEVEL_DEBUG, TAG, block, 512);
-
-	return block;
-
-}
-
 static void cfint_init() {
-	idblock = cfint_createidblock();
 }
 
 static void cfint_tick() {

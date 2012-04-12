@@ -122,9 +122,17 @@ static void dma() {
 static void ata() {
 	uint32_t slotoffset = SLOT_OFFSET(SLOT_CFCARD);
 	printf("#define ata_register_data *((volatile uint16_t*) 0x%x)\n", slotoffset);
-	printf("#define ata_register_command *((volatile uint8_t*) 0x%x)\n", slotoffset + 14);
-	printf("#define ata_register_altstatus *((volatile uint8_t*) 0x%x)\n",
-			slotoffset + BLOCKMASK + (ALTSTATUSOFFSET << 1));
+
+	char* regnames[] = { "errorfeature", "sectorcount", "sectornumber", "cylinderlow", "cylinderhigh", "drivehead",
+			"command", "altstatus" };
+	uint32_t regoffsets[] = { slotoffset + (ERRORFEATURE << 1), slotoffset + (SECTORCOUNT << 1), slotoffset
+			+ (SECTORNUMBER << 1), slotoffset + (CYLINDERLOW << 1), slotoffset + (CYLINDERHIGH << 1), slotoffset
+			+ (DRIVEHEAD << 1), slotoffset + (COMMANDSTATUS << 1), slotoffset + BLOCKMASK + (ALTSTATUSOFFSET << 1) };
+
+	for (int reg = 0; reg < SIZEOFARRAY(regnames); reg++) {
+		printf("#define ata_register_%s *((volatile uint8_t*) 0x%x)\n", regnames[reg], regoffsets[reg]);
+	}
+
 }
 
 static void video() {

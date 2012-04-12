@@ -158,6 +158,8 @@ static void mainloop() {
 
 int main(int argc, char* argv[]) {
 
+	log_init();
+
 	log_println(LEVEL_INFO, TAG, "musashi m68k emulator\tKarl Stenerud with patches from MAME up to 0105");
 	log_println(LEVEL_INFO, TAG, "gdbserver for musashi\tDaniel Palmer (daniel@0x0f.com)");
 
