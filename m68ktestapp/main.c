@@ -6,7 +6,7 @@
  */
 
 #include <libunagipai/machine.h>
-#include <libunagipai/ata.h>
+#include <libunagipai/pff.h>
 #include <libunagipai/video_registers.h>
 #include <libunagipai/video_registermasks.h>
 #include <libunagipai/dma_registers.h>
@@ -137,8 +137,6 @@ void initvideo() {
 
 int main(void) {
 
-	ata_id id;
-
 	uint16_t sr = machine_getstatusregister();
 	machine_setstatusregister((sr & 0xf8ff));
 
@@ -158,14 +156,13 @@ int main(void) {
 	//*sound_channel_0_volume = 0xFF22;
 	//*sound_channel_0_config = 0xF9FF;
 
+	FATFS fs;
+	pf_mount(&fs);
+
 	while (1) {
 		//printf("Whassup homes\n");
 		//gputs("Hello World!");
-		ata_identify(&id);
-		printf("model: [%s]\n", id.model);
-		printf("drive serial: [%s]\n", id.serial);
-		printf("fwrev: [%s]\n", id.fwrev);
-		ata_read_sector();
+
 	}
 
 	return 0;

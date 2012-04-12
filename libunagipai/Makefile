@@ -39,7 +39,7 @@ genheader:
 install: libunagipai.a
 	cp libunagipai.a $(INSTPATH)/lib/m68000/
 	rm -rf $(INSTPATH)/include/libunagipai
-	cp -r include $(INSTPATH)/include/libunagipai
+	cp -rL include $(INSTPATH)/include/libunagipai
 
 uninstall:
 	rm -f $(INSTPATH)/lib/m68000/libunagipai.a

@@ -20,10 +20,10 @@ DSTATUS disk_initialize(void) {
 /* Read Partial Sector                                                   */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_readp(BYTE* dest, /* Pointer to the destination object */
-DWORD sector, /* Sector number (LBA) */
-WORD sofs, /* Offset in the sector */
-WORD count /* Byte count (bit15:destination) */
+DRESULT disk_readp(uint8_t* dest, /* Pointer to the destination object */
+uint32_t sector, /* Sector number (LBA) */
+uint16_t sofs, /* Offset in the sector */
+uint16_t count /* Byte count (bit15:destination) */
 ) {
 	DRESULT res;
 
@@ -36,8 +36,8 @@ WORD count /* Byte count (bit15:destination) */
 /* Write Partial Sector                                                  */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_writep(const BYTE* buff, /* Pointer to the data to be written, NULL:Initiate/Finalize write operation */
-DWORD sc /* Sector number (LBA) or Number of bytes to send */
+DRESULT disk_writep(const uint8_t* buff, /* Pointer to the data to be written, NULL:Initiate/Finalize write operation */
+uint32_t sc /* Sector number (LBA) or Number of bytes to send */
 ) {
 	DRESULT res;
 
