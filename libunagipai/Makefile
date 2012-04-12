@@ -7,7 +7,7 @@ INSTPATH="../toolchains/inst/m68k-elf/m68k-elf"
 
 all: libunagipai.a
 
-libunagipai.a: genheader ata.o dma.o uart.o machine.o video.o
+libunagipai.a: genheader ata.o dma.o uart.o machine.o video.o pff.o diskio.o
 	ar cr libunagipai.a *.o
 
 uart.o: uart.c include/uart.h
@@ -23,6 +23,12 @@ ata.o: ata.c include/ata.h
 	$(CC) $(CFLAGS) -c $<
 
 dma.o: dma.c include/dma.h
+	$(CC) $(CFLAGS) -c $<
+
+pff.o: petitfatfs/pff.c
+	$(CC) $(CFLAGS) -c $<
+
+diskio.o: petitfatfs/diskio.c
 	$(CC) $(CFLAGS) -c $<
 
 .PHONY: genheader install uninstall clean
