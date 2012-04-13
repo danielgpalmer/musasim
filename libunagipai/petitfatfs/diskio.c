@@ -3,6 +3,7 @@
 /*-----------------------------------------------------------------------*/
 
 #include "diskio.h"
+#include "../include/utils.h"
 #include <ata.h>
 #include <stdio.h>
 #include <string.h>
@@ -36,8 +37,10 @@ DRESULT disk_readp(uint8_t* dest, uint32_t sector, uint16_t sofs, uint16_t count
 	printf("disk_readp(0x%08x, 0x%08x, %d, %d)\n", (unsigned) dest, sector, sofs, count);
 
 	if (lastsector != sector) {
-		ata_read_sector(buffer);
+		ata_read_sector(sector, buffer);
+		util_hexblockprint(buffer, 512);
 		lastsector = sector;
+
 	}
 
 	uint8_t* bufferbytes = (uint8_t*) buffer;

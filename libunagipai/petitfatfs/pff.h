@@ -148,9 +148,22 @@ FRESULT pf_readdir(DIR*, FILINFO*); /* Read a directory item from the open direc
 #define AM_ARC	0x20	/* Archive */
 #define AM_MASK	0x3F	/* Mask of defined bits */
 
-#define	LD_WORD(ptr)		((uint32_t) ptr % 2 == 0 ? (uint16_t)(*(uint16_t*)(uint8_t*)(ptr)) : (uint16_t)(*(uint8_t*)(ptr) << 8) | (*(uint8_t*)(ptr +1)))
-
-#define	LD_DWORD(ptr)		(uint32_t)(*(uint32_t*)(uint8_t*)(ptr))
+#define	LD_WORD(ptr)		(\
+								(uint16_t) \
+								(\
+										*((uint8_t*) ptr) | \
+										(*((uint8_t*)(ptr +1)) << 8) \
+								) \
+							)
+#define	LD_DWORD(ptr)		(\
+								(uint32_t) \
+								(\
+										*((uint8_t*) ptr) | \
+										(*((uint8_t*)(ptr +1)) << 8) |\
+										(*((uint8_t*)(ptr +2)) << 16) |\
+										(*((uint8_t*)(ptr +3)) << 24) \
+								) \
+							)
 #define	ST_WORD(ptr,val)	*(uint16_t*)(uint8_t*)(ptr)=(uint16_t)(val)
 #define	ST_DWORD(ptr,val)	*(uint32_t*)(uint8_t*)(ptr)=(uint32_t)(val)
 

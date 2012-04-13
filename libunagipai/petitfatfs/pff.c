@@ -729,22 +729,23 @@ FRESULT pf_mount(FATFS *fs /* Pointer to new file system object (NULL: Unmount) 
 		return FR_NO_FILESYSTEM; /* No valid FAT patition is found */
 
 	/* Initialize the file system object */
-	if (disk_readp(buf, bsect, 13, sizeof(buf)))
+	int offset = 13;
+	if (disk_readp(buf, bsect, offset, sizeof(buf)))
 		return FR_DISK_ERR;
 
-	fsize = LD_WORD(buf + BPB_FATSz16-13); /* Number of sectors per FAT */
+	fsize = LD_WORD(buf + (BPB_FATSz16 - offset)); /* Number of sectors per FAT */
 	if (!fsize)
-		fsize = LD_DWORD(buf + BPB_FATSz32-13);
+		fsize = LD_DWORD(buf + (BPB_FATSz32 - offset));
 
-	fsize *= buf[(1 + BPB_NumFATs) - 13]; /* Number of sectors in FAT area */
-	fs->fatbase = bsect + LD_WORD(buf+BPB_RsvdSecCnt-13); /* FAT start sector (lba) */
-	fs->csize = buf[BPB_SecPerClus - 13]; /* Number of sectors per cluster */
-	fs->n_rootdir = LD_WORD(buf+BPB_RootEntCnt-13); /* Nmuber of root directory entries */
+	fsize *= buf[BPB_NumFATs - offset]; /* Number of sectors in FAT area */
+	fs->fatbase = bsect + LD_WORD(buf + (BPB_RsvdSecCnt - offset)); /* FAT start sector (lba) */
+	fs->csize = buf[BPB_SecPerClus - offset]; /* Number of sectors per cluster */
+	fs->n_rootdir = LD_WORD(buf + BPB_RootEntCnt - (offset)); /* Nmuber of root directory entries */
 	tsect = LD_WORD(buf+BPB_TotSec16-13); /* Number of sectors on the file system */
 	if (!tsect)
-		tsect = LD_DWORD(buf+BPB_TotSec32-13);
+		tsect = LD_DWORD(buf+BPB_TotSec32 - offset);
 	mclst = (tsect /* Last cluster# + 1 */
-	- LD_WORD(buf+BPB_RsvdSecCnt-13) - fsize - fs->n_rootdir / 16) / fs->csize + 2;
+	- LD_WORD(buf+BPB_RsvdSecCnt- offset) - fsize - fs->n_rootdir / 16) / fs->csize + 2;
 	fs->n_fatent = (CLUST) mclst;
 
 	fmt = FS_FAT16; /* Determine the FAT sub type */

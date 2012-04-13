@@ -1,6 +1,6 @@
 include ../../common.mk
 
-LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(SDL)`
+LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(SDL)` `pkg-config --cflags glib-2.0`
 
 all: libcards.a libcardsgdb.a
 

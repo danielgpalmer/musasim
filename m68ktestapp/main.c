@@ -166,6 +166,7 @@ static void printffresult(FRESULT result) {
 
 static void printfat(FATFS* fs) {
 	printf("0x%x\n", fs->fsize);
+	printf("fat base : 0x%08x\n", fs->fatbase);
 }
 
 int main(void) {

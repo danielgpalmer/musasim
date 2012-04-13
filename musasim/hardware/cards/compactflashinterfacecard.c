@@ -18,6 +18,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <glib.h>
 #include "compactflashinterfacecard.h"
 #include "../../logging.h"
 
@@ -135,7 +136,7 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 							tf.data = (idblock[(transfercounter * 2) + 1] << 8) | idblock[(transfercounter * 2)];
 							break;
 						case ATA_READBUFFER: //TODO calculate the actual block that's being read
-							tf.data = image[transfercounter];
+							tf.data = GUINT16_FROM_BE(image[(tf.sectornumber * 256) + transfercounter]);
 							break;
 					}
 				}

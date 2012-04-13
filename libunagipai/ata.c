@@ -49,8 +49,9 @@ void ata_identify(ata_id* id) {
 	}
 }
 
-void ata_read_sector(uint16_t* buffer) {
+void ata_read_sector(uint32_t sector, uint16_t* buffer) {
 	memset(buffer, 0xFF, 512);
+	ata_register_sectornumber = (uint8_t) sector & 0xff; // this is a hack
 	ata_register_command = ATA_READBUFFER;
 	ata_wait();
 	ata_read_buffer(buffer);

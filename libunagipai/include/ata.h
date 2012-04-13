@@ -8,6 +8,7 @@
 #ifndef LIBUNAGIPIE_ATA_H_
 #define LIBUNAGIPIE_ATA_H_
 
+#include <stdint.h>
 #include "ata_idoffsets.h"
 
 typedef struct {
@@ -17,6 +18,6 @@ typedef struct {
 } ata_id;
 
 void ata_identify(ata_id* id);
-void ata_read_sector();
+void ata_read_sector(uint32_t sector, uint16_t* buffer);
 
 #endif /* LIBUNAGIPIE_ATA_H_ */
