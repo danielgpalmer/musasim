@@ -116,6 +116,8 @@ bool cfintf_load(const char* filename) {
 
 static bool commandregdirty = false;
 
+#define LBAADDRESS (tf.sectornumber | (tf.cylinderlow << 8) | (tf.cylinderhigh << 16))
+
 static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 	if (!BLOCK(address)) { // Command block
 		switch (REG(address)) {
@@ -136,7 +138,7 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 							tf.data = (idblock[(transfercounter * 2) + 1] << 8) | idblock[(transfercounter * 2)];
 							break;
 						case ATA_READBUFFER: //TODO calculate the actual block that's being read
-							tf.data = GUINT16_FROM_BE(image[(tf.sectornumber * 256) + transfercounter]);
+							tf.data = GUINT16_FROM_BE(image[(LBAADDRESS * 256) + transfercounter]);
 							break;
 					}
 				}

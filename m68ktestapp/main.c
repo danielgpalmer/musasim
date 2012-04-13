@@ -165,8 +165,8 @@ static void printffresult(FRESULT result) {
 }
 
 static void printfat(FATFS* fs) {
-	printf("0x%x\n", fs->fsize);
 	printf("fat base : 0x%08x\n", fs->fatbase);
+	printf("data base : 0x%08x\n", fs->database);
 }
 
 int main(void) {
@@ -197,6 +197,11 @@ int main(void) {
 	printfat(&fs);
 	result = pf_open("test.txt");
 	printffresult(result);
+	char buf[64];
+	uint16_t len;
+	pf_read(buf, 63, &len);
+
+	printf("read from file: %s\n", buf);
 
 	while (1) {
 		//printf("Whassup homes\n");

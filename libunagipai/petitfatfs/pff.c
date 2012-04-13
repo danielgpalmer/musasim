@@ -810,10 +810,10 @@ FRESULT pf_open(const char *path /* Pointer to the file name */
 /*-----------------------------------------------------------------------*/
 #if _USE_READ
 
-FRESULT pf_read(void* buff, /* Pointer to the read buffer (NULL:Forward data to the stream)*/
-uint16_t btr, /* Number of bytes to read */
-uint16_t* br /* Pointer to number of bytes read */
-) {
+/* Pointer to the read buffer (NULL:Forward data to the stream)*/
+/* Number of bytes to read */
+/* Pointer to number of bytes read */
+FRESULT pf_read(void* buff, uint16_t btr, uint16_t* br) {
 	DRESULT dr;
 	CLUST clst;
 	uint32_t sect, remain;
