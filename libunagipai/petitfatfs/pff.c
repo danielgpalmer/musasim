@@ -368,7 +368,7 @@ static CLUST get_fat(/* 1:IO error, Else:Cluster status */CLUST clst /* Cluster#
 			return (clst & 1) ? (wc >> 4) : (wc & 0xFFF);
 #endif
 		case FS_FAT16:
-			if (disk_readp(buf, fs->fatbase + clst / 256, (uint16_t) (((uint16_t) clst % 256) * 2), 2))
+			if (disk_readp(buf, fs->fatbase + clst / 256, (uint16_t)(((uint16_t) clst % 256) * 2), 2))
 				break;
 			return LD_WORD(buf);
 #if _FS_FAT32
@@ -471,7 +471,7 @@ uint8_t *dir /* 32-byte working buffer */
 		return res;
 
 	do {
-		res = disk_readp(dir, dj->sect, (uint16_t) ((dj->index % 16) * 32), 32) /* Read an entry */
+		res = disk_readp(dir, dj->sect, (uint16_t)((dj->index % 16) * 32), 32) /* Read an entry */
 		? FR_DISK_ERR : FR_OK;
 		if (res != FR_OK)
 			break;
@@ -630,7 +630,7 @@ const char *path /* Full-path string to find a file or directory */
 		path++; /* Strip heading separator */
 	dj->sclust = 0; /* Set start directory (always root dir) */
 
-	if ((uint8_t) *path <= ' ') { /* Null path means the root directory */
+	if ((uint8_t) * path <= ' ') { /* Null path means the root directory */
 		res = dir_rewind(dj);
 		dir[0] = 0;
 
@@ -663,10 +663,11 @@ const char *path /* Full-path string to find a file or directory */
 /* Check a sector if it is an FAT boot record                            */
 /*-----------------------------------------------------------------------*/
 
-static uint8_t check_fs( /* 0:The FAT boot record, 1:Valid boot record but not an FAT, 2:Not a boot record, 3:Error */
-uint8_t *buf, /* Working buffer */
-uint32_t sect /* Sector# (lba) to check if it is an FAT boot record or not */
-) {
+/* 0:The FAT boot record, 1:Valid boot record but not an FAT, 2:Not a boot record, 3:Error */
+/* Working buffer */
+/* Sector# (lba) to check if it is an FAT boot record or not */
+
+static uint8_t check_fs(uint8_t *buf, uint32_t sect) {
 	if (disk_readp(buf, sect, 510, 2)) /* Read the boot sector */
 		return 3;
 	if (LD_WORD(buf) != 0xAA55) /* Check record signature */
@@ -686,7 +687,7 @@ uint32_t sect /* Sector# (lba) to check if it is an FAT boot record or not */
  --------------------------------------------------------------------------*/
 
 /*-----------------------------------------------------------------------*/
-/* Mount/Unmount a Locical Drive                                         */
+/* Mount/Unmount a Logical Drive                                         */
 /*-----------------------------------------------------------------------*/
 
 FRESULT pf_mount(FATFS *fs /* Pointer to new file system object (NULL: Unmount) */
@@ -825,7 +826,7 @@ uint16_t* br /* Pointer to number of bytes read */
 
 	while (btr) { /* Repeat until all data transferred */
 		if ((fs->fptr % 512) == 0) { /* On the sector boundary? */
-			cs = (uint8_t) (fs->fptr / 512 & (fs->csize - 1)); /* Sector offset in the cluster */
+			cs = (uint8_t)(fs->fptr / 512 & (fs->csize - 1)); /* Sector offset in the cluster */
 			if (!cs) { /* On the cluster boundary? */
 				clst = (fs->fptr == 0) ? /* On the top of the file? */
 				fs->org_clust : get_fat(fs->curr_clust);
@@ -838,10 +839,10 @@ uint16_t* br /* Pointer to number of bytes read */
 				goto fr_abort;
 			fs->dsect = sect + cs;
 		}
-		rcnt = (uint16_t) (512 - (fs->fptr % 512)); /* Get partial sector data from sector buffer */
+		rcnt = (uint16_t)(512 - (fs->fptr % 512)); /* Get partial sector data from sector buffer */
 		if (rcnt > btr)
 			rcnt = btr;
-		dr = disk_readp(!buff ? 0 : rbuff, fs->dsect, (uint16_t) (fs->fptr % 512), rcnt);
+		dr = disk_readp(!buff ? 0 : rbuff, fs->dsect, (uint16_t)(fs->fptr % 512), rcnt);
 		if (dr)
 			goto fr_abort;
 		fs->fptr += rcnt;
@@ -1016,7 +1017,7 @@ FRESULT pf_opendir (
 }
 
 /*-----------------------------------------------------------------------*/
-/* Read Directory Entry in Sequense                                      */
+/* Read Directory Entry in Sequence                                      */
 /*-----------------------------------------------------------------------*/
 
 FRESULT pf_readdir (

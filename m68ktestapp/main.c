@@ -135,6 +135,35 @@ void initvideo() {
 	*video_register_config |= VIDEO_CONFIG_ENVBINT;
 }
 
+static void printffresult(FRESULT result) {
+	switch (result) {
+		case FR_OK:
+			printf("OK!\n");
+			break;
+		case FR_DISK_ERR:
+			printf("DISK ERROR!\n");
+			break;
+		case FR_NOT_READY:
+			printf("NOT READY!\n");
+			break;
+		case FR_NO_FILE:
+			printf("NO FILE!\n");
+			break;
+		case FR_NO_PATH:
+			printf("NO PATH\n"); // wtf does no path mean heh
+			break;
+		case FR_NOT_OPENED:
+			printf("FILE NOT OPENED\n");
+			break;
+		case FR_NOT_ENABLED:
+			printf("NOT ENABLED\n");
+			break;
+		case FR_NO_FILESYSTEM:
+			printf("NO FILESYSTEM\n");
+			break;
+	}
+}
+
 int main(void) {
 
 	uint16_t sr = machine_getstatusregister();
@@ -157,7 +186,11 @@ int main(void) {
 	//*sound_channel_0_config = 0xF9FF;
 
 	FATFS fs;
-	pf_mount(&fs);
+	FRESULT result;
+	result = pf_mount(&fs);
+	printffresult(result);
+	result = pf_open("somefile.txt");
+	printffresult(result);
 
 	while (1) {
 		//printf("Whassup homes\n");

@@ -46,7 +46,7 @@ static control c;
 
 static int fd;
 static uint8_t* idblock;
-static uint8_t* image;
+static uint16_t* image;
 static size_t size;
 
 static int busycounter = 0;
@@ -135,7 +135,7 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 							tf.data = (idblock[(transfercounter * 2) + 1] << 8) | idblock[(transfercounter * 2)];
 							break;
 						case ATA_READBUFFER: //TODO calculate the actual block that's being read
-							tf.data = (image[(transfercounter * 2) + 1] << 8) | image[(transfercounter * 2)];
+							tf.data = image[transfercounter];
 							break;
 					}
 				}

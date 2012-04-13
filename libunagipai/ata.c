@@ -49,8 +49,8 @@ void ata_identify(ata_id* id) {
 	}
 }
 
-void ata_read_sector() {
-	uint16_t buffer[256];
+void ata_read_sector(uint16_t* buffer) {
+	memset(buffer, 0xFF, 512);
 	ata_register_command = ATA_READBUFFER;
 	ata_wait();
 	ata_read_buffer(buffer);
