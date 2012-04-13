@@ -14,45 +14,39 @@
  /
  /----------------------------------------------------------------------------*/
 
-/*---------------------------------------------------------------------------/
- / Petit FatFs Configuration Options
- /
- / CAUTION! Do not forget to make clean the project after any changes to
- / the configuration options.
- /
- /----------------------------------------------------------------------------*/
 #ifndef _FATFS
 #define _FATFS
 
 #define	_USE_READ	1	/* 1:Enable pf_read() */
 
-#define	_USE_DIR	0	/* 1:Enable pf_opendir() and pf_readdir() */
+#define	_USE_DIR	1	/* 1:Enable pf_opendir() and pf_readdir() */
 
-#define	_USE_LSEEK	0	/* 1:Enable pf_lseek() */
+#define	_USE_LSEEK	1	/* 1:Enable pf_lseek() */
 
-#define	_USE_WRITE	0	/* 1:Enable pf_write() */
+#define	_USE_WRITE	1	/* 1:Enable pf_write() */
 
 #define _FS_FAT12	1	/* 1:Enable FAT12 support */
-#define _FS_FAT32	0	/* 1:Enable FAT32 support */
+#define _FS_FAT32	1	/* 1:Enable FAT32 support */
 
 #define	_CODE_PAGE	1
 /* Defines which code page is used for path name. Supported code pages are:
  /  932, 936, 949, 950, 437, 720, 737, 775, 850, 852, 855, 857, 858, 862, 866,
  /  874, 1250, 1251, 1252, 1253, 1254, 1255, 1257, 1258 and 1 (ASCII only).
- /  SBCS code pages except for 1 requiers a case conversion table. This
+ /  SBCS code pages except for 1 requires a case conversion table. This
  /  might occupy 128 bytes on the RAM on some platforms, e.g. avr-gcc. */
 
-#define _WORD_ACCESS	0
-/* The _WORD_ACCESS option defines which access method is used to the word
- /  data in the FAT structure.
- /
- /   0: Byte-by-byte access. Always compatible with all platforms.
- /   1: Word access. Do not choose this unless following condition is met.
- /
- /  When the byte order on the memory is big-endian or address miss-aligned
- /  word access results incorrect behavior, the _WORD_ACCESS must be set to 0.
- /  If it is not the case, the value can also be set to 1 to improve the
- /  performance and code efficiency. */
+//#define _WORD_ACCESS	1
+/*	The _WORD_ACCESS option defines which access method is used to the word
+ data in the FAT structure.
+
+ 0: Byte-by-byte access. Always compatible with all platforms.
+ 1: Word access. Do not choose this unless following condition is met.
+
+ When the byte order on the memory is big-endian or address miss-aligned
+ word access results incorrect behavior, the _WORD_ACCESS must be set to 0.
+ If it is not the case, the value can also be set to 1 to improve the
+ performance and code efficiency.
+ */
 
 /* End of configuration options. Do not change followings without care.     */
 /*--------------------------------------------------------------------------*/
@@ -124,7 +118,7 @@ FRESULT pf_mount(FATFS*); /* Mount/Unmount a logical drive */
 FRESULT pf_open(const char*); /* Open a file */
 FRESULT pf_read(void*, uint16_t, uint16_t*); /* Read data from the open file */
 FRESULT pf_write(const void*, uint16_t, uint16_t*); /* Write data to the open file */
-FRESULT pf_lseek(uint32_t); /* Move file pointer of the open file */
+FRESULT pf_lseek( uint32_t); /* Move file pointer of the open file */
 FRESULT pf_opendir(DIR*, const char*); /* Open a directory */
 FRESULT pf_readdir(DIR*, FILINFO*); /* Read a directory item from the open directory */
 
@@ -154,19 +148,10 @@ FRESULT pf_readdir(DIR*, FILINFO*); /* Read a directory item from the open direc
 #define AM_ARC	0x20	/* Archive */
 #define AM_MASK	0x3F	/* Mask of defined bits */
 
-/*--------------------------------*/
-/* Multi-byte word access macros  */
+#define	LD_WORD(ptr)		((uint32_t) ptr % 2 == 0 ? (uint16_t)(*(uint16_t*)(uint8_t*)(ptr)) : (uint16_t)(*(uint8_t*)(ptr) << 8) | (*(uint8_t*)(ptr +1)))
 
-#if _WORD_ACCESS == 1	/* Enable word access to the FAT structure */
-#define	LD_WORD(ptr)		(uint16_t)(*(uint16_t*)(uint8_t*)(ptr))
 #define	LD_DWORD(ptr)		(uint32_t)(*(uint32_t*)(uint8_t*)(ptr))
 #define	ST_WORD(ptr,val)	*(uint16_t*)(uint8_t*)(ptr)=(uint16_t)(val)
 #define	ST_DWORD(ptr,val)	*(uint32_t*)(uint8_t*)(ptr)=(uint32_t)(val)
-#else					/* Use byte-by-byte access to the FAT structure */
-#define	LD_WORD(ptr)		(uint16_t)(((uint16_t)*((uint8_t*)(ptr)+1)<<8)|(uint16_t)*(uint8_t*)(ptr))
-#define	LD_DWORD(ptr)		(uint32_t)(((uint32_t)*((uint8_t*)(ptr)+3)<<24)|((uint32_t)*((uint8_t*)(ptr)+2)<<16)|((uint16_t)*((uint8_t*)(ptr)+1)<<8)|*(uint8_t*)(ptr))
-#define	ST_WORD(ptr,val)	*(uint8_t*)(ptr)=(uint8_t)(val); *((uint8_t*)(ptr)+1)=(uint8_t)((uint16_t)(val)>>8)
-#define	ST_DWORD(ptr,val)	*(uint8_t*)(ptr)=(uint8_t)(val); *((uint8_t*)(ptr)+1)=(uint8_t)((uint16_t)(val)>>8); *((uint8_t*)(ptr)+2)=(uint8_t)((uint32_t)(val)>>16); *((uint8_t*)(ptr)+3)=(uint8_t)((uint32_t)(val)>>24)
-#endif
 
 #endif /* _FATFS */

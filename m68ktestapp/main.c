@@ -164,6 +164,10 @@ static void printffresult(FRESULT result) {
 	}
 }
 
+static void printfat(FATFS* fs) {
+	printf("0x%x\n", fs->fsize);
+}
+
 int main(void) {
 
 	uint16_t sr = machine_getstatusregister();
@@ -189,7 +193,8 @@ int main(void) {
 	FRESULT result;
 	result = pf_mount(&fs);
 	printffresult(result);
-	result = pf_open("somefile.txt");
+	printfat(&fs);
+	result = pf_open("test.txt");
 	printffresult(result);
 
 	while (1) {

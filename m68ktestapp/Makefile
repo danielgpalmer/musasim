@@ -36,6 +36,8 @@ fontrom.o:
 cfimage.bin:
 	dd if=/dev/zero of=cfimage.bin bs=1MB count=64
 	/sbin/mkfs.vfat cfimage.bin
+	MTOOLSRC=./mtools.conf mcopy cfimagefiles/test.txt m:/
+	MTOOLSRC=./mtools.conf mdir m:
 
 blip.c: blip.be16
 	../tools/bin2c blip.be16 blip blip

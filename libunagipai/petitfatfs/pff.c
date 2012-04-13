@@ -317,16 +317,14 @@
 static FATFS *FatFs; /* Pointer to the file system object (logical drive) */
 
 /* Fill memory */
-static
-void mem_set(void* dst, int val, int cnt) {
+static void mem_set(void* dst, int val, int cnt) {
 	char *d = (char*) dst;
 	while (cnt--)
 		*d++ = (char) val;
 }
 
 /* Compare memory to memory */
-static
-int mem_cmp(const void* dst, const void* src, int cnt) {
+static int mem_cmp(const void* dst, const void* src, int cnt) {
 	const char *d = (const char *) dst, *s = (const char *) src;
 	int r = 0;
 	while (cnt-- && (r = *d++ - *s++) == 0)
@@ -338,8 +336,9 @@ int mem_cmp(const void* dst, const void* src, int cnt) {
 /* FAT access - Read value of a FAT entry                                */
 /*-----------------------------------------------------------------------*/
 
-static CLUST get_fat(/* 1:IO error, Else:Cluster status */CLUST clst /* Cluster# to get the link information */
-) {
+/* 1:IO error, Else:Cluster status */
+/* Cluster# to get the link information */
+static CLUST get_fat(CLUST clst) {
 	uint16_t wc, bc, ofs;
 	uint8_t buf[4];
 	FATFS *fs = FatFs;
@@ -372,8 +371,9 @@ static CLUST get_fat(/* 1:IO error, Else:Cluster status */CLUST clst /* Cluster#
 				break;
 			return LD_WORD(buf);
 #if _FS_FAT32
-			case FS_FAT32 :
-			if (disk_readp(buf, fs->fatbase + clst / 128, (uint16_t)(((uint16_t)clst % 128) * 4), 4)) break;
+		case FS_FAT32:
+			if (disk_readp(buf, fs->fatbase + clst / 128, (uint16_t)(((uint16_t) clst % 128) * 4), 4))
+				break;
 			return LD_DWORD(buf) & 0x0FFFFFFF;
 #endif
 	}
@@ -385,8 +385,9 @@ static CLUST get_fat(/* 1:IO error, Else:Cluster status */CLUST clst /* Cluster#
 /* Get sector# from cluster#                                             */
 /*-----------------------------------------------------------------------*/
 
-static uint32_t clust2sect(/* !=0: Sector number, 0: Failed - invalid cluster# */CLUST clst /* Cluster# to be converted */
-) {
+/* !=0: Sector number, 0: Failed - invalid cluster# */
+/* Cluster# to be converted */
+static uint32_t clust2sect(CLUST clst) {
 	FATFS *fs = FatFs;
 
 	clst -= 2;
@@ -399,8 +400,8 @@ static uint32_t clust2sect(/* !=0: Sector number, 0: Failed - invalid cluster# *
 /* Directory handling - Rewind directory index                           */
 /*-----------------------------------------------------------------------*/
 
-static FRESULT dir_rewind(DIR *dj /* Pointer to directory object */
-) {
+/* Pointer to directory object */
+static FRESULT dir_rewind(DIR *dj) {
 	CLUST clst;
 	FATFS *fs = FatFs;
 
@@ -420,9 +421,9 @@ static FRESULT dir_rewind(DIR *dj /* Pointer to directory object */
 /* Directory handling - Move directory index next                        */
 /*-----------------------------------------------------------------------*/
 
-static FRESULT dir_next( /* FR_OK:Succeeded, FR_NO_FILE:End of table */
-DIR *dj /* Pointer to directory object */
-) {
+/* FR_OK:Succeeded, FR_NO_FILE:End of table */
+/* Pointer to directory object */
+static FRESULT dir_next(DIR *dj) {
 	CLUST clst;
 	uint16_t i;
 	FATFS *fs = FatFs;
@@ -460,9 +461,9 @@ DIR *dj /* Pointer to directory object */
 /* Directory handling - Find an object in the directory                  */
 /*-----------------------------------------------------------------------*/
 
-static FRESULT dir_find(DIR *dj, /* Pointer to the directory object linked to the file name */
-uint8_t *dir /* 32-byte working buffer */
-) {
+/* Pointer to the directory object linked to the file name */
+/* 32-byte working buffer */
+static FRESULT dir_find(DIR *dj, uint8_t *dir) {
 	FRESULT res;
 	uint8_t c;
 
@@ -492,12 +493,9 @@ uint8_t *dir /* 32-byte working buffer */
 /* Read an object from the directory                                     */
 /*-----------------------------------------------------------------------*/
 #if _USE_DIR
-static
-FRESULT dir_read (
-		DIR *dj, /* Pointer to the directory object to store read object name */
-		uint8_t *dir /* 32-byte working buffer */
-)
-{
+static FRESULT dir_read(DIR *dj, /* Pointer to the directory object to store read object name */
+uint8_t *dir /* 32-byte working buffer */
+) {
 	FRESULT res;
 	uint8_t a, c;
 
@@ -505,17 +503,23 @@ FRESULT dir_read (
 	while (dj->sect) {
 		res = disk_readp(dir, dj->sect, (uint16_t)((dj->index % 16) * 32), 32) /* Read an entry */
 		? FR_DISK_ERR : FR_OK;
-		if (res != FR_OK) break;
+		if (res != FR_OK)
+			break;
 		c = dir[DIR_Name];
-		if (c == 0) {res = FR_NO_FILE; break;} /* Reached to end of table */
+		if (c == 0) {
+			res = FR_NO_FILE;
+			break;
+		} /* Reached to end of table */
 		a = dir[DIR_Attr] & AM_MASK;
 		if (c != 0xE5 && c != '.' && !(a & AM_VOL)) /* Is it a valid entry? */
-		break;
+			break;
 		res = dir_next(dj); /* Next entry */
-		if (res != FR_OK) break;
+		if (res != FR_OK)
+			break;
 	}
 
-	if (res != FR_OK) dj->sect = 0;
+	if (res != FR_OK)
+		dj->sect = 0;
 
 	return res;
 }
@@ -579,12 +583,11 @@ const char **path /* Pointer to pointer to the segment in the path string */
 /*-----------------------------------------------------------------------*/
 #if _USE_DIR
 static
-void get_fileinfo ( /* No return code */
-		DIR *dj, /* Pointer to the directory object */
-		uint8_t *dir, /* 32-byte working buffer */
-		FILINFO *fno /* Pointer to store the file information */
-)
-{
+void get_fileinfo( /* No return code */
+DIR *dj, /* Pointer to the directory object */
+uint8_t *dir, /* 32-byte working buffer */
+FILINFO *fno /* Pointer to store the file information */
+) {
 	uint8_t i, c;
 	char *p;
 
@@ -592,15 +595,18 @@ void get_fileinfo ( /* No return code */
 	if (dj->sect) {
 		for (i = 0; i < 8; i++) { /* Copy file name body */
 			c = dir[i];
-			if (c == ' ') break;
-			if (c == 0x05) c = 0xE5;
+			if (c == ' ')
+				break;
+			if (c == 0x05)
+				c = 0xE5;
 			*p++ = c;
 		}
 		if (dir[8] != ' ') { /* Copy file name extension */
 			*p++ = '.';
 			for (i = 8; i < 11; i++) {
 				c = dir[i];
-				if (c == ' ') break;
+				if (c == ' ')
+					break;
 				*p++ = c;
 			}
 		}
@@ -726,11 +732,11 @@ FRESULT pf_mount(FATFS *fs /* Pointer to new file system object (NULL: Unmount) 
 	if (disk_readp(buf, bsect, 13, sizeof(buf)))
 		return FR_DISK_ERR;
 
-	fsize = LD_WORD(buf+BPB_FATSz16-13); /* Number of sectors per FAT */
+	fsize = LD_WORD(buf + BPB_FATSz16-13); /* Number of sectors per FAT */
 	if (!fsize)
-		fsize = LD_DWORD(buf+BPB_FATSz32-13);
+		fsize = LD_DWORD(buf + BPB_FATSz32-13);
 
-	fsize *= buf[BPB_NumFATs - 13]; /* Number of sectors in FAT area */
+	fsize *= buf[(1 + BPB_NumFATs) - 13]; /* Number of sectors in FAT area */
 	fs->fatbase = bsect + LD_WORD(buf+BPB_RsvdSecCnt-13); /* FAT start sector (lba) */
 	fs->csize = buf[BPB_SecPerClus - 13]; /* Number of sectors per cluster */
 	fs->n_rootdir = LD_WORD(buf+BPB_RootEntCnt-13); /* Nmuber of root directory entries */
@@ -752,7 +758,7 @@ FRESULT pf_mount(FATFS *fs /* Pointer to new file system object (NULL: Unmount) 
 #if _FS_FAT32
 		fmt = FS_FAT32;
 #else
-		return FR_NO_FILESYSTEM;
+	return FR_NO_FILESYSTEM;
 #endif
 
 	fs->fs_type = fmt; /* FAT sub-type */
@@ -863,12 +869,10 @@ uint16_t* br /* Pointer to number of bytes read */
 /*-----------------------------------------------------------------------*/
 #if _USE_WRITE
 
-FRESULT pf_write (
-		const void* buff, /* Pointer to the data to be written */
-		uint16_t btw, /* Number of bytes to write (0:Finalize the current write operation) */
-		uint16_t* bw /* Pointer to number of bytes written */
-)
-{
+FRESULT pf_write(const void* buff, /* Pointer to the data to be written */
+uint16_t btw, /* Number of bytes to write (0:Finalize the current write operation) */
+uint16_t* bw /* Pointer to number of bytes written */
+) {
 	CLUST clst;
 	uint32_t sect, remain;
 	const uint8_t *p = buff;
@@ -877,52 +881,65 @@ FRESULT pf_write (
 	FATFS *fs = FatFs;
 
 	*bw = 0;
-	if (!fs) return FR_NOT_ENABLED; /* Check file system */
+	if (!fs)
+		return FR_NOT_ENABLED; /* Check file system */
 	if (!(fs->flag & FA_OPENED)) /* Check if opened */
-	return FR_NOT_OPENED;
+		return FR_NOT_OPENED;
 
 	if (!btw) { /* Finalize request */
-		if ((fs->flag & FA__WIP) && disk_writep(0, 0)) goto fw_abort;
+		if ((fs->flag & FA__WIP) && disk_writep(0, 0))
+			goto fw_abort;
 		fs->flag &= ~FA__WIP;
 		return FR_OK;
 	}
 	else { /* Write data request */
 		if (!(fs->flag & FA__WIP)) /* Round-down fptr to the sector boundary */
-		fs->fptr &= 0xFFFFFE00;
+			fs->fptr &= 0xFFFFFE00;
 	}
 	remain = fs->fsize - fs->fptr;
-	if (btw > remain) btw = (uint16_t)remain; /* Truncate btw by remaining bytes */
+	if (btw > remain)
+		btw = (uint16_t) remain; /* Truncate btw by remaining bytes */
 
 	while (btw) { /* Repeat until all data transferred */
-		if (((uint16_t)fs->fptr % 512) == 0) { /* On the sector boundary? */
+		if (((uint16_t) fs->fptr % 512) == 0) { /* On the sector boundary? */
 			cs = (uint8_t)(fs->fptr / 512 & (fs->csize - 1)); /* Sector offset in the cluster */
 			if (!cs) { /* On the cluster boundary? */
 				clst = (fs->fptr == 0) ? /* On the top of the file? */
 				fs->org_clust : get_fat(fs->curr_clust);
-				if (clst <= 1) goto fw_abort;
+				if (clst <= 1)
+					goto fw_abort;
 				fs->curr_clust = clst; /* Update current cluster */
 			}
 			sect = clust2sect(fs->curr_clust); /* Get current sector */
-			if (!sect) goto fw_abort;
+			if (!sect)
+				goto fw_abort;
 			fs->dsect = sect + cs;
-			if (disk_writep(0, fs->dsect)) goto fw_abort; /* Initiate a sector write operation */
+			if (disk_writep(0, fs->dsect))
+				goto fw_abort;
+			/* Initiate a sector write operation */
 			fs->flag |= FA__WIP;
 		}
-		wcnt = 512 - ((uint16_t)fs->fptr % 512); /* Number of bytes to write to the sector */
-		if (wcnt > btw) wcnt = btw;
-		if (disk_writep(p, wcnt)) goto fw_abort; /* Send data to the sector */
-		fs->fptr += wcnt; p += wcnt; /* Update pointers and counters */
-		btw -= wcnt; *bw += wcnt;
-		if (((uint16_t)fs->fptr % 512) == 0) {
-			if (disk_writep(0, 0)) goto fw_abort; /* Finalize the currtent secter write operation */
+		wcnt = 512 - ((uint16_t) fs->fptr % 512); /* Number of bytes to write to the sector */
+		if (wcnt > btw)
+			wcnt = btw;
+		if (disk_writep(p, wcnt))
+			goto fw_abort;
+		/* Send data to the sector */
+		fs->fptr += wcnt;
+		p += wcnt; /* Update pointers and counters */
+		btw -= wcnt;
+		*bw += wcnt;
+		if (((uint16_t) fs->fptr % 512) == 0) {
+			if (disk_writep(0, 0))
+				goto fw_abort;
+			/* Finalize the currtent secter write operation */
 			fs->flag &= ~FA__WIP;
 		}
 	}
 
 	return FR_OK;
 
-	fw_abort:
-	fs->flag = 0;
+	fw_abort: fs->flag = 0;
 	return FR_DISK_ERR;
 }
 #endif
@@ -932,25 +949,24 @@ FRESULT pf_write (
 /*-----------------------------------------------------------------------*/
 #if _USE_LSEEK
 
-FRESULT pf_lseek (
-		uint32_t ofs /* File pointer from top of file */
-)
-{
+FRESULT pf_lseek(uint32_t ofs /* File pointer from top of file */
+) {
 	CLUST clst;
 	uint32_t bcs, sect, ifptr;
 	FATFS *fs = FatFs;
 
-	if (!fs) return FR_NOT_ENABLED; /* Check file system */
+	if (!fs)
+		return FR_NOT_ENABLED; /* Check file system */
 	if (!(fs->flag & FA_OPENED)) /* Check if opened */
-	return FR_NOT_OPENED;
+		return FR_NOT_OPENED;
 
-	if (ofs > fs->fsize) ofs = fs->fsize; /* Clip offset with the file size */
+	if (ofs > fs->fsize)
+		ofs = fs->fsize; /* Clip offset with the file size */
 	ifptr = fs->fptr;
 	fs->fptr = 0;
 	if (ofs > 0) {
-		bcs = (uint32_t)fs->csize * 512; /* Cluster size (byte) */
-		if (ifptr > 0 &&
-				(ofs - 1) / bcs >= (ifptr - 1) / bcs) { /* When seek to same or following cluster, */
+		bcs = (uint32_t) fs->csize * 512; /* Cluster size (byte) */
+		if (ifptr > 0 && (ofs - 1) / bcs >= (ifptr - 1) / bcs) { /* When seek to same or following cluster, */
 			fs->fptr = (ifptr - 1) & ~(bcs - 1); /* start from the current cluster */
 			ofs -= fs->fptr;
 			clst = fs->curr_clust;
@@ -961,21 +977,22 @@ FRESULT pf_lseek (
 		}
 		while (ofs > bcs) { /* Cluster following loop */
 			clst = get_fat(clst); /* Follow cluster chain */
-			if (clst <= 1 || clst >= fs->n_fatent) goto fe_abort;
+			if (clst <= 1 || clst >= fs->n_fatent)
+				goto fe_abort;
 			fs->curr_clust = clst;
 			fs->fptr += bcs;
 			ofs -= bcs;
 		}
 		fs->fptr += ofs;
 		sect = clust2sect(clst); /* Current sector */
-		if (!sect) goto fe_abort;
+		if (!sect)
+			goto fe_abort;
 		fs->dsect = sect + (fs->fptr / 512 & (fs->csize - 1));
 	}
 
 	return FR_OK;
 
-	fe_abort:
-	fs->flag = 0;
+	fe_abort: fs->flag = 0;
 	return FR_DISK_ERR;
 }
 #endif
@@ -985,11 +1002,9 @@ FRESULT pf_lseek (
 /*-----------------------------------------------------------------------*/
 #if _USE_DIR
 
-FRESULT pf_opendir (
-		DIR *dj, /* Pointer to directory object to create */
-		const char *path /* Pointer to the directory path */
-)
-{
+FRESULT pf_opendir(DIR *dj, /* Pointer to directory object to create */
+const char *path /* Pointer to the directory path */
+) {
 	FRESULT res;
 	uint8_t sp[12], dir[32];
 	FATFS *fs = FatFs;
@@ -1003,14 +1018,16 @@ FRESULT pf_opendir (
 		if (res == FR_OK) { /* Follow completed */
 			if (dir[0]) { /* It is not the root dir */
 				if (dir[DIR_Attr] & AM_DIR) /* The object is a directory */
-				dj->sclust = LD_CLUST(dir);
-				else /* The object is not a directory */
-				res = FR_NO_PATH;
+					dj->sclust = LD_CLUST(dir);
+				else
+					/* The object is not a directory */
+					res = FR_NO_PATH;
 			}
 			if (res == FR_OK)
-			res = dir_rewind(dj); /* Rewind dir */
+				res = dir_rewind(dj); /* Rewind dir */
 		}
-		if (res == FR_NO_FILE) res = FR_NO_PATH;
+		if (res == FR_NO_FILE)
+			res = FR_NO_PATH;
 	}
 
 	return res;
@@ -1020,11 +1037,9 @@ FRESULT pf_opendir (
 /* Read Directory Entry in Sequence                                      */
 /*-----------------------------------------------------------------------*/
 
-FRESULT pf_readdir (
-		DIR *dj, /* Pointer to the open directory object */
-		FILINFO *fno /* Pointer to file information to return */
-)
-{
+FRESULT pf_readdir(DIR *dj, /* Pointer to the open directory object */
+FILINFO *fno /* Pointer to file information to return */
+) {
 	FRESULT res;
 	uint8_t sp[12], dir[32];
 	FATFS *fs = FatFs;

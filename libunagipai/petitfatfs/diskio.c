@@ -3,7 +3,6 @@
 /*-----------------------------------------------------------------------*/
 
 #include "diskio.h"
-#include "../include/utils.h"
 #include <ata.h>
 #include <stdio.h>
 #include <string.h>
@@ -29,19 +28,24 @@ DSTATUS disk_initialize(void) {
 /* Sector number (LBA) */
 /* Offset in the sector */
 /* Byte count (bit15:destination) */
+
+static uint32_t lastsector = 0xFFFFFFFF;
+static uint16_t buffer[256];
+
 DRESULT disk_readp(uint8_t* dest, uint32_t sector, uint16_t sofs, uint16_t count) {
 	printf("disk_readp(0x%08x, 0x%08x, %d, %d)\n", (unsigned) dest, sector, sofs, count);
-	uint16_t buffer[256];
-	uint8_t* bufferbytes = (uint8_t*) buffer;
-	ata_read_sector(buffer);
-	memcpy(dest, (void *) (buffer) + sofs, count);
 
-	util_hexblockprint(buffer, sizeof(buffer));
-
-	for (int i = 0; i < count; i++) {
-		printf("0x%02x ", (unsigned) dest[i]);
+	if (sofs % 2 != 0) {
+		printf("err, offset needs to be word aligned\n");
 	}
-	printf("\n");
+
+	if (lastsector != sector) {
+		ata_read_sector(buffer);
+		lastsector = sector;
+	}
+
+	uint8_t* bufferbytes = (uint8_t*) buffer;
+	memcpy(dest, (void *) (buffer) + sofs, count);
 
 	return RES_OK;
 }

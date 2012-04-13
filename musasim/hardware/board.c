@@ -229,7 +229,7 @@ unsigned int board_read_byte(unsigned int address) {
 unsigned int board_read_word(unsigned int address) {
 
 	if (address % 2 != 0) {
-		printf("Word read must be aligned\n");
+		log_println(LEVEL_DEBUG, TAG, "Word reads must be aligned, read from 0x%08x PC[0x%08x]", address, GETPC);
 		return 0;
 	}
 
