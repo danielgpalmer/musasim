@@ -35,10 +35,6 @@ static uint16_t buffer[256];
 DRESULT disk_readp(uint8_t* dest, uint32_t sector, uint16_t sofs, uint16_t count) {
 	printf("disk_readp(0x%08x, 0x%08x, %d, %d)\n", (unsigned) dest, sector, sofs, count);
 
-	if (sofs % 2 != 0) {
-		printf("err, offset needs to be word aligned\n");
-	}
-
 	if (lastsector != sector) {
 		ata_read_sector(buffer);
 		lastsector = sector;
