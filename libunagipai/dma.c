@@ -22,6 +22,6 @@ void dma_transferblock_toregister(uint32_t source, uint32_t dest, uint32_t count
 	dma_register_srch = HIGHWORD(source);
 	dma_register_srcl = LOwWORD(source);
 	dma_register_config = DMA_REGISTER_CONFIG_START | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK
-			| DMA_REGISTER_CONFIG_SRCACT_INCTWO;
+			| DMA_REGISTER_CONFIG_DSTACT_INCTWO;
 
 }

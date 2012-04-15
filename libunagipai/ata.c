@@ -31,7 +31,7 @@ static void ata_read_buffer(uint16_t* buffer) {
 }
 
 static void ata_read_buffer_dma(uint16_t* buffer) {
-	dma_transferblock_toregister((volatile uint16_t*) 0x800000, buffer, 256);
+	dma_transferblock_toregister(0x800000, buffer, 256);
 }
 
 void ata_identify(ata_id* id) {
@@ -58,7 +58,7 @@ void ata_identify(ata_id* id) {
 }
 
 void ata_read_sector(uint32_t sector, uint16_t* buffer, bool dma) {
-	memset(buffer, 0xFF, 512);
+	memset(buffer, 0x00, 512);
 	ata_register_drivehead = (uint8_t) 0xF0 | ((sector >> 24) & 0x0F);
 	ata_register_sectornumber = (uint8_t)(sector & 0xff);
 	ata_register_cylinderlow = (uint8_t)((sector >> 8) & 0xff);

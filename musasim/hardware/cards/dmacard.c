@@ -75,7 +75,6 @@ static uint16_t mutate(uint16_t value1, uint16_t value2) {
 			return value1 | value2;
 		case DMA_MUT_XOR:
 			return value1 ^ value2;
-
 	}
 
 	// should never get here
@@ -144,7 +143,7 @@ static void dmacard_tick() {
 			}
 
 			else {
-				//log_println(LEVEL_DEBUG, TAG, "writing to 0x%x", destination);
+				//log_println(LEVEL_DEBUG, TAG, "source[0%08x] dest[0x%08x]\n", source, destination);
 
 				switch (config & DMA_REGISTER_CONFIG_MODE) {
 					case DMA_REGISTER_CONFIG_MODE_BLOCK: // Takes two clocks, one for read, one for write
@@ -300,11 +299,15 @@ static void dmacard_dumpconfig() {
 			break;
 		case DMA_REGISTER_CONFIG_MODE_BLOCK:
 			log_println(LEVEL_DEBUG, TAG, "transferring 0x%08x %s from 0x%08x to 0x%08x", counter,
-					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", 0, destination);
+					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", source, destination);
 			break;
 	}
 
-	if ((config & DMA_REGISTER_CONFIG_DSTACT_INCTWO) == DMA_REGISTER_CONFIG_DSTACT_INCTWO) {
+	if (config & DMA_REGISTER_CONFIG_SRCACT_INCTWO) {
+		log_println(LEVEL_DEBUG, TAG, "src will increment by two");
+	}
+
+	if (config & DMA_REGISTER_CONFIG_DSTACT_INCTWO) {
 		log_println(LEVEL_DEBUG, TAG, "dst will increment by two");
 	}
 
