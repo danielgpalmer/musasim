@@ -114,7 +114,7 @@ static void dma() {
 			+ DMACARD_REGISTER_DESTINATIONH, SLOT_OFFSET(SLOT_DMACARD) + DMACARD_REGISTER_DESTINATIONL };
 
 	for (int i = 0; i < (sizeof(dmaregisternames) / sizeof(dmaregisternames[0])); i++) {
-		printf("#define %s ((volatile uint16_t*) 0x%x)\n", dmaregisternames[i], dmaregisteraddresses[i]);
+		printf("#define %s (*(volatile uint16_t*) 0x%x)\n", dmaregisternames[i], dmaregisteraddresses[i]);
 	}
 
 }

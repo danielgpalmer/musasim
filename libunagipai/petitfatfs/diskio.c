@@ -7,6 +7,7 @@
 #include <ata.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 /*-----------------------------------------------------------------------*/
 /* Initialize Disk Drive                                                 */
@@ -37,7 +38,7 @@ DRESULT disk_readp(uint8_t* dest, uint32_t sector, uint16_t sofs, uint16_t count
 	printf("disk_readp(0x%08x, 0x%08x, %d, %d)\n", (unsigned) dest, sector, sofs, count);
 
 	if (lastsector != sector) {
-		ata_read_sector(sector, buffer);
+		ata_read_sector(sector, buffer, true);
 		util_hexblockprint(buffer, 512);
 		lastsector = sector;
 

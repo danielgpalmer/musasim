@@ -11,6 +11,10 @@
 #include "include/ata_commands.h"
 #include "include/ata_idoffsets.h"
 
+#include "include/dma.h"
+
+#include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 
 static void ata_wait() {
@@ -24,6 +28,10 @@ static void ata_read_buffer(uint16_t* buffer) {
 	while (ata_register_altstatus & ATA_STATUS_DRQ) {
 		buffer[word++] = ata_register_data;
 	}
+}
+
+static void ata_read_buffer_dma(uint16_t* buffer) {
+	dma_transferblock_toregister((volatile uint16_t*) 0x800000, buffer, 256);
 }
 
 void ata_identify(ata_id* id) {
@@ -49,7 +57,7 @@ void ata_identify(ata_id* id) {
 	}
 }
 
-void ata_read_sector(uint32_t sector, uint16_t* buffer) {
+void ata_read_sector(uint32_t sector, uint16_t* buffer, bool dma) {
 	memset(buffer, 0xFF, 512);
 	ata_register_drivehead = (uint8_t) 0xF0 | ((sector >> 24) & 0x0F);
 	ata_register_sectornumber = (uint8_t)(sector & 0xff);
@@ -57,9 +65,14 @@ void ata_read_sector(uint32_t sector, uint16_t* buffer) {
 	ata_register_cylinderhigh = (uint8_t)((sector >> 16) & 0xff);
 	ata_register_command = ATA_READBUFFER;
 	ata_wait();
-	ata_read_buffer(buffer);
+	if (dma) {
+		ata_read_buffer_dma(buffer);
+	}
+	else {
+		ata_read_buffer(buffer);
+	}
 }
 
-void ata_write_sector() {
+void ata_write_sector(uint32_t sector, uint16_t* buffer, bool dma) {
 
 }

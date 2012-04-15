@@ -14,7 +14,7 @@
 #include "../../sim.h"
 #include "../board.h"
 
-#define ADDRESSMASK 0x0F
+#define ADDRESSMASK 0x1f
 static const char TAG[] = "dmacard";
 
 // Externally visible registers
