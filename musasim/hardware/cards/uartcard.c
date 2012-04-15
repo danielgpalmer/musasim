@@ -246,16 +246,15 @@ static unsigned bufferedchars = 0;
 static void uart_log_ch(uint8_t ch) {
 
 	if (loggingenabled) {
-		if (ch > 0x20 && ch < 0x7f) { // limit this to printable chars
-			if (ch == '\n' || bufferedchars == MAXLOGBUFFER) {
-				logbuffer[bufferedchars + 1] = 0;
-				log_println(LEVEL_INFO, TAG, "%s", logbuffer);
-				bufferedchars = 0;
-			}
-			else {
+		if (ch == '\n' || bufferedchars == MAXLOGBUFFER) {
+			logbuffer[bufferedchars] = 0;
+			log_println(LEVEL_INFO, TAG, "%s", logbuffer);
+			bufferedchars = 0;
+		}
+		else {
+			if (ch >= 0x20 && ch <= 0x7e) { // limit this to printable chars
 				logbuffer[bufferedchars++] = ch;
 			}
-
 		}
 	}
 
