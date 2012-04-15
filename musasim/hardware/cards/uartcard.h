@@ -17,4 +17,6 @@ const card uartcard;
 #define UART_REGISTER_MODEMCONTROL 4
 #define UART_REGISTER_LINESTATUS 5
 
+void uart_enable_logging();
+
 #endif /* UARTCARD_H_ */

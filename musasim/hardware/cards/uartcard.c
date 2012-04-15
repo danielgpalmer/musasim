@@ -7,7 +7,6 @@
 
 #define _XOPEN_SOURCE 600 // to get the pts shizzle
 #define _BSD_SOURCE // for cfmakeraw
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -239,6 +238,33 @@ static void uart_write_byte(uint32_t address, uint8_t value) {
 	uint8_t* reg = uart_decode_register(address, true);
 	*reg = value;
 }
+#define MAXLOGBUFFER 2048
+static bool loggingenabled = false;
+static uint8_t* logbuffer;
+static unsigned bufferedchars = 0;
+
+static void uart_log_ch(uint8_t ch) {
+
+	if (loggingenabled) {
+		if (ch > 0x20 && ch < 0x7f) { // limit this to printable chars
+			if (ch == '\n' || bufferedchars == MAXLOGBUFFER) {
+				logbuffer[bufferedchars + 1] = 0;
+				log_println(LEVEL_INFO, TAG, "%s", logbuffer);
+				bufferedchars = 0;
+			}
+			else {
+				logbuffer[bufferedchars++] = ch;
+			}
+
+		}
+	}
+
+}
+
+void uart_enable_logging() {
+	logbuffer = malloc(MAXLOGBUFFER + 1);
+	loggingenabled = true;
+}
 
 static void uart_tick() {
 
@@ -295,6 +321,9 @@ static void uart_tick() {
 
 				// move data to transmitter .. which is really a cheat.. we just write it to the pty
 				write(channel->ptm, &(channel->registers.txfifo[0]), 1);
+				if (i == 0) {
+					uart_log_ch(channel->registers.txfifo[0]);
+				}
 				log_println(LEVEL_INSANE, TAG, "Sent 0x%02x[%c]", channel->registers.txfifo[0],
 						FILTERPRINTABLE(channel->registers.txfifo[0]));
 
