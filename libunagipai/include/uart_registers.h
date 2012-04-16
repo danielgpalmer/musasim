@@ -1,5 +1,8 @@
-/* uart_registers.h */
-
+/**
+ *   \file uart_registers.h
+ *   \author genheader
+ *   \brief UART register defines
+ */
 #ifndef LIBUNAGIPAI_UARTREGISTERS_H_
 #define LIBUNAGIPAI_UARTREGISTERS_H_
 

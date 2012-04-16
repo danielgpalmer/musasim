@@ -1,5 +1,8 @@
-/* dma_registers.h */
-
+/**
+ *   \file dma_registers.h
+ *   \author genheader
+ *   \brief DMA register defines
+ */
 #ifndef LIBUNAGIPAI_DMAREGISTERS_H_
 #define LIBUNAGIPAI_DMAREGISTERS_H_
 

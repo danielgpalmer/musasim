@@ -177,7 +177,6 @@ int main(void) {
 	initvideo();
 
 	//*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
-	//*ide_register_command = ATA_IDENTIFYDRIVE;
 
 	//uint16_t* blip = _binary_blip_start;
 

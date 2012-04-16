@@ -1,5 +1,8 @@
-/* sound_registers.h */
-
+/**
+ *   \file sound_registers.h
+ *   \author genheader
+ *   \brief Sound register defines
+ */
 #ifndef LIBUNAGIPAI_SOUNDREGISTERS_H_
 #define LIBUNAGIPAI_SOUNDREGISTERS_H_
 

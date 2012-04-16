@@ -5,7 +5,7 @@ CFLAGS=-mc68000 -ggdb -std=gnu99 -I ./include
 
 INSTPATH="../toolchains/inst/m68k-elf/m68k-elf"
 
-all: libunagipai.a
+all: libunagipai.a docs
 
 libunagipai.a: genheader ata.o dma.o uart.o machine.o video.o pff.o diskio.o utils.o
 	ar cr libunagipai.a *.o
@@ -34,7 +34,12 @@ diskio.o: petitfatfs/diskio.c
 utils.o: utils.c include/utils.h
 	$(CC) $(CFLAGS) -c $<
 
-.PHONY: genheader install uninstall clean
+.PHONY: docs genheader install uninstall clean
+
+docs: 
+	rm -rf docs
+	mkdir docs
+	doxygen DoxyFile
 
 genheader:
 	$(MAKE) INSTALLDIR="$(ROOT_DIR)/include" -C ../musasim/genheader/ install

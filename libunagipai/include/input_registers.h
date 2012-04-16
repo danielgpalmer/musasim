@@ -1,5 +1,8 @@
-/* input_registers.h */
-
+/**
+ *   \file input_registers.h
+ *   \author genheader
+ *   \brief Input register defines
+ */
 #ifndef LIBUNAGIPAI_INPUTREGISTERS_H_
 #define LIBUNAGIPAI_INPUTREGISTERS_H_
 

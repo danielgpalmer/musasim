@@ -1,13 +1,11 @@
-/*
- * ataidoffsets.h
- *
- *  Created on: Dec 28, 2011
- *      Author: daniel
+/**
+ * \file ata_idoffsets.h
+ * \date Dec 28, 2011
+ * \author daniel
+ * \brief Offsets within the ATA ID block
  */
 
-
 // All lengths are 1 unless defined .. units are 16bit words not bytes!!
-
 #ifndef ATAIDOFFSETS_H_
 #define ATAIDOFFSETS_H_
 

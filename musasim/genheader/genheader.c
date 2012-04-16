@@ -43,6 +43,14 @@ static void uart(void);
 #define TAG_INPUT "INPUTREGISTERS"
 #define TAG_UART "UARTREGISTERS"
 
+static void fileheader(char* filename, char* brief) {
+	printf("/**\n");
+	printf(" *   \\file %s\n", filename);
+	printf(" *   \\author genheader\n");
+	printf(" *   \\brief %s\n", brief);
+	printf(" */\n");
+}
+
 int main(int argc, char* argv[]) {
 
 	if (argc != 2) {
@@ -50,42 +58,42 @@ int main(int argc, char* argv[]) {
 	}
 	else {
 		if (strcmp(argv[1], "dma") == 0) {
-			printf("/* dma_registers.h */\n\n");
+			fileheader("dma_registers.h", "DMA register defines");
 			PRE(TAG_DMA);
 			common();
 			dma();
 			POST(TAG_DMA);
 		}
 		if (strcmp(argv[1], "ata") == 0) {
-			printf("/* ata_registers.h */\n\n");
+			fileheader("ata_registers.h", "ATA register defines");
 			PRE(TAG_ATA);
 			common();
 			ata();
 			POST(TAG_ATA);
 		}
 		else if (strcmp(argv[1], "video") == 0) {
-			printf("/* video_registers.h */\n\n");
+			fileheader("video_registers.h", "Video register defines");
 			PRE(TAG_VIDEO);
 			common();
 			video();
 			POST(TAG_VIDEO);
 		}
 		else if (strcmp(argv[1], "sound") == 0) {
-			printf("/* sound_registers.h */\n\n");
+			fileheader("sound_registers.h", "Sound register defines");
 			PRE(TAG_SOUND);
 			common();
 			sound();
 			POST(TAG_SOUND);
 		}
 		else if (strcmp(argv[1], "input") == 0) {
-			printf("/* input_registers.h */\n\n");
+			fileheader("input_registers.h", "Input register defines");
 			PRE(TAG_INPUT);
 			common();
 			input();
 			POST(TAG_INPUT);
 		}
 		else if (strcmp(argv[1], "uart") == 0) {
-			printf("/* uart_registers.h */\n\n");
+			fileheader("uart_registers.h", "UART register defines");
 			PRE(TAG_UART);
 			common();
 			uart();

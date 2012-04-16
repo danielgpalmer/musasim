@@ -1,8 +1,8 @@
-/*
- * dmaregisters.h
- *
- *  Created on: Dec 23, 2011
- *      Author: daniel
+/**
+ * \file dma_registermasks.h
+ * \date Dec 23, 2011
+ * \author daniel
+ * \brief Register masks for setting up the DMA controller
  */
 
 #ifndef DMAREGISTERS_H_

@@ -31,7 +31,7 @@ static void ata_read_buffer(uint16_t* buffer) {
 }
 
 static void ata_read_buffer_dma(uint16_t* buffer) {
-	dma_transferblock_toregister(0x800000, buffer, 256);
+	dma_transferblock_fromregister(0x800000, buffer, 256);
 }
 
 void ata_identify(ata_id* id) {

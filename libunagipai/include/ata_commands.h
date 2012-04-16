@@ -1,8 +1,8 @@
-/*
- * atacommands.h
- *
- *  Created on: Dec 28, 2011
- *      Author: daniel
+/**
+ *	\file	ata_commands.h
+ *	\date	Dec 28, 2011
+ *	\author	daniel
+ *	\brief	ATA command bytes
  */
 
 #ifndef ATACOMMANDS_H_

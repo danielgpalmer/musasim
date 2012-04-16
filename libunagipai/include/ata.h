@@ -1,8 +1,8 @@
-/*
- * ata.h
- *
- *  Created on: Apr 8, 2012
- *      Author: daniel
+/**
+ * \file ata.h
+ * \date Apr 8, 2012
+ * \author daniel
+ * \brief Functions to use the CF card interface
  */
 
 #ifndef LIBUNAGIPIE_ATA_H_

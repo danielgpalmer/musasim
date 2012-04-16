@@ -3,7 +3,6 @@
 #include <sys/stat.h>
 #include <string.h>
 
-//#include <libunagipai/uart.h>
 #include <libunagipai/uart.h>
 
 #define STDIN_FILENO 0 /* standard input file descriptor */

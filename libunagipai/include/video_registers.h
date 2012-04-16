@@ -1,5 +1,8 @@
-/* video_registers.h */
-
+/**
+ *   \file video_registers.h
+ *   \author genheader
+ *   \brief Video register defines
+ */
 #ifndef LIBUNAGIPAI_VIDEOREGISTERS_H_
 #define LIBUNAGIPAI_VIDEOREGISTERS_H_
 

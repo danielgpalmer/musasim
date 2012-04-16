@@ -1,5 +1,8 @@
-/* ata_registers.h */
-
+/**
+ *   \file ata_registers.h
+ *   \author genheader
+ *   \brief ATA register defines
+ */
 #ifndef LIBUNAGIPAI_ATAREGISTERS_H_
 #define LIBUNAGIPAI_ATAREGISTERS_H_
 
