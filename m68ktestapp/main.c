@@ -202,6 +202,17 @@ int main(void) {
 
 	printf("read from file: %s\n", buf);
 
+	result = pf_open("pai.bes");
+	printffresult(result);
+	uint8_t imageline[180];
+	for (int i = 0; i < 167; i++) {
+		printf("line\n");
+		pf_read(imageline, 180, &len);
+		for (int p = 0; p < 180; p++) {
+			*(video_start + (VIDEO_PLAYFIELDWIDTH * i) + p) = imageline[p];
+		}
+	}
+
 	while (1) {
 		//printf("Whassup homes\n");
 		//gputs("Hello World!");

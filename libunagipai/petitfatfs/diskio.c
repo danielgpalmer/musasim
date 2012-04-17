@@ -39,7 +39,7 @@ DRESULT disk_readp(uint8_t* dest, uint32_t sector, uint16_t sofs, uint16_t count
 
 	if (lastsector != sector) {
 		ata_read_sector(sector, buffer, true);
-		util_hexblockprint(buffer, 512);
+		//util_hexblockprint(buffer, 512);
 		lastsector = sector;
 
 	}

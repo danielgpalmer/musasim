@@ -36,6 +36,8 @@ fontrom.o:
 cfimage.bin:
 	dd if=/dev/zero of=cfimage.bin bs=1MB count=64
 	/sbin/mkfs.vfat cfimage.bin
+	../tools/png2bebin -i rawfiles/pai.png -o cfimagefiles/pai.bes
+	MTOOLSRC=./mtools.conf mcopy cfimagefiles/pai.bes m:/	
 	MTOOLSRC=./mtools.conf mcopy cfimagefiles/test.txt m:/
 	MTOOLSRC=./mtools.conf mdir m:
 
