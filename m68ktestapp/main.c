@@ -204,10 +204,10 @@ int main(void) {
 
 	result = pf_open("pai.bes");
 	printffresult(result);
-	uint8_t imageline[180];
+	uint16_t imageline[180 * 2];
 	for (int i = 0; i < 167; i++) {
 		printf("line\n");
-		pf_read(imageline, 180, &len);
+		pf_read(imageline, 180 * 2, &len);
 		for (int p = 0; p < 180; p++) {
 			*(video_start + (VIDEO_PLAYFIELDWIDTH * i) + p) = imageline[p];
 		}
