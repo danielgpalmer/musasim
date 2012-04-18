@@ -80,7 +80,8 @@ int main(int argc, char* argv[]) {
 
 	for (int yy = 0; yy < y; yy++) {
 		for (int xx = 0; xx < x; xx++) {
-			pixel = ((curpixel[0] & 0xf8) << 8) | ((curpixel[1] & 0xfc) << 3) | ((curpixel[2] & 0xf8 >> 3));
+			pixel = (((uint16_t) (curpixel[0] & 0xf8)) << 8) | (((uint16_t) (curpixel[1] & 0xfc)) << 3)
+					| (((uint16_t) (curpixel[2] & 0xf8) >> 3));
 			writebeword(pixel, out);
 			curpixel += STRIDE;
 		}

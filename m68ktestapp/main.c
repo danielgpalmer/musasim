@@ -20,6 +20,8 @@
 #include <stdint.h>
 #include "fontrom.h"
 
+#include <libunagipai/video.h>
+
 #include "blip.c" // cant be arsed with linking right now
 void interrupthandler() {
 
@@ -169,6 +171,12 @@ static void printfat(FATFS* fs) {
 	printf("data base : 0x%08x\n", fs->database);
 }
 
+void fatimageloader DATALOADERARGS {
+	uint16_t len;
+	pf_read(buff, wanted, &len);
+
+}
+
 int main(void) {
 
 	uint16_t sr = machine_getstatusregister();
@@ -205,13 +213,15 @@ int main(void) {
 	result = pf_open("pai.bes");
 	printffresult(result);
 	uint16_t imageline[180 * 2];
-	for (int i = 0; i < 167; i++) {
-		printf("line\n");
-		pf_read(imageline, 180 * 2, &len);
-		for (int p = 0; p < 180; p++) {
-			*(video_start + (VIDEO_PLAYFIELDWIDTH * i) + p) = imageline[p];
-		}
-	}
+	pf_read(imageline, 2 * 2, &len);
+	//for (int i = 0; i < 167; i++) {
+	//printf("line\n");
+	//for (int p = 0; p < 180; p++) {
+	//	*(video_start + (VIDEO_PLAYFIELDWIDTH * i) + p) = imageline[p];
+	//}
+	//}
+
+	video_blitimage(180, 167, 20, 20, NULL, fatimageloader);
 
 	while (1) {
 		//printf("Whassup homes\n");
