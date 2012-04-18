@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "lzfx/lzfx.h"
+
 #define STBI_HEADER_FILE_ONLY
 #include "stb_image.c"
 
@@ -25,9 +27,10 @@ int main(int argc, char* argv[]) {
 	struct arg_lit *help = arg_lit0(NULL, "help", "print this help and exit");
 	struct arg_file *inputpath = arg_file1("i", "input", "pngfile", "Path of the input PNG");
 	struct arg_file *outputpath = arg_file1("o", "output", "binfile", "Path to output the resulting be16 binary to");
+	struct arg_lit *compress = arg_lit0("c", "compress", "compress the pixel data");
 	struct arg_end *end = arg_end(20);
 
-	void *argtable[] = { help, inputpath, outputpath, end };
+	void *argtable[] = { help, inputpath, outputpath, compress, end };
 
 	if (arg_nullcheck(argtable) != 0) {
 		printf("%s: insufficient memory\n", argv[0]);
@@ -78,11 +81,20 @@ int main(int argc, char* argv[]) {
 
 	uint8_t* curpixel = image;
 
+	unsigned int rawdatalen = (x * y) * 2;
+	uint8_t* rawdata = malloc(rawdatalen);
+
+	// convert the RGB888 to RGB565
+	uint8_t* curconvertedpixel = rawdata;
 	for (int yy = 0; yy < y; yy++) {
 		for (int xx = 0; xx < x; xx++) {
 			pixel = (((uint16_t) (curpixel[0] & 0xf8)) << 8) | (((uint16_t) (curpixel[1] & 0xfc)) << 3)
 					| (((uint16_t) (curpixel[2] & 0xf8) >> 3));
-			writebeword(pixel, out);
+			//writebeword(pixel, out);
+
+			*curconvertedpixel++ = (pixel >> 8) & 0xff;
+			*curconvertedpixel++ = pixel & 0xff;
+
 			curpixel += STRIDE;
 		}
 	}
@@ -90,6 +102,37 @@ int main(int argc, char* argv[]) {
 	fclose(in);
 	stbi_image_free(image);
 
+	// compress and write
+	if (compress->count == 1) {
+		uint8_t* compresseddata = malloc(rawdatalen);
+		unsigned int compressedlen = rawdatalen;
+		int res = 0;
+		if ((res = lzfx_compress(rawdata, rawdatalen, compresseddata, &compressedlen)) < 0) {
+			printf("Compression failed\n");
+			switch (res) {
+				case LZFX_EARGS:
+					printf("bad args\n");
+					break;
+				case LZFX_ESIZE:
+					printf("output buffer to small\n");
+					break;
+				default:
+					printf("ret was %d\n", res);
+					break;
+			}
+		}
+		else {
+			printf("Compress, result is %u long\n", compressedlen);
+		}
+		fwrite(compresseddata, 1, compressedlen, out);
+		free(compresseddata);
+	}
+	// just write
+	else {
+		fwrite(rawdata, 1, rawdatalen, out);
+	}
+
+	free(rawdata);
 	fclose(out);
 
 	printf("done!\n");

@@ -9,6 +9,8 @@
 #include "include/video.h"
 #include "include/video_registers.h"
 
+
+
 void video_blitimage(int width, int height, int x, int y, void* data, dataloader loader) {
 
 	uint16_t buff[width];
