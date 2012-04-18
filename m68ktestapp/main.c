@@ -13,6 +13,7 @@
 #include <libunagipai/dma_registermasks.h>
 #include <libunagipai/input_registers.h>
 #include <libunagipai/sound_registers.h>
+#include <libunagipai/lzfx.h>
 
 #include "main.h"
 
@@ -214,14 +215,26 @@ int main(void) {
 	printffresult(result);
 	uint16_t imageline[180 * 2];
 	pf_read(imageline, 2 * 2, &len);
-	//for (int i = 0; i < 167; i++) {
-	//printf("line\n");
-	//for (int p = 0; p < 180; p++) {
-	//	*(video_start + (VIDEO_PLAYFIELDWIDTH * i) + p) = imageline[p];
-	//}
-	//}
+	//video_blitimage(180, 167, 20, 20, NULL, fatimageloader);
 
-	video_blitimage(180, 167, 20, 20, NULL, fatimageloader);
+	result = pf_open("pai.bz");
+
+	printffresult(result);
+	uint16_t width, height;
+	pf_read(&width, 2, &len);
+	pf_read(&height, 2, &len);
+	unsigned cdatalen = fs.fsize - 4;
+	unsigned int rlen = 2 * (width * height);
+	printf("compressed image is %u * %u, compressed data is %u bytes\n", (unsigned) width, (unsigned) height, cdatalen);
+	uint8_t* compresseddata = malloc(cdatalen);
+	uint8_t* rawdata = malloc(rlen);
+	pf_read(compresseddata, cdatalen, &len);
+	if (lzfx_decompress(compresseddata, cdatalen, rawdata, &rlen) == 0) {
+		printf("decompressed!\n");
+		free(compresseddata);
+		video_blitimage_nocopy(width, height, 20, 20, rawdata);
+		free(rawdata);
+	}
 
 	while (1) {
 		//printf("Whassup homes\n");

@@ -16,5 +16,6 @@ typedef void (*dataloader)DATALOADERARGS;
  */
 
 void video_blitimage(int width, int height, int x, int y, void* data, dataloader);
+void video_blitimage_nocopy(int width, int height, int x, int y, uint16_t* data);
 
 #endif /* VIDEO_H_ */
