@@ -22,6 +22,7 @@ typedef enum {
 
 DSTATUS disk_initialize(void);
 DRESULT disk_readp(uint8_t*, uint32_t, uint16_t, uint16_t);
+DRESULT disk_readp_nocopy(uint8_t** dest, uint32_t sector, uint16_t sofs, uint16_t count);
 DRESULT disk_writep(const uint8_t*, uint32_t);
 
 #define STA_NOINIT		0x01	/* Drive not initialized */

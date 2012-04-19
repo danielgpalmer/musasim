@@ -37,6 +37,26 @@ static uint16_t buffer[256];
 DRESULT disk_readp(uint8_t* dest, uint32_t sector, uint16_t sofs, uint16_t count) {
 	printf("disk_readp(0x%08x, 0x%08x, %d, %d)\n", (unsigned) dest, sector, sofs, count);
 
+	if (sofs == 0 && count == 512) {
+		printf("directly copying block\n");
+		ata_read_sector(sector, dest, true);
+	}
+	else {
+		if (lastsector != sector) {
+			ata_read_sector(sector, buffer, true);
+			//util_hexblockprint(buffer, 512);
+			lastsector = sector;
+		}
+
+		uint8_t* bufferbytes = (uint8_t*) buffer;
+		memcpy(dest, (void *) (buffer) + sofs, count);
+	}
+	return RES_OK;
+}
+
+DRESULT disk_readp_nocopy(uint8_t** dest, uint32_t sector, uint16_t sofs, uint16_t count) {
+	printf("disk_readp_nocopy(0x%08x, 0x%08x, %d, %d)\n", (unsigned) dest, sector, sofs, count);
+
 	if (lastsector != sector) {
 		ata_read_sector(sector, buffer, true);
 		//util_hexblockprint(buffer, 512);
@@ -44,8 +64,10 @@ DRESULT disk_readp(uint8_t* dest, uint32_t sector, uint16_t sofs, uint16_t count
 
 	}
 
-	uint8_t* bufferbytes = (uint8_t*) buffer;
-	memcpy(dest, (void *) (buffer) + sofs, count);
+	//uint8_t* bufferbytes = (uint8_t*) buffer;
+	//memcpy(dest, (void *) (buffer) + sofs, count);
+
+	*dest = (void *) (buffer) + sofs;
 
 	return RES_OK;
 }

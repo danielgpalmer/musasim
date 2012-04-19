@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include <string.h>
 #include <dma_registermasks.h>
 
 #include "dmacard.h"
@@ -14,25 +15,32 @@
 #include "../../sim.h"
 #include "../board.h"
 
+#define NUMWINDOWS 16
 #define ADDRESSMASK 0x1f
 static const char TAG[] = "dmacard";
 
 // Externally visible registers
 
-static uint16_t config = 0;
-static uint16_t datal = 0;
-static uint16_t datah = 0;
-static uint16_t countl = 0;
-static uint16_t counth = 0;
-static uint16_t sourcel = 0;
-static uint16_t sourceh = 0;
-static uint16_t destinationl = 0;
-static uint16_t destinationh = 0;
+typedef struct {
+	uint16_t config;
+	uint16_t datal;
+	uint16_t datah;
+	uint16_t countl;
+	uint16_t counth;
+	uint16_t sourcel;
+	uint16_t sourceh;
+	uint16_t destinationl;
+	uint16_t destinationh;
+	uint16_t jumpafter;
+	uint16_t jumplength;
+} window;
+
+static uint16_t curwindow = 0;
+static window regwindows[NUMWINDOWS];
+static window* curwin;
 
 static char* register_names[] = { "config", "data high", "data low", "count h", "count low", "source high",
 		"source low", "destination h", "destination low" };
-static uint16_t* dma_registers[] = { &config, &datah, &datal, &counth, &countl, &sourceh, &sourcel, &destinationh,
-		&destinationl };
 
 // Latched values
 static uint32_t counter = 0;
@@ -46,11 +54,8 @@ static bool wordtransfer = false;
 static bool havebuslock = false;
 
 static void dmacard_init() {
-
-	for (int i = 0; i < 7; i++) {
-		*(dma_registers[i]) = 0;
-	}
-
+	memset(regwindows, 0, sizeof(regwindows));
+	curwin = &(regwindows[curwindow]);
 }
 
 static void dmacard_irqack() {
@@ -58,15 +63,12 @@ static void dmacard_irqack() {
 }
 
 static void dmacard_busgrant() {
-
 	log_println(LEVEL_DEBUG, TAG, "dmacard_busgrant");
 	havebuslock = true;
-
 }
 
 static uint16_t mutate(uint16_t value1, uint16_t value2) {
-
-	switch (config & DMA_REGISTER_CONFIG_MUTATOR) {
+	switch (curwin->config & DMA_REGISTER_CONFIG_MUTATOR) {
 		case DMA_MUT_NOTHING:
 			return value1;
 		case DMA_MUT_AND:
@@ -89,7 +91,7 @@ static void dmacard_perform_act(int index) {
 
 	uint32_t* reg = actregs[index];
 
-	int act = (config & (DMA_REGISTER_CONFIG_ACT << actshifts[index])) >> actshifts[index];
+	int act = (curwin->config & (DMA_REGISTER_CONFIG_ACT << actshifts[index])) >> actshifts[index];
 
 	switch (act) {
 		case DMA_ACT_NOTHING:
@@ -136,8 +138,8 @@ static void dmacard_tick() {
 		if (transferinprogress) {
 			if (counter == 0) {
 				log_println(LEVEL_DEBUG, TAG, "transfer done");
-				config |= DMA_REGISTER_CONFIG_DONE;
-				config &= ~DMA_REGISTER_CONFIG_START;
+				curwin->config |= DMA_REGISTER_CONFIG_DONE;
+				curwin->config &= ~DMA_REGISTER_CONFIG_START;
 				transferinprogress = false;
 				board_unlock_bus(&dmacard);
 			}
@@ -145,7 +147,7 @@ static void dmacard_tick() {
 			else {
 				//log_println(LEVEL_DEBUG, TAG, "source[0%08x] dest[0x%08x]\n", source, destination);
 
-				switch (config & DMA_REGISTER_CONFIG_MODE) {
+				switch (curwin->config & DMA_REGISTER_CONFIG_MODE) {
 					case DMA_REGISTER_CONFIG_MODE_BLOCK: // Takes two clocks, one for read, one for write
 						// read phase
 						if (state == 0) {
@@ -284,30 +286,55 @@ static void dmacard_tick() {
 
 static uint16_t* dmacard_decodereg(uint32_t address) {
 	int reg = (address & ADDRESSMASK);
-	if (reg != 0) {
-		reg /= 2;
+
+	switch (reg) {
+		case DMACARD_REGISTER_CONFIG:
+			return &(regwindows[curwindow].config);
+		case DMACARD_REGISTER_DATAH:
+			return &(regwindows[curwindow].datah);
+		case DMACARD_REGISTER_DATAL:
+			return &(regwindows[curwindow].datal);
+		case DMACARD_REGISTER_COUNTH:
+			return &(regwindows[curwindow].counth);
+		case DMACARD_REGISTER_COUNTL:
+			return &(regwindows[curwindow].countl);
+		case DMACARD_REGISTER_SOURCEH:
+			return &(regwindows[curwindow].sourceh);
+		case DMACARD_REGISTER_SOURCEL:
+			return &(regwindows[curwindow].sourcel);
+		case DMACARD_REGISTER_DESTINATIONH:
+			return &(regwindows[curwindow].destinationh);
+		case DMACARD_REGISTER_DESTINATIONL:
+			return &(regwindows[curwindow].destinationl);
+		case DMACARD_REGISTER_JUMPAFTER:
+			return &(regwindows[curwindow].jumpafter);
+		case DMACARD_REGISTER_JUMPLENGTH:
+			return &(regwindows[curwindow].jumplength);
+		default:
+			return NULL;
 	}
-	return dma_registers[reg];
+
 }
 
 static void dmacard_dumpconfig() {
 
-	switch (config & DMA_REGISTER_CONFIG_MODE) {
+	window win = regwindows[curwindow];
+	switch (win.config & DMA_REGISTER_CONFIG_MODE) {
 		case DMA_REGISTER_CONFIG_MODE_FILL:
 			log_println(LEVEL_DEBUG, TAG, "copying data 0x%08x times as %s to 0x%08x", counter,
-					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", destination);
+					win.config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", destination);
 			break;
 		case DMA_REGISTER_CONFIG_MODE_BLOCK:
 			log_println(LEVEL_DEBUG, TAG, "transferring 0x%08x %s from 0x%08x to 0x%08x", counter,
-					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", source, destination);
+					win.config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", source, destination);
 			break;
 	}
 
-	if (config & DMA_REGISTER_CONFIG_SRCACT_INCTWO) {
+	if (win.config & DMA_REGISTER_CONFIG_SRCACT_INCTWO) {
 		log_println(LEVEL_DEBUG, TAG, "src will increment by two");
 	}
 
-	if (config & DMA_REGISTER_CONFIG_DSTACT_INCTWO) {
+	if (win.config & DMA_REGISTER_CONFIG_DSTACT_INCTWO) {
 		log_println(LEVEL_DEBUG, TAG, "dst will increment by two");
 	}
 
@@ -320,8 +347,8 @@ static uint16_t dmacard_read_word(uint32_t address) {
 static void dmacard_write_word(uint32_t address, uint16_t value) {
 
 // DMA transfer was started
-	if (config & DMA_REGISTER_CONFIG_START) {
-		if (!(config & DMA_REGISTER_CONFIG_DONE)) { // but it doesnt seem to be done yet?
+	if (curwin->config & DMA_REGISTER_CONFIG_START) {
+		if (!(curwin->config & DMA_REGISTER_CONFIG_DONE)) { // but it doesnt seem to be done yet?
 			log_println(LEVEL_INFO, TAG, "Someone tried to write registers while a transfer is in the progress!");
 			return;
 		}
@@ -339,13 +366,14 @@ static void dmacard_write_word(uint32_t address, uint16_t value) {
 
 	if (reg == DMACARD_REGISTER_CONFIG) {
 		if (value & DMA_REGISTER_CONFIG_START) {
-			counter = ((counth << 16) | countl);
-			source = ((sourceh << 16) | sourcel);
-			destination = ((destinationh << 16) | destinationl);
-			data = ((datah << 16) | datal);
+			window win = regwindows[curwindow];
+			counter = (win.counth << 16) | win.countl;
+			source = ((win.sourceh << 16) | win.sourcel);
+			destination = ((win.destinationh << 16) | win.destinationl);
+			data = ((win.datah << 16) | win.datal);
 			board_lock_bus(&dmacard);
 			transferinprogress = true;
-			wordtransfer = config & DMA_REGISTER_CONFIG_SIZE;
+			wordtransfer = win.config & DMA_REGISTER_CONFIG_SIZE;
 			value &= ~DMA_REGISTER_CONFIG_START;
 			dmacard_dumpconfig();
 		}

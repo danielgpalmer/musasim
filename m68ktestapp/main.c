@@ -32,48 +32,11 @@ void sound_handler() {
 
 }
 
-static int col = 0;
-static int row = 0;
-
-#define CHARWIDTH 8
-#define CHARHEIGHT 16
-#define COLS (VIDEO_PLAYFIELDWIDTH/CHARWIDTH)
-#define ROWSIZE (COLS * CHARWIDTH * CHARHEIGHT)
-
-void gputs(char* string) {
-
-	int charoffset = 32 * CHARHEIGHT;
-	char c = 0;
-
-	while ((c = *string++) != 0) {
-		for (int i = 0; i < CHARHEIGHT; i++) {
-
-			uint8_t character = _binary_fontrom_start[i + ((c * CHARHEIGHT) - charoffset)];
-
-			for (int j = 0; j < CHARWIDTH; j++) {
-
-				int offset = (ROWSIZE * row) + ((VIDEO_PLAYFIELDWIDTH * i) + j + (col * CHARWIDTH));
-
-				int pixel = character & 0x01;
-				if (pixel) {
-					*(video_start + offset) = 0x0000;
-				}
-				else {
-					*(video_start + offset) = 0xFFFF;
-				}
-				character = (character >> 1);
-			}
-		}
-
-		col++;
-	}
-}
-
 void vblank_handler() {
 
 	static uint16_t lastframe = 0;
 	static uint16_t thisframe;
-	static unsigned int y = 0, x = 0;
+	static unsigned int y = 0, x = 10;
 	static int xinc = 1, yinc = 1;
 
 	//*video_register_winx = 50;
@@ -94,19 +57,19 @@ void vblank_handler() {
 
 		x += xinc;
 
-		if (x == VIDEO_PLAYFIELDWIDTH - 1 || x == 0) {
+		if (x == VIDEO_WIDTH - 1 || x == 0) {
 			xinc = -xinc;
 		}
 
 		y += yinc;
 
-		if (y == VIDEO_PLAYFIELDHEIGHT - 1 || y == 0) {
+		if (y == VIDEO_HEIGHT - 1 || y == 0) {
 			yinc = -yinc;
 		}
 	}
 
-	col = 0;
-	row = 0;
+	//col = 0;
+	//row = 0;
 	//gputs("Shizzle me nizzle dizzle bizzle izzle. ABCDEFGHI");
 
 	lastframe = thisframe;
@@ -118,22 +81,7 @@ void uart_handler() {
 void initvideo() {
 	*video_register_config |= VIDEO_CONFIG_MODE_BITMAP;
 
-	static uint32_t count = VIDEO_PLAYFIELDWIDTH * VIDEO_PLAYFIELDHEIGHT;
-
-	dma_register_counth = (count >> 16) & 0xFFFF;
-	dma_register_countl = (count & 0xFFFF);
-	dma_register_desth = 0x0020;
-	dma_register_destl = 0x0000;
-	dma_register_datal = 0xFFFF;
-	//*dma_register_config |= DMA_REGISTER_CONFIG_START | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE
-	//		| DMA_REGISTER_CONFIG_DATAACT_INVERSE | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
-
-	dma_register_config = DMA_REGISTER_CONFIG_START | DMA_REGISTER_CONFIG_MODE_FILL | DMA_REGISTER_CONFIG_SIZE
-			| DMA_REGISTER_CONFIG_DATAACT_INVERSE | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
-
-	while (!(dma_register_config & DMA_REGISTER_CONFIG_DONE)) {
-
-	}
+	video_clear();
 
 	*video_register_config |= VIDEO_CONFIG_ENVBINT;
 }
@@ -236,9 +184,10 @@ int main(void) {
 		free(rawdata);
 	}
 
+	video_gputs("Hello World!", _binary_fontrom_start);
+
 	while (1) {
 		//printf("Whassup homes\n");
-		//gputs("Hello World!");
 
 	}
 
