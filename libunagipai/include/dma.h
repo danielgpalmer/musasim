@@ -13,10 +13,19 @@
 #ifndef LIBUNAGIPAI_DMA_H_
 #define LIBUNAGIPAI_DMA_H_
 
+void dma_begin();
+void dma_commit();
+
 /**
- * Transder a block to a block
+ * Transfer a block to a block
  */
 void dma_transferblock(uint32_t source, uint32_t dest, uint32_t count);
+
+/**
+ * Transfer a linear block to a nonlinear destination.. i.e. for blitting image rects
+ */
+void dma_transfer_nonlinearblock(uint32_t source, uint32_t dest, uint32_t count, uint16_t jumpafter,
+		uint16_t jumplength);
 
 /**
  * Transfer a block of 16bit words from source -> source + (count * 2) to dest.
@@ -32,5 +41,10 @@ void dma_transferblock_toregister(uint32_t source, uint32_t dest, uint32_t count
  * Fill a block with data
  */
 void dma_fillblock(uint32_t dest, uint16_t data, uint32_t count);
+
+/**
+ * Fill a block that is non linear.. i.e. for filling rects
+ */
+void dma_fillblock_nonlinear(uint32_t dest, uint16_t data, uint16_t jumpafter, uint16_t jumplength);
 
 #endif /* LIBUNAGIPAI_DMA_H_ */

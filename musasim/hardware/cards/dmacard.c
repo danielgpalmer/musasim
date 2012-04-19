@@ -40,7 +40,7 @@ static window regwindows[NUMWINDOWS];
 static window* curwin;
 
 static char* register_names[] = { "config", "data high", "data low", "count h", "count low", "source high",
-		"source low", "destination h", "destination low" };
+		"source low", "destination h", "destination low", "jump after", "jump length", "window" };
 
 // Latched values
 static uint32_t counter = 0;
@@ -68,6 +68,7 @@ static void dmacard_busgrant() {
 }
 
 static uint16_t mutate(uint16_t value1, uint16_t value2) {
+
 	switch (curwin->config & DMA_REGISTER_CONFIG_MUTATOR) {
 		case DMA_MUT_NOTHING:
 			return value1;
@@ -310,6 +311,8 @@ static uint16_t* dmacard_decodereg(uint32_t address) {
 			return &(regwindows[curwindow].jumpafter);
 		case DMACARD_REGISTER_JUMPLENGTH:
 			return &(regwindows[curwindow].jumplength);
+		case DMACARD_REGISTER_WINDOW:
+			return &curwindow;
 		default:
 			return NULL;
 	}
@@ -318,23 +321,28 @@ static uint16_t* dmacard_decodereg(uint32_t address) {
 
 static void dmacard_dumpconfig() {
 
-	window win = regwindows[curwindow];
-	switch (win.config & DMA_REGISTER_CONFIG_MODE) {
+	uint16_t config = curwin->config;
+
+	switch (config & DMA_REGISTER_CONFIG_MODE) {
 		case DMA_REGISTER_CONFIG_MODE_FILL:
 			log_println(LEVEL_DEBUG, TAG, "copying data 0x%08x times as %s to 0x%08x", counter,
-					win.config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", destination);
+					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", destination);
 			break;
 		case DMA_REGISTER_CONFIG_MODE_BLOCK:
 			log_println(LEVEL_DEBUG, TAG, "transferring 0x%08x %s from 0x%08x to 0x%08x", counter,
-					win.config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", source, destination);
+					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", source, destination);
 			break;
 	}
 
-	if (win.config & DMA_REGISTER_CONFIG_SRCACT_INCTWO) {
+	if (config & DMA_REGISTER_CONFIG_MUTATOR) {
+		log_println(LEVEL_DEBUG, TAG, "data mutation is going to happen");
+	}
+
+	if (config & DMA_REGISTER_CONFIG_SRCACT_INCTWO) {
 		log_println(LEVEL_DEBUG, TAG, "src will increment by two");
 	}
 
-	if (win.config & DMA_REGISTER_CONFIG_DSTACT_INCTWO) {
+	if (config & DMA_REGISTER_CONFIG_DSTACT_INCTWO) {
 		log_println(LEVEL_DEBUG, TAG, "dst will increment by two");
 	}
 
@@ -355,7 +363,7 @@ static void dmacard_write_word(uint32_t address, uint16_t value) {
 	}
 
 	int reg = (address & ADDRESSMASK);
-	log_println(LEVEL_DEBUG, TAG, "write 0x%x [%s], value 0x%x", address,
+	log_println(LEVEL_DEBUG, TAG, "write 0x%04x [%s], value 0x%x", address,
 			reg == 0 ? register_names[0] : register_names[reg / 2], value);
 
 	if (reg == DMACARD_REGISTER_CONFIG) {

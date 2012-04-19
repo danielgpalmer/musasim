@@ -14,7 +14,9 @@
 void video_clear() {
 	static uint32_t count = VIDEO_PLAYFIELDWIDTH * VIDEO_PLAYFIELDHEIGHT;
 
+	dma_begin();
 	dma_fillblock(0, 0xFFFF, count);
+	dma_commit();
 
 }
 
@@ -36,7 +38,9 @@ void video_blitimage_nocopy(int width, int height, int x, int y, uint16_t* data)
 
 	for (int i = 0; i < height; i++) {
 		if (usedma) {
+			dma_begin();
 			dma_transferblock(data + (width * i), video_start + (VIDEO_PLAYFIELDWIDTH * (i + y)) + x, width);
+			dma_commit();
 		}
 		else {
 			for (int p = 0; p < width; p++) {

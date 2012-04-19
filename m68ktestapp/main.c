@@ -180,7 +180,7 @@ int main(void) {
 	if (lzfx_decompress(compresseddata, cdatalen, rawdata, &rlen) == 0) {
 		printf("decompressed!\n");
 		free(compresseddata);
-		video_blitimage_nocopy(width, height, 20, 20, rawdata);
+		video_blitimage_nocopy(width, height, 50, 50, rawdata);
 		free(rawdata);
 	}
 

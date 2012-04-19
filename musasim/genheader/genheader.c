@@ -114,14 +114,16 @@ static void dma() {
 
 	char* dmaregisternames[] = { "dma_register_config", "dma_register_datah", "dma_register_datal",
 			"dma_register_counth", "dma_register_countl", "dma_register_srch", "dma_register_srcl",
-			"dma_register_desth", "dma_register_destl", "dma_register_window" };
+			"dma_register_desth", "dma_register_destl", "dma_register_jumpafter", "dma_register_jumplenght",
+			"dma_register_window" };
 
 	uint32_t offset = SLOT_OFFSET(SLOT_DMACARD);
 
 	uint32_t dmaregisteraddresses[] = { offset + DMACARD_REGISTER_CONFIG, offset + DMACARD_REGISTER_DATAH, offset
 			+ DMACARD_REGISTER_DATAL, offset + DMACARD_REGISTER_COUNTH, offset + DMACARD_REGISTER_COUNTL, offset
 			+ DMACARD_REGISTER_SOURCEH, offset + DMACARD_REGISTER_SOURCEL, offset + DMACARD_REGISTER_DESTINATIONH,
-			offset + DMACARD_REGISTER_DESTINATIONL, offset + DMACARD_REGISTER_WINDOW };
+			offset + DMACARD_REGISTER_DESTINATIONL, offset + DMACARD_REGISTER_JUMPAFTER, offset
+					+ DMACARD_REGISTER_JUMPLENGTH, offset + DMACARD_REGISTER_WINDOW };
 
 	for (int i = 0; i < (sizeof(dmaregisternames) / sizeof(dmaregisternames[0])); i++) {
 		printf("#define %s (*(volatile uint16_t*) 0x%x)\n", dmaregisternames[i], dmaregisteraddresses[i]);
