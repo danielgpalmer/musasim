@@ -114,7 +114,7 @@ static void dma() {
 
 	char* dmaregisternames[] = { "dma_register_config", "dma_register_datah", "dma_register_datal",
 			"dma_register_counth", "dma_register_countl", "dma_register_srch", "dma_register_srcl",
-			"dma_register_desth", "dma_register_destl", "dma_register_jumpafter", "dma_register_jumplenght",
+			"dma_register_desth", "dma_register_destl", "dma_register_jumpafter", "dma_register_jumplength",
 			"dma_register_window" };
 
 	uint32_t offset = SLOT_OFFSET(SLOT_DMACARD);

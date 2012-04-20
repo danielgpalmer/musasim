@@ -177,24 +177,26 @@ static void dmacard_tick() {
 		return;
 	}
 
-	if (!transferinprogress) {
-		if (curwindowindex != 0) {
-			dmacard_popwindow();
-			transferinprogress = true;
-		}
-		else {
-			started = false;
-			done = true;
-			dmacard_busrelease();
-			return;
-		}
-	}
-
 	for (int i = 0; i < SIM_CLOCKS_PERTICK; i++) {
 
 		bool unitcomplete = false;
 
-		if (transferinprogress) {
+		if (!transferinprogress) {
+			// no transfer in progress, but still register windows to handle
+			if (curwindowindex != 0) {
+				dmacard_popwindow();
+				transferinprogress = true;
+			}
+			// all the register windows are gone and there is no transfer.. time to go home
+			else {
+				started = false;
+				done = true;
+				dmacard_busrelease();
+				break;
+			}
+		}
+
+		else {
 			if (counter == 0) {
 				log_println(LEVEL_DEBUG, TAG, "transfer done");
 				transferinprogress = false;
@@ -332,6 +334,11 @@ static void dmacard_tick() {
 					//log_println(LEVEL_DEBUG, TAG, "data 0x%08x, src 0x%08x, dst 0x%08x", datalatched, source, destination);
 
 					counter--;
+					if (curwindow->jumpafter != 0) {
+						if (counter % curwindow->jumpafter == 0) {
+							destination += (curwindow->jumplength * 2);
+						}
+					}
 				}
 			}
 
@@ -430,15 +437,18 @@ static void dmacard_write_word(uint32_t address, uint16_t value) {
 			reg == 0 ? register_names[0] : register_names[reg / 2], value);
 
 	if (reg == DMACARD_REGISTER_CONFIG) {
+		// start has been triggered, get this show rolling
 		if (value & DMA_REGISTER_CONFIG_START) {
 			started = true;
 			done = false;
 		}
+		// strip off the start and done bits if set
 		value &= 0x3fff;
 	}
 
 	*(dmacard_decodereg(address)) = value;
 
+	// handle changing the register window
 	if (reg == DMACARD_REGISTER_WINDOW) {
 		log_println(LEVEL_INFO, TAG, "Window changed to %d", curwindowindex);
 		curwindow = &regwindows[curwindowindex];

@@ -146,8 +146,6 @@ int main(void) {
 	//*sound_channel_0_volume = 0xFF22;
 	//*sound_channel_0_config = 0xF9FF;
 
-
-
 	FATFS fs;
 	FRESULT result;
 	result = pf_mount(&fs);
@@ -182,7 +180,7 @@ int main(void) {
 	if (lzfx_decompress(compresseddata, cdatalen, rawdata, &rlen) == 0) {
 		printf("decompressed!\n");
 		free(compresseddata);
-		video_blitimage_nocopy(width, height, 50, 50, rawdata);
+		video_blitimage_nocopy(width, height, 30, 30, rawdata);
 		free(rawdata);
 	}
 

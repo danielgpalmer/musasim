@@ -45,6 +45,6 @@ void dma_fillblock(uint32_t dest, uint16_t data, uint32_t count);
 /**
  * Fill a block that is non linear.. i.e. for filling rects
  */
-void dma_fillblock_nonlinear(uint32_t dest, uint16_t data, uint16_t jumpafter, uint16_t jumplength);
+void dma_fillblock_nonlinear(uint32_t dest, uint16_t data, uint32_t count, uint16_t jumpafter, uint16_t jumplength);
 
 #endif /* LIBUNAGIPAI_DMA_H_ */

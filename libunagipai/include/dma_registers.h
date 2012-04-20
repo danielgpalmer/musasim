@@ -20,7 +20,7 @@
 #define dma_register_desth (*(volatile uint16_t*) 0xa0000e)
 #define dma_register_destl (*(volatile uint16_t*) 0xa00010)
 #define dma_register_jumpafter (*(volatile uint16_t*) 0xa00012)
-#define dma_register_jumplenght (*(volatile uint16_t*) 0xa00014)
+#define dma_register_jumplength (*(volatile uint16_t*) 0xa00014)
 #define dma_register_window (*(volatile uint16_t*) 0xa00016)
 
 #endif // DMAREGISTERS

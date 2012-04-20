@@ -43,14 +43,16 @@ void video_blitimage(int width, int height, int x, int y, void* data, dataloader
 void video_blitimage_nocopy(int width, int height, int x, int y, uint16_t* data) {
 
 	bool usedma = true;
+	if (usedma) {
+		uint32_t count = width * height;
+		dma_begin();
+		dma_transfer_nonlinearblock(data, video_start + (VIDEO_PLAYFIELDWIDTH * y) + x, count, width,
+				VIDEO_PLAYFIELDWIDTH - width);
+		dma_commit();
 
-	for (int i = 0; i < height; i++) {
-		if (usedma) {
-			dma_begin();
-			dma_transferblock(data + (width * i), video_start + (VIDEO_PLAYFIELDWIDTH * (i + y)) + x, width);
-			dma_commit();
-		}
-		else {
+	}
+	else {
+		for (int i = 0; i < height; i++) {
 			for (int p = 0; p < width; p++) {
 				*(video_start + (VIDEO_PLAYFIELDWIDTH * (i + y)) + p + x) = data[(i * width) + p];
 			}

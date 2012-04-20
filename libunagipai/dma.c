@@ -69,6 +69,17 @@ void dma_transfer_nonlinearblock(uint32_t source, uint32_t dest, uint32_t count,
 		return;
 	}
 
+	dma_register_counth = HIGHWORD(count);
+	dma_register_countl = LOwWORD(count);
+	dma_register_desth = HIGHWORD(dest);
+	dma_register_destl = LOwWORD(dest);
+	dma_register_srch = HIGHWORD(source);
+	dma_register_srcl = LOwWORD(source);
+	dma_register_jumpafter = jumpafter;
+	dma_register_jumplength = jumplength;
+	dma_register_config = DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK | DMA_REGISTER_CONFIG_SRCACT_INCTWO
+			| DMA_REGISTER_CONFIG_DSTACT_INCTWO;
+
 	dma_register_window += 1;
 
 }
@@ -130,11 +141,21 @@ void dma_fillblock(uint32_t dest, uint16_t data, uint32_t count) {
 	dma_register_window += 1;
 }
 
-void dma_fillblock_nonlinear(uint32_t dest, uint16_t data, uint16_t jumpafter, uint16_t jumplength) {
+void dma_fillblock_nonlinear(uint32_t dest, uint16_t data, uint32_t count, uint16_t jumpafter, uint16_t jumplength) {
 
 	if (!dma_sanitycheck()) {
 		return;
 	}
+
+	dma_register_counth = (count >> 16) & 0xFFFF;
+	dma_register_countl = (count & 0xFFFF);
+	dma_register_desth = 0x0020;
+	dma_register_destl = 0x0000;
+	dma_register_datal = data & 0xFFFF;
+	dma_register_jumpafter = jumpafter;
+	dma_register_jumplength = jumplength;
+
+	dma_register_config = DMA_REGISTER_CONFIG_MODE_FILL | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
 
 	dma_register_window += 1;
 }
