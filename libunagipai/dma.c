@@ -17,6 +17,20 @@
 
 static bool transactionopen = false;
 
+static bool dma_sanitycheck() {
+	if (!transactionopen) {
+		printf("Call dma_begin first\n");
+		return false;
+	}
+
+	if (dma_register_window == 16) {
+		printf("DMA command fifo is full\n");
+		return false;
+	}
+
+	return true;
+}
+
 void dma_begin() {
 
 	if (transactionopen) {
@@ -30,8 +44,7 @@ void dma_begin() {
 
 void dma_transferblock(uint32_t source, uint32_t dest, uint32_t count) {
 
-	if (!transactionopen) {
-		printf("Call dma_begin first\n");
+	if (!dma_sanitycheck()) {
 		return;
 	}
 
@@ -45,21 +58,24 @@ void dma_transferblock(uint32_t source, uint32_t dest, uint32_t count) {
 	dma_register_config = DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK | DMA_REGISTER_CONFIG_SRCACT_INCTWO
 			| DMA_REGISTER_CONFIG_DSTACT_INCTWO;
 
+	dma_register_window += 1;
+
 }
 
-void dma_transfer_nonlinearblock(uint32_t source, uint32_t dest, uint32_t count, uint16_t jumpafter, uint16_t jumplength) {
+void dma_transfer_nonlinearblock(uint32_t source, uint32_t dest, uint32_t count, uint16_t jumpafter,
+		uint16_t jumplength) {
 
-	if (!transactionopen) {
-		printf("Call dma_begin first\n");
+	if (!dma_sanitycheck()) {
 		return;
 	}
+
+	dma_register_window += 1;
 
 }
 
 void dma_transferblock_fromregister(uint32_t source, uint32_t dest, uint32_t count) {
 
-	if (!transactionopen) {
-		printf("Call dma_begin first\n");
+	if (!dma_sanitycheck()) {
 		return;
 	}
 
@@ -72,12 +88,13 @@ void dma_transferblock_fromregister(uint32_t source, uint32_t dest, uint32_t cou
 	dma_register_jumpafter = 0;
 	dma_register_config = DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
 
+	dma_register_window += 1;
+
 }
 
 void dma_transferblock_toregister(uint32_t source, uint32_t dest, uint32_t count) {
 
-	if (!transactionopen) {
-		printf("Call dma_begin first\n");
+	if (!dma_sanitycheck()) {
 		return;
 	}
 
@@ -90,12 +107,12 @@ void dma_transferblock_toregister(uint32_t source, uint32_t dest, uint32_t count
 	dma_register_jumpafter = 0;
 	dma_register_config = DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK | DMA_REGISTER_CONFIG_SRCACT_INCTWO;
 
+	dma_register_window += 1;
 }
 
 void dma_fillblock(uint32_t dest, uint16_t data, uint32_t count) {
 
-	if (!transactionopen) {
-		printf("Call dma_begin first\n");
+	if (!dma_sanitycheck()) {
 		return;
 	}
 
@@ -103,22 +120,23 @@ void dma_fillblock(uint32_t dest, uint16_t data, uint32_t count) {
 	dma_register_countl = (count & 0xFFFF);
 	dma_register_desth = 0x0020;
 	dma_register_destl = 0x0000;
-	dma_register_datal = 0xFFFF;
+	dma_register_datal = data & 0xFFFF;
 	dma_register_jumpafter = 0;
 	//*dma_register_config |= DMA_REGISTER_CONFIG_START | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE
 	//		| DMA_REGISTER_CONFIG_DATAACT_INVERSE | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
 
 	dma_register_config = DMA_REGISTER_CONFIG_MODE_FILL | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
 
+	dma_register_window += 1;
 }
 
 void dma_fillblock_nonlinear(uint32_t dest, uint16_t data, uint16_t jumpafter, uint16_t jumplength) {
 
-	if (!transactionopen) {
-		printf("Call dma_begin first\n");
+	if (!dma_sanitycheck()) {
 		return;
 	}
 
+	dma_register_window += 1;
 }
 
 void dma_commit() {

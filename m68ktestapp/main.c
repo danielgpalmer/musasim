@@ -146,6 +146,8 @@ int main(void) {
 	//*sound_channel_0_volume = 0xFF22;
 	//*sound_channel_0_config = 0xF9FF;
 
+
+
 	FATFS fs;
 	FRESULT result;
 	result = pf_mount(&fs);

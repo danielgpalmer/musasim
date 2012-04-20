@@ -29,7 +29,7 @@ pff.o: petitfatfs/pff.c
 	$(CC) $(CFLAGS) -c $<
 
 lzfx.o: lzfx/lzfx.c
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS) -O3 -c $<
 
 
 diskio.o: petitfatfs/diskio.c

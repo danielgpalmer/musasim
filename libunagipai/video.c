@@ -11,6 +11,14 @@
 #include "include/video.h"
 #include "include/video_registers.h"
 
+void video_begin() {
+
+}
+
+void video_commit() {
+
+}
+
 void video_clear() {
 	static uint32_t count = VIDEO_PLAYFIELDWIDTH * VIDEO_PLAYFIELDHEIGHT;
 

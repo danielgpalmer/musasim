@@ -27,10 +27,11 @@ int main(int argc, char* argv[]) {
 	struct arg_lit *help = arg_lit0(NULL, "help", "print this help and exit");
 	struct arg_file *inputpath = arg_file1("i", "input", "pngfile", "Path of the input PNG");
 	struct arg_file *outputpath = arg_file1("o", "output", "binfile", "Path to output the resulting be16 binary to");
+	struct arg_file *maskpath = arg_file0("m", "mask", "maskfile", "Path to output a compact mask file to");
 	struct arg_lit *compress = arg_lit0("c", "compress", "compress the pixel data");
 	struct arg_end *end = arg_end(20);
 
-	void *argtable[] = { help, inputpath, outputpath, compress, end };
+	void *argtable[] = { help, inputpath, outputpath, maskpath, compress, end };
 
 	if (arg_nullcheck(argtable) != 0) {
 		printf("%s: insufficient memory\n", argv[0]);
@@ -68,26 +69,27 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	int x, y, comp;
+	int width, height, comp;
 
-	stbi_uc* image = stbi_load_from_file(in, &x, &y, &comp, STBI_rgb);
+	stbi_uc* image = stbi_load_from_file(in, &width, &height, &comp, STBI_rgb);
+	fclose(in);
 
-	printf("Image is %d x %d, comp is %d\n", x, y, comp);
+	printf("Image is %d x %d, comp is %d\n", width, height, comp);
 
 	uint16_t pixel;
 
-	writebeword(x, out);
-	writebeword(y, out);
+	writebeword(width, out);
+	writebeword(height, out);
 
 	uint8_t* curpixel = image;
 
-	unsigned int rawdatalen = (x * y) * 2;
+	unsigned int rawdatalen = (width * height) * 2;
 	uint8_t* rawdata = malloc(rawdatalen);
 
 	// convert the RGB888 to RGB565
 	uint8_t* curconvertedpixel = rawdata;
-	for (int yy = 0; yy < y; yy++) {
-		for (int xx = 0; xx < x; xx++) {
+	for (int yy = 0; yy < height; yy++) {
+		for (int xx = 0; xx < width; xx++) {
 			pixel = (((uint16_t) (curpixel[0] & 0xf8)) << 8) | (((uint16_t) (curpixel[1] & 0xfc)) << 3)
 					| (((uint16_t) (curpixel[2] & 0xf8) >> 3));
 			//writebeword(pixel, out);
@@ -99,7 +101,10 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	fclose(in);
+	if (maskpath->count == 1) {
+		uint8_t maskdata = malloc((width / 8) * height);
+	}
+
 	stbi_image_free(image);
 
 	// compress and write
