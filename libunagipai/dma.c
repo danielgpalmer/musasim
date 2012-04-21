@@ -129,8 +129,8 @@ void dma_fillblock(uint32_t dest, uint16_t data, uint32_t count) {
 
 	dma_register_counth = (count >> 16) & 0xFFFF;
 	dma_register_countl = (count & 0xFFFF);
-	dma_register_desth = 0x0020;
-	dma_register_destl = 0x0000;
+	dma_register_desth = HIGHWORD(dest);
+	dma_register_destl = LOwWORD(dest);
 	dma_register_datal = data & 0xFFFF;
 	dma_register_jumpafter = 0;
 	//*dma_register_config |= DMA_REGISTER_CONFIG_START | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE

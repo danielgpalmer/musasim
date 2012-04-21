@@ -21,8 +21,6 @@ static const char TAG[] = "dmacard";
 static char* register_names[] = { "config", "data high", "data low", "count h", "count low", "source high",
 		"source low", "destination h", "destination low", "jump after", "jump length", "window" };
 
-static void dmacard_dumpconfig();
-
 // Externally visible registers
 
 typedef struct {
@@ -39,9 +37,12 @@ typedef struct {
 	uint16_t jumplength;
 } window;
 
+static void dmacard_dumpconfig(window* window);
+
+static window* curwindow;
+static uint16_t windowpointer = 0;
 static uint16_t curwindowindex = 0;
 static window regwindows[NUMWINDOWS];
-static window* curwindow;
 
 // Latched values
 static uint32_t counter = 0;
@@ -85,9 +86,9 @@ static void dmacard_busrelease() {
 
 }
 
-static uint16_t dmacard_mutate(uint16_t value1, uint16_t value2) {
+static uint16_t dmacard_mutate(window* window, uint16_t value1, uint16_t value2) {
 
-	switch (curwindow->config & DMA_REGISTER_CONFIG_MUTATOR) {
+	switch (window->config & DMA_REGISTER_CONFIG_MUTATOR) {
 		case DMA_MUT_NOTHING:
 			return value1;
 		case DMA_MUT_AND:
@@ -103,14 +104,14 @@ static uint16_t dmacard_mutate(uint16_t value1, uint16_t value2) {
 
 }
 
-static void dmacard_perform_act(int index) {
+static void dmacard_perform_act(window* window, int index) {
 	static uint32_t* actregs[] = { &data, &source, &destination };
 	static int actshifts[] = { DMA_REGISTER_CONFIG_DATAACT_SHIFT, DMA_REGISTER_CONFIG_SRCACT_SHIFT,
 			DMA_REGISTER_CONFIG_DSTACT_SHIFT };
 
 	uint32_t* reg = actregs[index];
 
-	int act = (curwindow->config & (DMA_REGISTER_CONFIG_ACT << actshifts[index])) >> actshifts[index];
+	int act = (window->config & (DMA_REGISTER_CONFIG_ACT << actshifts[index])) >> actshifts[index];
 
 	switch (act) {
 		case DMA_ACT_NOTHING:
@@ -133,17 +134,18 @@ static void dmacard_perform_act(int index) {
 	}
 }
 
+static window* workingwindow;
 static void dmacard_popwindow() {
 
-	curwindowindex--;
-	curwindow = &(regwindows[curwindowindex]);
-	counter = (curwindow->counth << 16) | curwindow->countl;
-	source = ((curwindow->sourceh << 16) | curwindow->sourcel);
-	destination = ((curwindow->destinationh << 16) | curwindow->destinationl);
-	data = ((curwindow->datah << 16) | curwindow->datal);
-	wordtransfer = curwindow->config & DMA_REGISTER_CONFIG_SIZE;
+	workingwindow = &(regwindows[windowpointer]);
+	counter = (workingwindow->counth << 16) | workingwindow->countl;
+	source = ((workingwindow->sourceh << 16) | workingwindow->sourcel);
+	destination = ((workingwindow->destinationh << 16) | workingwindow->destinationl);
+	data = ((workingwindow->datah << 16) | workingwindow->datal);
+	wordtransfer = workingwindow->config & DMA_REGISTER_CONFIG_SIZE;
+	windowpointer++;
 
-	dmacard_dumpconfig();
+	dmacard_dumpconfig(workingwindow);
 
 }
 
@@ -171,13 +173,13 @@ static void dmacard_tick() {
 		return;
 	}
 
-	for (int i = 0; i < SIM_CLOCKS_PERTICK; i++) {
+	for (int i = 0; i < SIM_CLOCKS_PERTICK * 10; i++) { // hack to make things faster..
 
 		bool unitcomplete = false;
 
 		if (!transferinprogress) {
 			// no transfer in progress, but still register windows to handle
-			if (curwindowindex != 0) {
+			if (windowpointer != curwindowindex) {
 				dmacard_popwindow();
 				transferinprogress = true;
 			}
@@ -199,7 +201,7 @@ static void dmacard_tick() {
 			else {
 				//log_println(LEVEL_DEBUG, TAG, "source[0%08x] dest[0x%08x]\n", source, destination);
 
-				switch (curwindow->config & DMA_REGISTER_CONFIG_MODE) {
+				switch (workingwindow->config & DMA_REGISTER_CONFIG_MODE) {
 					case DMA_REGISTER_CONFIG_MODE_BLOCK: // Takes two clocks, one for read, one for write
 						// read phase
 						if (state == 0) {
@@ -214,10 +216,11 @@ static void dmacard_tick() {
 						//write phase
 						else {
 							if (wordtransfer) {
-								board_write_word(destination, dmacard_mutate(holding, data));
+								board_write_word(destination, dmacard_mutate(workingwindow, holding, data));
 							}
 							else {
-								board_write_byte(destination, (uint8_t)(dmacard_mutate(holding, data) & 0xff));
+								board_write_byte(destination,
+										(uint8_t)(dmacard_mutate(workingwindow, holding, data) & 0xff));
 							}
 							state = 0;
 							unitcomplete = true;
@@ -248,10 +251,10 @@ static void dmacard_tick() {
 								break;
 							case 1:
 								if (wordtransfer) {
-									holding = dmacard_mutate(holding, board_read_word(data));
+									holding = dmacard_mutate(workingwindow, holding, board_read_word(data));
 								}
 								else {
-									holding = dmacard_mutate(holding, board_read_byte(data));
+									holding = dmacard_mutate(workingwindow, holding, board_read_byte(data));
 								}
 								state = 2;
 								break;
@@ -277,7 +280,7 @@ static void dmacard_tick() {
 								if (wordtransfer) {
 									holding = board_read_word(source);
 								}
-								dmacard_perform_act(1); // update source pointer
+								dmacard_perform_act(workingwindow, 1); // update source pointer
 								if (shifts == 0) {
 									state = 1;
 								}
@@ -290,10 +293,10 @@ static void dmacard_tick() {
 									shifthold = board_read_word(data);
 								}
 								state = 2;
-								dmacard_perform_act(0); // update data pointer
+								dmacard_perform_act(workingwindow, 0); // update data pointer
 								break;
 							case 2:
-								holding = dmacard_mutate(holding, shifthold & 0x1 ? 0xFFFF : 0x0000); // if the lsb bit is set do the action with 0xffff
+								holding = dmacard_mutate(workingwindow, holding, shifthold & 0x1 ? 0xFFFF : 0x0000); // if the lsb bit is set do the action with 0xffff
 								shifthold = (shifthold >> 1); // shift everything right
 								shifts++;
 
@@ -309,7 +312,7 @@ static void dmacard_tick() {
 								else {
 									board_write_byte(destination, holding);
 								}
-								dmacard_perform_act(2); // increment dest pointer
+								dmacard_perform_act(workingwindow, 2); // increment dest pointer
 								state = 0;
 								break;
 						}
@@ -322,15 +325,15 @@ static void dmacard_tick() {
 				if (unitcomplete) {
 					// Perform actions
 					for (int i = 0; i < 3; i++) {
-						dmacard_perform_act(i);
+						dmacard_perform_act(workingwindow, i);
 					}
 
 					//log_println(LEVEL_DEBUG, TAG, "data 0x%08x, src 0x%08x, dst 0x%08x", datalatched, source, destination);
 
 					counter--;
-					if (curwindow->jumpafter != 0) {
-						if (counter % curwindow->jumpafter == 0) {
-							destination += (curwindow->jumplength * 2);
+					if (workingwindow->jumpafter != 0) {
+						if (counter % workingwindow->jumpafter == 0) {
+							destination += (workingwindow->jumplength * 2);
 						}
 					}
 				}
@@ -375,10 +378,8 @@ static uint16_t* dmacard_decodereg(uint32_t address) {
 
 }
 
-static void dmacard_dumpconfig() {
-
-	log_println(LEVEL_DEBUG, TAG, "Active window is %d", curwindowindex);
-	uint16_t config = curwindow->config;
+static void dmacard_dumpconfig(window* window) {
+	uint16_t config = window->config;
 
 	switch (config & DMA_REGISTER_CONFIG_MODE) {
 		case DMA_REGISTER_CONFIG_MODE_FILL:
@@ -429,6 +430,7 @@ static void dmacard_write_word(uint32_t address, uint16_t value) {
 	if (reg == DMACARD_REGISTER_CONFIG) {
 		// start has been triggered, get this show rolling
 		if (value & DMA_REGISTER_CONFIG_START) {
+			windowpointer = 0;
 			started = true;
 			done = false;
 		}

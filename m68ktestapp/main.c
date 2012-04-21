@@ -32,13 +32,14 @@ void sound_handler() {
 
 }
 
-//static uint8_t* ball;
+static image ball;
+static image pai;
 
 void vblank_handler() {
 
 	static uint16_t lastframe = 0;
 	static uint16_t thisframe;
-	static unsigned int y = 0, x = 10;
+	static unsigned int y = 0, x = 0;
 	static int xinc = 1, yinc = 1;
 
 	//*video_register_winx = 50;
@@ -53,22 +54,24 @@ void vblank_handler() {
 
 	for (int i = 0; i < thisframe - lastframe; i++) {
 
-		static volatile uint16_t* offset;
-		offset = video_start + (VIDEO_PLAYFIELDWIDTH * y) + x;
-		*(offset) = x * y;
-
 		x += xinc;
 
-		if (x == VIDEO_WIDTH - 1 || x == 0) {
+		if (x == VIDEO_WIDTH - ball.width - 1 || x == 0) {
 			xinc = -xinc;
 		}
 
 		y += yinc;
 
-		if (y == VIDEO_HEIGHT - 1 || y == 0) {
+		if (y == VIDEO_HEIGHT - ball.height - 1 || y == 0) {
 			yinc = -yinc;
 		}
 	}
+
+	video_begin();
+	video_clear();
+	video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
+	video_blitimage_nocopy(ball.width, ball.height, x, y, ball.data);
+	video_commit();
 
 	//col = 0;
 	//row = 0;
@@ -159,11 +162,9 @@ int main(void) {
 
 	printf("read from file: %s\n", buf);
 
-	uint16_t width, height;
-	uint8_t* pai = image_loadimagefromfile(&fs, "pai.bz", &width, &height, true);
+	image_loadimagefromfile(&fs, &pai, "pai.bz", true);
+	image_loadimagefromfile(&fs, &ball, "ball.be", false);
 	initvideo();
-	video_blitimage_nocopy(width, height, 30, 30, pai);
-	free(pai);
 
 	video_gputs("Hello World!", _binary_fontrom_start);
 

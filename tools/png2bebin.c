@@ -8,9 +8,13 @@
 #define STBI_HEADER_FILE_ONLY
 #include "stb_image.c"
 
-#define STRIDE 3 // RGB
 #define MSB(word) ((word >> 8) & 0xFF)
 #define LSB(word) (word & 0xFF)
+
+#define A 3
+#define R 0
+#define G 1
+#define B 2
 
 static void writebeword(uint16_t word, FILE* target) {
 
@@ -29,9 +33,11 @@ int main(int argc, char* argv[]) {
 	struct arg_file *outputpath = arg_file1("o", "output", "binfile", "Path to output the resulting be16 binary to");
 	struct arg_file *maskpath = arg_file0("m", "mask", "maskfile", "Path to output a compact mask file to");
 	struct arg_lit *compress = arg_lit0("c", "compress", "compress the pixel data");
+	struct arg_lit *alphamultiply = arg_lit0("a", "alphamultiply",
+			"multiply the red,green and blue values by the alpha");
 	struct arg_end *end = arg_end(20);
 
-	void *argtable[] = { help, inputpath, outputpath, maskpath, compress, end };
+	void *argtable[] = { help, inputpath, outputpath, maskpath, compress, alphamultiply, end };
 
 	if (arg_nullcheck(argtable) != 0) {
 		printf("%s: insufficient memory\n", argv[0]);
@@ -53,8 +59,9 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	FILE* in;
-	FILE* out;
+	FILE* in = NULL;
+	FILE* out = NULL;
+	FILE* mask = NULL;
 
 	printf("Coverting %s into be16 and writing to %s .. ", *(inputpath->filename), *(outputpath->filename));
 
@@ -69,9 +76,31 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
+	if (maskpath->count) {
+		if ((mask = fopen(*(maskpath->filename), "wb")) == NULL) {
+			printf("Error creating/opening mask file\n");
+			return 1;
+		}
+	}
+
 	int width, height, comp;
 
-	stbi_uc* image = stbi_load_from_file(in, &width, &height, &comp, STBI_rgb);
+	stbi_uc* image = stbi_load_from_file(in, &width, &height, &comp, STBI_default); // comp arg doesn't seem to actually do anything;
+
+	if (image == NULL) {
+		printf("Image decode failed\n");
+		return 1;
+	}
+	if (comp != 3 && comp != 4) {
+		printf("only RGB and RGBA images are supported\n");
+		return 1;
+	}
+
+	if (maskpath->count == 1 && comp != 4) {
+		printf("Masks can only be generated for images with an alpha channel\n");
+		return 1;
+	}
+
 	fclose(in);
 
 	printf("Image is %d x %d, comp is %d\n", width, height, comp);
@@ -85,24 +114,51 @@ int main(int argc, char* argv[]) {
 
 	unsigned int rawdatalen = (width * height) * 2;
 	uint8_t* rawdata = malloc(rawdatalen);
+	uint16_t* maskdata;
+	uint16_t* currentmaskword;
+	int masklen = (width / 8) * height;
+	if (maskpath->count == 1) {
+		maskdata = malloc(masklen);
+		currentmaskword = maskdata;
+	}
 
 	// convert the RGB888 to RGB565
 	uint8_t* curconvertedpixel = rawdata;
-	for (int yy = 0; yy < height; yy++) {
-		for (int xx = 0; xx < width; xx++) {
-			pixel = (((uint16_t) (curpixel[0] & 0xf8)) << 8) | (((uint16_t) (curpixel[1] & 0xfc)) << 3)
-					| (((uint16_t) (curpixel[2] & 0xf8) >> 3));
+
+	int curbit = 0;
+	uint16_t curword = 0;
+
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+
+			if (alphamultiply->count == 1 && comp == 4) {
+				curpixel[R] *= curpixel[A];
+				curpixel[G] *= curpixel[A];
+				curpixel[B] *= curpixel[A];
+			}
+
+			pixel = (((uint16_t) (curpixel[R] & 0xf8)) << 8) | (((uint16_t) (curpixel[G] & 0xfc)) << 3)
+					| (((uint16_t) (curpixel[B] & 0xf8) >> 3));
 			//writebeword(pixel, out);
 
 			*curconvertedpixel++ = (pixel >> 8) & 0xff;
 			*curconvertedpixel++ = pixel & 0xff;
 
-			curpixel += STRIDE;
-		}
-	}
+			if (maskpath->count) {
+				if (curpixel[A]) {
+					curword |= (1 << curbit);
+				}
 
-	if (maskpath->count == 1) {
-		uint8_t maskdata = malloc((width / 8) * height);
+				curbit++;
+				if (curbit == 16) {
+					*currentmaskword++ = curword;
+					curbit = 0;
+					curword = 0;
+				}
+			}
+
+			curpixel += comp;
+		}
 	}
 
 	stbi_image_free(image);
@@ -139,6 +195,12 @@ int main(int argc, char* argv[]) {
 
 	free(rawdata);
 	fclose(out);
+
+	if (maskpath->count) {
+		printf("Writing mask data\n");
+		fwrite(maskdata, 1, masklen, mask);
+		fclose(mask);
+	}
 
 	printf("done!\n");
 

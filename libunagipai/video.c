@@ -11,20 +11,35 @@
 #include "include/video.h"
 #include "include/video_registers.h"
 
-void video_begin() {
+static bool transactionopen = false;
 
+void video_begin() {
+	transactionopen = true;
+	dma_begin();
 }
 
 void video_commit() {
+	dma_commit();
+	transactionopen = false;
+}
 
+static bool video_sanitycheck() {
+
+	if (!transactionopen) {
+		return false;
+	}
+
+	return true;
 }
 
 void video_clear() {
 	static uint32_t count = VIDEO_PLAYFIELDWIDTH * VIDEO_PLAYFIELDHEIGHT;
+	dma_fillblock((uint32_t)video_start, 0xFFFF, count);
+}
 
-	dma_begin();
-	dma_fillblock(0, 0xFFFF, count);
-	dma_commit();
+void video_fillrect(int x, int y, int width, int height) {
+
+	//dma_fillblock_nonlinear();
 
 }
 
@@ -45,10 +60,8 @@ void video_blitimage_nocopy(int width, int height, int x, int y, uint16_t* data)
 	bool usedma = true;
 	if (usedma) {
 		uint32_t count = width * height;
-		dma_begin();
-		dma_transfer_nonlinearblock(data, video_start + (VIDEO_PLAYFIELDWIDTH * y) + x, count, width,
+		dma_transfer_nonlinearblock(data, (uint32_t)(video_start + (VIDEO_PLAYFIELDWIDTH * y) + x), count, width,
 				VIDEO_PLAYFIELDWIDTH - width);
-		dma_commit();
 
 	}
 	else {
