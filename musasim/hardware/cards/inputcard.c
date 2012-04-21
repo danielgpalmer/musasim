@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <SDL/SDL.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "inputcard.h"
 #include "../../sim.h"
 #include "../../logging.h"
@@ -62,8 +63,19 @@ void inputcard_init() {
 
 uint8_t inputcard_read_byte(uint32_t address) {
 	log_println(LEVEL_INSANE, TAG, "inputcard_read_byte()");
-	int port = address & 0x1;
-	return ports[port];
+
+	int reg = address & 0x3;
+
+	switch (reg) {
+		case INPUT_PORT0:
+			return ports[0];
+		case INPUT_PORT1:
+			return ports[1];
+		case INPUT_RNG:
+			return rand() & 0xff;
+	}
+
+	return 0;
 
 }
 

@@ -38,7 +38,7 @@ diskio.o: petitfatfs/diskio.c
 	$(CC) $(CFLAGS) -c $<
 
 sprite.o: sprite.c
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS) -O3 -c $<
 
 utils.o: utils.c include/utils.h
 	$(CC) $(CFLAGS) -c $<

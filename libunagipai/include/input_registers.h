@@ -10,6 +10,8 @@
 #include <stdint.h>
 
 
-#define input_start ((volatile uint8_t*) 0xe00000)
+#define input_port0 (*(volatile uint8_t*) 0xe00000)
+#define input_port1 (*(volatile uint8_t*) 0xe00001)
+#define input_rng (*(volatile uint8_t*) 0xe00002)
 
 #endif // INPUTREGISTERS

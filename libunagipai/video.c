@@ -13,6 +13,10 @@
 
 static bool transactionopen = false;
 
+void video_changewindow() {
+
+}
+
 void video_begin() {
 	transactionopen = true;
 	dma_begin();

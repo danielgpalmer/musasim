@@ -15,6 +15,7 @@
 #include "../hardware/cards/videocard.h"
 #include "../hardware/cards/uartcard.h"
 #include "../hardware/cards/dmacard.h"
+#include "../hardware/cards/inputcard.h"
 #include "../hardware/cards/compactflashinterfacecard.h"
 #define WANTSOUNDFUNC
 #include "../hardware/cards/soundcard.h"
@@ -233,5 +234,7 @@ static void uart() {
 }
 
 static void input() {
-	printf("#define input_start ((volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_INPUTCARD));
+	printf("#define input_port0 (*(volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_INPUTCARD) + INPUT_PORT0);
+	printf("#define input_port1 (*(volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_INPUTCARD) + INPUT_PORT1);
+	printf("#define input_rng (*(volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_INPUTCARD) + INPUT_RNG);
 }

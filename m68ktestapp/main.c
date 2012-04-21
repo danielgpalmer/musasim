@@ -37,6 +37,7 @@ typedef struct {
 	sprite* sprite;
 	int xinc;
 	int yinc;
+	int speed;
 } ball;
 
 static image ballimage;
@@ -46,15 +47,17 @@ static ball ball1, ball2;
 static void updateball(ball* b, uint16_t thisframe, uint16_t lastframe) {
 	for (int i = 0; i < thisframe - lastframe; i++) {
 
-		b->sprite->x += b->xinc;
+		b->sprite->x += (b->speed * b->xinc);
 
-		if (b->sprite->x == VIDEO_WIDTH - b->sprite->image->width - 1 || b->sprite->x == 0) {
+		if (b->sprite->x >= VIDEO_WIDTH - b->sprite->image->width - 1 || b->sprite->x <= 0) {
+			b->sprite->x = b->xinc > 0 ? VIDEO_WIDTH - 1 - b->sprite->image->width : 0;
 			b->xinc = -b->xinc;
 		}
 
-		b->sprite->y += b->yinc;
+		b->sprite->y += (b->speed * b->yinc);
 
-		if (b->sprite->y == VIDEO_HEIGHT - b->sprite->image->height - 1 || b->sprite->y == 0) {
+		if (b->sprite->y >= VIDEO_HEIGHT - b->sprite->image->height - 1 || b->sprite->y <= 0) {
+			b->sprite->y = b->yinc > 0 ? VIDEO_HEIGHT - 1 - b->sprite->image->height : 0;
 			b->yinc = -b->yinc;
 		}
 	}
@@ -69,6 +72,7 @@ static void newball(ball* b, int x, int y, image* image) {
 	b->sprite->y = y;
 	b->xinc = 1;
 	b->yinc = 1;
+	b->speed = input_rng & 0x7;
 
 }
 
@@ -76,6 +80,10 @@ static void ballcollision(ball* b1, ball* b2) {
 	if (sprite_checkoverlap(b1->sprite, b2->sprite)) {
 		b1->xinc = -b1->xinc;
 		b2->xinc = -b2->xinc;
+		b1->sprite->x += ((b1->speed * b1->xinc) / 2);
+		b2->sprite->x += ((b2->speed * b2->xinc) / 2);
+		b1->sprite->y += ((b1->speed * b1->yinc) / 2);
+		b2->sprite->y += ((b2->speed * b2->yinc) / 2);
 	}
 }
 
@@ -85,7 +93,7 @@ void vblank_handler() {
 	static uint16_t thisframe;
 
 	uint16_t vidflags = *video_register_flags;
-	uint8_t port0 = *input_start;
+	uint8_t port0 = input_port0;
 	thisframe = *video_register_frame;
 
 	updateball(&ball1, thisframe, lastframe);
