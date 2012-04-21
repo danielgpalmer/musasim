@@ -19,7 +19,7 @@ lzfx.o: lzfx/lzfx.c lzfx/lzfx.h
 
 .PHONY: test clean
 
-test:
+test: png2bebin
 	./png2bebin -i test.png -o test.be16
 	./png2bebin -i test.png -o test.besz -c
 	./png2bebin -i test-alpha.png -o test-alpha.bz -c -m test-alpha.m
