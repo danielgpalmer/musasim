@@ -15,6 +15,7 @@
 #include <libunagipai/sound_registers.h>
 #include <libunagipai/image.h>
 #include <libunagipai/sprite.h>
+#include <libunagipai/math.h>
 
 #include "main.h"
 
@@ -37,7 +38,8 @@ typedef struct {
 	sprite* sprite;
 	int xinc;
 	int yinc;
-	int speed;
+	int speedx;
+	int speedy;
 } ball;
 
 static image ballimage;
@@ -47,14 +49,14 @@ static ball ball1, ball2;
 static void updateball(ball* b, uint16_t thisframe, uint16_t lastframe) {
 	for (int i = 0; i < thisframe - lastframe; i++) {
 
-		b->sprite->x += (b->speed * b->xinc);
+		b->sprite->x += (b->speedx * b->xinc);
 
 		if (b->sprite->x >= VIDEO_WIDTH - b->sprite->image->width - 1 || b->sprite->x <= 0) {
 			b->sprite->x = b->xinc > 0 ? VIDEO_WIDTH - 1 - b->sprite->image->width : 0;
 			b->xinc = -b->xinc;
 		}
 
-		b->sprite->y += (b->speed * b->yinc);
+		b->sprite->y += (b->speedy * b->yinc);
 
 		if (b->sprite->y >= VIDEO_HEIGHT - b->sprite->image->height - 1 || b->sprite->y <= 0) {
 			b->sprite->y = b->yinc > 0 ? VIDEO_HEIGHT - 1 - b->sprite->image->height : 0;
@@ -72,18 +74,40 @@ static void newball(ball* b, int x, int y, image* image) {
 	b->sprite->y = y;
 	b->xinc = 1;
 	b->yinc = 1;
-	b->speed = input_rng & 0x7;
+	b->speedx = input_rng & 0x7;
+	b->speedy = input_rng & 0x7;
+}
+
+static void ballrelect(ball* b1, ball* b2, vector* vect) {
+
+	if (vect->x2 > vect->x1) {
+		b1->xinc = -1;
+		b2->xinc = 1;
+	}
+	else {
+		b2->xinc = -1;
+		b1->xinc = 1;
+	}
+
+	if (vect->y2 > vect->y1) {
+		b1->yinc = -1;
+		b2->yinc = 1;
+	}
+	else {
+		b2->yinc = -1;
+		b1->yinc = 1;
+	}
 
 }
 
 static void ballcollision(ball* b1, ball* b2) {
+	static vector vect;
 	if (sprite_checkoverlap(b1->sprite, b2->sprite)) {
-		b1->xinc = -b1->xinc;
-		b2->xinc = -b2->xinc;
-		b1->sprite->x += ((b1->speed * b1->xinc) / 2);
-		b2->sprite->x += ((b2->speed * b2->xinc) / 2);
-		b1->sprite->y += ((b1->speed * b1->yinc) / 2);
-		b2->sprite->y += ((b2->speed * b2->yinc) / 2);
+		vect.x1 = b1->sprite->x + (b1->sprite->image->width / 2);
+		vect.y1 = b1->sprite->y + (b1->sprite->image->height / 2);
+		vect.x2 = b2->sprite->x + (b2->sprite->image->width / 2);
+		vect.y2 = b2->sprite->y + (b2->sprite->image->height / 2);
+		ballrelect(b1, b2, &vect);
 	}
 }
 

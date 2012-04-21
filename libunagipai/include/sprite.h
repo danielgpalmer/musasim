@@ -13,13 +13,6 @@
 #include "image.h"
 
 typedef struct {
-	int x1;
-	int y1;
-	int x2;
-	int y2;
-} vector;
-
-typedef struct {
 	int x;
 	int y;
 	image* image;
