@@ -14,6 +14,7 @@
 #include <libunagipai/input_registers.h>
 #include <libunagipai/sound_registers.h>
 #include <libunagipai/image.h>
+#include <libunagipai/sprite.h>
 
 #include "main.h"
 
@@ -32,45 +33,70 @@ void sound_handler() {
 
 }
 
-static image ball;
+typedef struct {
+	sprite* sprite;
+	int xinc;
+	int yinc;
+} ball;
+
+static image ballimage;
 static image pai;
+static ball ball1, ball2;
+
+static void updateball(ball* b, uint16_t thisframe, uint16_t lastframe) {
+	for (int i = 0; i < thisframe - lastframe; i++) {
+
+		b->sprite->x += b->xinc;
+
+		if (b->sprite->x == VIDEO_WIDTH - b->sprite->image->width - 1 || b->sprite->x == 0) {
+			b->xinc = -b->xinc;
+		}
+
+		b->sprite->y += b->yinc;
+
+		if (b->sprite->y == VIDEO_HEIGHT - b->sprite->image->height - 1 || b->sprite->y == 0) {
+			b->yinc = -b->yinc;
+		}
+	}
+
+}
+
+static void newball(ball* b, int x, int y, image* image) {
+
+	b->sprite = malloc(sizeof(sprite));
+	b->sprite->image = &ballimage;
+	b->sprite->x = x;
+	b->sprite->y = y;
+	b->xinc = 1;
+	b->yinc = 1;
+
+}
+
+static void ballcollision(ball* b1, ball* b2) {
+	if (sprite_checkoverlap(b1->sprite, b2->sprite)) {
+		b1->xinc = -b1->xinc;
+		b2->xinc = -b2->xinc;
+	}
+}
 
 void vblank_handler() {
 
 	static uint16_t lastframe = 0;
 	static uint16_t thisframe;
-	static unsigned int y = 0, x = 0;
-	static int xinc = 1, yinc = 1;
-
-	//*video_register_winx = 50;
-	//*video_register_winy = 50;
-	//*video_register_winwidth = VIDEO_WIDTH - 100;
-	//*video_register_winheight = VIDEO_HEIGHT - 100;
 
 	uint16_t vidflags = *video_register_flags;
 	uint8_t port0 = *input_start;
-
 	thisframe = *video_register_frame;
 
-	for (int i = 0; i < thisframe - lastframe; i++) {
-
-		x += xinc;
-
-		if (x == VIDEO_WIDTH - ball.width - 1 || x == 0) {
-			xinc = -xinc;
-		}
-
-		y += yinc;
-
-		if (y == VIDEO_HEIGHT - ball.height - 1 || y == 0) {
-			yinc = -yinc;
-		}
-	}
+	updateball(&ball1, thisframe, lastframe);
+	updateball(&ball2, thisframe, lastframe);
+	ballcollision(&ball1, &ball2);
 
 	video_begin();
 	video_clear();
 	video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
-	video_blitimage_nocopy(ball.width, ball.height, x, y, ball.data);
+	sprite_draw(ball1.sprite);
+	sprite_draw(ball2.sprite);
 	video_commit();
 
 	//col = 0;
@@ -163,7 +189,11 @@ int main(void) {
 	printf("read from file: %s\n", buf);
 
 	image_loadimagefromfile(&fs, &pai, "pai.bz", true);
-	image_loadimagefromfile(&fs, &ball, "ball.be", false);
+	image_loadimagefromfile(&fs, &ballimage, "ball.be", false);
+
+	newball(&ball1, 0, 0, &ballimage);
+	newball(&ball2, 50, 0, &ballimage);
+
 	initvideo();
 
 	video_gputs("Hello World!", _binary_fontrom_start);
