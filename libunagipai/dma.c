@@ -55,8 +55,8 @@ void dma_transferblock(uint32_t source, uint32_t dest, uint32_t count) {
 	dma_register_srch = HIGHWORD(source);
 	dma_register_srcl = LOwWORD(source);
 	dma_register_jumpafter = 0;
-	dma_register_config = DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK | DMA_REGISTER_CONFIG_SRCACT_INCTWO
-			| DMA_REGISTER_CONFIG_DSTACT_INCTWO;
+	dma_register_config = DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK | DMA_REGISTER_CONFIG_SRCACT_INC
+			| DMA_REGISTER_CONFIG_DSTACT_INC;
 
 	dma_register_window += 1;
 
@@ -77,8 +77,8 @@ void dma_transfer_nonlinearblock(uint32_t source, uint32_t dest, uint32_t count,
 	dma_register_srcl = LOwWORD(source);
 	dma_register_jumpafter = jumpafter;
 	dma_register_jumplength = jumplength;
-	dma_register_config = DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK | DMA_REGISTER_CONFIG_SRCACT_INCTWO
-			| DMA_REGISTER_CONFIG_DSTACT_INCTWO;
+	dma_register_config = DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK | DMA_REGISTER_CONFIG_SRCACT_INC
+			| DMA_REGISTER_CONFIG_DSTACT_INC;
 
 	dma_register_window += 1;
 
@@ -97,7 +97,7 @@ void dma_transferblock_fromregister(uint32_t source, uint32_t dest, uint32_t cou
 	dma_register_srch = HIGHWORD(source);
 	dma_register_srcl = LOwWORD(source);
 	dma_register_jumpafter = 0;
-	dma_register_config = DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
+	dma_register_config = DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK | DMA_REGISTER_CONFIG_DSTACT_INC;
 
 	dma_register_window += 1;
 
@@ -116,7 +116,7 @@ void dma_transferblock_toregister(uint32_t source, uint32_t dest, uint32_t count
 	dma_register_srch = HIGHWORD(source);
 	dma_register_srcl = LOwWORD(source);
 	dma_register_jumpafter = 0;
-	dma_register_config = DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK | DMA_REGISTER_CONFIG_SRCACT_INCTWO;
+	dma_register_config = DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE_BLOCK | DMA_REGISTER_CONFIG_SRCACT_INC;
 
 	dma_register_window += 1;
 }
@@ -136,7 +136,7 @@ void dma_fillblock(uint32_t dest, uint16_t data, uint32_t count) {
 	//*dma_register_config |= DMA_REGISTER_CONFIG_START | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_MODE
 	//		| DMA_REGISTER_CONFIG_DATAACT_INVERSE | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
 
-	dma_register_config = DMA_REGISTER_CONFIG_MODE_FILL | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
+	dma_register_config = DMA_REGISTER_CONFIG_MODE_FILL | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_DSTACT_INC;
 
 	dma_register_window += 1;
 }
@@ -155,7 +155,7 @@ void dma_fillblock_nonlinear(uint32_t dest, uint16_t data, uint32_t count, uint1
 	dma_register_jumpafter = jumpafter;
 	dma_register_jumplength = jumplength;
 
-	dma_register_config = DMA_REGISTER_CONFIG_MODE_FILL | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_DSTACT_INCTWO;
+	dma_register_config = DMA_REGISTER_CONFIG_MODE_FILL | DMA_REGISTER_CONFIG_SIZE | DMA_REGISTER_CONFIG_DSTACT_INC;
 
 	dma_register_window += 1;
 }

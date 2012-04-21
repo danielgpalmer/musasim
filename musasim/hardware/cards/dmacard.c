@@ -116,16 +116,10 @@ static void dmacard_perform_act(int index) {
 		case DMA_ACT_NOTHING:
 			break;
 		case DMA_ACT_INC:
-			(*reg)++;
-			break;
-		case DMA_ACT_INCTWO:
-			(*reg) += 2;
+			wordtransfer ? (*reg) += 2 : (*reg)++;
 			break;
 		case DMA_ACT_DEC:
-			(*reg)--;
-			break;
-		case DMA_ACT_DECTWO:
-			(*reg) -= 2;
+			wordtransfer ? (*reg) -= 2 : (*reg)--;
 			break;
 		case DMA_ACT_ROTLEFT:
 			(*reg) = ((*reg) << 1) & 0xffff;
@@ -401,11 +395,7 @@ static void dmacard_dumpconfig() {
 		log_println(LEVEL_DEBUG, TAG, "data mutation is going to happen");
 	}
 
-	if (config & DMA_REGISTER_CONFIG_SRCACT_INCTWO) {
-		log_println(LEVEL_DEBUG, TAG, "src will increment by two");
-	}
-
-	if (config & DMA_REGISTER_CONFIG_DSTACT_INCTWO) {
+	if (config & DMA_REGISTER_CONFIG_DSTACT_INC) {
 		log_println(LEVEL_DEBUG, TAG, "dst will increment by two");
 	}
 

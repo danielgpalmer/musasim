@@ -43,9 +43,7 @@
 // Action types
 #define DMA_ACT_NOTHING 0b000	// Do nothing
 #define DMA_ACT_INC 0b001		// Increment by one
-#define DMA_ACT_INCTWO 0b010	// Increment by two
 #define DMA_ACT_DEC 0b011		// Decrement by one
-#define DMA_ACT_DECTWO 0b100	// Decrement by two
 #define DMA_ACT_ROTLEFT 0b101 	// Rotate left
 #define DMA_ACT_ROTRIGHT 0b110 	// Rotate right
 #define DMA_ACT_INVERSE 0b111 	// Invert

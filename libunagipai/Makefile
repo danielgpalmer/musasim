@@ -7,7 +7,7 @@ INSTPATH="../toolchains/inst/m68k-elf/m68k-elf"
 
 all: libunagipai.a docs
 
-libunagipai.a: genheader ata.o dma.o uart.o machine.o video.o pff.o diskio.o utils.o lzfx.o
+libunagipai.a: genheader ata.o dma.o uart.o machine.o video.o pff.o diskio.o utils.o lzfx.o image.o
 	ar cr libunagipai.a *.o
 
 uart.o: uart.c include/uart.h
@@ -31,6 +31,8 @@ pff.o: petitfatfs/pff.c
 lzfx.o: lzfx/lzfx.c
 	$(CC) $(CFLAGS) -O3 -c $<
 
+image.o: image.c
+	$(CC) $(CFLAGS) -c $<
 
 diskio.o: petitfatfs/diskio.c
 	$(CC) $(CFLAGS) -c $<
