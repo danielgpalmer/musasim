@@ -13,7 +13,16 @@
 #ifndef LIBUNAGIPAI_DMA_H_
 #define LIBUNAGIPAI_DMA_H_
 
+/**
+ * Reset the DMA controller config ready for a new set of transfers to be setup
+ */
+
 void dma_begin();
+
+/**
+ * Start the queued transfers
+ */
+
 void dma_commit();
 
 /**
