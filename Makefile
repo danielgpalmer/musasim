@@ -9,6 +9,7 @@ all: toolchain
 	$(MAKE) -C musasim docs
 	PATH=$(PATH) $(MAKE) -C libunagipai clean
 	PATH=$(PATH) $(MAKE) -C libunagipai install
+	PATH=$(PATH) $(MAKE) -C libunagipai docs
 	PATH=$(PATH) $(MAKE) -C m68ktestapp clean
 	PATH=$(PATH) $(MAKE) -C m68ktestapp
 
