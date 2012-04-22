@@ -100,13 +100,13 @@ static void ballrelect(ball* b1, ball* b2, vector* vect) {
 
 }
 
+static vector vect;
 static void ballcollision(ball* b1, ball* b2) {
-	static vector vect;
+	vect.x1 = b1->sprite->x + (b1->sprite->image->width / 2);
+	vect.y1 = b1->sprite->y + (b1->sprite->image->height / 2);
+	vect.x2 = b2->sprite->x + (b2->sprite->image->width / 2);
+	vect.y2 = b2->sprite->y + (b2->sprite->image->height / 2);
 	if (sprite_checkoverlap(b1->sprite, b2->sprite)) {
-		vect.x1 = b1->sprite->x + (b1->sprite->image->width / 2);
-		vect.y1 = b1->sprite->y + (b1->sprite->image->height / 2);
-		vect.x2 = b2->sprite->x + (b2->sprite->image->width / 2);
-		vect.y2 = b2->sprite->y + (b2->sprite->image->height / 2);
 		ballrelect(b1, b2, &vect);
 	}
 }
@@ -130,6 +130,7 @@ void vblank_handler() {
 	sprite_draw(ball1.sprite);
 	sprite_draw(ball2.sprite);
 	video_commit();
+	video_drawline(&vect);
 
 	//col = 0;
 	//row = 0;

@@ -10,6 +10,7 @@
 #include "include/dma.h"
 #include "include/video.h"
 #include "include/video_registers.h"
+#include "include/math.h"
 
 static bool transactionopen = false;
 
@@ -45,6 +46,29 @@ void video_fillrect(int x, int y, int width, int height) {
 
 	//dma_fillblock_nonlinear();
 
+}
+
+void video_drawline(vector* v) {
+
+	int startx, endx, starty, endy;
+	if (v->x1 < v->x2) {
+		startx = v->x1;
+		endx = v->x2;
+		starty = v->y1;
+		endy = v->y2;
+	}
+	else {
+		startx = v->x2;
+		endx = v->x1;
+		starty = v->y2;
+		endy = v->y1;
+	}
+
+	int y = starty;
+
+	for (int x = startx; x < endx; x++) {
+		*(video_start + (VIDEO_PLAYFIELDWIDTH * y) + x) = 0xf000;
+	}
 }
 
 void video_blitimage(int width, int height, int x, int y, void* data, dataloader loader) {
