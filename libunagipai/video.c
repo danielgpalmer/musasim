@@ -37,6 +37,13 @@ static bool video_sanitycheck() {
 	return true;
 }
 
+void video_plot(int x, int y, uint16_t colour) {
+	if ((x < 0 || x > VIDEO_PLAYFIELDWIDTH - 1) || (y < 0 || y > VIDEO_PLAYFIELDHEIGHT - 1)) {
+		return;
+	}
+	*(video_start + (VIDEO_PLAYFIELDWIDTH * y) + x) = colour;
+}
+
 void video_clear() {
 	static uint32_t count = VIDEO_PLAYFIELDWIDTH * VIDEO_PLAYFIELDHEIGHT;
 	dma_fillblock((uint32_t)video_start, 0xFFFF, count);
@@ -50,25 +57,31 @@ void video_fillrect(int x, int y, int width, int height) {
 
 void video_drawline(vector* v) {
 
-	int startx, endx, starty, endy;
-	if (v->x1 < v->x2) {
-		startx = v->x1;
-		endx = v->x2;
-		starty = v->y1;
-		endy = v->y2;
-	}
-	else {
-		startx = v->x2;
-		endx = v->x1;
-		starty = v->y2;
-		endy = v->y1;
+	int dx, dy, err, sx, sy, e2;
+	dx = abs(v->x2 - v->x1);
+	dy = abs(v->y2 - v->y1);
+	sx = (v->x1 < v->x2) ? 1 : -1;
+	sy = (v->y1 < v->y2) ? 1 : -1;
+	err = dy - dx;
+
+	int x = v->x1;
+	int y = v->y1;
+
+	while (x != v->x2 && y != v->y2) {
+		video_plot(x, y, 0xf000);
+
+		e2 = 2 * err;
+		if (e2 > -dy) {
+			err = err - dy;
+			x += sx;
+		}
+		if (e2 < dx) {
+			err = err + dx;
+			y += sy;
+
+		}
 	}
 
-	int y = starty;
-
-	for (int x = startx; x < endx; x++) {
-		*(video_start + (VIDEO_PLAYFIELDWIDTH * y) + x) = 0xf000;
-	}
 }
 
 void video_blitimage(int width, int height, int x, int y, void* data, dataloader loader) {
