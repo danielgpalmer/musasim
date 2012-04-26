@@ -15,6 +15,7 @@ typedef void (*dataloader)DATALOADERARGS;
 
 void video_begin(void);
 void video_commit(void);
+void video_flip(void);
 /**
  * blits an image to the frame buffer, data is supplied via your loader callback.
  */

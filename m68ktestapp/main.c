@@ -131,8 +131,8 @@ void vblank_handler() {
 	sprite_draw(ball1.sprite);
 	sprite_draw(ball2.sprite);
 	video_commit();
-	//video_drawline(&vect);
-
+	video_drawline(&vect);
+	video_flip();
 	//col = 0;
 	//row = 0;
 	//gputs("Shizzle me nizzle dizzle bizzle izzle. ABCDEFGHI");
@@ -144,9 +144,8 @@ void uart_handler() {
 }
 
 void initvideo() {
-	video_register_config |= VIDEO_CONFIG_MODE_BITMAP;
+	video_setconfig(true, false);
 	video_clear();
-	video_register_config |= VIDEO_CONFIG_ENVBINT;
 }
 
 static void printffresult(FRESULT result) {

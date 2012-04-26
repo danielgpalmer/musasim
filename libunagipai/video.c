@@ -17,6 +17,7 @@
 static bool transactionopen = false;
 
 void video_flip() {
+	video_waitforvblank();
 	if (video_register_config & VIDEO_CONFIG_FLIP) {
 		video_register_config &= ~VIDEO_CONFIG_FLIP;
 	}
@@ -25,8 +26,23 @@ void video_flip() {
 	}
 }
 
-void video_changewindow() {
+void video_waitforvblank() {
 
+	if ((video_register_config & VIDEO_CONFIG_MODE_MASK) == VIDEO_CONFIG_MODE_DISABLED) {
+		return;
+	}
+
+	while (!(video_register_flags & FLAG_VBLANK)) {
+	}
+}
+
+void video_setconfig(bool vblankint, bool hblankint) {
+	video_waitforvblank();
+	video_register_config = VIDEO_CONFIG_MODE_BITMAP | VIDEO_CONFIG_ENVBINT;
+}
+
+void video_changewindow() {
+	video_waitforvblank();
 }
 
 void video_begin() {
@@ -36,7 +52,6 @@ void video_begin() {
 
 void video_commit() {
 	dma_commit();
-	video_flip();
 	transactionopen = false;
 }
 
@@ -58,7 +73,7 @@ void video_plot(int x, int y, uint16_t colour) {
 
 void video_clear() {
 	static uint32_t count = VIDEO_PLAYFIELDWIDTH * VIDEO_PLAYFIELDHEIGHT;
-	dma_fillblock((uint32_t)video_start, 0xFFFF, count);
+	dma_fillblock((uint32_t) video_start, 0xFFFF, count);
 }
 
 void video_fillrect(int x, int y, int width, int height) {
