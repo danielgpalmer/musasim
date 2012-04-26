@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 #include "include/dma.h"
 #include "include/video.h"
 #include "include/video_registers.h"
