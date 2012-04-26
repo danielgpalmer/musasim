@@ -117,9 +117,9 @@ void vblank_handler() {
 	static uint16_t lastframe = 0;
 	static uint16_t thisframe;
 
-	uint16_t vidflags = *video_register_flags;
+	uint16_t vidflags = video_register_flags;
 	uint8_t port0 = input_port0;
-	thisframe = *video_register_frame;
+	thisframe = video_register_frame;
 
 	updateball(&ball1, thisframe, lastframe);
 	updateball(&ball2, thisframe, lastframe);
@@ -131,7 +131,7 @@ void vblank_handler() {
 	sprite_draw(ball1.sprite);
 	sprite_draw(ball2.sprite);
 	video_commit();
-	video_drawline(&vect);
+	//video_drawline(&vect);
 
 	//col = 0;
 	//row = 0;
@@ -144,11 +144,9 @@ void uart_handler() {
 }
 
 void initvideo() {
-	*video_register_config |= VIDEO_CONFIG_MODE_BITMAP;
-
+	video_register_config |= VIDEO_CONFIG_MODE_BITMAP;
 	video_clear();
-
-	*video_register_config |= VIDEO_CONFIG_ENVBINT;
+	video_register_config |= VIDEO_CONFIG_ENVBINT;
 }
 
 static void printffresult(FRESULT result) {

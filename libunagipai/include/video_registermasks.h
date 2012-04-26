@@ -22,7 +22,7 @@
 #define VIDEO_CONFIG_MODE_MASK 0b11
 #define VIDEO_CONFIG_ENVBINT (1 << 2)
 #define VIDEO_CONFIG_ENHBINT (1 << 3)
-#define VIDEO_CONFIG_FLIP ( 1 << 16)
+#define VIDEO_CONFIG_FLIP (1 << 15)
 
 /*
  * H V

@@ -156,21 +156,23 @@ static void video() {
 	printf("#define VIDEO_PLAYFIELDWIDTH 0x%x\n", VIDEO_PLAYFIELDWIDTH);
 	printf("#define VIDEO_PLAYFIELDHEIGHT 0x%x\n", VIDEO_PLAYFIELDHEIGHT);
 
-	char* registernames[] = { "start", "end", "register_flags", "register_config", "register_pixel", "register_line",
+	char* registernames[] = { "end", "register_flags", "register_config", "register_pixel", "register_line",
 			"register_frame", "register_posx", "register_posy", "register_winx", "register_winy", "register_winwidth",
 			"register_winheight" };
 
 	uint32_t regoffset = SLOT_OFFSET(SLOT_VIDEOCARD) + registers;
 
-	uint32_t registeroffsets[] = { SLOT_OFFSET(SLOT_VIDEOCARD), SLOT_OFFSET(SLOT_VIDEOCARD) + VIDEO_MEMORYEND, regoffset
-			+ VIDEO_REG_FLAGS, regoffset + VIDEO_REG_CONFIG, regoffset + VIDEO_REG_PIXEL, regoffset + VIDEO_REG_LINE,
-			regoffset + VIDEO_REG_FRAME, regoffset + VIDEO_REG_POSX, regoffset + VIDEO_REG_POSY,
-			SLOT_OFFSET(SLOT_VIDEOCARD) + registers + VIDEO_REG_WINX, regoffset + VIDEO_REG_WINY, regoffset
-					+ VIDEO_REG_WINWIDTH, regoffset + VIDEO_REG_WINHEIGHT };
+	uint32_t registeroffsets[] = { SLOT_OFFSET(SLOT_VIDEOCARD) + VIDEO_MEMORYEND, regoffset + VIDEO_REG_FLAGS, regoffset
+			+ VIDEO_REG_CONFIG, regoffset + VIDEO_REG_PIXEL, regoffset + VIDEO_REG_LINE, regoffset + VIDEO_REG_FRAME,
+			regoffset + VIDEO_REG_POSX, regoffset + VIDEO_REG_POSY, SLOT_OFFSET(SLOT_VIDEOCARD) + registers
+					+ VIDEO_REG_WINX, regoffset + VIDEO_REG_WINY, regoffset + VIDEO_REG_WINWIDTH, regoffset
+					+ VIDEO_REG_WINHEIGHT };
 
 	for (int reg = 0; reg < SIZEOFARRAY(registernames); reg++) {
-		printf("#define video_%s ((volatile uint16_t*) 0x%x)\n", registernames[reg], registeroffsets[reg]);
+		printf("#define video_%s (*(volatile uint16_t*) 0x%x)\n", registernames[reg], registeroffsets[reg]);
 	}
+
+	printf("#define video_%s ((volatile uint16_t*) 0x%x)\n", "start", SLOT_OFFSET(SLOT_VIDEOCARD));
 
 }
 

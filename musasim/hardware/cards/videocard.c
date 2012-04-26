@@ -38,6 +38,9 @@ static uint32_t registersstart;
 
 #define GETVIDREG(x) ( x = 0 ? 0 : (x & ~registersstart) / 2)
 
+#define WRITEABLESURFACE ((config & VIDEO_CONFIG_FLIP) ? rendersurfaces[0] : rendersurfaces[1])
+#define VISIBLESURFACE ( !(config & VIDEO_CONFIG_FLIP) ? rendersurfaces[1] : rendersurfaces[0])
+
 static void video_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
@@ -52,7 +55,7 @@ static void video_init() {
 				VIDEO_PIXELFORMAT, 0, 0, 0, 0);
 
 		if (rendersurface != NULL) {
-			SDL_FillRect(rendersurface, NULL, 0xFF0000FF);
+			SDL_FillRect(rendersurface, NULL, 0);
 			// FIXME exit here
 		}
 		rendersurfaces[i] = rendersurface;
@@ -143,7 +146,7 @@ static void video_tick() {
 					window.h = 0;
 
 					SDL_FillRect(screen, NULL, 0x0);
-					SDL_BlitSurface(rendersurfaces[0], &region, screen, &window);
+					SDL_BlitSurface(VISIBLESURFACE, &region, screen, &window);
 					if (config & VIDEO_CONFIG_ENVBINT) {
 						board_raise_interrupt(&videocard);
 					}
@@ -170,12 +173,12 @@ static void video_write_byte(uint32_t address, uint8_t data) {
 	}
 
 	if (address < registersstart) {
-		if (SDL_MUSTLOCK(rendersurfaces[0])) {
-			SDL_LockSurface(rendersurfaces[0]);
+		if (SDL_MUSTLOCK(WRITEABLESURFACE)) {
+			SDL_LockSurface(WRITEABLESURFACE);
 		}
-		*((uint8_t*) rendersurfaces[0]->pixels + address) = data;
-		if (SDL_MUSTLOCK(rendersurfaces[0])) {
-			SDL_UnlockSurface(rendersurfaces[0]);
+		*((uint8_t*) WRITEABLESURFACE->pixels + address) = data;
+		if (SDL_MUSTLOCK(WRITEABLESURFACE)) {
+			SDL_UnlockSurface(WRITEABLESURFACE);
 		}
 	}
 }
@@ -188,17 +191,25 @@ static void video_write_word(uint32_t address, uint16_t data) {
 
 	if (address < registersstart) {
 		if (SDL_MUSTLOCK(screen)) {
-			SDL_LockSurface(rendersurfaces[0]);
+			SDL_LockSurface(WRITEABLESURFACE);
 		}
-		*((uint16_t*) rendersurfaces[0]->pixels + (address / 2)) = data;
-		if (SDL_MUSTLOCK(rendersurfaces[0])) {
+		*((uint16_t*) WRITEABLESURFACE->pixels + (address / 2)) = data;
+		if (SDL_MUSTLOCK(WRITEABLESURFACE)) {
 			SDL_UnlockSurface(screen);
 		}
 	}
 
 	else {
 		uint8_t reg = GETVIDREG(address);
-		*video_registers[reg] = data;
+		if (reg == 1) {
+			if (*(video_registers[reg]) & VIDEO_CONFIG_FLIP) {
+				log_println(LEVEL_DEBUG, TAG, "surface 1");
+			}
+			else {
+				log_println(LEVEL_DEBUG, TAG, "surface 0");
+			}
+		}
+		*(video_registers[reg]) = data;
 	}
 
 }
@@ -221,7 +232,6 @@ static uint16_t video_read_word(uint32_t address) {
 
 	if (address >= registersstart) {
 		uint8_t reg = GETVIDREG(address);
-		log_println(LEVEL_INSANE, TAG, "Read video register %d", reg);
 		return *(video_registers[reg]);
 	}
 

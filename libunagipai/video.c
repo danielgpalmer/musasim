@@ -7,13 +7,23 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <math.h>
+#include <stdlib.h>
 #include "include/dma.h"
 #include "include/video.h"
 #include "include/video_registers.h"
+#include "include/video_registermasks.h"
 #include "include/math.h"
 
 static bool transactionopen = false;
+
+void video_flip() {
+	if (video_register_config & VIDEO_CONFIG_FLIP) {
+		video_register_config &= ~VIDEO_CONFIG_FLIP;
+	}
+	else {
+		video_register_config |= VIDEO_CONFIG_FLIP;
+	}
+}
 
 void video_changewindow() {
 
@@ -26,6 +36,7 @@ void video_begin() {
 
 void video_commit() {
 	dma_commit();
+	video_flip();
 	transactionopen = false;
 }
 
