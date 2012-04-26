@@ -2,6 +2,7 @@ include ../common.mk
 
 all: board.o
 	$(MAKE) -C cards
+	$(MAKE) -C modules
 
 board.o: board.c board.h
 	$(CC) $(CFLAGS) -std=gnu99 board.c -o board.o

@@ -6,6 +6,7 @@
  */
 
 #include <stdint.h>
+#include "module.h"
 
 #define CRYSTALFREQ 32767
 #define TIMERCHANNELS 4

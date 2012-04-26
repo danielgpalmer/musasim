@@ -20,6 +20,6 @@ typedef struct {
 	int y;
 	unsigned width;
 	unsigned height;
-};
+} rect;
 
 #endif /* MATH_H_ */

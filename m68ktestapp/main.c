@@ -19,6 +19,7 @@
 
 #include "main.h"
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include "fontrom.h"
@@ -180,8 +181,8 @@ static void printffresult(FRESULT result) {
 }
 
 static void printfat(FATFS* fs) {
-	printf("fat base : 0x%08x\n", fs->fatbase);
-	printf("data base : 0x%08x\n", fs->database);
+	printf("fat base : 0x%08x\n", (unsigned) fs->fatbase);
+	printf("data base : 0x%08x\n", (unsigned) fs->database);
 }
 
 void fatimageloader DATALOADERARGS {

@@ -29,8 +29,4 @@ test: png2bebin
 
 	
 clean:
-	rm *.o
-	rm test.be16
-	rm test.fontrom.*
-	rm png2bebin
-	rm mkfontrom
+	rm -f *.o test.be16 test.fontrom.* png2bebin mkfontrom

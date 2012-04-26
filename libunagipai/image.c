@@ -16,7 +16,7 @@
 
 void image_loadimagefromfile(FATFS* fs, image* image, const char* path, bool compressed) {
 	FRESULT result;
-	int len;
+	uint32_t len;
 
 	// open the file
 	result = pf_open(path);

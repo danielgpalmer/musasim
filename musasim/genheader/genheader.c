@@ -24,8 +24,6 @@
 char headers[] = "#include <stdint.h>\n"
 		"\n\n";
 
-#define SIZEOFARRAY(A) (sizeof(A)/sizeof(A[0]))
-
 static void common(void);
 static void dma(void);
 static void ata(void);

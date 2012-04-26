@@ -30,7 +30,7 @@ static uint16_t* video_registers[] = { &flags, &config, &pixel, &line, &frame, &
 		&winheight };
 
 static SDL_Surface* screen = NULL;
-static SDL_Surface* rendersurface = NULL;
+static SDL_Surface* rendersurfaces[2];
 static SDL_Rect region;
 static SDL_Rect window;
 
@@ -43,10 +43,21 @@ static void video_init() {
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
 	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, SDL_SWSURFACE);
-	rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_PLAYFIELDWIDTH, VIDEO_PLAYFIELDHEIGHT, VIDEO_PIXELFORMAT,
-			0, 0, 0, 0);
 
-	SDL_FillRect(rendersurface, NULL, 0xFF0000FF);
+	for (int i = 0; i < SIZEOFARRAY(rendersurfaces); i++) {
+
+		SDL_Surface* rendersurface = NULL;
+
+		rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_PLAYFIELDWIDTH, VIDEO_PLAYFIELDHEIGHT,
+				VIDEO_PIXELFORMAT, 0, 0, 0, 0);
+
+		if (rendersurface != NULL) {
+			SDL_FillRect(rendersurface, NULL, 0xFF0000FF);
+			// FIXME exit here
+		}
+		rendersurfaces[i] = rendersurface;
+
+	}
 
 	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
 			screen->format->BitsPerPixel);
@@ -61,8 +72,11 @@ static void video_init() {
 
 static void video_dispose() {
 
-	log_println(LEVEL_DEBUG, TAG, "video_dispose()");
+	for (int i = 0; i < SIZEOFARRAY(rendersurfaces); i++) {
+		SDL_FreeSurface(rendersurfaces[i]);
+	}
 
+	log_println(LEVEL_DEBUG, TAG, "video_dispose()");
 }
 
 static bool video_validaddress(uint32_t address) {
@@ -129,7 +143,7 @@ static void video_tick() {
 					window.h = 0;
 
 					SDL_FillRect(screen, NULL, 0x0);
-					SDL_BlitSurface(rendersurface, &region, screen, &window);
+					SDL_BlitSurface(rendersurfaces[0], &region, screen, &window);
 					if (config & VIDEO_CONFIG_ENVBINT) {
 						board_raise_interrupt(&videocard);
 					}
@@ -156,12 +170,12 @@ static void video_write_byte(uint32_t address, uint8_t data) {
 	}
 
 	if (address < registersstart) {
-		if (SDL_MUSTLOCK(rendersurface)) {
-			SDL_LockSurface(rendersurface);
+		if (SDL_MUSTLOCK(rendersurfaces[0])) {
+			SDL_LockSurface(rendersurfaces[0]);
 		}
-		*((uint8_t*) rendersurface->pixels + address) = data;
-		if (SDL_MUSTLOCK(rendersurface)) {
-			SDL_UnlockSurface(rendersurface);
+		*((uint8_t*) rendersurfaces[0]->pixels + address) = data;
+		if (SDL_MUSTLOCK(rendersurfaces[0])) {
+			SDL_UnlockSurface(rendersurfaces[0]);
 		}
 	}
 }
@@ -174,10 +188,10 @@ static void video_write_word(uint32_t address, uint16_t data) {
 
 	if (address < registersstart) {
 		if (SDL_MUSTLOCK(screen)) {
-			SDL_LockSurface(rendersurface);
+			SDL_LockSurface(rendersurfaces[0]);
 		}
-		*((uint16_t*) rendersurface->pixels + (address / 2)) = data;
-		if (SDL_MUSTLOCK(rendersurface)) {
+		*((uint16_t*) rendersurfaces[0]->pixels + (address / 2)) = data;
+		if (SDL_MUSTLOCK(rendersurfaces[0])) {
 			SDL_UnlockSurface(screen);
 		}
 	}

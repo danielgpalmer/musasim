@@ -1,7 +1,7 @@
 ROOT_DIR = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 AR=m68k-elf-ar
 CC=m68k-elf-gcc
-CFLAGS=-mc68000 -ggdb -std=gnu99 -O2 -I ./include
+CFLAGS=-mc68000 -ggdb -std=gnu99 -O3 -I ./include
 
 INSTPATH="../toolchains/inst/m68k-elf/m68k-elf"
 
@@ -29,7 +29,7 @@ pff.o: petitfatfs/pff.c
 	$(CC) $(CFLAGS) -c $<
 
 lzfx.o: lzfx/lzfx.c
-	$(CC) $(CFLAGS) -O3 -c $<
+	$(CC) $(CFLAGS) -c $<
 
 image.o: image.c
 	$(CC) $(CFLAGS) -c $<
@@ -38,10 +38,10 @@ diskio.o: petitfatfs/diskio.c
 	$(CC) $(CFLAGS) -c $<
 
 sprite.o: sprite.c
-	$(CC) $(CFLAGS) -O3 -c $<
+	$(CC) $(CFLAGS) -c $<
 
 math.o: math.c include/math.h
-	$(CC) $(CFLAGS) -O3 -c $<
+	$(CC) $(CFLAGS) -c $<
 
 utils.o: utils.c include/utils.h
 	$(CC) $(CFLAGS) -c $<
