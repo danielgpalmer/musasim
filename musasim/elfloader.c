@@ -44,6 +44,12 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 	}
 
 	printf("This elf has %d prog headers\n", ehdr.e_phnum);
+
+	if (ehdr.e_phnum == 0) {
+		printf("this elf file has no prog headers!! not an elf file?\n");
+		return false;
+	}
+
 	for (int header = 0; header < ehdr.e_phnum; header++) {
 		GElf_Phdr phdr;
 		gelf_getphdr(e, header, &phdr);
