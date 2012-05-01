@@ -375,5 +375,9 @@ static void uart_irq_ack() {
 	board_lower_interrupt(&uartcard);
 }
 
-const card uartcard = { "UART CARD", uart_init, uart_dispose, uart_tick, uart_irq_ack, NULL, uart_read_byte, NULL, NULL,
-		uart_write_byte, NULL, NULL };
+static bool uart_validaddress(uint32_t address) {
+	return true;
+}
+
+const card uartcard = { "UART CARD", uart_init, uart_dispose, uart_tick, uart_irq_ack, NULL, uart_validaddress,
+		uart_read_byte, NULL, NULL, uart_write_byte, NULL, NULL };

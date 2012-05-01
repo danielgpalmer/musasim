@@ -188,5 +188,9 @@ static void romcard_write_long(uint32_t address, uint32_t value) {
 
 }
 
-const card romcard = { "ROM CARD", NULL, romcard_dispose, NULL, NULL, NULL, romcard_read_byte, romcard_read_word,
-		romcard_read_long, romcard_write_byte, romcard_write_word, romcard_write_long };
+static bool romcard_validaddress(uint32_t address) {
+	return true;
+}
+
+const card romcard = { "ROM CARD", NULL, romcard_dispose, NULL, NULL, NULL, romcard_validaddress, romcard_read_byte,
+		romcard_read_word, romcard_read_long, romcard_write_byte, romcard_write_word, romcard_write_long };

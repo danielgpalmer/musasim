@@ -303,5 +303,9 @@ static void cfint_tick() {
 	}
 }
 
+static bool cfint_validaddress(uint32_t address) {
+	return true;
+}
+
 const card compactflashinterfacecard = { "CF INTERFACE", cfint_init, cfint_dispose, cfint_tick, NULL, NULL,
-		cfintf_read_byte, cfintf_read_word, NULL, cfintf_write_byte, cfintf_write_word, NULL };
+		cfint_validaddress, cfintf_read_byte, cfintf_read_word, NULL, cfintf_write_byte, cfintf_write_word, NULL };

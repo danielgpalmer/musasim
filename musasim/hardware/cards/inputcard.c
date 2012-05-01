@@ -157,5 +157,9 @@ void inputcard_tick() {
 
 }
 
-const card inputcard = { "INPUT CARD", inputcard_init, NULL, inputcard_tick, NULL, NULL, inputcard_read_byte, NULL,
-		NULL, NULL, NULL, NULL };
+static bool input_validaddress(uint32_t address) {
+	return true;
+}
+
+const card inputcard = { "INPUT CARD", inputcard_init, NULL, inputcard_tick, NULL, NULL, input_validaddress,
+		inputcard_read_byte, NULL, NULL, NULL, NULL, NULL };

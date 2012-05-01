@@ -168,10 +168,6 @@ static void video_tick() {
 
 static void video_write_byte(uint32_t address, uint8_t data) {
 
-	if (!video_validaddress(address)) {
-		return;
-	}
-
 	if (address < registersstart) {
 		if (SDL_MUSTLOCK(WRITEABLESURFACE)) {
 			SDL_LockSurface(WRITEABLESURFACE);
@@ -184,10 +180,6 @@ static void video_write_byte(uint32_t address, uint8_t data) {
 }
 
 static void video_write_word(uint32_t address, uint16_t data) {
-
-	if (!video_validaddress(address)) {
-		return;
-	}
 
 	if (address < registersstart) {
 		if (SDL_MUSTLOCK(screen)) {
@@ -243,5 +235,5 @@ static void videocard_irqack() {
 	board_lower_interrupt(&videocard);
 }
 
-const card videocard = { "VIDEO CARD", video_init, video_dispose, video_tick, videocard_irqack, NULL, video_read_byte,
-		video_read_word, NULL, video_write_byte, video_write_word, NULL };
+const card videocard = { "VIDEO CARD", video_init, video_dispose, video_tick, videocard_irqack, NULL,
+		video_validaddress, video_read_byte, video_read_word, NULL, video_write_byte, video_write_word, NULL };

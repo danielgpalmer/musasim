@@ -61,7 +61,7 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 			log_println(LEVEL_INFO, TAG, "Phy address 0x%08lx, Virt address 0x%08lx\n", phdr.p_paddr, phdr.p_vaddr);
 			if (phdr.p_paddr >= destaddr + maxlen) {
 				log_println(LEVEL_INFO, TAG, "Section is past the end of the area being loaded to, ignored\n");
-				break;
+				continue;
 			}
 
 			if (fseek(file, phdr.p_offset, SEEK_SET) != 0) {

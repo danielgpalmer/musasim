@@ -220,7 +220,7 @@ static void dmacard_tick() {
 							}
 							else {
 								board_write_byte(destination,
-										(uint8_t)(dmacard_mutate(workingwindow, holding, data) & 0xff));
+										(uint8_t) (dmacard_mutate(workingwindow, holding, data) & 0xff));
 							}
 							state = 0;
 							unitcomplete = true;
@@ -229,10 +229,10 @@ static void dmacard_tick() {
 
 					case DMA_REGISTER_CONFIG_MODE_FILL: // Takes one clock
 						if (wordtransfer) {
-							board_write_word(destination, (uint16_t)(data & 0xffff));
+							board_write_word(destination, (uint16_t) (data & 0xffff));
 						}
 						else {
-							board_write_byte(destination, (uint8_t)(data & 0xff));
+							board_write_byte(destination, (uint8_t) (data & 0xff));
 						}
 						unitcomplete = true;
 						break;
@@ -447,6 +447,29 @@ static void dmacard_write_word(uint32_t address, uint16_t value) {
 	}
 }
 
-const card dmacard = { "DMA Controller", dmacard_init, NULL, dmacard_tick, dmacard_irqack, dmacard_busgrant, NULL,
-		dmacard_read_word, NULL, NULL, dmacard_write_word, NULL };
+static bool dmacard_validaddress(uint32_t address) {
+
+	int reg = (address & ADDRESSMASK);
+
+	switch (reg) {
+		case DMACARD_REGISTER_CONFIG:
+		case DMACARD_REGISTER_DATAH:
+		case DMACARD_REGISTER_DATAL:
+		case DMACARD_REGISTER_COUNTH:
+		case DMACARD_REGISTER_COUNTL:
+		case DMACARD_REGISTER_SOURCEH:
+		case DMACARD_REGISTER_SOURCEL:
+		case DMACARD_REGISTER_DESTINATIONH:
+		case DMACARD_REGISTER_DESTINATIONL:
+		case DMACARD_REGISTER_JUMPAFTER:
+		case DMACARD_REGISTER_JUMPLENGTH:
+		case DMACARD_REGISTER_WINDOW:
+			return true;
+		default:
+			return false;
+	}
+}
+
+const card dmacard = { "DMA Controller", dmacard_init, NULL, dmacard_tick, dmacard_irqack, dmacard_busgrant,
+		dmacard_validaddress, NULL, dmacard_read_word, NULL, NULL, dmacard_write_word, NULL };
 

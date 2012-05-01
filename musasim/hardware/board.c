@@ -215,9 +215,12 @@ int board_ack_interrupt(int level) {
 
 unsigned int board_read_byte(unsigned int address) {
 	uint8_t slot = board_decode_slot(address);
+	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		if (slots[slot]->read_byte != NULL) {
-			return (slots[slot]->read_byte)(address & SLOT_ADDRESS_MASK);
+			if (slots[slot]->validaddress(slotaddress)) {
+				return (slots[slot]->read_byte)(slotaddress);
+			}
 		}
 		else {
 			log_println(LEVEL_INFO, TAG, "slot %d doesn't support byte read", slot);
@@ -234,9 +237,12 @@ unsigned int board_read_word(unsigned int address) {
 	}
 
 	uint8_t slot = board_decode_slot(address);
+	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		if (slots[slot]->read_word != NULL) {
-			return (slots[slot]->read_word)(address & SLOT_ADDRESS_MASK);
+			if (slots[slot]->validaddress(slotaddress)) {
+				return (slots[slot]->read_word)(slotaddress);
+			}
 		}
 		else {
 			log_println(LEVEL_INFO, TAG, "slot %d doesn't support word read", slot);
@@ -247,10 +253,12 @@ unsigned int board_read_word(unsigned int address) {
 
 unsigned int board_read_long(unsigned int address) {
 	uint8_t slot = board_decode_slot(address);
+	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		if (slots[slot]->read_long != NULL) {
-			return (slots[slot]->read_long)(address & SLOT_ADDRESS_MASK);
-
+			if (slots[slot]->validaddress(slotaddress)) {
+				return (slots[slot]->read_long)(slotaddress);
+			}
 		}
 		else {
 			log_println(LEVEL_INFO, TAG, "slot %d doesn't support long read", slot);
@@ -261,9 +269,12 @@ unsigned int board_read_long(unsigned int address) {
 
 void board_write_byte(unsigned int address, unsigned int value) {
 	uint8_t slot = board_decode_slot(address);
+	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		if (slots[slot]->write_byte != NULL) {
-			(slots[slot]->write_byte)(address & SLOT_ADDRESS_MASK, value);
+			if (slots[slot]->validaddress(slotaddress)) {
+				(slots[slot]->write_byte)(slotaddress, value);
+			}
 		}
 		else {
 			log_println(LEVEL_INFO, TAG, "slot %d doesn't support byte write", slot);
@@ -279,9 +290,12 @@ void board_write_word(unsigned int address, unsigned int value) {
 	}
 
 	uint8_t slot = board_decode_slot(address);
+	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		if (slots[slot]->write_word != NULL) {
-			(slots[slot]->write_word)(address & SLOT_ADDRESS_MASK, value);
+			if (slots[slot]->validaddress(slotaddress)) {
+				(slots[slot]->write_word)(slotaddress, value);
+			}
 		}
 		else {
 			log_println(LEVEL_INFO, TAG, "slot %d doesn't support word write, PC[0x%08x]", slot, GETPC);
@@ -291,9 +305,12 @@ void board_write_word(unsigned int address, unsigned int value) {
 
 void board_write_long(unsigned int address, unsigned int value) {
 	uint8_t slot = board_decode_slot(address);
+	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		if (slots[slot]->write_long != NULL) {
-			(slots[slot]->write_long)(address & SLOT_ADDRESS_MASK, value);
+			if (slots[slot]->validaddress(slotaddress)) {
+				(slots[slot]->write_long)(slotaddress, value);
+			}
 		}
 		else {
 			log_println(LEVEL_INFO, TAG, "slot %d doesn't support long write", slot);
