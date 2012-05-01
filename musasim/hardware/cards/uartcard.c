@@ -376,7 +376,23 @@ static void uart_irq_ack() {
 }
 
 static bool uart_validaddress(uint32_t address) {
-	return true;
+
+	uint8_t reg = (address & REGISTERMASK);
+
+	switch (reg) {
+		case 0x00:
+		case 0x01:
+		case 0x02:
+		case UART_REGISTER_LINECONTROL:
+		case UART_REGISTER_MODEMCONTROL:
+		case UART_REGISTER_LINESTATUS:
+		case 0x06:
+		case 0x07:
+			return true;
+		default:
+			return false;
+
+	}
 }
 
 const card uartcard = { "UART CARD", uart_init, uart_dispose, uart_tick, uart_irq_ack, NULL, uart_validaddress,

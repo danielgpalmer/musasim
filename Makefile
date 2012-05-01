@@ -12,7 +12,7 @@ all: toolchain
 	PATH=$(PATH) $(MAKE) -C libunagipai docs
 	PATH=$(PATH) $(MAKE) -C m68ktestapp clean
 	PATH=$(PATH) $(MAKE) -C m68ktestapp
-
+	$(MAKE) -C examples
 clean:
 	$(MAKE) -C tools clean	
 	$(MAKE) -C libunagipai clean	

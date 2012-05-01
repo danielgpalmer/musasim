@@ -158,7 +158,15 @@ void inputcard_tick() {
 }
 
 static bool input_validaddress(uint32_t address) {
-	return true;
+	int reg = address & 0x3;
+	switch (reg) {
+		case INPUT_PORT0:
+		case INPUT_PORT1:
+		case INPUT_RNG:
+			return true;
+		default:
+			return false;
+	}
 }
 
 const card inputcard = { "INPUT CARD", inputcard_init, NULL, inputcard_tick, NULL, NULL, input_validaddress,
