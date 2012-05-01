@@ -217,13 +217,14 @@ static void sound() {
 
 static void uart() {
 
-	char* registernames[] = { "rxtx", "interruptenable", "linecontrol", "linestatus" };
+	char* registernames[] = { "rxtx", "interruptenable", "fifocontrol", "linecontrol", "linestatus" };
 
 	uint8_t chanlen = 0x8;
 
-	uint32_t registeroffsets[] = { SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_RXTXBUFFER, SLOT_OFFSET(SLOT_UARTCARD)
-			+ UART_REGISTER_INTERRUPTENABLE, SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINECONTROL,
-			SLOT_OFFSET(SLOT_UARTCARD) + UART_REGISTER_LINESTATUS };
+	uint32_t offset = SLOT_OFFSET(SLOT_UARTCARD);
+
+	uint32_t registeroffsets[] = { offset + UART_REGISTER_RXTXBUFFER, offset + UART_REGISTER_INTERRUPTENABLE, offset
+			+ UART_REGISTER_FIFOCONTROL, offset + UART_REGISTER_LINECONTROL, offset + UART_REGISTER_LINESTATUS };
 
 	for (int chan = 0; chan < 2; chan++) {
 		for (int reg = 0; reg < SIZEOFARRAY(registernames); reg++) {

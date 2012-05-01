@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include "ymodem.h"
 #include "uart.h"
+#include "uart_registers.h"
+#include "uart_registermasks.h"
 
 static uint8_t* ram = (uint8_t*) 0x100000;
 
@@ -26,6 +28,7 @@ int main(void) {
 
 	printf("ymodem serial bootloader\n");
 	printf("send your binary via ymodem now\n");
+	//*uart_chan1_fifocontrol = FIFOCONTROL_ENABLE;
 	ymodem_receive(ram, 0x100000);
 	while(1){
 	}

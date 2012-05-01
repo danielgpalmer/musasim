@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include <fcntl.h>
 #include <termios.h>
 #include "uartcard.h"
@@ -31,8 +32,10 @@ typedef struct {
 	uint8_t rxfifo[FIFOSIZE];
 	uint8_t txfifo[FIFOSIZE];
 	uint8_t txshift;
-	uint8_t rxtop;
-	uint8_t txtop;
+	uint8_t rxhead;
+	uint8_t rxtail;
+	uint8_t txhead;
+	uint8_t txtail;
 	uint8_t interrupt_enable;
 	uint8_t interrupt_identification;
 	uint8_t fifo_control;
@@ -72,9 +75,11 @@ static bool uart_bitset(uint8_t mask, uint8_t target) {
 }
 
 static void uart_reset_channel(channel* chan) {
-	chan->txclock = 0;
+	memset(&(chan->registers), 0, sizeof(registers));
 	chan->registers.line_status = 0x60;
 	chan->registers.interrupt_identification = 0x01;
+
+	chan->txclock = 0;
 	chan->clockdivider = 0;
 }
 
@@ -138,9 +143,11 @@ static uint8_t* uart_decode_register(uint32_t address, bool write) {
 			else {
 				if (write) {
 					if (uart_bitset(FIFOCONTROL_ENABLE, regs->fifo_control)) {
-						uint8_t* txslot = &(regs->txfifo[regs->txtop]);
-						if (regs->txtop + 1 < FIFOSIZE) {
-							regs->txtop += 1;
+						uint8_t* txslot = &(regs->txfifo[regs->txhead]);
+						log_println(LEVEL_DEBUG, TAG, "tx slot %d\n", regs->txhead);
+						regs->txhead++;
+						if (regs->txhead == FIFOSIZE) {
+							regs->txhead = 0;
 						}
 						// Not right
 						//else {
@@ -160,9 +167,9 @@ static uint8_t* uart_decode_register(uint32_t address, bool write) {
 				}
 				else {
 					if (uart_bitset(FIFOCONTROL_ENABLE, regs->fifo_control)) {
-						uint8_t* rxslot = &(regs->rxfifo[regs->rxtop]);
-						if (regs->rxtop - 1 > 0) {
-							regs->rxtop -= 1;
+						uint8_t* rxslot = &(regs->rxfifo[regs->rxhead]);
+						if (regs->rxhead - 1 > 0) {
+							regs->rxhead -= 1;
 						}
 						else {
 							uart_clearbit(LINESTATUS_DATAREADY, &(regs->line_status));
@@ -350,7 +357,16 @@ static void uart_tick() {
 			if (bytes > 0) {
 				log_println(LEVEL_DEBUG, TAG, "Read byte 0x%02x[%c] from pty", byte, FILTERPRINTABLE(byte));
 
-				channel->registers.rxfifo[0] = byte;
+				if (uart_bitset(FIFOCONTROL_ENABLE, channel->registers.fifo_control)) {
+					channel->registers.rxfifo[channel->registers.rxhead] = byte;
+					channel->registers.rxhead++;
+					if (channel->registers.rxhead == FIFOSIZE) {
+						channel->registers.rxhead = 0;
+					}
+				}
+				else {
+					channel->registers.rxfifo[0] = byte;
+				}
 				if (uart_bitset(LINESTATUS_DATAREADY, channel->registers.line_status)) {
 					log_println(LEVEL_INFO, TAG, "RX Overflow");
 					uart_setbit(LINESTATUS_OVERRUNERROR, &(channel->registers.line_status));
