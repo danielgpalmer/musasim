@@ -126,7 +126,7 @@ static void uart_dispose() {
 #define REGISTERMASK 0x07
 
 static uint8_t* uart_decode_register(uint32_t address, bool write) {
-	channel* chan = &(channels[(address & CHANNELMASK) >> 4]);
+	channel* chan = &(channels[(address & CHANNELMASK) >> 3]);
 	registers* regs = &(chan->registers);
 	uint8_t reg = (address & REGISTERMASK);
 

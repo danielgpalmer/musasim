@@ -13,12 +13,13 @@
 static uint8_t* ram = (uint8_t*) 0x100000;
 
 int _getchar(int timeout) {
-	return -1;
+	char ch;
+	return uart_getch_nonblock1(&ch) ? (int) ch : -1;
 }
 void _sleep(unsigned long seconds) {
 }
 void _putchar(int c) {
-	uart_putch((char) c);
+	uart_putch1((char) c);
 }
 
 int main(void) {
