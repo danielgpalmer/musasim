@@ -98,7 +98,7 @@ bool cfintf_load(const char* filename) {
 	size = filestat.st_size;
 	lbasectors = size / SECTORSIZE;
 
-	log_println(LEVEL_INFO, TAG, "Image is %d bytes", size);
+	log_println(LEVEL_INFO, TAG, "Image is %d bytes", (int) size);
 
 	if ((image = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED) {
 		log_println(LEVEL_WARNING, TAG, "Failed to map image, %d", errno);
@@ -283,7 +283,7 @@ static void cfintf_write_word(uint32_t address, uint16_t value) {
 static void cfint_dispose() {
 	loaded = false;
 	if (munmap(image, size) > 0) {
-		log_println(LEVEL_WARNING, TAG, "Failed to unmap image", errno);
+		log_println(LEVEL_WARNING, TAG, "Failed to unmap image -- error %d", errno);
 	}
 	close(fd);
 	free((void*) idblock);

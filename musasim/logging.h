@@ -13,7 +13,7 @@
 #define LEVEL_DEBUG 2 // Verbose debug stuff
 #define LEVEL_INSANE 98 //
 #define LEVEL_ALL 99
-void log_println(int level, const char* tag, char * fmt, ...);
+void log_println(int level, const char* tag, char * fmt, ...) __attribute__ ((format (printf, 3, 4)));
 void log_setlevel(int newlevel);
 
 void log_printhexblock(int level, const char* tag, void* data, size_t len);

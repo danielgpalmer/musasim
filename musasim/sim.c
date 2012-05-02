@@ -192,7 +192,7 @@ void sim_tick() {
 
 	if (lastoutput < (end.tv_sec - 10)) {
 		lastoutput = end.tv_sec;
-		log_println(LEVEL_DEBUG, TAG, "tick is taking %d us, %d target, %d sleep", average, SIM_USECSPERTICK, sleep);
+		log_println(LEVEL_DEBUG, TAG, "tick is taking %ld us, %d target, %ld sleep", average, SIM_USECSPERTICK, sleep);
 	}
 
 	sleep = SIM_USECSPERTICK - average;

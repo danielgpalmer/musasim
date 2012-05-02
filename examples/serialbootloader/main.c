@@ -7,16 +7,26 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <errno.h>
 #include "ymodem.h"
 #include "uart.h"
 #include "uart_registers.h"
 #include "uart_registermasks.h"
 
 static uint8_t* ram = (uint8_t*) 0x100000;
+static uint8_t scratch[1024 * 512];
 
 int _getchar(int timeout) {
-	char ch;
-	return uart_getch_nonblock1(&ch) ? (int) ch : -1;
+	uint8_t ch;
+	for (int i = 0; i < 256; i++) {
+		//for(int j = 0; j < 16; j++){
+		if (uart_getch_nonblock1(&ch)) {
+			return ch;
+		}
+		//printf("spinning\n");
+		//}
+	}
+	return -1;
 }
 void _sleep(unsigned long seconds) {
 }
@@ -28,9 +38,18 @@ int main(void) {
 
 	printf("ymodem serial bootloader\n");
 	printf("send your binary via ymodem now\n");
-	//*uart_chan1_fifocontrol = FIFOCONTROL_ENABLE;
-	ymodem_receive(ram, 0x100000);
-	while(1){
+	*uart_chan1_fifocontrol = FIFOCONTROL_ENABLE;
+	*uart_chan1_fifocontrol = FIFOCONTROL_ENABLE | FIFOCONTROL_RCVRFIFORESET | FIFOCONTROL_XMITFIFORESET;
+	while (1) {
+		if (ymodem_receive(scratch, sizeof(scratch))) {
+			printf("Loaded ..\n");
+			while (1) {
+
+			}
+		}
+		else {
+			printf("Failed - Error %d\n", errno);
+		}
 	}
 	return 0;
 }

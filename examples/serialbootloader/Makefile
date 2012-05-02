@@ -28,7 +28,7 @@ crt.o: crt.s
 	$(AS) $(AFLAGS) crt.s -o crt.o > crt.lst
 
 ymodem.o: ymodem.c ymodem.h
-	$(CC) $(CFLAGS) -c $<
+	$(CC) -DDEBUG $(CFLAGS) -c $<
 
 
 syscalls.o: syscalls.c

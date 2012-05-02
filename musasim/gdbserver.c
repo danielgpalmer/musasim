@@ -368,7 +368,7 @@ static bool gdbserver_sendpacket(int s, char* data) {
 
 		triesleft--;
 		if (triesleft == 0) {
-			log_println(LEVEL_WARNING, TAG, "Sent packet [%s] %d times, giving up!", &outputbuffer, MAXSENDTRIES);
+			log_println(LEVEL_WARNING, TAG, "Sent packet [%s] %d times, giving up!", outputbuffer, MAXSENDTRIES);
 			return false;
 		}
 	}
@@ -708,7 +708,7 @@ void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, i
 	else {
 		if (checkwatchpoints(watchpoints_read, address, size)) {
 			m68k_end_timeslice();
-			log_println(LEVEL_INFO, TAG, "Read at 0x%08x; %s", address);
+			log_println(LEVEL_INFO, TAG, "Read at 0x%08x;", address);
 			state = WAITING;
 			sprintf(stopreply, "T05rwatch:%08x;", address);
 			gdbserver_sendpacket(socketconnection, stopreply);
