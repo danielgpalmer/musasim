@@ -79,118 +79,145 @@ bool romcard_loadrom(const char* path, bool elf) {
 	}
 }
 
-static bool romcard_valid_address(uint32_t address, bool write) {
+static bool disableromonreset = false;
+static bool romdisabled = false;
 
-	// Disallow writes to rom space, outside of ram space
-	if (write) {
-		if (ISRAMSPACE(address)) {
-			return true;
-		}
-		else {
-			log_println(LEVEL_INFO, TAG, "invalid write to 0x%08x, write to ROM? PC[0x%08x]", address,
-					m68k_get_reg(NULL, M68K_REG_PC));
+static bool romcard_checkcommand(uint32_t address, uint16_t data) {
+
+	static bool disablecommandone = false;
+
+	if ((address == ROMDISABLE_ADDRESS_0) && (data == ROMDISABLE_DATA_0)) {
+		log_println(LEVEL_WARNING, TAG, "ROM disable armed");
+		disablecommandone = true;
+		return true;
+	}
+
+	else if ((address == ROMDISABLE_ADDRESS_1) && (data == ROMDISABLE_DATA_1) && disablecommandone) {
+		log_println(LEVEL_WARNING, TAG, "ROM disable fired, ROM will be disabled on reset");
+		disableromonreset = true;
+		return true;
+	}
+
+	else {
+		disablecommandone = false;
+		return false;
+	}
+
+}
+
+static void romcard_invalidwrite(uint32_t address) {
+
+	log_println(LEVEL_INFO, TAG, "invalid write to 0x%08x, write to ROM? PC[0x%08x]", address,
+			m68k_get_reg(NULL, M68K_REG_PC));
 #ifdef GDBSERVER
-			gdb_break();
+	gdb_break();
 #endif
 
-			return false;
-		}
-	}
-
-	// flag reads outside of rom/ram space
-	else {
-		if (ISROMSPACE(address) || ISRAMSPACE(address)) {
-			return true;
-		}
-		else {
-			log_println(LEVEL_INFO, TAG, "invalid read to 0x%08x", address);
-			return false;
-		}
-	}
 }
 
 typedef struct {
 	uint8_t* base;
 	uint32_t relative_address;
-} bank;
+	bool writeable;
+} translatedaddress;
 
-static bank romcard_bank(uint32_t address) {
+static translatedaddress reg;
 
-	bank reg;
+static void romcard_translateaddress(translatedaddress* reg, uint32_t address) {
 
+	reg->writeable = true;
 	if (ISROMSPACE(address)) {
-		reg.base = rom;
-		reg.relative_address = address - ROMCARD_OFFSET_ROM;
-	}
+		if (romdisabled) {
+			reg->base = ram;
+			reg->relative_address = address - ROMCARD_OFFSET_ROM;
+		}
+		else {
+			reg->base = rom;
+			reg->relative_address = address - ROMCARD_OFFSET_ROM;
+			reg->writeable = false;
 
+		}
+	}
 	else if (ISRAMSPACE(address)) {
-		reg.base = ram;
-		reg.relative_address = address - OFFSET_RAM;
+		reg->base = ram;
+		reg->relative_address = address - OFFSET_RAM;
 	}
 
-	return reg;
 }
 
 static uint8_t romcard_read_byte(uint32_t address) {
-
-	if (romcard_valid_address(address, false)) {
-		bank reg = romcard_bank(address);
-		return READ_BYTE((reg.base), (reg.relative_address));
-	}
-
-	return 0;
+	romcard_translateaddress(&reg, address);
+	return READ_BYTE((reg.base), (reg.relative_address));
 }
 
 static uint16_t romcard_read_word(uint32_t address) {
-
-	if (romcard_valid_address(address, false)) {
-		bank reg = romcard_bank(address);
-		return READ_WORD(reg.base, reg.relative_address);
-	}
-
-	return 0;
+	romcard_translateaddress(&reg, address);
+	return READ_WORD(reg.base, reg.relative_address);
 }
 
 static uint32_t romcard_read_long(uint32_t address) {
-
-	if (romcard_valid_address(address, false)) {
-		bank reg = romcard_bank(address);
-		return READ_LONG(reg.base, reg.relative_address);
-	}
-
-	return 0;
+	romcard_translateaddress(&reg, address);
+	return READ_LONG(reg.base, reg.relative_address);
 }
 
 static void romcard_write_byte(uint32_t address, uint8_t value) {
 
-	if (romcard_valid_address(address, true)) {
-		bank reg = romcard_bank(address);
-		WRITE_BYTE(reg.base, reg.relative_address, value);
+	if (!romcard_checkcommand(address, value)) {
+		romcard_translateaddress(&reg, address);
+		if (reg.writeable) {
+			WRITE_BYTE(reg.base, reg.relative_address, value);
+		}
+		else {
+			romcard_invalidwrite(address);
+		}
 	}
 
 }
 
 static void romcard_write_word(uint32_t address, uint16_t value) {
 
-	if (romcard_valid_address(address, true)) {
-		bank reg = romcard_bank(address);
-		WRITE_WORD(reg.base, reg.relative_address, value);
+	if (!romcard_checkcommand(address, value)) {
+		romcard_translateaddress(&reg, address);
+		if (reg.writeable) {
+			WRITE_WORD(reg.base, reg.relative_address, value);
+		}
+		else {
+			romcard_invalidwrite(address);
+		}
 	}
 
 }
 
 static void romcard_write_long(uint32_t address, uint32_t value) {
 
-	if (romcard_valid_address(address, true)) {
-		bank reg = romcard_bank(address);
+	romcard_translateaddress(&reg, address);
+	if (reg.writeable) {
 		WRITE_LONG(reg.base, reg.relative_address, value);
+	}
+	else {
+		romcard_invalidwrite(address);
 	}
 
 }
 
 static bool romcard_validaddress(uint32_t address) {
-	return true;
+	if (ISROMSPACE(address) || ISRAMSPACE(address)) {
+		return true;
+	}
+	return false;
 }
 
-const card romcard = { "ROM CARD", NULL, romcard_dispose, NULL, NULL, NULL, romcard_validaddress, romcard_read_byte,
-		romcard_read_word, romcard_read_long, romcard_write_byte, romcard_write_word, romcard_write_long };
+static void romcard_reset() {
+	if (disableromonreset) {
+		log_println(LEVEL_WARNING, TAG, "ROM is disabled");
+		disableromonreset = false;
+	}
+	else {
+		romdisabled = false;
+	}
+}
+
+const card romcard = { "ROM CARD", NULL, romcard_dispose,
+		romcard_reset, // reset
+		NULL, NULL, NULL, romcard_validaddress, romcard_read_byte, romcard_read_word, romcard_read_long,
+		romcard_write_byte, romcard_write_word, romcard_write_long };

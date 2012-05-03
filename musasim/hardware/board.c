@@ -4,6 +4,7 @@
 #include "board.h"
 #include "../logging.h"
 #include "../musashi/m68kcpu.h"
+#include "../utils.h"
 
 static char TAG[] = "board";
 
@@ -73,7 +74,7 @@ void board_poweroff() {
 
 static uint8_t board_which_slot(const card* card) {
 
-	for (int i = 0; i < sizeof(slots); i++) {
+	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
 		if (slots[i] == card) {
 			return i;
 		}
@@ -314,6 +315,17 @@ void board_write_long(unsigned int address, unsigned int value) {
 		}
 		else {
 			log_println(LEVEL_INFO, TAG, "slot %d doesn't support long write", slot);
+		}
+	}
+}
+
+void board_reset() {
+	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
+		const card* c = slots[i];
+		if (c != NULL) {
+			if (c->reset != NULL) {
+				c->reset();
+			}
 		}
 	}
 }

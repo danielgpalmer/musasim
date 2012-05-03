@@ -1,4 +1,8 @@
-all: dma_registers.h ata_registers.h video_registers.h sound_registers.h input_registers.h uart_registers.h
+all: machine_stuff.h dma_registers.h ata_registers.h video_registers.h sound_registers.h input_registers.h uart_registers.h
+
+machine_stuff.h: genheader
+	./genheader machine > $@
+	gcc -x c -fsyntax-only $@
 
 dma_registers.h: genheader
 	./genheader dma > dma_registers.h

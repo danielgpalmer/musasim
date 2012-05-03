@@ -5,7 +5,7 @@ CP=$(TCPREFIX)/m68k-elf-objcopy
 
 AFLAGS=-ahls -m68000
 CFLAGS=-mc68000 -ggdb -std=gnu99 -Wall -O2 -Wstrict-aliasing
-LFLAGS=-mc68000 -Trom.lds -nostartfiles -Wl,-Map=prog.map,--cref
+LFLAGS=-mc68000 -Tram.lds -nostartfiles -Wl,-Map=prog.map,--cref
 
 all: prog.bin prog.srec
 
@@ -15,24 +15,17 @@ prog.bin: prog.elf
 prog.srec: prog.elf
 	$(CP) -S -O srec prog.elf prog.srec
 	
-prog.elf: crt.o syscalls.o main.o uart.o ymodem.o machine.o rom.lds
-	$(CC) $(LFLAGS) -o prog.elf crt.o main.o syscalls.o uart.o ymodem.o machine.o
+prog.elf: crt.o syscalls.o main.o uart.o ram.lds
+	$(CC) $(LFLAGS) -o prog.elf crt.o main.o syscalls.o uart.o
 
 main.o: main.c
 	$(CC) $(CFLAGS) -c main.c
-
-machine.o: machine.c
-	$(CC) $(CFLAGS) -c $<
 
 uart.o: uart.c
 	$(CC) $(CFLAGS) -c uart.c
 
 crt.o: crt.s
 	$(AS) $(AFLAGS) crt.s -o crt.o > crt.lst
-
-ymodem.o: ymodem.c ymodem.h
-	$(CC) -DDEBUG $(CFLAGS) -c $<
-
 
 syscalls.o: syscalls.c
 	$(CC) $(CFLAGS) -c syscalls.c

@@ -12,6 +12,7 @@
 
 #include "../sim.h"
 #include "../hardware/board.h"
+#include "../hardware/cards/romcard.h"
 #include "../hardware/cards/videocard.h"
 #include "../hardware/cards/uartcard.h"
 #include "../hardware/cards/dmacard.h"
@@ -25,6 +26,7 @@ char headers[] = "#include <stdint.h>\n"
 		"\n\n";
 
 static void common(void);
+static void machine(void);
 static void dma(void);
 static void ata(void);
 static void video(void);
@@ -35,6 +37,7 @@ static void uart(void);
 #define PRE(tag) printf("#ifndef LIBUNAGIPAI_%s_H_\n#define LIBUNAGIPAI_%s_H_\n\n\n", tag, tag)
 #define POST(tag) printf("\n#endif // %s\n", tag)
 
+#define TAG_MACHINE "MACHINESTUFF"
 #define TAG_DMA "DMAREGISTERS"
 #define TAG_ATA "ATAREGISTERS"
 #define TAG_VIDEO "VIDEOREGISTERS"
@@ -56,14 +59,21 @@ int main(int argc, char* argv[]) {
 		printf("usage; ./%s [machine|video|sound]\n", argv[0]);
 	}
 	else {
-		if (strcmp(argv[1], "dma") == 0) {
+		if (strcmp(argv[1], "machine") == 0) {
+			fileheader("machine.h", "Machine helper defines");
+			PRE(TAG_MACHINE);
+			common();
+			machine();
+			POST(TAG_MACHINE);
+		}
+		else if (strcmp(argv[1], "dma") == 0) {
 			fileheader("dma_registers.h", "DMA register defines");
 			PRE(TAG_DMA);
 			common();
 			dma();
 			POST(TAG_DMA);
 		}
-		if (strcmp(argv[1], "ata") == 0) {
+		else if (strcmp(argv[1], "ata") == 0) {
 			fileheader("ata_registers.h", "ATA register defines");
 			PRE(TAG_ATA);
 			common();
@@ -104,6 +114,15 @@ int main(int argc, char* argv[]) {
 
 void common() {
 	printf("%s", headers);
+}
+
+static void machine() {
+	uint32_t offset = SLOT_OFFSET(SLOT_ROMCARD);
+	printf("#define ROMDISABLE0 0x%x\n", ROMDISABLE_DATA_0);
+	printf("#define ROMDISABLE1 0x%x\n", ROMDISABLE_DATA_1);
+	printf("#define romdisable0 (*(volatile uint8_t*) 0x%x)\n", ROMDISABLE_ADDRESS_0);
+	printf("#define romdisable1 (*(volatile uint8_t*) 0x%x)\n", ROMDISABLE_ADDRESS_1);
+
 }
 
 static void dma() {

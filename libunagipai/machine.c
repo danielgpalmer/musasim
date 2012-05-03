@@ -6,9 +6,9 @@
  */
 
 #include "include/machine.h"
+#include "include/machine_stuff.h"
 
 #include <stdint.h>
-
 
 uint16_t machine_getstatusregister() {
 	uint16_t temp;
@@ -28,10 +28,23 @@ void machine_setstatusregister(uint16_t value) {
 			: );
 }
 
-void machine_enableinterrupts(){
+void machine_enableinterrupts() {
 
 }
 
-void machine_disableinterrupts(){
+void machine_disableinterrupts() {
 
+}
+
+void machine_disablerom() {
+	romdisable0 = ROMDISABLE0;
+	romdisable1 = ROMDISABLE1;
+}
+
+void machine_reset() {
+	asm volatile (
+			"reset \n\t"
+			:
+			:
+			: );
 }

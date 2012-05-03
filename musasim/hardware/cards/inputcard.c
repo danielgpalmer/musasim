@@ -169,5 +169,18 @@ static bool input_validaddress(uint32_t address) {
 	}
 }
 
-const card inputcard = { "INPUT CARD", inputcard_init, NULL, inputcard_tick, NULL, NULL, input_validaddress,
-		inputcard_read_byte, NULL, NULL, NULL, NULL, NULL };
+const card inputcard = { "INPUT CARD", // tag
+		inputcard_init, // init
+		NULL, // dispose
+		NULL, // reset
+		inputcard_tick, //tick
+		NULL, // IRQ ack
+		NULL, // BUSRQ ack
+		input_validaddress, //valid address
+		inputcard_read_byte, // read byte
+		NULL, // read word
+		NULL, // read long
+		NULL, // write byte
+		NULL, // write word
+		NULL // write long
+		};

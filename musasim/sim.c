@@ -34,7 +34,8 @@ static bool paused = false;
 static const char TAG[] = "sim";
 
 void cpu_pulse_reset(void) {
-
+	log_println(LEVEL_INFO, TAG, "reset called");
+	board_reset();
 }
 
 void cpu_pulse_stop(void) {

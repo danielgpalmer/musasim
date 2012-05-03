@@ -16,6 +16,7 @@ typedef struct {
 	char* boardinfo;
 	void (*init)();
 	void (*dispose)();
+	void (*reset)();
 	void (*tick)();
 	void (*irqack)();
 	void (*busreqack)();

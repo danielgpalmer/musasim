@@ -14,7 +14,6 @@
 #include "uart_registermasks.h"
 
 static uint8_t* ram = (uint8_t*) 0x100000;
-static uint8_t scratch[1024 * 512];
 
 int _getchar(int timeout) {
 	uint8_t ch;
@@ -40,8 +39,10 @@ int main(void) {
 	printf("send your binary via ymodem now\n");
 	*uart_chan1_fifocontrol = FIFOCONTROL_ENABLE;
 	*uart_chan1_fifocontrol = FIFOCONTROL_ENABLE | FIFOCONTROL_RCVRFIFORESET | FIFOCONTROL_XMITFIFORESET;
+	machine_disablerom();
+	machine_reset();
 	while (1) {
-		if (ymodem_receive(scratch, sizeof(scratch))) {
+		if (ymodem_receive(ram, 0xf8000)) {
 			printf("Loaded ..\n");
 			while (1) {
 

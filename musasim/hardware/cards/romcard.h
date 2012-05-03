@@ -23,4 +23,9 @@ const card romcard;
 #define MAX_ROM (ROMCARD_OFFSET_ROM + (SIZE_ROM - 1))
 #define MAX_RAM (OFFSET_RAM + (SIZE_RAM - 1))
 
+#define ROMDISABLE_ADDRESS_0 (0xAAAAAA & 0xFFFFE)
+#define ROMDISABLE_ADDRESS_1 (0x555555 & 0xFFFFE)
+#define ROMDISABLE_DATA_0 0x55
+#define ROMDISABLE_DATA_1 0xAA
+
 #endif /* ROMCARD_H_ */
