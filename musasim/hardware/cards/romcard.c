@@ -211,6 +211,7 @@ static void romcard_reset() {
 	if (disableromonreset) {
 		log_println(LEVEL_WARNING, TAG, "ROM is disabled");
 		disableromonreset = false;
+		romdisabled = true;
 	}
 	else {
 		romdisabled = false;

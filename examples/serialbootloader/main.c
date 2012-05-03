@@ -39,13 +39,14 @@ int main(void) {
 	*uart_chan1_fifocontrol = FIFOCONTROL_ENABLE | FIFOCONTROL_RCVRFIFORESET | FIFOCONTROL_XMITFIFORESET;
 	printf("ymodem serial bootloader\n");
 	printf("send your binary via ymodem now\n");
-	//machine_disablerom();
-	machine_reset();
 	while (1) {
 		if (ymodem_receive(ram, 0xf8000)) {
 			printf("Loaded ..\n");
+			machine_disablerom();
+			machine_reset();
+			// shouldn't get here
 			while (1) {
-
+				printf("WE HAVE REACHED THE UNREACHABLE!!!?!?!\n");
 			}
 		}
 		else {
