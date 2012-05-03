@@ -35,11 +35,11 @@ void _putchar(int c) {
 
 int main(void) {
 
-	printf("ymodem serial bootloader\n");
-	printf("send your binary via ymodem now\n");
 	*uart_chan1_fifocontrol = FIFOCONTROL_ENABLE;
 	*uart_chan1_fifocontrol = FIFOCONTROL_ENABLE | FIFOCONTROL_RCVRFIFORESET | FIFOCONTROL_XMITFIFORESET;
-	machine_disablerom();
+	printf("ymodem serial bootloader\n");
+	printf("send your binary via ymodem now\n");
+	//machine_disablerom();
 	machine_reset();
 	while (1) {
 		if (ymodem_receive(ram, 0xf8000)) {
