@@ -365,6 +365,8 @@ unsigned long ymodem_receive(uint8_t* buf, uint32_t length) {
 	return size;
 }
 
+#ifndef YMODEM_RECVONLY
+
 static void send_packet(uint8_t *data, int block_no) {
 	int count, crc, packet_size;
 
@@ -516,3 +518,4 @@ unsigned long ymodem_send(uint8_t* buf, uint32_t size, char* filename) {
 #endif
 	return 0;
 }
+#endif // RECVONLY

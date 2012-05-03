@@ -218,7 +218,17 @@ static void romcard_reset() {
 	}
 }
 
-const card romcard = { "ROM CARD", NULL, romcard_dispose,
+const card romcard = { "ROM CARD", //
+		NULL, //
+		romcard_dispose, //
 		romcard_reset, // reset
-		NULL, NULL, NULL, romcard_validaddress, romcard_read_byte, romcard_read_word, romcard_read_long,
-		romcard_write_byte, romcard_write_word, romcard_write_long };
+		NULL, //
+		NULL, //
+		NULL, //
+		romcard_validaddress, //
+		romcard_read_byte, //
+		romcard_read_word, //
+		romcard_read_long, //
+		romcard_write_byte, //
+		romcard_write_word, //
+		romcard_write_long };

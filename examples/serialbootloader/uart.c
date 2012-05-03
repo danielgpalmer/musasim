@@ -17,7 +17,6 @@ bool uart_getch_nonblock(char* ch) {
 		*ch = *uart_chan0_rxtx;
         	return true;
 	}
-	printf("no char\n");
         return false;
 }
 
