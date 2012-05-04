@@ -2,7 +2,8 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <string.h>
-#include "uart.h"
+
+#include <libunagipai/uart.h>
 
 #define STDIN_FILENO 0 /* standard input file descriptor */
 #define STDOUT_FILENO 1 /* standard output file descriptor */
