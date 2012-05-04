@@ -1,4 +1,4 @@
-TCPREFIX=../toolchains/inst/m68k-elf/bin
+TCPREFIX=../../toolchains/inst/m68k-elf/bin
 CC=$(TCPREFIX)/m68k-elf-gcc 
 AS=$(TCPREFIX)/m68k-elf-as
 CP=$(TCPREFIX)/m68k-elf-objcopy
@@ -29,16 +29,16 @@ syscalls.o: syscalls.c
 
 
 fontrom.o:
-	../tools/mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf  -o fontrom.bin
-	../tools/bin2c fontrom.bin fontrom fontrom
+	../../tools/mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf  -o fontrom.bin
+	../../tools/bin2c fontrom.bin fontrom fontrom
 	$(CC) $(CFLAGS) -c fontrom.c
 
 cfimage.bin:
 	dd if=/dev/zero of=cfimage.bin bs=1MB count=64
 	/sbin/mkfs.vfat cfimage.bin
-	../tools/png2bebin -i rawfiles/pai.png -o cfimagefiles/pai.bz -c
-	../tools/png2bebin -i rawfiles/ball.png -o cfimagefiles/ball.be -m cfimagefiles/ball.m
-	../tools/png2bebin -i rawfiles/check.png -o cfimagefiles/check.be
+	../../tools/png2bebin -i rawfiles/pai.png -o cfimagefiles/pai.bz -c
+	../../tools/png2bebin -i rawfiles/ball.png -o cfimagefiles/ball.be -m cfimagefiles/ball.m
+	../../tools/png2bebin -i rawfiles/check.png -o cfimagefiles/check.be
 	MTOOLSRC=./mtools.conf mcopy cfimagefiles/pai.bz m:/	
 	MTOOLSRC=./mtools.conf mcopy cfimagefiles/ball.be m:/
 	MTOOLSRC=./mtools.conf mcopy cfimagefiles/ball.m m:/
