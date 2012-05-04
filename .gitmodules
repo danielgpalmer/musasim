@@ -3,4 +3,4 @@
 	url = https://code.google.com/p/obscuremicros.toolchains/
 [submodule "thirdparty"]
 	path = thirdparty
-	url = https://danieruru@code.google.com/p/obscuremicros.thirdparty/
+	url = https://code.google.com/p/obscuremicros.thirdparty/
