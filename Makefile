@@ -15,7 +15,7 @@ clean:
 	$(MAKE) -C tools clean	
 	$(MAKE) -C libunagipai clean	
 	$(MAKE) -C musasim clean
-	$(MAKE) -C m68ktestapp clean
+	$(MAKE) -C examples clean
 
 toolchain: 
 	cd toolchains && ./mkchain.sh m68k-elf
