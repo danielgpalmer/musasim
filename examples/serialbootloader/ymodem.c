@@ -39,9 +39,9 @@
 #include "ymodem.h"
 #include <errno.h>
 #include <stdint.h>
-#include <inttypes.h>
 
 #ifdef DEBUG
+#include <inttypes.h>
 #include <stdio.h>
 #endif
 
