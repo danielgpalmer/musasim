@@ -6,7 +6,13 @@
 #ifndef LIBUNAGIPAI_UART_H_
 #define LIBUNAGIPAI_UART_H_
 
-void uart_putch(char ch);
+#include <stdbool.h>
+
 char uart_getch();
+bool uart_getch_nonblock(char* ch);
+void uart_putch(char ch);
+void uart_putch1(char ch);
+bool uart_getch_nonblock1(char* ch);
+char uart_getch1();
 
 #endif
