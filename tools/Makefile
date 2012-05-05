@@ -21,7 +21,7 @@ lzfx.o: lzfx/lzfx.c lzfx/lzfx.h
 
 test: png2bebin
 	./png2bebin -i test.png -o test.be16
-	./png2bebin -i test.png -o test.besz -c
+	./png2bebin -i test.png -o test.bz -c
 	./png2bebin -i test-alpha.png -o test-alpha.bz -c -m test-alpha.m
 	#./mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf -o test.fontrom.def
 	#./mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf -o test.fontrom.ascii -c ascii
@@ -29,4 +29,4 @@ test: png2bebin
 
 	
 clean:
-	rm -f *.o test.be16 test.fontrom.* png2bebin mkfontrom
+	rm -f *.o *.be16 *.bz *.m png2bebin mkfontrom
