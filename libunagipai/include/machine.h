@@ -24,6 +24,6 @@ void machine_setstatusregister(uint16_t value);
 
 void machine_disablerom();
 
-void machine_reset();
+void machine_reset() __attribute__ ((section (".data")));
 
 #endif /* MACHINE_H_ */

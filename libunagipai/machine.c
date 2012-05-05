@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#include "include/machine.h"
-#include "include/machine_stuff.h"
+#include "machine.h"
+#include "machine_stuff.h"
 
 #include <stdint.h>
 
@@ -44,7 +44,7 @@ void machine_disablerom() {
 void machine_reset() {
 	asm volatile (
 			"reset \n\t"
-			:
-			:
-			: );
+			"lea.l 0, %a0 \n\t"
+			"move.l (%a0)+, %sp \n\t"
+			"jmp (%a0)\n\t");
 }

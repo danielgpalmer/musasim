@@ -91,7 +91,7 @@ void machine_setstatusregister(uint16_t value);
 
 void machine_disablerom();
 
-void machine_reset();
+void machine_reset() __attribute__ ((section (".data")));
 # 9 "main.c" 2
 # 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/pff.h" 1 3
 # 69 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/pff.h" 3
