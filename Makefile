@@ -1,15 +1,13 @@
 TOP=$(shell pwd)
 PATH:=$(PATH):$(TOP)/toolchains/inst/m68k-elf/bin/
 
-.PHONY: all clean toolchain
+.PHONY: all clean toolchain publish docs
 
-all: toolchain
+all: toolchain publishdocs
 	$(MAKE) -C tools
 	$(MAKE) -C musasim
-	$(MAKE) -C musasim docs
 	PATH=$(PATH) $(MAKE) -C libunagipai clean
 	PATH=$(PATH) $(MAKE) -C libunagipai install
-	PATH=$(PATH) $(MAKE) -C libunagipai docs
 	$(MAKE) -C examples
 clean:
 	$(MAKE) -C tools clean	
@@ -19,3 +17,12 @@ clean:
 
 toolchain: 
 	cd toolchains && ./mkchain.sh m68k-elf
+
+
+publishdocs:
+	- rm -r docs/*
+	$(MAKE) -C musasim docs
+	cp -a musasim/docs docs/musasim
+	PATH=$(PATH) $(MAKE) -C libunagipai docs
+	cp -a libunagipai/docs docs/libunagipai
+	
