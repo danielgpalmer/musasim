@@ -1,6 +1,6 @@
-#include "include/uart_registers.h"
-#include "include/uart_registermasks.h"
-#include "include/uart.h"
+#include "uart_registers.h"
+#include "uart_registermasks.h"
+#include "uart.h"
 
 char uart_getch() {
 	while (!(*(uart_chan0_linestatus) & LINESTATUS_DATAREADY)) {
