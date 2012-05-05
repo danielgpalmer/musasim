@@ -238,7 +238,7 @@ static void uart() {
 
 	char* registernames[] = { "rxtx", "interruptenable", "fifocontrol", "linecontrol", "linestatus" };
 
-	uint8_t chanlen = 0x8;
+	uint8_t chanlen = 0x10;
 
 	uint32_t offset = SLOT_OFFSET(SLOT_UARTCARD);
 

@@ -130,8 +130,8 @@ static void uart_dispose() {
  *
  */
 
-#define CHANNELMASK 0x08
-#define REGISTERMASK 0x07
+#define CHANNELMASK 0x10
+#define REGISTERMASK 0x0F
 
 static uint8_t* uart_decode_register(uint32_t address, bool write) {
 	channel* chan = &(channels[(address & CHANNELMASK) >> 3]);
@@ -139,7 +139,7 @@ static uint8_t* uart_decode_register(uint32_t address, bool write) {
 	uint8_t reg = (address & REGISTERMASK);
 
 	switch (reg) {
-		case 0x00:
+		case UART_REGISTER_RXTXBUFFER:
 			if (uart_bitset(LINECONTROL_DLAB, regs->line_control)) {
 				return &(regs->divisor_latch_lsb);
 			}
@@ -187,14 +187,14 @@ static uint8_t* uart_decode_register(uint32_t address, bool write) {
 					}
 				}
 			}
-		case 0x01:
+		case UART_REGISTER_INTERRUPTENABLE:
 			if (uart_bitset(LINECONTROL_DLAB, regs->line_control)) {
 				return &(regs->divisor_latch_msb);
 			}
 			else {
 				return &(regs->interrupt_enable);
 			}
-		case 0x02:
+		case UART_REGISTER_FIFOCONTROL:
 			if (write) {
 				return &(regs->fifo_control);
 			}
@@ -231,9 +231,9 @@ static uint8_t* uart_decode_register(uint32_t address, bool write) {
 			return &(regs->modem_control);
 		case UART_REGISTER_LINESTATUS:
 			return &(regs->line_status);
-		case 0x06:
+		case UART_REGISTER_MODEMSTATUS:
 			return &(regs->modem_status);
-		case 0x07:
+		case UART_REGISTER_SCRATCH:
 			return &(regs->scratch);
 		default:
 			return NULL;
@@ -427,17 +427,22 @@ static void uart_irq_ack() {
 
 static bool uart_validaddress(uint32_t address) {
 
+	if (address & 0x1) {
+		// uart datalines are only attached to d15 - d8
+		return false;
+	}
+
 	uint8_t reg = (address & REGISTERMASK);
 
 	switch (reg) {
-		case 0x00:
-		case 0x01:
-		case 0x02:
+		case UART_REGISTER_RXTXBUFFER:
+		case UART_REGISTER_INTERRUPTENABLE:
+		case UART_REGISTER_FIFOCONTROL:
 		case UART_REGISTER_LINECONTROL:
 		case UART_REGISTER_MODEMCONTROL:
 		case UART_REGISTER_LINESTATUS:
-		case 0x06:
-		case 0x07:
+		case UART_REGISTER_MODEMSTATUS:
+		case UART_REGISTER_SCRATCH:
 			return true;
 		default:
 			return false;
