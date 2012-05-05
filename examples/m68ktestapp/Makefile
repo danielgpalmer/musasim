@@ -38,8 +38,8 @@ cfimage.bin:
 	dd if=/dev/zero of=cfimage.bin bs=1MB count=64
 	/sbin/mkfs.vfat cfimage.bin
 	$(TOOLSPREFIX)/png2bebin -i rawfiles/pai.png -o cfimagefiles/pai.bz -c
-	$(TOOLSPREFIX)/tools/png2bebin -i rawfiles/ball.png -o cfimagefiles/ball.be -m cfimagefiles/ball.m
-	$(TOOLSPREFIX)/tools/png2bebin -i rawfiles/check.png -o cfimagefiles/check.be
+	$(TOOLSPREFIX)/png2bebin -i rawfiles/ball.png -o cfimagefiles/ball.be -m cfimagefiles/ball.m
+	$(TOOLSPREFIX)/png2bebin -i rawfiles/check.png -o cfimagefiles/check.be
 	MTOOLSRC=./mtools.conf mcopy cfimagefiles/pai.bz m:/	
 	MTOOLSRC=./mtools.conf mcopy cfimagefiles/ball.be m:/
 	MTOOLSRC=./mtools.conf mcopy cfimagefiles/ball.m m:/
