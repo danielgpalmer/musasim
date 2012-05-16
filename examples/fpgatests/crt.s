@@ -76,24 +76,16 @@ vectors:
 
 start:
 
-testslots: /*this should be a loop.. but something is broked with tg68 */
-	move.w  #0x55AA, %d0
-	lea.l   0x0,%a0 
-	move.w  %d0, (%a0)
-	lea.l   0x100000,%a0  
-        move.w  %d0, (%a0)
-	lea.l   0x200000,%a0  
-        move.w  %d0, (%a0)
-	lea.l   0x300000,%a0  
-        move.w  %d0, (%a0)
-	lea.l   0x400000,%a0  
-        move.w  %d0, (%a0)	
-	lea.l   0x500000,%a0  
-        move.w  %d0, (%a0)
-	lea.l   0x600000,%a0  
-        move.w  %d0, (%a0)
-	lea.l   0x700000,%a0  
-        move.w  %d0, (%a0)
+clearram:
+	lea.l 0x100000, %a0
+	move.l #0x200000, %d0
+	move.l #0xFFFFFFFF, %d1
+1:      cmp.l   %d0,%a0
+        beq.s   2f
+        move.l  %d1, (%a0)+
+        bra.s   1b
+2:
+
 
 writeramlong:
         #this is for testing..
@@ -154,7 +146,24 @@ sramreads:
         bra.s   1b
 2:
 
-jmp sramreads
+uart:
+	lea.l	0x400006, %a0
+	lea.l	0x400000, %a1
+	lea.l	0x400002, %a2
+	lea.l 	0x100600, %a3
+	lea.l	0x400008, %a4
+
+uartwrites:
+	move.b	#0x80, (%a0)
+	move.b	#0x18, (%a1)
+	move.b	#0x00, (%a2)
+	
+	#move.b	(%a1), (%a3)+
+	#move.b	(%a2), (%a3)+
+	
+	move.b	#0x03, (%a0)
+	#move.b  (%a0), (%a3)
+	move.b  #0x0C,(%a4)
 
 clearbss:
 	#clear bss
