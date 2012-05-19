@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+//http://www.termsys.demon.co.uk/vtansi.htm
 #include "include/vt100.h"
 #include <stdio.h>
 
@@ -16,4 +17,8 @@ void vt100_setattributes() {
 
 void vt100_erase_screen() {
 	fputs(ESC"[1J", stdout);
+}
+
+void vt100_cursor_home() {
+	fputs(ESC"[H", stdout);
 }

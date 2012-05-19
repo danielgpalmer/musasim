@@ -30,9 +30,6 @@ static const char TAG[] = "input";
 //	U		D		L		R		A		B		C		S
 // Active Low
 
-
-
-
 static uint8_t ports[2];
 
 void inputcard_init() {
@@ -88,17 +85,22 @@ void inputcard_decodekey(SDLKey key, bool up) {
 		case PORT0_DOWN:
 			log_println(LEVEL_DEBUG, TAG, "Button DOWN");
 			port = 0;
-			mask = BUTTON_UP;
+			mask = BUTTON_DOWN;
 			break;
 		case PORT0_LEFT:
 			log_println(LEVEL_DEBUG, TAG, "Button LEFT");
 			port = 0;
-			mask = BUTTON_UP;
+			mask = BUTTON_LEFT;
 			break;
 		case PORT0_RIGHT:
 			log_println(LEVEL_DEBUG, TAG, "Button RIGHT");
 			port = 0;
-			mask = BUTTON_UP;
+			mask = BUTTON_RIGHT;
+			break;
+		case PORT0_START:
+			log_println(LEVEL_DEBUG, TAG, "Button START");
+			port = 0;
+			mask = BUTTON_START;
 			break;
 		case PORT0_A:
 			log_println(LEVEL_DEBUG, TAG, "Button A");
@@ -121,10 +123,10 @@ void inputcard_decodekey(SDLKey key, bool up) {
 	}
 
 	if (up) {
-		ports[port] &= mask;
+		ports[port] |= ~mask;
 	}
 	else {
-		ports[port] |= ~mask;
+		ports[port] &= mask;
 	}
 }
 

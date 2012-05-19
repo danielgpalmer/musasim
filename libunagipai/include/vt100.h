@@ -10,5 +10,6 @@
 
 void vt100_setattributes(void);
 void vt100_erase_screen(void);
+void vt100_cursor_home(void);
 
 #endif /* VT100_H_ */
