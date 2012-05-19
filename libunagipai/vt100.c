@@ -32,8 +32,28 @@ void vt100_disablelinewrap() {
 
 // erasing text
 
-void vt100_erase_screen() {
+void vt100_erase_endofline() {
+	fputs(ESC"[K", stdout);
+}
+
+void vt100_erase_startofline() {
+	fputs(ESC"[1K", stdout);
+}
+
+void vt100_erase_line() {
+	fputs(ESC"[2K", stdout);
+}
+
+void vt100_erase_down() {
+	fputs(ESC"[J", stdout);
+}
+
+void vt100_erase_up() {
 	fputs(ESC"[1J", stdout);
+}
+
+void vt100_erase_screen() {
+	fputs(ESC"[2J", stdout);
 }
 
 //
@@ -82,6 +102,55 @@ void vt100_cursor_backward() {
 void vt100_cursor_backwardn(uint8_t count) {
 	snprintf(buffer, sizeof(buffer), ESC"["PRIu8"D", count);
 	fputs(buffer, stdout);
+}
+
+void vt100_cursor_save() {
+	fputs(ESC"[s", stdout);
+}
+
+void vt100_cursor_unsave() {
+	fputs(ESC"[u", stdout);
+}
+
+void vt100_cursor_savewithattrs() {
+	fputs(ESC"[7", stdout);
+}
+
+void vt100_cursor_restorewithattrs() {
+	fputs(ESC"[8", stdout);
+}
+//
+
+// scrolling
+
+void vt100_scrolling_screen() {
+	fputs(ESC"[r", stdout);
+}
+
+void vt100_scrolling_screen_fromrowtorow(uint8_t from, uint8_t to) {
+
+}
+
+void vt100_scrolling_down() {
+	fputs(ESC"D", stdout);
+}
+
+void vt100_scrolling_up() {
+	fputs(ESC"M", stdout);
+}
+//
+
+// tab control
+void vt100_tabs_set() {
+	fputs(ESC"H", stdout);
+}
+
+void vt100_tabs_clear() {
+	fputs(ESC"[g", stdout);
+}
+
+void vt100_tabs_clearall() {
+	fputs(ESC"[3g", stdout);
 }
 //
 
