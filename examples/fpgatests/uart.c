@@ -11,10 +11,12 @@ char uart_getch() {
 }
 
 void uart_putch(char ch) {
-
-	while (!(uart_chan0_linestatus & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY)) {
-		asm volatile ("nop \n\t");
-	}
-	uart_chan0_rxtx = ch;
+	uart_chan0_modemcontrol |= 0x04;
+	while ((uart_chan0_linestatus & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY)
+                       != LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) {
+                // nop
+        }
+       uart_chan0_rxtx = ch;
+	uart_chan0_modemcontrol &= ~0x04;
 
 }

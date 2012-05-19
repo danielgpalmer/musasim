@@ -132,7 +132,6 @@ registerwork:
 2:
 
 
-
 sramreads:
         #this is for testing..
 	lea.l   0x100300,%a0 
@@ -146,24 +145,72 @@ sramreads:
         bra.s   1b
 2:
 
-uart:
+
+romtoram:
+        lea.l   0x000100,%a0 
+        lea.l   0x100500,%a1
+        move.l  #0x100600,%d0
+1:      cmp.l   %d0,%a1
+        beq.s   2f
+        move.b  (%a0)+, (%a1)+
+        bra.s   1b
+2:
+
+
+uartsetup:
 	lea.l	0x400006, %a0
 	lea.l	0x400000, %a1
 	lea.l	0x400002, %a2
-	lea.l 	0x100600, %a3
-	lea.l	0x400008, %a4
-
-uartwrites:
+	lea.l	0x400008, %a3
 	move.b	#0x80, (%a0)
 	move.b	#0x18, (%a1)
 	move.b	#0x00, (%a2)
-	
-	#move.b	(%a1), (%a3)+
-	#move.b	(%a2), (%a3)+
-	
 	move.b	#0x03, (%a0)
-	#move.b  (%a0), (%a3)
-	move.b  #0x0C,(%a4)
+	move.b  #0x01, (%a3)
+
+uartrambusconflict:
+
+	lea.l   0x100700, %a0 /* source */
+	lea.l	0x40000e, %a2 /* scratch reg */
+	
+	/* init source area */
+	move.l  #0x100800,%d0
+	move.b	#0, %d1
+1:      cmp.l   %d0,%a0
+        beq.s   2f
+        move.b	%d1, %d2
+	not.b	%d2
+	move.b  %d2,(%a0)+ /* copy to source ram */	
+	add.b	#1, %d1
+	bra.s   1b
+2:
+
+
+        /* copy to sratch and back */
+        lea.l   0x100700, %a0 /* source */
+	lea.l   0x100800, %a1
+	move.l  #0x100800,%d0
+1:      cmp.l   %d0,%a0
+        beq.s   2f
+        move.b  (%a0)+, %d1 /* copy to d1 */
+	move.b  %d1, (%a2) /* copy to scratch */
+	move.b  (%a2),  (%a1)+ /* copy back to ram */        
+        bra.s   1b
+2:
+
+
+ramtouart:
+        lea.l   0x100700, %a0 /* source */
+        lea.l   0x100900, %a1 /* dest */
+        /* copy to sratch and back */
+        move.l  #0x100800,%d0
+1:      cmp.l   %d0,%a0
+        beq.s   2f
+        move.b  (%a0)+, (%a2) /* copy to scratch reg */
+	move.b  (%a2),  (%a1)+ /* copy back to ram */        
+        bra.s   1b
+2:
+
 
 clearbss:
 	#clear bss
