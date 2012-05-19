@@ -732,12 +732,12 @@ main:
 	.loc 1 77 0
 	move.l %d0,ball1+8
 	.loc 1 78 0
-	move.b 14680066,%d0
+	move.b 14680068,%d0
 	moveq #7,%d1
 	and.l %d0,%d1
 	move.l %d1,ball1+12
 	.loc 1 79 0
-	move.b 14680066,%d0
+	move.b 14680068,%d0
 	moveq #7,%d1
 	and.l %d0,%d1
 	move.l %d1,ball1+16
@@ -765,12 +765,12 @@ main:
 	.loc 1 77 0
 	move.l %d1,ball2+8
 	.loc 1 78 0
-	move.b 14680066,%d0
+	move.b 14680068,%d0
 	move.b #7,%d1
 	and.l %d0,%d1
 	move.l %d1,ball2+12
 	.loc 1 79 0
-	move.b 14680066,%d0
+	move.b 14680068,%d0
 	moveq #7,%d1
 	and.l %d0,%d1
 	move.l %d1,ball2+16

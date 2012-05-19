@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "uart_registers.h"
 #include "uart_registermasks.h"
 #include "uart.h"
@@ -19,12 +20,13 @@ bool uart_getch_nonblock(char* ch) {
 }
 
 void uart_putch(char ch) {
-
+	uart_chan0_modemcontrol |= 0x04;
 	while ((uart_chan0_linestatus & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY)
 			!= LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) {
 		// nop
 	}
 	uart_chan0_rxtx = ch;
+	uart_chan0_modemcontrol &= ~0x04;
 }
 
 char uart_getch1() {

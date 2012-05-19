@@ -6,7 +6,7 @@ CP=$(TCPREFIX)/m68k-elf-objcopy
 
 AFLAGS=-ahls -m68000
 CFLAGS=-mc68000 -ggdb -std=gnu99 -Wall -O2 -Wstrict-aliasing
-LFLAGS=-mc68000 -Trom.lds -nostartfiles -Wl,-Map=prog.map,--cref,-lunagipai
+LFLAGS=-mc68000 -Trom.lds -nostartfiles -Wl,-u_write_r,-Map=prog.map,--cref
 
 all: prog.bin prog.srec cfimage.bin
 
@@ -16,18 +16,14 @@ prog.bin: prog.elf
 prog.srec: prog.elf
 	$(CP) -S -O srec prog.elf prog.srec
 	
-prog.elf: fontrom.o crt.o syscalls.o main.o rom.lds
-	$(CC) $(LFLAGS) -o prog.elf crt.o main.o fontrom.o syscalls.o -lunagipai
+prog.elf: fontrom.o crt.o main.o rom.lds
+	$(CC) $(LFLAGS) -o prog.elf crt.o main.o fontrom.o -lunagipai
 
 main.o: blip.c main.c
 	$(CC) $(CFLAGS) -c main.c --save-temps
 
 crt.o: crt.s
 	$(AS) $(AFLAGS) crt.s -o crt.o > crt.lst
-
-syscalls.o: syscalls.c
-	$(CC) $(CFLAGS) -c syscalls.c
-
 
 fontrom.o:
 	$(TOOLSPREFIX)/mkfontrom -w8 -h16 -f /usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf  -o fontrom.bin

@@ -35,8 +35,8 @@ void _putchar(int c) {
 
 int main(void) {
 
-	*uart_chan1_fifocontrol = FIFOCONTROL_ENABLE;
-	*uart_chan1_fifocontrol = FIFOCONTROL_ENABLE | FIFOCONTROL_RCVRFIFORESET | FIFOCONTROL_XMITFIFORESET;
+	uart_chan1_fifocontrol = FIFOCONTROL_ENABLE;
+	uart_chan1_fifocontrol = FIFOCONTROL_ENABLE | FIFOCONTROL_RCVRFIFORESET | FIFOCONTROL_XMITFIFORESET;
 	printf("ymodem serial bootloader\n");
 	printf("send your binary via ymodem now\n");
 	while (1) {

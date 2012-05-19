@@ -1727,8 +1727,8 @@ static void newball(ball* b, int x, int y, image* image) {
  b->sprite->y = y;
  b->xinc = 1;
  b->yinc = 1;
- b->speedx = (*(volatile uint8_t*) 0xe00002) & 0x7;
- b->speedy = (*(volatile uint8_t*) 0xe00002) & 0x7;
+ b->speedx = (*(volatile uint8_t*) 0xe00004) & 0x7;
+ b->speedy = (*(volatile uint8_t*) 0xe00004) & 0x7;
 }
 
 static void ballrelect(ball* b1, ball* b2, vector* vect) {

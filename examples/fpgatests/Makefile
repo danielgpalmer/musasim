@@ -5,7 +5,7 @@ CP=$(TCPREFIX)/m68k-elf-objcopy
 
 AFLAGS=-ahls -m68000
 CFLAGS=-mc68000 -ggdb -std=gnu99 -Wall -O2 -Wstrict-aliasing
-LFLAGS=-mc68000 -Trom.lds -nostartfiles -Wl,-Map=prog.map,--cref -lunagipai
+LFLAGS=-mc68000 -Trom.lds -nostartfiles -Wl,-Map=prog.map,--cref
 
 all: prog.bin prog.srec
 
@@ -15,20 +15,14 @@ prog.bin: prog.elf
 prog.srec: prog.elf
 	$(CP) -S -O srec prog.elf prog.srec
 	
-prog.elf: crt.o syscalls.o main.o uart.o rom.lds
-	$(CC) $(LFLAGS) -o prog.elf crt.o main.o syscalls.o uart.o
+prog.elf: crt.o main.o rom.lds
+	$(CC) $(LFLAGS) -Wl,-u_write_r -o prog.elf crt.o main.o -lunagipai
 
 main.o: main.c
 	$(CC) $(CFLAGS) -c main.c
 
-uart.o: uart.c
-	$(CC) $(CFLAGS) -c uart.c
-
 crt.o: crt.s
 	$(AS) $(AFLAGS) crt.s -o crt.o > crt.lst
-
-syscalls.o: syscalls.c
-	$(CC) $(CFLAGS) -c syscalls.c
 
 clean:
 	rm -f *.o

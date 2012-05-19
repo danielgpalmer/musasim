@@ -3,6 +3,7 @@ all:
 	$(MAKE) -C helloworld
 	$(MAKE) -C serialbootloader
 	$(MAKE) -C serialpayload
+	$(MAKE) -C fpgatests
 
 clean:
 	$(MAKE) -C m68ktestapp clean

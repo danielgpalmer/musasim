@@ -9,6 +9,7 @@
 #include <SDL/SDL.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <input_registermasks.h>
 #include "inputcard.h"
 #include "../../sim.h"
 #include "../../logging.h"
@@ -29,14 +30,8 @@ static const char TAG[] = "input";
 //	U		D		L		R		A		B		C		S
 // Active Low
 
-#define BUTTON_UP		0x7f
-#define BUTTON_DOWN 	0xbf
-#define BUTTON_LEFT 	0xdf
-#define BUTTON_RIGHT	0xef
-#define BUTTON_A		0xf7
-#define BUTTON_B		0xfb
-#define BUTTON_C		0xfd
-#define BUTTON_START	0xfe
+
+
 
 static uint8_t ports[2];
 
@@ -45,7 +40,7 @@ void inputcard_init() {
 	log_println(LEVEL_DEBUG, TAG, "inputcard_init()");
 
 	for (int i = 0; i < sizeof(ports); i++) {
-		ports[i] = 0;
+		ports[i] = 0xFF;
 	}
 
 	// Ignore all the events that aren't needed
@@ -126,10 +121,10 @@ void inputcard_decodekey(SDLKey key, bool up) {
 	}
 
 	if (up) {
-		ports[port] &= ~mask;
+		ports[port] &= mask;
 	}
 	else {
-		ports[port] |= mask;
+		ports[port] |= ~mask;
 	}
 }
 

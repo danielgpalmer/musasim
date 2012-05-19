@@ -1,7 +1,7 @@
 TOP=$(shell pwd)
 PATH:=$(PATH):$(TOP)/toolchains/inst/m68k-elf/bin/
 
-.PHONY: all clean toolchain publish docs
+.PHONY: all clean toolchain publishdocs
 
 all: toolchain publishdocs
 	$(MAKE) -C tools
