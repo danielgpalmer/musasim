@@ -10,10 +10,10 @@
 
 #define ESC "\x1b"
 
-void vt100_setattributes(){
-	fputs(ESC"[31;43m",0);
+void vt100_setattributes() {
+	fputs(ESC"[31;43m", stdout);
 }
 
 void vt100_erase_screen() {
-	fputs(ESC"[1J", 0);
+	fputs(ESC"[1J", stdout);
 }
