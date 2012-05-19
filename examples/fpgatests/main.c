@@ -13,12 +13,14 @@
 
 int main(void) {
 
-	vt100_erase_screen();
+	vt100_resetdevice();
 	vt100_setattributes();
+	vt100_erase_screen();
 	printf("Hello, World!\n");
+	vt100_cursor_home_pos(1,0);
 	while (1) {
-		vt100_erase_screen();
-		vt100_cursor_home();
+		vt100_cursor_save;
+		vt100_erase_line();
 		uint8_t port0 = input_port0;
 		if (port0 != 0xFF) {
 			printf("port0 0x%02x - ", port0);
@@ -48,6 +50,7 @@ int main(void) {
 			}
 			printf("\n");
 		}
+		vt100_cursor_unsave();
 	}
 	return 0;
 }

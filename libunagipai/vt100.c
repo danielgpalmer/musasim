@@ -65,7 +65,7 @@ void vt100_cursor_home() {
 }
 
 void vt100_cursor_home_pos(uint8_t row, uint8_t col) {
-	snprintf(buffer, sizeof(buffer), ESC"[%"PRIu8";"PRIu8"H", row, col);
+	snprintf(buffer, sizeof(buffer), ESC"[%"PRIu8";%"PRIu8"H", row, col);
 	fputs(buffer, stdout);
 }
 
@@ -74,7 +74,7 @@ void vt100_cursor_up() {
 }
 
 void vt100_cursor_upn(uint8_t count) {
-	snprintf(buffer, sizeof(buffer), ESC"["PRIu8"A", count);
+	snprintf(buffer, sizeof(buffer), ESC"[%"PRIu8"A", count);
 	fputs(buffer, stdout);
 }
 
@@ -83,7 +83,7 @@ void vt100_cursor_down() {
 }
 
 void vt100_cursor_downn(uint8_t count) {
-	snprintf(buffer, sizeof(buffer), ESC"["PRIu8"B", count);
+	snprintf(buffer, sizeof(buffer), ESC"[%"PRIu8"B", count);
 	fputs(buffer, stdout);
 }
 void vt100_cursor_forward() {
@@ -91,7 +91,7 @@ void vt100_cursor_forward() {
 }
 
 void vt100_cursor_forwardn(uint8_t count) {
-	snprintf(buffer, sizeof(buffer), ESC"["PRIu8"C", count);
+	snprintf(buffer, sizeof(buffer), ESC"[%"PRIu8"C", count);
 	fputs(buffer, stdout);
 }
 
@@ -100,7 +100,7 @@ void vt100_cursor_backward() {
 }
 
 void vt100_cursor_backwardn(uint8_t count) {
-	snprintf(buffer, sizeof(buffer), ESC"["PRIu8"D", count);
+	snprintf(buffer, sizeof(buffer), ESC"[%"PRIu8"D", count);
 	fputs(buffer, stdout);
 }
 
@@ -155,5 +155,5 @@ void vt100_tabs_clearall() {
 //
 
 void vt100_setattributes() {
-	fputs(ESC"[31;43m", stdout);
+	fputs(ESC"[44;37m", stdout);
 }
