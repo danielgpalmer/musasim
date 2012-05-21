@@ -182,12 +182,12 @@ static void video_write_byte(uint32_t address, uint8_t data) {
 static void video_write_word(uint32_t address, uint16_t data) {
 
 	if (address < registersstart) {
-		if (SDL_MUSTLOCK(screen)) {
+		if (SDL_MUSTLOCK(WRITEABLESURFACE)) {
 			SDL_LockSurface(WRITEABLESURFACE);
 		}
 		*((uint16_t*) WRITEABLESURFACE->pixels + (address / 2)) = data;
 		if (SDL_MUSTLOCK(WRITEABLESURFACE)) {
-			SDL_UnlockSurface(screen);
+			SDL_UnlockSurface(WRITEABLESURFACE);
 		}
 	}
 

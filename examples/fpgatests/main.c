@@ -13,11 +13,19 @@
 
 int main(void) {
 
+	volatile uint16_t* basicvideo = (uint16_t*) 0x200000;
 	vt100_resetdevice();
 	vt100_setattributes();
 	vt100_erase_screen();
 	printf("Hello, World!\n");
-	vt100_cursor_home_pos(1,0);
+	vt100_cursor_home_pos(1, 0);
+
+	for (int y = 0; y < 128; y++) {
+		for (int x = 0; x < (256 / 2); x++) {
+			*(basicvideo + (((256 / 2) * y) + x)) = 0xFF;
+		}
+	}
+
 	while (1) {
 		vt100_cursor_save;
 		vt100_erase_line();

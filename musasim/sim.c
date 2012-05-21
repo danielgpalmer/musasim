@@ -16,6 +16,7 @@
 
 #include "hardware/board.h"
 #include "hardware/cards/romcard.h"
+#include "hardware/cards/basicvideo.h"
 #include "hardware/cards/videocard.h"
 #include "hardware/cards/uartcard.h"
 #include "hardware/cards/soundcard.h"
@@ -30,6 +31,9 @@
 
 static bool shouldexit = false;
 static bool paused = false;
+static bool initialised = false;
+
+static bool basicvideo = false;
 
 static const char TAG[] = "sim";
 
@@ -64,19 +68,25 @@ void cpu_set_fc(unsigned int fc) {
 	g_fc = fc;
 }
 
+void sim_setoptions(bool usebasicvideo) {
+	if (!initialised) {
+		basicvideo = usebasicvideo;
+	}
+}
+
 void sim_init() {
 	log_println(LEVEL_DEBUG, TAG, "sim_init()");
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE);
 	SDL_WM_SetCaption("musasim", "musasim");
 
 	board_add_device(SLOT_ROMCARD, &romcard);
-	board_add_device(SLOT_VIDEOCARD, &videocard);
+	board_add_device(SLOT_VIDEOCARD, basicvideo ? &basicvideocard : &videocard);
 	board_add_device(SLOT_UARTCARD, &uartcard);
 	board_add_device(SLOT_SOUNDCARD, &soundcard);
 	board_add_device(SLOT_CFCARD, &compactflashinterfacecard);
 	board_add_device(SLOT_DMACARD, &dmacard);
 	board_add_device(SLOT_INPUTCARD, &inputcard);
-
+	initialised = true;
 }
 
 /* Subtract the `struct timeval' values X and Y,

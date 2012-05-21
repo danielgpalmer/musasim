@@ -14,6 +14,7 @@
 #include "hardware/cards/romcard.h"
 #include "hardware/cards/compactflashinterfacecard.h"
 #include "hardware/cards/uartcard.h"
+#include "sim.h"
 
 #ifdef GDBSERVER
 #include "gdbserver.h"
@@ -28,15 +29,16 @@ bool args_parse(int argc, char* argv[]) {
 	struct arg_file *elfpath = arg_file0("e", "elf", "elf executable", "Path of an Elf binary to load into ROM");
 	struct arg_lit *loguartchone = arg_lit0(NULL, "loguartchanone",
 			"Log bytes coming out of uart channel one to stdout");
+	struct arg_lit *basicvideo = arg_lit0(NULL, "basicvideo", "Use the basic video card");
 	struct arg_end *end = arg_end(20);
 
 #ifdef GDBSERVER
 	struct arg_int *gdbport = arg_int1("p", "port", "", "Port to listen for GDB connections");
 	struct arg_file *profile = arg_file0("m", "profileroutput", "",
 			"Trace program execution and write it to a gprof file");
-	void *argtable[] = { help, rompath, elfpath, cfpath, gdbport, profile, loguartchone, end };
+	void *argtable[] = { help, rompath, elfpath, cfpath, gdbport, profile, loguartchone, basicvideo, end };
 #else
-	void *argtable[] = {help, rompath, elfpath, cfpath, loguartchone, end};
+	void *argtable[] = {help, rompath, elfpath, cfpath, loguartchone, basicvideo, end};
 #endif
 
 	if (arg_nullcheck(argtable) != 0) {
@@ -103,6 +105,8 @@ bool args_parse(int argc, char* argv[]) {
 		}
 
 #endif
+
+		sim_setoptions(basicvideo->count == 1);
 
 		if (loguartchone->count == 1) {
 			uart_enable_logging();

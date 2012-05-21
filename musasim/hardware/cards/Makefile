@@ -4,10 +4,10 @@ LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(SDL)` `pkg-config --cflags glib-2
 
 all: libcards.a libcardsgdb.a
 
-libcardsgdb.a: romcardgdb.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o
+libcardsgdb.a: romcardgdb.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o
 	ar cr libcardsgdb.a $^
 
-libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o
+libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o
 	ar cr libcards.a $^
 
 romcard.o: romcard.c romcard.h card.h
@@ -33,6 +33,9 @@ inputcard.o: inputcard.c inputcard.h card.h
 
 dmacard.o: dmacard.c dmacard.h card.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c dmacard.c -o dmacard.o
+
+basicvideo.o: basicvideo.c basicvideo.h
+	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@
 
 .PHONY: clean
 
