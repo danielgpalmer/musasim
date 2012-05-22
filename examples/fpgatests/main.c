@@ -20,11 +20,15 @@ int main(void) {
 	printf("Hello, World!\n");
 	vt100_cursor_home_pos(1, 0);
 
+	uint16_t c = 0;
+
 	for (int y = 0; y < 128; y++) {
 		for (int x = 0; x < (256 / 2); x++) {
-			*(basicvideo + (((256 / 2) * y) + x)) = 0xFF;
+			*(basicvideo + (((256 / 2) * y) + x)) = 0xFFFF;
 		}
 	}
+
+	*basicvideo = 0xAAAA;
 
 	while (1) {
 		vt100_cursor_save;
@@ -59,6 +63,14 @@ int main(void) {
 			printf("\n");
 		}
 		vt100_cursor_unsave();
+
+		//for (int y = 0; y < 128; y++) {
+		//	for (int x = 0; x < (256 / 2); x++) {
+		//		*(basicvideo + (((256 / 2) * y) + x)) = x * y;
+		//	}
+		//}
+		//c++;
+
 	}
 	return 0;
 }
