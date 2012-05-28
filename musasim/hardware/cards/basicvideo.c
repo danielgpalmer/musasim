@@ -19,7 +19,7 @@ static void video_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
-	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode(BASIC_VIDEO_WIDTH, BASIC_VIDEO_HEIGHT, BASIC_VIDEO_PIXELFORMAT, SDL_SWSURFACE);
 
 	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
 			screen->format->BitsPerPixel);
@@ -30,7 +30,7 @@ static void video_dispose() {
 }
 
 static bool video_validaddress(uint32_t address) {
-	return address < VIDEO_WIDTH * VIDEO_HEIGHT;
+	return address < BASIC_VIDEO_WIDTH * BASIC_VIDEO_HEIGHT;
 }
 
 static void video_tick() {
