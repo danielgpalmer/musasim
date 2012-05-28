@@ -39,7 +39,7 @@ static void video_tick() {
 
 static void video_write_word(uint32_t address, uint16_t data) {
 
-	log_println(LEVEL_DEBUG, TAG, "wrote 0x%04"PRIx16" to 0x%08"PRIx32, data, address);
+	//log_println(LEVEL_DEBUG, TAG, "wrote 0x%04"PRIx16" to 0x%08"PRIx32, data, address);
 	if (SDL_MUSTLOCK(screen)) {
 		SDL_LockSurface(screen);
 	}
