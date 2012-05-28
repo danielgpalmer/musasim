@@ -19,6 +19,7 @@
 #include "hardware/cards/basicvideo.h"
 #include "hardware/cards/videocard.h"
 #include "hardware/cards/uartcard.h"
+#include "hardware/cards/basicsound.h"
 #include "hardware/cards/soundcard.h"
 #include "hardware/cards/compactflashinterfacecard.h"
 #include "hardware/cards/inputcard.h"
@@ -34,6 +35,7 @@ static bool paused = false;
 static bool initialised = false;
 
 static bool basicvideo = false;
+static bool basicsound = false;
 
 static const char TAG[] = "sim";
 
@@ -68,9 +70,11 @@ void cpu_set_fc(unsigned int fc) {
 	g_fc = fc;
 }
 
-void sim_setoptions(bool usebasicvideo) {
+void sim_setoptions(bool usebasicvideo, bool usebasicsound) {
 	if (!initialised) {
 		basicvideo = usebasicvideo;
+		basicsound = usebasicsound;
+
 	}
 }
 
@@ -82,7 +86,7 @@ void sim_init() {
 	board_add_device(SLOT_ROMCARD, &romcard);
 	board_add_device(SLOT_VIDEOCARD, basicvideo ? &basicvideocard : &videocard);
 	board_add_device(SLOT_UARTCARD, &uartcard);
-	board_add_device(SLOT_SOUNDCARD, &soundcard);
+	board_add_device(SLOT_SOUNDCARD, basicsound ? &basicsoundcard : &soundcard);
 	board_add_device(SLOT_CFCARD, &compactflashinterfacecard);
 	board_add_device(SLOT_DMACARD, &dmacard);
 	board_add_device(SLOT_INPUTCARD, &inputcard);

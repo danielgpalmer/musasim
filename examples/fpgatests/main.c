@@ -27,7 +27,7 @@ int main(void) {
 
 	for (int y = 0; y < 128; y++) {
 		for (int x = 0; x < (256 / 2); x++) {
-			if (y > 128 / 2) {
+			if (y < 128 / 2) {
 				*(basicvideo + (((256 / 2) * y) + x)) = x < (128 / 2) ? 0xE0E0 : 0x0707;
 			}
 			else {

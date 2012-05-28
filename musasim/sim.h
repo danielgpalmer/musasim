@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-void sim_setoptions(bool usebasicvideo);
+void sim_setoptions(bool usebasicvideo, bool usebasicsound);
 void sim_init();
 void sim_quit();
 void sim_reset();
