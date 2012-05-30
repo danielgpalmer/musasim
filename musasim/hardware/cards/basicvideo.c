@@ -11,6 +11,8 @@
 #include "../board.h"
 #include <inttypes.h>
 
+static bool dirty = false;
+
 static const char TAG[] = "basicvideo";
 
 static SDL_Surface* screen = NULL;
@@ -34,7 +36,10 @@ static bool video_validaddress(uint32_t address) {
 }
 
 static void video_tick() {
-	SDL_Flip(screen);
+	if (dirty) {
+		SDL_Flip(screen);
+		dirty = false;
+	}
 }
 
 static void video_write_word(uint32_t address, uint16_t data) {
@@ -47,6 +52,8 @@ static void video_write_word(uint32_t address, uint16_t data) {
 	if (SDL_MUSTLOCK(screen)) {
 		SDL_UnlockSurface(screen);
 	}
+
+	dirty = true;
 }
 
 static uint16_t video_read_word(uint32_t address) {
