@@ -8,11 +8,83 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <libunagipai/machine.h>
 #include <libunagipai/vt100.h>
+#include <libunagipai/uart_registers.h>
 #include <libunagipai/input_registers.h>
 #include <libunagipai/input_registermasks.h>
+#include <libunagipai/dma_registers.h>
+
+void uart_handler() __attribute__ (( interrupt));
+void uart_handler() {
+	printf("uart int\n");
+}
+
+void inthandler1() __attribute__ (( interrupt));
+void inthandler1() {
+	printf("int 1\n");
+}
+
+void inthandler3() __attribute__ (( interrupt));
+void inthandler3() {
+	printf("int 3\n");
+}
+
+void inthandler4() __attribute__ (( interrupt));
+void inthandler4() {
+	printf("int 4\n");
+}
+
+void inthandler5() __attribute__ (( interrupt));
+void inthandler5() {
+	printf("int 5\n");
+}
+
+void inthandler6() __attribute__ (( interrupt));
+void inthandler6() {
+	printf("int 6\n");
+}
+
+void inthandler7() __attribute__ (( interrupt));
+void inthandler7() {
+	printf("int 7\n");
+	char ch;
+	while(uart_getch_nonblock(&ch));
+}
+
+static void test_dma() {
+	volatile uint16_t* dmabase = (volatile uint16_t*) 0xa00000;
+	volatile uint16_t* regwindow = (volatile uint16_t*) 0xa0001E;
+	printf("Running DMA tests\n");
+
+	for (int window = 0; window < 16; window++) {
+		uint16_t testdata = 0xAA00;
+		*regwindow = window;
+		for (int reg = 0; reg < 11; reg++) {
+			uint16_t data = testdata + window;
+			*(dmabase + reg) = data;
+			printf ("Window: %d Reg %d: Data Written - 0x%04"PRIx8 "\n", window, reg, data);
+			testdata = ~testdata & 0xFF00;
+		}
+	}
+
+	for (int window = 0; window < 16; window++) {
+		uint16_t testdata = 0xAA00;
+		*regwindow = window;
+		for (int reg = 0; reg < 11; reg++) {
+			uint16_t data = testdata + window;
+			printf ("Window: %d Reg %d: Data Read - 0x%04"PRIx8"\n", window, reg, *(dmabase + reg));
+			testdata = ~testdata & 0xFF00;
+		}
+	}
+}
 
 int main(void) {
+
+	uint16_t sr = machine_getstatusregister();
+	machine_setstatusregister((sr & 0xf8ff));
+
+	uart_chan0_interruptenable = 0x01;
 
 	volatile uint16_t* basicvideo = (uint16_t*) 0x200000;
 	volatile uint16_t* basicsound = (uint16_t*) 0x600000;
@@ -25,15 +97,22 @@ int main(void) {
 	printf("Hello, World!\n");
 	uint16_t c = 0;
 
-	for (int y = 0; y < 128; y++) {
-		for (int x = 0; x < (256 / 2); x++) {
-			if (y < 128 / 2) {
-				*(basicvideo + (((256 / 2) * y) + x)) = x < (128 / 2) ? 0xE0E0 : 0x0707;
-			}
-			else {
-				*(basicvideo + (((256 / 2) * y) + x)) = x < (128 / 2) ? 0x1818 : 0x1f1f;
+	//test_dma();
+
+	uint16_t i = 0;
+	while (1) {
+		printf("here 0x%04"PRIx16"\n", i);
+		for (int y = 0; y < 128; y++) {
+			for (int x = 0; x < (256 / 2); x++) {
+				if (y < 128 / 2) {
+					*(basicvideo + (((256 / 2) * y) + x)) = x < (128 / 2) ? 0xE0E0 : 0x0707;
+				}
+				else {
+					*(basicvideo + (((256 / 2) * y) + x)) = x < (128 / 2) ? 0x1818 : 0x1f1f;
+				}
 			}
 		}
+		i++;
 	}
 
 	while (1) {

@@ -34,13 +34,13 @@ vectors:
 	dc.l	INT		/* Reserved (NOT USED) */
 	dc.l	INT		/* Reserved (NOT USED) */
 	dc.l	INT		/* Spurious Interrupt */
-	dc.l	INT		/* IRQ Level 1 */
-	dc.l	INT		/* IRQ Level 2 */
-	dc.l	INT		/* IRQ Level 3 */
-	dc.l	INT		/* IRQ Level 4 */
-	dc.l	INT		/* IRQ Level 5 */
-	dc.l	INT		/* IRQ Level 6 */
-	dc.l	INT		/* IRQ Level 7 */
+	dc.l	inthandler1	/* IRQ Level 1 */
+	dc.l	uart_handler /* IRQ Level 2 */
+	dc.l	inthandler3	/* IRQ Level 3 */
+	dc.l	inthandler4	/* IRQ Level 4 */
+	dc.l	inthandler5	/* IRQ Level 5 */
+	dc.l	inthandler6	/* IRQ Level 6 */
+	dc.l	inthandler7	/* IRQ Level 7 */
 	dc.l	INT		/* TRAP #00 Exception */
 	dc.l	INT		/* TRAP #01 Exception */
 	dc.l	INT		/* TRAP #02 Exception */
