@@ -450,5 +450,16 @@ static bool uart_validaddress(uint32_t address) {
 	}
 }
 
-const card uartcard = { "UART CARD", uart_init, uart_dispose, NULL, uart_tick, uart_irq_ack, NULL, uart_validaddress,
-		uart_read_byte, NULL, NULL, uart_write_byte, NULL, NULL };
+const card uartcard = { "UART CARD", //
+		uart_init, //
+		uart_dispose, //
+		NULL, uart_tick, //
+		uart_irq_ack, //
+		NULL, //
+		uart_validaddress, //
+		uart_read_byte, //
+		NULL, //
+		NULL, //
+		uart_write_byte, //
+		NULL, //
+		NULL };

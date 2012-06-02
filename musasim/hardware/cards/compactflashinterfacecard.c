@@ -307,5 +307,17 @@ static bool cfint_validaddress(uint32_t address) {
 	return true;
 }
 
-const card compactflashinterfacecard = { "CF INTERFACE", cfint_init, cfint_dispose, NULL, cfint_tick, NULL, NULL,
-		cfint_validaddress, cfintf_read_byte, cfintf_read_word, NULL, cfintf_write_byte, cfintf_write_word, NULL };
+const card compactflashinterfacecard = { "CF INTERFACE", //
+		cfint_init, //
+		cfint_dispose, //
+		NULL, //
+		cfint_tick, //
+		NULL, //
+		NULL, //
+		cfint_validaddress, //
+		cfintf_read_byte, //
+		cfintf_read_word, //
+		NULL, //
+		cfintf_write_byte, //
+		cfintf_write_word, //
+		NULL };

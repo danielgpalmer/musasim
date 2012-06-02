@@ -48,8 +48,6 @@ void inthandler6() {
 void inthandler7() __attribute__ (( interrupt));
 void inthandler7() {
 	printf("int 7\n");
-	char ch;
-	while(uart_getch_nonblock(&ch));
 }
 
 static void test_dma() {

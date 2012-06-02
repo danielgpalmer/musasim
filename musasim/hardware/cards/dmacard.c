@@ -470,6 +470,18 @@ static bool dmacard_validaddress(uint32_t address) {
 	}
 }
 
-const card dmacard = { "DMA Controller", dmacard_init, NULL, NULL, dmacard_tick, dmacard_irqack, dmacard_busgrant,
-		dmacard_validaddress, NULL, dmacard_read_word, NULL, NULL, dmacard_write_word, NULL };
+const card dmacard = { "DMA Controller", //
+		dmacard_init, //
+		NULL, //
+		NULL, //
+		dmacard_tick, //
+		dmacard_irqack, //
+		dmacard_busgrant, //
+		dmacard_validaddress, //
+		NULL, //
+		dmacard_read_word, //
+		NULL, //
+		NULL, //
+		dmacard_write_word, //
+		NULL };
 
