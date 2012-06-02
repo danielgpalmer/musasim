@@ -4,10 +4,10 @@ LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(SDL)` `pkg-config --cflags glib-2
 
 all: libcards.a libcardsgdb.a
 
-libcardsgdb.a: romcardgdb.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o basicsound.o blip_buf.o
+libcardsgdb.a: romcardgdb.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o basicsound.o blip_buf.o timercard.o
 	ar cr libcardsgdb.a $^
 
-libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o basicsound.o blip_buf.o
+libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o basicsound.o blip_buf.o timercard.o
 	ar cr libcards.a $^
 
 romcard.o: romcard.c romcard.h card.h
@@ -38,6 +38,9 @@ basicvideo.o: basicvideo.c basicvideo.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@
 
 basicsound.o: basicsound.c basicsound.h
+	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@
+
+timercard.o: timercard.c timercard.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@
 
 blip_buf.o: blipbuf/blip_buf.c blipbuf/blip_buf.h

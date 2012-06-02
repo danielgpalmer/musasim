@@ -24,6 +24,7 @@
 #include "hardware/cards/compactflashinterfacecard.h"
 #include "hardware/cards/inputcard.h"
 #include "hardware/cards/dmacard.h"
+#include "hardware/cards/timercard.h"
 
 #define SIM_KEY_RESET	SDLK_r
 #define SIM_KEY_PAUSE	SDLK_p
@@ -89,6 +90,7 @@ void sim_init() {
 	board_add_device(SLOT_SOUNDCARD, basicsound ? &basicsoundcard : &soundcard);
 	board_add_device(SLOT_CFCARD, &compactflashinterfacecard);
 	board_add_device(SLOT_DMACARD, &dmacard);
+	board_add_device(SLOT_TIMERCARD, &timercard);
 	board_add_device(SLOT_INPUTCARD, &inputcard);
 	initialised = true;
 }

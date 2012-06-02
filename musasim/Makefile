@@ -2,16 +2,17 @@ include common.mk
 
 LIBCARDS=./hardware/cards/libcards.a
 LIBCARDSGDB=./hardware/cards/libcardsgdb.a
+LIBMODULES=./hardware/modules/libmodules.a
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
 BASESTUFF=sim.o logging.o utils.o elfloader.o
 
 all: gdbserver musasim genheader dist
 	
 gdbserver: musashi $(BASESTUFF) hardware gdbserver.o argsgdb.o profiler.o
-	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o profiler.o $(BASESTUFF) $(LIBCARDSGDB) ./hardware/board.o -o gdbserver -lelf
+	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o profiler.o $(BASESTUFF) $(LIBCARDSGDB) $(LIBMODULES) ./hardware/board.o -o gdbserver -lelf
 
 musasim: musashi $(BASESTUFF) hardware musasim.o args.o 
-	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) ./hardware/board.o -o $@ -lelf
+	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) $(LIBMODULES) ./hardware/board.o -o $@ -lelf
 
 musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) musasim.c -o musasim.o

@@ -11,7 +11,7 @@
 #include <stdint.h>
 
 typedef struct {
-	void* (*init)(void* context);
+	void* (*init)();
 	void (*dispose)(void* context);
 	void (*tick)(void* context);
 	uint8_t (*read_byte)(void* context, uint16_t address);

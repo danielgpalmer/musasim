@@ -48,6 +48,10 @@ typedef struct {
 
 static timer timers[TIMERCHANNELS];
 
+void* init() {
+	return NULL;
+}
+
 void tick() {
 
 	secondcounter++;
@@ -76,9 +80,9 @@ void tick() {
 }
 
 const module timermodule = { //
-		NULL, //
+		init, //
 				NULL, //
-				NULL, //
+				tick, //
 				NULL, //
 				NULL, //
 				NULL, //
