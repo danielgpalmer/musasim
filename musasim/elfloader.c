@@ -9,46 +9,48 @@
 #include <gelf.h>
 #include <stdint.h>
 #include <fcntl.h>
-#include "elfloader.h"
 #include <stdio.h>
 #include "logging.h"
+#include "elfloader.h"
 
 static const char TAG[] = "elfloader";
 
 bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
-	FILE* file;
-	Elf* e;
 
+	FILE* file = NULL;
+	Elf* e = NULL;
 	GElf_Ehdr ehdr;
+
+	bool ret = false;
 
 	if (elf_version(EV_CURRENT) == EV_NONE) {
 		log_println(LEVEL_WARNING, TAG, "libelf init failed");
-		return false;
+		goto exit;
 	}
 
 	if (!(file = fopen(path, "r"))) {
 		log_println(LEVEL_WARNING, TAG, "Failed to open file %s", path);
-		return false;
+		goto exit;
 	}
 
 	if ((e = elf_begin(file->_fileno, ELF_C_READ, NULL)) == NULL) {
 		log_println(LEVEL_WARNING, TAG, "libelf failed to parse %s", path);
-		return false;
+		goto exit;
 	}
 
 	if (gelf_getehdr(e, &ehdr) == NULL) {
 		log_println(LEVEL_WARNING, TAG, "Failed to get elf header!");
-		return false;
+		goto exit;
 	}
 
 	if (ehdr.e_machine != EM_68K) {
 		log_println(LEVEL_WARNING, TAG, "Elf is not for M68K!");
-		return false;
+		goto exit;
 	}
 
 	if (ehdr.e_phnum == 0) {
 		log_println(LEVEL_WARNING, TAG, "this elf file has no prog headers!! not an elf file?\n");
-		return false;
+		goto exit;
 	}
 
 	log_println(LEVEL_INFO, TAG, "This elf has %d prog headers", ehdr.e_phnum);
@@ -65,14 +67,25 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 			}
 
 			if (fseek(file, phdr.p_offset, SEEK_SET) != 0) {
-				printf("Failed to seek\n");
-				return false;
+				log_println(LEVEL_WARNING, TAG, "Failed to seek in ELF\n");
+				break;
 			}
-			fread(dest + (phdr.p_paddr - destaddr), 1, phdr.p_filesz, file);
-
+			else {
+				fread(dest + (phdr.p_paddr - destaddr), 1, phdr.p_filesz, file);
+				ret = true;
+			}
 		}
 
 	}
 
-	return true;
+	exit:
+
+	if (file != NULL) {
+		fclose(file);
+	}
+	if (e != NULL) {
+		elf_end(e);
+	}
+
+	return ret;
 }

@@ -27,6 +27,11 @@
 #define FIFOSIZE 16
 #define NUMOFCHANNELS 2
 
+#define MAXLOGBUFFER 2048
+static bool loggingenabled = false;
+static uint8_t* logbuffer;
+static unsigned bufferedchars = 0;
+
 static const char TAG[] = "uart";
 
 typedef struct {
@@ -120,6 +125,16 @@ static void uart_dispose() {
 
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
 		close(channels[i].ptm);
+		if (channels[i].rxfifo != NULL) {
+			g_queue_free(channels[i].rxfifo);
+		}
+		if (channels[i].txfifo != NULL) {
+			g_queue_free(channels[i].txfifo);
+		}
+	}
+
+	if (logbuffer != NULL) {
+		free(logbuffer);
 	}
 
 }
@@ -250,10 +265,6 @@ static void uart_write_byte(uint32_t address, uint8_t value) {
 	uint8_t* reg = uart_decode_register(address, true);
 	*reg = value;
 }
-#define MAXLOGBUFFER 2048
-static bool loggingenabled = false;
-static uint8_t* logbuffer;
-static unsigned bufferedchars = 0;
 
 static void uart_log_ch(uint8_t ch) {
 
