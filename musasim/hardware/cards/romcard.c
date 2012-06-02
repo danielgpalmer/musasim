@@ -219,7 +219,7 @@ static void romcard_reset() {
 }
 
 const card romcard = { "ROM CARD", //
-		NULL, //
+		romcard_init, //
 		romcard_dispose, //
 		romcard_reset, // reset
 		NULL, //

@@ -1,8 +1,6 @@
-/*
- * args.h
- *
- *  Created on: Dec 27, 2011
- *      Author: daniel
+/**
+ * \file args.h
+ * \brief parses the commandline arguments and configures everything
  */
 
 #ifndef ARGS_H_

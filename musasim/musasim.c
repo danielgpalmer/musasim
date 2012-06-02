@@ -1,5 +1,3 @@
-#include <argtable2.h>
-
 #include "sim.h"
 #include "args.h"
 #include "logging.h"

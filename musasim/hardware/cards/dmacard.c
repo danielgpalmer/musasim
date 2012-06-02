@@ -442,7 +442,7 @@ static void dmacard_write_word(uint32_t address, uint16_t value) {
 
 	// handle changing the register window
 	if (reg == DMACARD_REGISTER_WINDOW) {
-		log_println(LEVEL_INFO, TAG, "Window changed to %d", curwindowindex);
+		log_println(LEVEL_DEBUG, TAG, "Window changed to %d", curwindowindex);
 		curwindow = &regwindows[curwindowindex];
 	}
 }

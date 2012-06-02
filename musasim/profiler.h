@@ -1,8 +1,6 @@
-/*
- * profiler.h
- *
- *  Created on: Mar 31, 2012
- *      Author: daniel
+/**
+ * \file profiler.h
+ * \brief gprof output generator
  */
 
 #ifndef PROFILER_H_

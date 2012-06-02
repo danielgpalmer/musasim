@@ -1,3 +1,7 @@
+/**
+ * \file sim.h
+ */
+
 #ifndef SIM__HEADER
 #define SIM__HEADER
 

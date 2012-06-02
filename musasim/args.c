@@ -14,7 +14,9 @@
 #include "hardware/cards/romcard.h"
 #include "hardware/cards/compactflashinterfacecard.h"
 #include "hardware/cards/uartcard.h"
+
 #include "sim.h"
+#include "logging.h"
 
 #ifdef GDBSERVER
 #include "gdbserver.h"
@@ -31,15 +33,17 @@ bool args_parse(int argc, char* argv[]) {
 			"Log bytes coming out of uart channel one to stdout");
 	struct arg_lit *basicvideo = arg_lit0(NULL, "basicvideo", "Use the basic video card");
 	struct arg_lit *basicsound = arg_lit0(NULL, "basicsound", "Use the basic sound card");
+	struct arg_int *loglevel = arg_int0(NULL, "loglevel", "level", "");
 	struct arg_end *end = arg_end(20);
 
 #ifdef GDBSERVER
 	struct arg_int *gdbport = arg_int1("p", "port", "", "Port to listen for GDB connections");
 	struct arg_file *profile = arg_file0("m", "profileroutput", "",
 			"Trace program execution and write it to a gprof file");
-	void *argtable[] = { help, rompath, elfpath, cfpath, gdbport, profile, loguartchone, basicvideo, basicsound, end };
+	void *argtable[] = { help, rompath, elfpath, cfpath, gdbport, profile, loguartchone, loglevel, basicvideo,
+			basicsound, end };
 #else
-	void *argtable[] = {help, rompath, elfpath, cfpath, loguartchone, basicvideo, basicsound, end};
+	void *argtable[] = {help, rompath, elfpath, cfpath, loguartchone, basicvideo, loglevel, basicsound, end};
 #endif
 
 	if (arg_nullcheck(argtable) != 0) {
@@ -67,13 +71,12 @@ bool args_parse(int argc, char* argv[]) {
 
 	else {
 
-// FIXME the gdbserver shouldnt have to have a rom or elf loaded as gdb can do that
-//#ifndef GDBSERVER
+#ifndef GDBSERVER
 		if (rompath->count == 0 && elfpath->count == 0) {
 			printf("You must pass either a rom or elf to load\n");
 			return false;
 		}
-//#endif
+#endif
 
 		if (rompath->count > 0 && elfpath->count > 0) {
 			printf("You can either load a rom or an elf, not both\n");
@@ -111,6 +114,10 @@ bool args_parse(int argc, char* argv[]) {
 
 		if (loguartchone->count == 1) {
 			uart_enable_logging();
+		}
+
+		if (loglevel->count == 1) {
+			log_setlevel(*(loglevel->ival));
 		}
 
 		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));

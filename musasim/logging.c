@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -14,15 +15,21 @@
 
 #include "logging.h"
 
-#define LONGESTTAG 10
+#define BUFFERSIZE 512
 
+#ifdef GDBSERVER
 static int loglevel = LEVEL_DEBUG;
+#else
+static int loglevel = LEVEL_INFO;
+#endif
 
 static const char YELLOW[] = "33";
 static const char RED[] = "31";
 
 static bool inited = false;
 static GMutex* mutex = NULL;
+
+static char* buffer;
 
 static bool checkstate() {
 	if (!inited) {
@@ -35,11 +42,13 @@ static bool checkstate() {
 
 void log_init() {
 	mutex = g_mutex_new();
+	buffer = malloc(BUFFERSIZE);
 	inited = true;
 }
 
 void log_shutdown() {
 	g_mutex_free(mutex);
+	free(buffer);
 	inited = false;
 }
 
@@ -47,39 +56,32 @@ void log_println(int level, const char* tag, char * fmt, ...) {
 
 	CHECKSTATE;
 
+	// level filtering
 	if (level > loglevel) {
 		return;
 	}
 
 	g_mutex_lock(mutex);
 
-	int taglen = strlen(tag);
+	switch (level) {
+		case LEVEL_WARNING:
+			printf("\033[1;40;%sm", RED);
+			break;
+		case LEVEL_DEBUG:
+			printf("\033[1;40;%sm", YELLOW);
+			break;
+		default:
+			printf("\033[1m");
+			break;
+	}
+
+	snprintf(buffer, BUFFERSIZE, "[%s]", tag);
+	printf("%-10s" "\033[0m", buffer);
 
 	va_list argptr;
 	va_start(argptr, fmt);
-
-	if (level == LEVEL_WARNING) {
-		printf("\033[1;40;%sm", RED);
-	}
-
-	else if (level == LEVEL_DEBUG) {
-		printf("\033[1;40;%sm", YELLOW);
-	}
-
-	else {
-		printf("\033[1m");
-	}
-
-	printf("[%s]", tag);
-
-	// FIXME this is shit
-	for (int i = 0; i < (LONGESTTAG - taglen); i++) {
-		printf(" ");
-	}
-
-	printf("\033[0m");
-	vprintf(fmt, argptr);
-	printf("\n");
+	vsnprintf(buffer, BUFFERSIZE, fmt, argptr);
+	printf("%s\n", buffer);
 	va_end(argptr);
 
 	g_mutex_unlock(mutex);
@@ -101,12 +103,8 @@ void log_printhexblock(int level, const char* tag, void* data, size_t len) {
 	int row = 0;
 	while (byte < len) {
 
-		printf("0x%02x", row);
-
-		// FIXME this is shit
-		for (int i = 0; i < (LONGESTTAG); i++) {
-			printf(" ");
-		}
+		snprintf(buffer, BUFFERSIZE, "0x%02x", row);
+		printf("%-10s", buffer);
 
 		for (int col = 0; col < 0xf; col++, byte++) {
 
@@ -118,7 +116,6 @@ void log_printhexblock(int level, const char* tag, void* data, size_t len) {
 
 			if (thisbyte != 0) {
 				printf("\033[1;40;%sm", RED);
-
 			}
 
 			char ascii = FILTERPRINTABLE(thisbyte);
