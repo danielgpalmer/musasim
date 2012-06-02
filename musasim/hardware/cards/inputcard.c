@@ -32,7 +32,7 @@ static const char TAG[] = "input";
 
 static uint8_t ports[2];
 
-void inputcard_init() {
+static void inputcard_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "inputcard_init()");
 
@@ -53,7 +53,7 @@ void inputcard_init() {
 
 }
 
-uint8_t inputcard_read_byte(uint32_t address) {
+static uint8_t inputcard_read_byte(uint32_t address) {
 	log_println(LEVEL_INSANE, TAG, "inputcard_read_byte()");
 
 	int reg = address & 0x3;
@@ -71,7 +71,7 @@ uint8_t inputcard_read_byte(uint32_t address) {
 
 }
 
-void inputcard_decodekey(SDLKey key, bool up) {
+static void inputcard_decodekey(SDLKey key, bool up) {
 
 	int port = 0;
 	uint8_t mask;
@@ -130,7 +130,7 @@ void inputcard_decodekey(SDLKey key, bool up) {
 	}
 }
 
-void inputcard_tick() {
+static void inputcard_tick() {
 	// "latch" stuff here
 
 	static SDL_Event events[10];

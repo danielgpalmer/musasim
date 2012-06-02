@@ -34,6 +34,17 @@ void uart_configureinterrupts(uint8_t channel, bool datareceived, bool transmitt
 	uart_chan0_interruptenable = 0x01;
 }
 
+void uart_configurefifos(uint8_t channel, bool enablefifos) {
+	if (channel == 0) {
+		uart_chan0_fifocontrol = FIFOCONTROL_ENABLE;
+		uart_chan0_fifocontrol = FIFOCONTROL_ENABLE | FIFOCONTROL_RCVRFIFORESET | FIFOCONTROL_XMITFIFORESET;
+	}
+	else if (channel == 1) {
+		uart_chan1_fifocontrol = FIFOCONTROL_ENABLE;
+		uart_chan1_fifocontrol = FIFOCONTROL_ENABLE | FIFOCONTROL_RCVRFIFORESET | FIFOCONTROL_XMITFIFORESET;
+	}
+}
+
 char uart_getch1() {
 	while (!(uart_chan1_linestatus & LINESTATUS_DATAREADY)) {
 

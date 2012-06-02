@@ -10,4 +10,4 @@ clean:
 	$(MAKE) -C helloworld clean
 	$(MAKE) -C serialbootloader clean
 	$(MAKE) -C serialpayload clean
-
+	$(MAKE) -C fpgatests clean

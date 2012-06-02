@@ -17,5 +17,6 @@ bool uart_getch_nonblock1(char* ch);
 char uart_getch1(void);
 void uart_configureinterrupts(uint8_t channel, bool datareceived, bool transmitterempty, bool linestatus,
 		bool modemstatus);
+void uart_configurefifos(uint8_t channel, bool enablefifos);
 
 #endif
