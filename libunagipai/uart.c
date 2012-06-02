@@ -31,7 +31,7 @@ void uart_putch(char ch) {
 
 void uart_configureinterrupts(uint8_t channel, bool datareceived, bool transmitterempty, bool linestatus,
 		bool modemstatus) {
-
+	uart_chan0_interruptenable = 0x01;
 }
 
 char uart_getch1() {

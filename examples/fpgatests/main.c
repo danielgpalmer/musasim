@@ -10,7 +10,7 @@
 #include <inttypes.h>
 #include <libunagipai/machine.h>
 #include <libunagipai/vt100.h>
-#include <libunagipai/uart_registers.h>
+#include <libunagipai/uart.h>
 #include <libunagipai/input_registers.h>
 #include <libunagipai/input_registermasks.h>
 #include <libunagipai/dma_registers.h>
@@ -82,7 +82,7 @@ int main(void) {
 	uint16_t sr = machine_getstatusregister();
 	machine_setstatusregister((sr & 0xf8ff));
 
-	uart_chan0_interruptenable = 0x01;
+	uart_configureinterrupts(0, true, false, false, false);
 
 	volatile uint16_t* basicvideo = (uint16_t*) 0x200000;
 	volatile uint16_t* basicsound = (uint16_t*) 0x600000;
