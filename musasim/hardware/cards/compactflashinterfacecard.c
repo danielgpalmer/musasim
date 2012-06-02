@@ -10,6 +10,7 @@
 #include <ata_idoffsets.h>
 #include <ata_registermasks.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <sys/mman.h>
@@ -139,6 +140,9 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 							break;
 						case ATA_READBUFFER: //TODO calculate the actual block that's being read
 							tf.data = GUINT16_FROM_BE(image[(LBAADDRESS * 256) + transfercounter]);
+							break;
+						default:
+							log_println(LEVEL_DEBUG, TAG, "unhandled command 0x%02"PRIx8, tf.command);
 							break;
 					}
 				}

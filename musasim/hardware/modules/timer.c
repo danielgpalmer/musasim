@@ -6,6 +6,8 @@
  */
 
 #include <stdint.h>
+#include <stddef.h>
+#include "timer.h"
 #include "module.h"
 
 #define CRYSTALFREQ 32767
@@ -72,3 +74,14 @@ void tick() {
 	}
 
 }
+
+const module timermodule = { //
+		NULL, //
+				NULL, //
+				NULL, //
+				NULL, //
+				NULL, //
+				NULL, //
+				NULL, //
+				NULL, //
+				NULL };

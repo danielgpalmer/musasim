@@ -19,7 +19,7 @@ void cpu_pulse_stop(void);
 void cpu_set_fc(unsigned int fc);
 
 #define SIM_TARGET_FREQUENCY 10000000 // 10mhz
-#define SIM_CLOCKS_PERTICK 80 // this needs to high enough that the time a tick takes is a good number of micro seconds. On the other hand, if its too high emulation accuracy will be bad
+#define SIM_CLOCKS_PERTICK 100 // this needs to high enough that the time a tick takes is a good number of micro seconds. On the other hand, if its too high emulation accuracy will be bad
 #define SIM_TICKS_PERSECOND (SIM_TARGET_FREQUENCY/SIM_CLOCKS_PERTICK) //
 #define SIM_USECSPERTICK (1000000 / SIM_TICKS_PERSECOND)
 
@@ -29,6 +29,7 @@ void cpu_set_fc(unsigned int fc);
 #define SLOT_SOUNDCARD 3
 #define SLOT_CFCARD 4
 #define SLOT_DMACARD 5
+#define SLOT_TIMERCARD 6
 #define SLOT_INPUTCARD 7
 
 #endif /* SIM__HEADER */
