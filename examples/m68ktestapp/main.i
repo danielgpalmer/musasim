@@ -1267,9 +1267,31 @@ FILE *_fopencookie_r (struct _reent *, void *__cookie, const char *__mode, cooki
 
 # 24 "main.c" 2
 
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/inttypes.h" 1 3
+# 18 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/inttypes.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stddef.h" 1 3 4
+# 19 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/inttypes.h" 2 3
+# 270 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/inttypes.h" 3
+typedef struct {
+  intmax_t quot;
+  intmax_t rem;
+} imaxdiv_t;
+
+
+
+
+
+extern intmax_t imaxabs(intmax_t j);
+extern imaxdiv_t imaxdiv(intmax_t numer, intmax_t denomer);
+extern intmax_t strtoimax(const char *__restrict, char **__restrict, int);
+extern uintmax_t strtoumax(const char *__restrict, char **__restrict, int);
+extern intmax_t wcstoimax(const wchar_t *__restrict, wchar_t **__restrict, int);
+extern uintmax_t wcstoumax(const wchar_t *__restrict, wchar_t **__restrict, int);
+# 26 "main.c" 2
+
 # 1 "fontrom.h" 1
 const uint8_t _binary_fontrom_start[1520];
-# 26 "main.c" 2
+# 28 "main.c" 2
 
 # 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/video.h" 1 3
 # 11 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/video.h" 3
@@ -1279,9 +1301,25 @@ const uint8_t _binary_fontrom_start[1520];
 
 typedef void (*dataloader)(void* data, uint16_t* buff, int wanted);
 
+
+
+
+
 void video_begin(void);
+
+
+
+
+
 void video_commit(void);
+
+
+
+
+
 void video_flip(void);
+
+
 
 
 
@@ -1289,12 +1327,19 @@ void video_blitimage(int width, int height, int x, int y, void* data, dataloader
 
 
 
+
 void video_blitimage_nocopy(int width, int height, int x, int y, uint16_t* data);
 void video_gputs(char* string, uint8_t* font, int col, int row);
-void video_clear();
+
+
+
+
+
+void video_clear(uint16_t clearcolour);
+
 void video_fillrect(int x, int y, int width, int height);
 void video_drawline(vector* v);
-# 28 "main.c" 2
+# 30 "main.c" 2
 
 # 1 "blip.c" 1
 
@@ -1678,7 +1723,7 @@ const uint8_t _binary_blip_start[4546] = {
   0x0, 0x48, 0x0, 0x2c, 0x0, 0x13, 0xff, 0xfe, 0xff, 0xec, 0xff, 0xdc,
  0xff, 0xd0, 0xff, 0xc6, 0xff, 0xbf, 0xff, 0xbb, 0xff, 0xba, 0xff, 0xbc,
  0xff, 0xc0, 0xff, 0xc6, 0xff, 0xd0, 0xff, 0xdb, 0x0, 0x0 };
-# 30 "main.c" 2
+# 32 "main.c" 2
 void interrupthandler() {
 
 }
@@ -1769,8 +1814,8 @@ static _Bool fbdirty = 0;
 void vblank_handler() {
 
  if (fbdirty) {
-  video_flip();
   fbdirty = 0;
+  video_flip();
  }
 }
 
@@ -1779,7 +1824,11 @@ void uart_handler() {
 
 void initvideo() {
  video_setconfig(1, 0);
- video_clear();
+ video_begin();
+ video_clear(0xFFFF);
+ video_commit();
+ video_waitforvblank();
+ video_flip();
 }
 
 static void printffresult(FRESULT result) {
@@ -1823,7 +1872,7 @@ void fatimageloader (void* data, uint16_t* buff, int wanted) {
 }
 
 int main(void) {
-# 188 "main.c"
+# 194 "main.c"
  FATFS fs;
  FRESULT result;
  result = pf_mount(&fs);
@@ -1851,10 +1900,9 @@ int main(void) {
  while (1) {
 
   if (fbdirty) {
-   printf("still dirty\n");
+   printf("still dirty %d""d""\n", (*(volatile uint16_t*) 0x280008));
    continue;
   }
-
 
   static uint16_t lastframe = 0;
   static uint16_t thisframe;
@@ -1868,7 +1916,7 @@ int main(void) {
   ballcollision(&ball1, &ball2);
 
   video_begin();
-  video_clear();
+  video_clear(0xFFFF);
   video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
   sprite_draw(ball1.sprite);
   sprite_draw(ball2.sprite);

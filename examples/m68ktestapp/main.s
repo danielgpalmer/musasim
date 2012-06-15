@@ -9,7 +9,7 @@
 updateball:
 .LFB2:
 	.file 1 "main.c"
-	.loc 1 50 0
+	.loc 1 52 0
 	.cfi_startproc
 .LVL0:
 	link.w %fp,#0
@@ -30,7 +30,7 @@ updateball:
 	move.l 8(%fp),%a3
 .LVL1:
 .LBB6:
-	.loc 1 51 0
+	.loc 1 53 0
 	moveq #0,%d6
 	move.w 14(%fp),%d6
 	moveq #0,%d0
@@ -56,7 +56,7 @@ updateball:
 	lea __mulsi3,%a4
 .LVL2:
 .L9:
-	.loc 1 53 0
+	.loc 1 55 0
 	move.l 4(%a3),%d2
 	move.l %a5,-(%sp)
 	move.l %d2,-(%sp)
@@ -64,14 +64,14 @@ updateball:
 .LVL3:
 	addq.l #8,%sp
 	add.l (%a2),%d0
-	.loc 1 55 0
+	.loc 1 57 0
 	cmp.l %d0,%d5
 	jle .L3
-	.loc 1 53 0 discriminator 1
-	move.l %d0,(%a2)
 	.loc 1 55 0 discriminator 1
+	move.l %d0,(%a2)
+	.loc 1 57 0 discriminator 1
 	jle .L3
-	.loc 1 60 0
+	.loc 1 62 0
 	move.l 8(%a3),%d2
 	move.l %d7,-(%sp)
 	move.l %d2,-(%sp)
@@ -79,15 +79,15 @@ updateball:
 .LVL4:
 	addq.l #8,%sp
 	add.l 4(%a2),%d0
-	.loc 1 62 0
+	.loc 1 64 0
 	cmp.l %d0,%d4
 	jle .L6
 .L15:
-	.loc 1 60 0 discriminator 1
-	move.l %d0,4(%a2)
 	.loc 1 62 0 discriminator 1
+	move.l %d0,4(%a2)
+	.loc 1 64 0 discriminator 1
 	jle .L6
-	.loc 1 51 0
+	.loc 1 53 0
 	addq.l #1,%d3
 .LVL5:
 	cmp.l %d3,%d6
@@ -95,22 +95,22 @@ updateball:
 .LVL6:
 .L1:
 .LBE6:
-	.loc 1 68 0
+	.loc 1 70 0
 	movem.l -40(%fp),#15612
 	unlk %fp
 	rts
 .L3:
 .LBB7:
-	.loc 1 56 0
+	.loc 1 58 0
 	tst.l %d2
 	jle .L14
 	move.l %d5,%d0
 	move.l %d0,(%a2)
-	.loc 1 57 0
+	.loc 1 59 0
 	neg.l %d2
 	move.l %d2,4(%a3)
 .L18:
-	.loc 1 60 0
+	.loc 1 62 0
 	move.l 8(%a3),%d2
 	move.l %d7,-(%sp)
 	move.l %d2,-(%sp)
@@ -118,20 +118,20 @@ updateball:
 .LVL7:
 	addq.l #8,%sp
 	add.l 4(%a2),%d0
-	.loc 1 62 0
+	.loc 1 64 0
 	cmp.l %d0,%d4
 	jgt .L15
 .L6:
-	.loc 1 63 0
+	.loc 1 65 0
 	tst.l %d2
 	jle .L16
 	move.l %d4,%d0
 	move.l %d0,4(%a2)
-	.loc 1 64 0
+	.loc 1 66 0
 	neg.l %d2
 	move.l %d2,8(%a3)
 .L17:
-	.loc 1 51 0
+	.loc 1 53 0
 	addq.l #1,%d3
 .LVL8:
 	cmp.l %d3,%d6
@@ -139,18 +139,18 @@ updateball:
 	jra .L1
 .LVL9:
 .L16:
-	.loc 1 63 0
+	.loc 1 65 0
 	moveq #0,%d0
 	move.l %d0,4(%a2)
-	.loc 1 64 0
+	.loc 1 66 0
 	neg.l %d2
 	move.l %d2,8(%a3)
 	jra .L17
 .L14:
-	.loc 1 56 0
+	.loc 1 58 0
 	moveq #0,%d0
 	move.l %d0,(%a2)
-	.loc 1 57 0
+	.loc 1 59 0
 	neg.l %d2
 	move.l %d2,4(%a3)
 	jra .L18
@@ -180,7 +180,7 @@ updateball:
 	.type	printffresult, @function
 printffresult:
 .LFB9:
-	.loc 1 133 0
+	.loc 1 139 0
 	.cfi_startproc
 .LVL10:
 	link.w %fp,#0
@@ -188,15 +188,15 @@ printffresult:
 	.cfi_offset 14, -8
 	.cfi_def_cfa 14, 8
 	move.l 8(%fp),%d0
-	.loc 1 134 0
+	.loc 1 140 0
 	moveq #7,%d1
 	cmp.l %d0,%d1
 	jcc .L32
-	.loc 1 160 0
+	.loc 1 166 0
 	unlk %fp
 	rts
 .L32:
-	.loc 1 134 0
+	.loc 1 140 0
 	add.l %d0,%d0
 	move.w .L30(%pc,%d0.l),%d0
 	jmp %pc@(2,%d0:w)
@@ -212,67 +212,67 @@ printffresult:
 	.word .L28-.L30
 	.word .L29-.L30
 .L28:
-	.loc 1 154 0
-	move.l #.LC6,8(%fp)
 	.loc 1 160 0
+	move.l #.LC6,8(%fp)
+	.loc 1 166 0
 	unlk %fp
-	.loc 1 154 0
+	.loc 1 160 0
 	jra puts
 .LVL11:
 .L29:
-	.loc 1 157 0
+	.loc 1 163 0
 	move.l #.LC7,8(%fp)
-	.loc 1 160 0
+	.loc 1 166 0
 	unlk %fp
-	.loc 1 157 0
+	.loc 1 163 0
 	jra puts
 .LVL12:
 .L22:
-	.loc 1 136 0
+	.loc 1 142 0
 	move.l #.LC0,8(%fp)
-	.loc 1 160 0
+	.loc 1 166 0
 	unlk %fp
-	.loc 1 136 0
+	.loc 1 142 0
 	jra puts
 .LVL13:
 .L23:
-	.loc 1 139 0
+	.loc 1 145 0
 	move.l #.LC1,8(%fp)
-	.loc 1 160 0
+	.loc 1 166 0
 	unlk %fp
-	.loc 1 139 0
+	.loc 1 145 0
 	jra puts
 .LVL14:
 .L24:
-	.loc 1 142 0
+	.loc 1 148 0
 	move.l #.LC2,8(%fp)
-	.loc 1 160 0
+	.loc 1 166 0
 	unlk %fp
-	.loc 1 142 0
+	.loc 1 148 0
 	jra puts
 .LVL15:
 .L25:
-	.loc 1 145 0
+	.loc 1 151 0
 	move.l #.LC3,8(%fp)
-	.loc 1 160 0
+	.loc 1 166 0
 	unlk %fp
-	.loc 1 145 0
+	.loc 1 151 0
 	jra puts
 .LVL16:
 .L26:
-	.loc 1 148 0
+	.loc 1 154 0
 	move.l #.LC4,8(%fp)
-	.loc 1 160 0
+	.loc 1 166 0
 	unlk %fp
-	.loc 1 148 0
+	.loc 1 154 0
 	jra puts
 .LVL17:
 .L27:
-	.loc 1 151 0
+	.loc 1 157 0
 	move.l #.LC5,8(%fp)
-	.loc 1 160 0
+	.loc 1 166 0
 	unlk %fp
-	.loc 1 151 0
+	.loc 1 157 0
 	jra puts
 .LVL18:
 	.cfi_endproc
@@ -283,13 +283,13 @@ printffresult:
 	.type	interrupthandler, @function
 interrupthandler:
 .LFB0:
-	.loc 1 30 0
+	.loc 1 32 0
 	.cfi_startproc
 	link.w %fp,#0
 .LCFI2:
 	.cfi_offset 14, -8
 	.cfi_def_cfa 14, 8
-	.loc 1 32 0
+	.loc 1 34 0
 	unlk %fp
 	rte
 	.cfi_endproc
@@ -300,13 +300,13 @@ interrupthandler:
 	.type	sound_handler, @function
 sound_handler:
 .LFB1:
-	.loc 1 34 0
+	.loc 1 36 0
 	.cfi_startproc
 	link.w %fp,#0
 .LCFI3:
 	.cfi_offset 14, -8
 	.cfi_def_cfa 14, 8
-	.loc 1 36 0
+	.loc 1 38 0
 	unlk %fp
 	rte
 	.cfi_endproc
@@ -317,7 +317,7 @@ sound_handler:
 	.type	vblank_handler, @function
 vblank_handler:
 .LFB6:
-	.loc 1 117 0
+	.loc 1 119 0
 	.cfi_startproc
 	link.w %fp,#0
 .LCFI4:
@@ -328,20 +328,20 @@ vblank_handler:
 	.cfi_offset 1, -20
 	.cfi_offset 8, -16
 	.cfi_offset 9, -12
-	.loc 1 119 0
+	.loc 1 121 0
 	tst.b fbdirty
 	jne .L39
-	.loc 1 123 0
+	.loc 1 125 0
 	movem.l -16(%fp),#771
 	unlk %fp
 	rte
 .L39:
-	.loc 1 120 0
-	jsr video_flip
-.LVL19:
-	.loc 1 121 0
+	.loc 1 122 0
 	clr.b fbdirty
 	.loc 1 123 0
+	jsr video_flip
+.LVL19:
+	.loc 1 125 0
 	movem.l -16(%fp),#771
 	unlk %fp
 	rte
@@ -353,13 +353,13 @@ vblank_handler:
 	.type	uart_handler, @function
 uart_handler:
 .LFB7:
-	.loc 1 125 0
+	.loc 1 127 0
 	.cfi_startproc
 	link.w %fp,#0
 .LCFI5:
 	.cfi_offset 14, -8
 	.cfi_def_cfa 14, 8
-	.loc 1 126 0
+	.loc 1 128 0
 	unlk %fp
 	rte
 	.cfi_endproc
@@ -370,24 +370,37 @@ uart_handler:
 	.type	initvideo, @function
 initvideo:
 .LFB8:
-	.loc 1 128 0
+	.loc 1 130 0
 	.cfi_startproc
 	link.w %fp,#0
 .LCFI6:
 	.cfi_offset 14, -8
 	.cfi_def_cfa 14, 8
-	.loc 1 129 0
+	.loc 1 131 0
 	clr.l -(%sp)
 	pea 1.w
 	jsr video_setconfig
 .LVL20:
-	.loc 1 130 0
-	addq.l #8,%sp
-	.loc 1 131 0
-	unlk %fp
-	.loc 1 130 0
-	jra video_clear
+	.loc 1 132 0
+	jsr video_begin
 .LVL21:
+	.loc 1 133 0
+	move.l #65535,-(%sp)
+	jsr video_clear
+.LVL22:
+	.loc 1 134 0
+	jsr video_commit
+.LVL23:
+	.loc 1 135 0
+	jsr video_waitforvblank
+.LVL24:
+	.loc 1 136 0
+	lea (12,%sp),%sp
+	.loc 1 137 0
+	unlk %fp
+	.loc 1 136 0
+	jra video_flip
+.LVL25:
 	.cfi_endproc
 .LFE8:
 	.size	initvideo, .-initvideo
@@ -396,23 +409,23 @@ initvideo:
 	.type	fatimageloader, @function
 fatimageloader:
 .LFB11:
-	.loc 1 167 0
+	.loc 1 173 0
 	.cfi_startproc
-.LVL22:
+.LVL26:
 	link.w %fp,#-4
 .LCFI7:
 	.cfi_offset 14, -8
 	.cfi_def_cfa 14, 8
-	.loc 1 169 0
+	.loc 1 175 0
 	pea -2(%fp)
 	moveq #0,%d0
 	move.w 18(%fp),%d0
 	move.l %d0,-(%sp)
 	move.l 12(%fp),-(%sp)
 	jsr pf_read
-.LVL23:
+.LVL27:
 	lea (12,%sp),%sp
-	.loc 1 171 0
+	.loc 1 177 0
 	unlk %fp
 	rts
 	.cfi_endproc
@@ -432,7 +445,7 @@ fatimageloader:
 .LC13:
 	.string	"ball.be"
 .LC14:
-	.string	"still dirty"
+	.string	"still dirty %dd\n"
 .LC15:
 	.string	"Hello World!"
 	.section	.text.startup,"ax",@progbits
@@ -441,7 +454,7 @@ fatimageloader:
 	.type	main, @function
 main:
 .LFB12:
-	.loc 1 173 0
+	.loc 1 179 0
 	.cfi_startproc
 	link.w %fp,#-108
 .LCFI8:
@@ -458,146 +471,145 @@ main:
 	.cfi_offset 11, -128
 	.cfi_offset 12, -124
 	.cfi_offset 13, -120
-	.loc 1 190 0
+	.loc 1 196 0
 	lea (-106,%fp),%a2
 	move.l %a2,-(%sp)
 	jsr pf_mount
-.LVL24:
-	.loc 1 191 0
+.LVL28:
+	.loc 1 197 0
 	move.l %d0,-(%sp)
-	lea printffresult,%a4
-	jsr (%a4)
-.LVL25:
+	lea printffresult,%a3
+	jsr (%a3)
+.LVL29:
 .LBB19:
 .LBB20:
-	.loc 1 163 0
+	.loc 1 169 0
 	move.l -96(%fp),-(%sp)
 	pea .LC8
-	lea printf,%a3
-	jsr (%a3)
-.LVL26:
-	.loc 1 164 0
+	jsr printf
+.LVL30:
+	.loc 1 170 0
 	move.l -88(%fp),-(%sp)
 	pea .LC9
-	jsr (%a3)
-.LVL27:
+	jsr printf
+.LVL31:
 .LBE20:
 .LBE19:
-	.loc 1 193 0
+	.loc 1 199 0
 	pea .LC10
 	jsr pf_open
-.LVL28:
-	.loc 1 194 0
+.LVL32:
+	.loc 1 200 0
 	move.l %d0,-(%sp)
-	jsr (%a4)
-.LVL29:
-	.loc 1 197 0
+	jsr (%a3)
+.LVL33:
+	.loc 1 203 0
 	lea (32,%sp),%sp
 	pea -108(%fp)
 	pea 63.w
-	lea (-64,%fp),%a4
-	move.l %a4,-(%sp)
+	lea (-64,%fp),%a3
+	move.l %a3,-(%sp)
 	jsr pf_read
-.LVL30:
-	.loc 1 199 0
-	move.l %a4,-(%sp)
+.LVL34:
+	.loc 1 205 0
+	move.l %a3,-(%sp)
 	pea .LC11
-	jsr (%a3)
-.LVL31:
-	.loc 1 201 0
+	jsr printf
+.LVL35:
+	.loc 1 207 0
 	pea 1.w
 	pea .LC12
 	pea pai
 	move.l %a2,-(%sp)
 	lea image_loadimagefromfile,%a3
 	jsr (%a3)
-.LVL32:
-	.loc 1 202 0
+.LVL36:
+	.loc 1 208 0
 	lea (32,%sp),%sp
 	clr.l (%sp)
 	pea .LC13
 	pea ballimage
 	move.l %a2,-(%sp)
 	jsr (%a3)
-.LVL33:
+.LVL37:
 .LBB21:
 .LBB22:
-	.loc 1 72 0
+	.loc 1 74 0
 	pea 12.w
 	lea malloc,%a2
-.LVL34:
+.LVL38:
 	jsr (%a2)
-.LVL35:
+.LVL39:
 	move.l %d0,%a0
 	move.l %d0,ball1
-	.loc 1 73 0
-	move.l #ballimage,8(%a0)
-	.loc 1 74 0
-	clr.l (%a0)
 	.loc 1 75 0
-	clr.l 4(%a0)
+	move.l #ballimage,8(%a0)
 	.loc 1 76 0
+	clr.l (%a0)
+	.loc 1 77 0
+	clr.l 4(%a0)
+	.loc 1 78 0
 	moveq #1,%d0
 	move.l %d0,ball1+4
-	.loc 1 77 0
+	.loc 1 79 0
 	move.l %d0,ball1+8
-	.loc 1 78 0
+	.loc 1 80 0
 	move.b 14680068,%d0
 	moveq #7,%d1
 	and.l %d0,%d1
 	move.l %d1,ball1+12
-	.loc 1 79 0
+	.loc 1 81 0
 	move.b 14680068,%d0
 	moveq #7,%d1
 	and.l %d0,%d1
 	move.l %d1,ball1+16
-.LVL36:
+.LVL40:
 .LBE22:
 .LBE21:
 .LBB23:
 .LBB24:
-	.loc 1 72 0
+	.loc 1 74 0
 	pea 12.w
 	jsr (%a2)
-.LVL37:
+.LVL41:
 	move.l %d0,%a0
 	move.l %d0,ball2
-	.loc 1 73 0
+	.loc 1 75 0
 	move.l #ballimage,8(%a0)
-	.loc 1 74 0
+	.loc 1 76 0
 	moveq #50,%d0
 	move.l %d0,(%a0)
-	.loc 1 75 0
+	.loc 1 77 0
 	clr.l 4(%a0)
-	.loc 1 76 0
+	.loc 1 78 0
 	moveq #1,%d1
 	move.l %d1,ball2+4
-	.loc 1 77 0
+	.loc 1 79 0
 	move.l %d1,ball2+8
-	.loc 1 78 0
+	.loc 1 80 0
 	move.b 14680068,%d0
 	move.b #7,%d1
 	and.l %d0,%d1
 	move.l %d1,ball2+12
-	.loc 1 79 0
+	.loc 1 81 0
 	move.b 14680068,%d0
 	moveq #7,%d1
 	and.l %d0,%d1
 	move.l %d1,ball2+16
 .LBE24:
 .LBE23:
-	.loc 1 207 0
+	.loc 1 213 0
 	jsr initvideo
-.LVL38:
-	.loc 1 209 0
+.LVL42:
+	.loc 1 215 0
 	jsr machine_getstatusregister
-.LVL39:
-	.loc 1 210 0
+.LVL43:
+	.loc 1 216 0
 	and.l #63743,%d0
-.LVL40:
+.LVL44:
 	move.l %d0,-(%sp)
 	jsr machine_setstatusregister
-.LVL41:
+.LVL45:
 	move.b fbdirty,%d0
 	lea (28,%sp),%sp
 	lea updateball,%a3
@@ -609,35 +621,35 @@ main:
 	lea video_drawline,%a5
 .L55:
 .LBB25:
-	.loc 1 214 0
+	.loc 1 220 0
 	tst.b %d0
 	jne .L56
-	.loc 1 223 0
+	.loc 1 228 0
 	move.w 2621440,%d0
-	.loc 1 224 0
+	.loc 1 229 0
 	move.b 14680064,%d0
-	.loc 1 225 0
+	.loc 1 230 0
 	move.w 2621448,%d0
-	move.w %d0,thisframe.2887
-	.loc 1 227 0
+	move.w %d0,thisframe.2915
+	.loc 1 232 0
 	moveq #0,%d2
-	move.w lastframe.2886,%d2
+	move.w lastframe.2914,%d2
 	moveq #0,%d7
 	move.w %d0,%d7
 	move.l %d2,-(%sp)
 	move.l %d7,-(%sp)
 	pea ball1
 	jsr (%a3)
-.LVL42:
-	.loc 1 228 0
+.LVL46:
+	.loc 1 233 0
 	move.l %d2,-(%sp)
 	move.l %d7,-(%sp)
 	pea ball2
 	jsr (%a3)
-.LVL43:
+.LVL47:
 .LBB26:
 .LBB27:
-	.loc 1 106 0
+	.loc 1 108 0
 	move.l ball1,%a0
 	move.l 8(%a0),%a1
 	move.w (%a1),%d0
@@ -645,13 +657,13 @@ main:
 	and.l #65535,%d0
 	add.l (%a0),%d0
 	move.l %d0,vect
-	.loc 1 107 0
+	.loc 1 109 0
 	move.w 2(%a1),%d0
 	lsr.w #1,%d0
 	and.l #65535,%d0
 	add.l 4(%a0),%d0
 	move.l %d0,vect+4
-	.loc 1 108 0
+	.loc 1 110 0
 	move.l ball2,%a1
 	move.l 8(%a1),%d1
 	move.l %d1,%a4
@@ -660,64 +672,65 @@ main:
 	and.l #65535,%d0
 	add.l (%a1),%d0
 	move.l %d0,vect+8
-	.loc 1 109 0
+	.loc 1 111 0
 	move.w 2(%a4),%d0
 	lsr.w #1,%d0
 	and.l #65535,%d0
 	add.l 4(%a1),%d0
 	move.l %d0,vect+12
-	.loc 1 110 0
+	.loc 1 112 0
 	move.l %a1,-(%sp)
 	move.l %a0,-(%sp)
 	move.l %d6,%a0
 	jsr (%a0)
-.LVL44:
+.LVL48:
 	lea (32,%sp),%sp
 	tst.b %d0
 	jeq .L48
-.LVL45:
+.LVL49:
 .LBB28:
 .LBB29:
-	.loc 1 84 0
+	.loc 1 86 0
 	move.l vect+8,%a4
-	.loc 1 85 0
+	.loc 1 87 0
 	moveq #-1,%d0
-	.loc 1 84 0
+	.loc 1 86 0
 	cmp.l vect.l,%a4
 	jle .L49
-	.loc 1 85 0
+	.loc 1 87 0
 	move.l %d0,ball1+4
-	.loc 1 86 0
+	.loc 1 88 0
 	moveq #1,%d1
 	move.l %d1,ball2+4
-	.loc 1 93 0
+	.loc 1 95 0
 	move.l vect+12,%a0
-	.loc 1 94 0
+	.loc 1 96 0
 	moveq #-1,%d0
-	.loc 1 93 0
+	.loc 1 95 0
 	cmp.l vect+4.l,%a0
 	jgt .L58
 .L51:
-	.loc 1 98 0
+	.loc 1 100 0
 	move.l %d0,ball2+8
-	.loc 1 99 0
+	.loc 1 101 0
 	moveq #1,%d1
 	move.l %d1,ball1+8
-.LVL46:
+.LVL50:
 .L48:
 .LBE29:
 .LBE28:
 .LBE27:
 .LBE26:
-	.loc 1 231 0
+	.loc 1 236 0
 	move.l %d5,%a0
 	jsr (%a0)
-.LVL47:
-	.loc 1 232 0
+.LVL51:
+	.loc 1 237 0
+	move.l #65535,-(%sp)
 	move.l %d4,%a4
 	jsr (%a4)
-.LVL48:
-	.loc 1 233 0
+.LVL52:
+	.loc 1 238 0
 	move.l pai+4,-(%sp)
 	pea 30.w
 	pea 30.w
@@ -728,82 +741,86 @@ main:
 	move.l %d0,-(%sp)
 	move.l %d3,%a0
 	jsr (%a0)
-.LVL49:
-	.loc 1 234 0
+.LVL53:
+	.loc 1 239 0
 	move.l ball1,-(%sp)
 	jsr (%a2)
-.LVL50:
-	.loc 1 235 0
+.LVL54:
+	.loc 1 240 0
 	move.l ball2,-(%sp)
 	jsr (%a2)
-.LVL51:
-	.loc 1 236 0
+.LVL55:
+	.loc 1 241 0
+	lea (32,%sp),%sp
 	jsr video_commit
-.LVL52:
-	.loc 1 237 0
+.LVL56:
+	.loc 1 242 0
 	pea vect
 	jsr (%a5)
-.LVL53:
-	.loc 1 238 0
-	lea (28,%sp),%sp
-	clr.l (%sp)
+.LVL57:
+	.loc 1 243 0
+	clr.l -(%sp)
 	clr.l -(%sp)
 	pea _binary_fontrom_start
 	pea .LC15
 	jsr video_gputs
-.LVL54:
-	.loc 1 240 0
-	move.w thisframe.2887,lastframe.2886
-	.loc 1 241 0
+.LVL58:
+	.loc 1 245 0
+	move.w thisframe.2915,lastframe.2914
+	.loc 1 246 0
 	move.b #1,fbdirty
-	lea (16,%sp),%sp
-.LVL55:
+	lea (20,%sp),%sp
+.LVL59:
 .L56:
-	.loc 1 215 0
+	.loc 1 221 0
+	move.w 2621448,%d0
+	move.w %d0,-(%sp)
+	clr.w -(%sp)
 	pea .LC14
-	jsr puts
-.LVL56:
+	jsr printf
+.LVL60:
 	move.b fbdirty,%d0
-	.loc 1 216 0
-	addq.l #4,%sp
+	.loc 1 222 0
+	addq.l #8,%sp
 	jra .L55
-.LVL57:
+.LVL61:
 .L49:
 .LBB33:
 .LBB32:
 .LBB31:
 .LBB30:
-	.loc 1 89 0
+	.loc 1 91 0
 	move.l %d0,ball2+4
-	.loc 1 90 0
+	.loc 1 92 0
 	moveq #1,%d1
 	move.l %d1,ball1+4
-	.loc 1 93 0
+	.loc 1 95 0
 	move.l vect+12,%a0
-	.loc 1 94 0
+	.loc 1 96 0
 	moveq #-1,%d0
-	.loc 1 93 0
+	.loc 1 95 0
 	cmp.l vect+4.l,%a0
 	jle .L51
 .L58:
-	.loc 1 94 0
+	.loc 1 96 0
 	move.l %d0,ball1+8
-	.loc 1 95 0
+	.loc 1 97 0
 	moveq #1,%d1
 	move.l %d1,ball2+8
 .LBE30:
 .LBE31:
 .LBE32:
 .LBE33:
-	.loc 1 231 0
+	.loc 1 236 0
 	move.l %d5,%a0
 	jsr (%a0)
-.LVL58:
-	.loc 1 232 0
+.LVL62:
+	.loc 1 237 0
+	move.l #65535,-(%sp)
 	move.l %d4,%a4
 	jsr (%a4)
-.LVL59:
-	.loc 1 233 0
+.LVL63:
+	.loc 1 238 0
 	move.l pai+4,-(%sp)
 	pea 30.w
 	pea 30.w
@@ -814,35 +831,35 @@ main:
 	move.l %d0,-(%sp)
 	move.l %d3,%a0
 	jsr (%a0)
-.LVL60:
-	.loc 1 234 0
+.LVL64:
+	.loc 1 239 0
 	move.l ball1,-(%sp)
 	jsr (%a2)
-.LVL61:
-	.loc 1 235 0
+.LVL65:
+	.loc 1 240 0
 	move.l ball2,-(%sp)
 	jsr (%a2)
-.LVL62:
-	.loc 1 236 0
+.LVL66:
+	.loc 1 241 0
+	lea (32,%sp),%sp
 	jsr video_commit
-.LVL63:
-	.loc 1 237 0
+.LVL67:
+	.loc 1 242 0
 	pea vect
 	jsr (%a5)
-.LVL64:
-	.loc 1 238 0
-	lea (28,%sp),%sp
-	clr.l (%sp)
+.LVL68:
+	.loc 1 243 0
+	clr.l -(%sp)
 	clr.l -(%sp)
 	pea _binary_fontrom_start
 	pea .LC15
 	jsr video_gputs
-.LVL65:
-	.loc 1 240 0
-	move.w thisframe.2887,lastframe.2886
-	.loc 1 241 0
+.LVL69:
+	.loc 1 245 0
+	move.w thisframe.2915,lastframe.2914
+	.loc 1 246 0
 	move.b #1,fbdirty
-	lea (16,%sp),%sp
+	lea (20,%sp),%sp
 	jra .L56
 .LBE25:
 	.cfi_endproc
@@ -5410,10 +5427,10 @@ _binary_blip_start:
 	.comm	ball1,20,2
 	.local	ball2
 	.comm	ball2,20,2
-	.local	thisframe.2887
-	.comm	thisframe.2887,2,2
-	.local	lastframe.2886
-	.comm	lastframe.2886,2,2
+	.local	thisframe.2915
+	.comm	thisframe.2915,2,2
+	.local	lastframe.2914
+	.comm	lastframe.2914,2,2
 	.local	vect
 	.comm	vect,16,2
 	.text
@@ -5427,18 +5444,19 @@ _binary_blip_start:
 	.file 8 "blip.c"
 	.file 9 "<built-in>"
 	.file 10 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/video.h"
-	.file 11 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/machine.h"
+	.file 11 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h"
+	.file 12 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/machine.h"
 	.section	.debug_info,"",@progbits
 .Ldebug_info0:
-	.long	0xa1c
+	.long	0xa91
 	.word	0x2
 	.long	.Ldebug_abbrev0
 	.byte	0x4
 	.uleb128 0x1
-	.long	.LASF85
-	.byte	0x1
-	.long	.LASF86
 	.long	.LASF87
+	.byte	0x1
+	.long	.LASF88
+	.long	.LASF89
 	.long	.Ldebug_ranges0+0x60
 	.long	0
 	.long	0
@@ -5799,12 +5817,12 @@ _binary_blip_start:
 	.uleb128 0x5
 	.byte	0x14
 	.byte	0x1
-	.byte	0x26
+	.byte	0x28
 	.long	0x2ee
 	.uleb128 0x6
 	.long	.LASF42
 	.byte	0x1
-	.byte	0x27
+	.byte	0x29
 	.long	0x2ee
 	.byte	0x2
 	.byte	0x23
@@ -5812,7 +5830,7 @@ _binary_blip_start:
 	.uleb128 0x6
 	.long	.LASF44
 	.byte	0x1
-	.byte	0x28
+	.byte	0x2a
 	.long	0x82
 	.byte	0x2
 	.byte	0x23
@@ -5820,7 +5838,7 @@ _binary_blip_start:
 	.uleb128 0x6
 	.long	.LASF45
 	.byte	0x1
-	.byte	0x29
+	.byte	0x2b
 	.long	0x82
 	.byte	0x2
 	.byte	0x23
@@ -5828,7 +5846,7 @@ _binary_blip_start:
 	.uleb128 0x6
 	.long	.LASF46
 	.byte	0x1
-	.byte	0x2a
+	.byte	0x2c
 	.long	0x82
 	.byte	0x2
 	.byte	0x23
@@ -5836,7 +5854,7 @@ _binary_blip_start:
 	.uleb128 0x6
 	.long	.LASF47
 	.byte	0x1
-	.byte	0x2b
+	.byte	0x2d
 	.long	0x82
 	.byte	0x2
 	.byte	0x23
@@ -5848,34 +5866,34 @@ _binary_blip_start:
 	.uleb128 0x3
 	.long	.LASF48
 	.byte	0x1
-	.byte	0x2c
+	.byte	0x2e
 	.long	0x29f
 	.uleb128 0xd
 	.long	.LASF49
 	.byte	0x1
-	.byte	0x46
+	.byte	0x48
 	.byte	0x1
 	.byte	0x1
 	.long	0x333
 	.uleb128 0xe
 	.string	"b"
 	.byte	0x1
-	.byte	0x46
+	.byte	0x48
 	.long	0x333
 	.uleb128 0xe
 	.string	"x"
 	.byte	0x1
-	.byte	0x46
+	.byte	0x48
 	.long	0x82
 	.uleb128 0xe
 	.string	"y"
 	.byte	0x1
-	.byte	0x46
+	.byte	0x48
 	.long	0x82
 	.uleb128 0xf
 	.long	.LASF41
 	.byte	0x1
-	.byte	0x46
+	.byte	0x48
 	.long	0x233
 	.byte	0
 	.uleb128 0x7
@@ -5884,24 +5902,24 @@ _binary_blip_start:
 	.uleb128 0xd
 	.long	.LASF50
 	.byte	0x1
-	.byte	0x52
+	.byte	0x54
 	.byte	0x1
 	.byte	0x1
 	.long	0x366
 	.uleb128 0xe
 	.string	"b1"
 	.byte	0x1
-	.byte	0x52
+	.byte	0x54
 	.long	0x333
 	.uleb128 0xe
 	.string	"b2"
 	.byte	0x1
-	.byte	0x52
+	.byte	0x54
 	.long	0x333
 	.uleb128 0xf
 	.long	.LASF51
 	.byte	0x1
-	.byte	0x52
+	.byte	0x54
 	.long	0x366
 	.byte	0
 	.uleb128 0x7
@@ -5910,25 +5928,25 @@ _binary_blip_start:
 	.uleb128 0xd
 	.long	.LASF52
 	.byte	0x1
-	.byte	0x69
+	.byte	0x6b
 	.byte	0x1
 	.byte	0x1
 	.long	0x38e
 	.uleb128 0xe
 	.string	"b1"
 	.byte	0x1
-	.byte	0x69
+	.byte	0x6b
 	.long	0x333
 	.uleb128 0xe
 	.string	"b2"
 	.byte	0x1
-	.byte	0x69
+	.byte	0x6b
 	.long	0x333
 	.byte	0
 	.uleb128 0x10
 	.long	.LASF55
 	.byte	0x1
-	.byte	0x32
+	.byte	0x34
 	.byte	0x1
 	.long	.LFB2
 	.long	.LFE2
@@ -5938,7 +5956,7 @@ _binary_blip_start:
 	.uleb128 0x11
 	.string	"b"
 	.byte	0x1
-	.byte	0x32
+	.byte	0x34
 	.long	0x333
 	.byte	0x2
 	.byte	0x91
@@ -5946,7 +5964,7 @@ _binary_blip_start:
 	.uleb128 0x12
 	.long	.LASF53
 	.byte	0x1
-	.byte	0x32
+	.byte	0x34
 	.long	0x49
 	.byte	0x2
 	.byte	0x91
@@ -5954,7 +5972,7 @@ _binary_blip_start:
 	.uleb128 0x12
 	.long	.LASF54
 	.byte	0x1
-	.byte	0x32
+	.byte	0x34
 	.long	0x49
 	.byte	0x2
 	.byte	0x91
@@ -5964,7 +5982,7 @@ _binary_blip_start:
 	.uleb128 0x14
 	.string	"i"
 	.byte	0x1
-	.byte	0x33
+	.byte	0x35
 	.long	0x82
 	.long	.LLST1
 	.byte	0
@@ -5972,7 +5990,7 @@ _binary_blip_start:
 	.uleb128 0x15
 	.long	.LASF56
 	.byte	0x1
-	.byte	0x85
+	.byte	0x8b
 	.byte	0x1
 	.long	.LFB9
 	.long	.LFE9
@@ -5982,7 +6000,7 @@ _binary_blip_start:
 	.uleb128 0x12
 	.long	.LASF57
 	.byte	0x1
-	.byte	0x85
+	.byte	0x8b
 	.long	0x1b5
 	.byte	0x2
 	.byte	0x91
@@ -5990,7 +6008,7 @@ _binary_blip_start:
 	.uleb128 0x16
 	.long	.LVL11
 	.byte	0x1
-	.long	0x93a
+	.long	0x974
 	.long	0x423
 	.uleb128 0x17
 	.byte	0x2
@@ -6003,7 +6021,7 @@ _binary_blip_start:
 	.uleb128 0x16
 	.long	.LVL12
 	.byte	0x1
-	.long	0x93a
+	.long	0x974
 	.long	0x43c
 	.uleb128 0x17
 	.byte	0x2
@@ -6016,7 +6034,7 @@ _binary_blip_start:
 	.uleb128 0x16
 	.long	.LVL13
 	.byte	0x1
-	.long	0x93a
+	.long	0x974
 	.long	0x455
 	.uleb128 0x17
 	.byte	0x2
@@ -6029,7 +6047,7 @@ _binary_blip_start:
 	.uleb128 0x16
 	.long	.LVL14
 	.byte	0x1
-	.long	0x93a
+	.long	0x974
 	.long	0x46e
 	.uleb128 0x17
 	.byte	0x2
@@ -6042,7 +6060,7 @@ _binary_blip_start:
 	.uleb128 0x16
 	.long	.LVL15
 	.byte	0x1
-	.long	0x93a
+	.long	0x974
 	.long	0x487
 	.uleb128 0x17
 	.byte	0x2
@@ -6055,7 +6073,7 @@ _binary_blip_start:
 	.uleb128 0x16
 	.long	.LVL16
 	.byte	0x1
-	.long	0x93a
+	.long	0x974
 	.long	0x4a0
 	.uleb128 0x17
 	.byte	0x2
@@ -6068,7 +6086,7 @@ _binary_blip_start:
 	.uleb128 0x16
 	.long	.LVL17
 	.byte	0x1
-	.long	0x93a
+	.long	0x974
 	.long	0x4b9
 	.uleb128 0x17
 	.byte	0x2
@@ -6081,7 +6099,7 @@ _binary_blip_start:
 	.uleb128 0x18
 	.long	.LVL18
 	.byte	0x1
-	.long	0x93a
+	.long	0x974
 	.uleb128 0x17
 	.byte	0x2
 	.byte	0x91
@@ -6095,7 +6113,7 @@ _binary_blip_start:
 	.byte	0x1
 	.long	.LASF58
 	.byte	0x1
-	.byte	0x1e
+	.byte	0x20
 	.long	.LFB0
 	.long	.LFE0
 	.long	.LLST3
@@ -6104,7 +6122,7 @@ _binary_blip_start:
 	.byte	0x1
 	.long	.LASF59
 	.byte	0x1
-	.byte	0x22
+	.byte	0x24
 	.long	.LFB1
 	.long	.LFE1
 	.long	.LLST4
@@ -6113,7 +6131,7 @@ _binary_blip_start:
 	.byte	0x1
 	.long	.LASF61
 	.byte	0x1
-	.byte	0x75
+	.byte	0x77
 	.long	.LFB6
 	.long	.LFE6
 	.long	.LLST5
@@ -6121,13 +6139,13 @@ _binary_blip_start:
 	.long	0x51c
 	.uleb128 0x1b
 	.long	.LVL19
-	.long	0x956
+	.long	0x990
 	.byte	0
 	.uleb128 0x19
 	.byte	0x1
 	.long	.LASF60
 	.byte	0x1
-	.byte	0x7d
+	.byte	0x7f
 	.long	.LFB7
 	.long	.LFE7
 	.long	.LLST6
@@ -6136,61 +6154,83 @@ _binary_blip_start:
 	.byte	0x1
 	.long	.LASF62
 	.byte	0x1
-	.byte	0x80
+	.byte	0x82
 	.long	.LFB8
 	.long	.LFE8
 	.long	.LLST7
 	.byte	0x1
-	.long	0x571
+	.long	0x5a8
 	.uleb128 0x1c
 	.byte	0x1
-	.long	.LASF76
+	.long	.LASF63
 	.byte	0x1
-	.byte	0x81
+	.byte	0x83
 	.long	0x82
 	.byte	0x1
 	.long	0x55d
 	.uleb128 0x1d
 	.byte	0
+	.uleb128 0x1c
+	.byte	0x1
+	.long	.LASF64
+	.byte	0x1
+	.byte	0x87
+	.long	0x82
+	.byte	0x1
+	.long	0x570
+	.uleb128 0x1d
+	.byte	0
 	.uleb128 0x1b
 	.long	.LVL20
-	.long	0x960
-	.uleb128 0x1e
+	.long	0x99a
+	.uleb128 0x1b
 	.long	.LVL21
+	.long	0x9ad
+	.uleb128 0x1b
+	.long	.LVL22
+	.long	0x9b7
+	.uleb128 0x1b
+	.long	.LVL23
+	.long	0x9cb
+	.uleb128 0x1b
+	.long	.LVL24
+	.long	0x9d5
+	.uleb128 0x1e
+	.long	.LVL25
 	.byte	0x1
-	.long	0x973
+	.long	0x990
 	.byte	0
 	.uleb128 0x1f
 	.byte	0x1
-	.long	.LASF88
+	.long	.LASF90
 	.byte	0x1
-	.byte	0xa7
+	.byte	0xad
 	.byte	0x1
 	.long	.LFB11
 	.long	.LFE11
 	.long	.LLST8
 	.byte	0x1
-	.long	0x5cd
+	.long	0x604
 	.uleb128 0x12
 	.long	.LASF40
 	.byte	0x1
-	.byte	0xa7
+	.byte	0xad
 	.long	0x28c
 	.byte	0x2
 	.byte	0x91
 	.sleb128 0
 	.uleb128 0x12
-	.long	.LASF63
+	.long	.LASF65
 	.byte	0x1
-	.byte	0xa7
+	.byte	0xad
 	.long	0x1f3
 	.byte	0x2
 	.byte	0x91
 	.sleb128 4
 	.uleb128 0x12
-	.long	.LASF64
+	.long	.LASF66
 	.byte	0x1
-	.byte	0xa7
+	.byte	0xad
 	.long	0x82
 	.byte	0x2
 	.byte	0x91
@@ -6198,47 +6238,47 @@ _binary_blip_start:
 	.uleb128 0x20
 	.string	"len"
 	.byte	0x1
-	.byte	0xa8
+	.byte	0xae
 	.long	0x49
 	.byte	0x2
 	.byte	0x7e
 	.sleb128 -2
 	.uleb128 0x1b
-	.long	.LVL23
-	.long	0x982
+	.long	.LVL27
+	.long	0x9e8
 	.byte	0
 	.uleb128 0xd
-	.long	.LASF65
+	.long	.LASF67
 	.byte	0x1
-	.byte	0xa2
+	.byte	0xa8
 	.byte	0x1
 	.byte	0x1
-	.long	0x5e5
+	.long	0x61c
 	.uleb128 0xe
 	.string	"fs"
 	.byte	0x1
-	.byte	0xa2
-	.long	0x5e5
+	.byte	0xa8
+	.long	0x61c
 	.byte	0
 	.uleb128 0x7
 	.byte	0x4
 	.long	0x15d
 	.uleb128 0x21
 	.byte	0x1
-	.long	.LASF89
+	.long	.LASF91
 	.byte	0x1
-	.byte	0xad
+	.byte	0xb3
 	.byte	0x1
 	.long	0x82
 	.long	.LFB12
 	.long	.LFE12
 	.long	.LLST9
 	.byte	0x1
-	.long	0x86d
+	.long	0x8a7
 	.uleb128 0x20
 	.string	"fs"
 	.byte	0x1
-	.byte	0xbc
+	.byte	0xc2
 	.long	0x15d
 	.byte	0x3
 	.byte	0x7e
@@ -6246,21 +6286,21 @@ _binary_blip_start:
 	.uleb128 0x22
 	.long	.LASF57
 	.byte	0x1
-	.byte	0xbd
+	.byte	0xc3
 	.long	0x1b5
 	.long	.LLST10
 	.uleb128 0x20
 	.string	"buf"
 	.byte	0x1
-	.byte	0xc3
-	.long	0x86d
+	.byte	0xc9
+	.long	0x8a7
 	.byte	0x2
 	.byte	0x7e
 	.sleb128 -64
 	.uleb128 0x20
 	.string	"len"
 	.byte	0x1
-	.byte	0xc4
+	.byte	0xca
 	.long	0x49
 	.byte	0x3
 	.byte	0x7e
@@ -6268,56 +6308,52 @@ _binary_blip_start:
 	.uleb128 0x14
 	.string	"sr"
 	.byte	0x1
-	.byte	0xd1
+	.byte	0xd7
 	.long	0x49
 	.long	.LLST11
 	.uleb128 0x23
-	.long	0x5cd
+	.long	0x604
 	.long	.LBB19
 	.long	.LBE19
 	.byte	0x1
-	.byte	0xc0
-	.long	0x67e
+	.byte	0xc6
+	.long	0x6b7
 	.uleb128 0x24
-	.long	0x5da
+	.long	0x611
 	.long	.LLST12
-	.uleb128 0x25
-	.long	.LVL26
-	.byte	0x2
-	.byte	0x7b
-	.sleb128 0
-	.uleb128 0x25
-	.long	.LVL27
-	.byte	0x2
-	.byte	0x7b
-	.sleb128 0
+	.uleb128 0x1b
+	.long	.LVL30
+	.long	0xa0a
+	.uleb128 0x1b
+	.long	.LVL31
+	.long	0xa0a
 	.byte	0
 	.uleb128 0x23
 	.long	0x2ff
 	.long	.LBB21
 	.long	.LBE21
 	.byte	0x1
-	.byte	0xcc
-	.long	0x6c1
-	.uleb128 0x26
+	.byte	0xd2
+	.long	0x6fa
+	.uleb128 0x25
 	.long	0x315
 	.byte	0
-	.uleb128 0x27
+	.uleb128 0x26
 	.long	0x30c
 	.byte	0x6
 	.byte	0x3
 	.long	ball1
 	.byte	0x9f
-	.uleb128 0x28
+	.uleb128 0x27
 	.long	.LBB22
 	.long	.LBE22
-	.uleb128 0x29
+	.uleb128 0x28
 	.long	0x327
-	.uleb128 0x26
+	.uleb128 0x25
 	.long	0x31e
 	.byte	0
-	.uleb128 0x25
-	.long	.LVL35
+	.uleb128 0x29
+	.long	.LVL39
 	.byte	0x2
 	.byte	0x7a
 	.sleb128 0
@@ -6328,27 +6364,27 @@ _binary_blip_start:
 	.long	.LBB23
 	.long	.LBE23
 	.byte	0x1
-	.byte	0xcd
-	.long	0x704
-	.uleb128 0x26
+	.byte	0xd3
+	.long	0x73d
+	.uleb128 0x25
 	.long	0x315
 	.byte	0x32
-	.uleb128 0x27
+	.uleb128 0x26
 	.long	0x30c
 	.byte	0x6
 	.byte	0x3
 	.long	ball2
 	.byte	0x9f
-	.uleb128 0x28
+	.uleb128 0x27
 	.long	.LBB24
 	.long	.LBE24
-	.uleb128 0x29
+	.uleb128 0x28
 	.long	0x327
-	.uleb128 0x26
+	.uleb128 0x25
 	.long	0x31e
 	.byte	0
-	.uleb128 0x25
-	.long	.LVL37
+	.uleb128 0x29
+	.long	.LVL41
 	.byte	0x2
 	.byte	0x7a
 	.sleb128 0
@@ -6357,34 +6393,34 @@ _binary_blip_start:
 	.uleb128 0x2a
 	.long	.LBB25
 	.long	.LBE25
-	.long	0x80e
+	.long	0x847
 	.uleb128 0x2b
 	.long	.LASF54
 	.byte	0x1
-	.byte	0xdc
+	.byte	0xe1
 	.long	0x49
 	.byte	0x5
 	.byte	0x3
-	.long	lastframe.2886
+	.long	lastframe.2914
 	.uleb128 0x2b
 	.long	.LASF53
 	.byte	0x1
-	.byte	0xdd
+	.byte	0xe2
 	.long	0x49
 	.byte	0x5
 	.byte	0x3
-	.long	thisframe.2887
+	.long	thisframe.2915
 	.uleb128 0x2b
-	.long	.LASF66
+	.long	.LASF68
 	.byte	0x1
-	.byte	0xdf
+	.byte	0xe4
 	.long	0x49
 	.byte	0x1
 	.byte	0x50
 	.uleb128 0x2b
-	.long	.LASF67
+	.long	.LASF69
 	.byte	0x1
-	.byte	0xe0
+	.byte	0xe5
 	.long	0x30
 	.byte	0x1
 	.byte	0x50
@@ -6393,8 +6429,8 @@ _binary_blip_start:
 	.long	.LBB26
 	.long	.Ldebug_ranges0+0x18
 	.byte	0x1
-	.byte	0xe5
-	.long	0x7b0
+	.byte	0xea
+	.long	0x7e9
 	.uleb128 0x13
 	.long	.Ldebug_ranges0+0x30
 	.uleb128 0x24
@@ -6408,8 +6444,8 @@ _binary_blip_start:
 	.long	.LBB28
 	.long	.Ldebug_ranges0+0x48
 	.byte	0x1
-	.byte	0x6f
-	.long	0x7a6
+	.byte	0x71
+	.long	0x7df
 	.uleb128 0x24
 	.long	0x35a
 	.long	.LLST15
@@ -6420,114 +6456,112 @@ _binary_blip_start:
 	.long	0x350
 	.long	.LLST17
 	.byte	0
-	.uleb128 0x25
-	.long	.LVL44
+	.uleb128 0x29
+	.long	.LVL48
 	.byte	0x2
 	.byte	0x76
 	.sleb128 0
 	.byte	0
 	.byte	0
-	.uleb128 0x25
-	.long	.LVL47
+	.uleb128 0x29
+	.long	.LVL51
 	.byte	0x2
 	.byte	0x75
 	.sleb128 0
-	.uleb128 0x25
-	.long	.LVL48
+	.uleb128 0x29
+	.long	.LVL52
 	.byte	0x2
 	.byte	0x7c
 	.sleb128 0
-	.uleb128 0x25
-	.long	.LVL49
+	.uleb128 0x29
+	.long	.LVL53
 	.byte	0x2
 	.byte	0x73
 	.sleb128 0
-	.uleb128 0x1b
-	.long	.LVL52
-	.long	0x9a4
-	.uleb128 0x1b
-	.long	.LVL54
-	.long	0x9ae
 	.uleb128 0x1b
 	.long	.LVL56
-	.long	0x93a
-	.uleb128 0x25
+	.long	0x9cb
+	.uleb128 0x1b
 	.long	.LVL58
+	.long	0xa23
+	.uleb128 0x1b
+	.long	.LVL60
+	.long	0xa0a
+	.uleb128 0x29
+	.long	.LVL62
 	.byte	0x2
 	.byte	0x75
 	.sleb128 0
-	.uleb128 0x25
-	.long	.LVL59
+	.uleb128 0x29
+	.long	.LVL63
 	.byte	0x2
 	.byte	0x7c
 	.sleb128 0
-	.uleb128 0x25
-	.long	.LVL60
+	.uleb128 0x29
+	.long	.LVL64
 	.byte	0x2
 	.byte	0x73
 	.sleb128 0
 	.uleb128 0x1b
-	.long	.LVL63
-	.long	0x9a4
+	.long	.LVL67
+	.long	0x9cb
 	.uleb128 0x1b
-	.long	.LVL65
-	.long	0x9ae
+	.long	.LVL69
+	.long	0xa23
 	.byte	0
 	.uleb128 0x1b
-	.long	.LVL24
-	.long	0x9d1
-	.uleb128 0x25
-	.long	.LVL25
-	.byte	0x2
-	.byte	0x7c
-	.sleb128 0
-	.uleb128 0x1b
 	.long	.LVL28
-	.long	0x9e9
-	.uleb128 0x25
+	.long	0xa46
+	.uleb128 0x29
 	.long	.LVL29
 	.byte	0x2
-	.byte	0x7c
+	.byte	0x7b
 	.sleb128 0
 	.uleb128 0x1b
-	.long	.LVL30
-	.long	0x982
-	.uleb128 0x25
-	.long	.LVL31
-	.byte	0x2
-	.byte	0x7b
-	.sleb128 0
-	.uleb128 0x25
 	.long	.LVL32
-	.byte	0x2
-	.byte	0x7b
-	.sleb128 0
-	.uleb128 0x25
+	.long	0xa5e
+	.uleb128 0x29
 	.long	.LVL33
 	.byte	0x2
 	.byte	0x7b
 	.sleb128 0
 	.uleb128 0x1b
-	.long	.LVL38
+	.long	.LVL34
+	.long	0x9e8
+	.uleb128 0x1b
+	.long	.LVL35
+	.long	0xa0a
+	.uleb128 0x29
+	.long	.LVL36
+	.byte	0x2
+	.byte	0x7b
+	.sleb128 0
+	.uleb128 0x29
+	.long	.LVL37
+	.byte	0x2
+	.byte	0x7b
+	.sleb128 0
+	.uleb128 0x1b
+	.long	.LVL42
 	.long	0x531
 	.uleb128 0x1b
-	.long	.LVL39
-	.long	0xa01
+	.long	.LVL43
+	.long	0xa76
 	.uleb128 0x1b
-	.long	.LVL41
-	.long	0xa0f
+	.long	.LVL45
+	.long	0xa84
 	.byte	0
 	.uleb128 0x2d
 	.long	0x175
-	.long	0x87d
+	.long	0x8b7
 	.uleb128 0x2e
 	.long	0x16e
 	.byte	0x3f
 	.byte	0
 	.uleb128 0x2b
-	.long	.LASF68
+	.long	.LASF70
 	.byte	0x1
-	.byte	0x2e
+	.byte	0x30
 	.long	0x1f9
 	.byte	0x5
 	.byte	0x3
@@ -6535,23 +6569,23 @@ _binary_blip_start:
 	.uleb128 0x20
 	.string	"pai"
 	.byte	0x1
-	.byte	0x2f
+	.byte	0x31
 	.long	0x1f9
 	.byte	0x5
 	.byte	0x3
 	.long	pai
 	.uleb128 0x2b
-	.long	.LASF69
+	.long	.LASF71
 	.byte	0x1
-	.byte	0x30
+	.byte	0x32
 	.long	0x2f4
 	.byte	0x5
 	.byte	0x3
 	.long	ball1
 	.uleb128 0x2b
-	.long	.LASF70
+	.long	.LASF72
 	.byte	0x1
-	.byte	0x30
+	.byte	0x32
 	.long	0x2f4
 	.byte	0x5
 	.byte	0x3
@@ -6559,107 +6593,133 @@ _binary_blip_start:
 	.uleb128 0x2b
 	.long	.LASF51
 	.byte	0x1
-	.byte	0x68
+	.byte	0x6a
 	.long	0x281
 	.byte	0x5
 	.byte	0x3
 	.long	vect
 	.uleb128 0x2b
-	.long	.LASF71
+	.long	.LASF73
 	.byte	0x1
-	.byte	0x73
-	.long	0x8e3
+	.byte	0x75
+	.long	0x91d
 	.byte	0x5
 	.byte	0x3
 	.long	fbdirty
 	.uleb128 0x2
 	.byte	0x1
 	.byte	0x2
-	.long	.LASF72
+	.long	.LASF74
 	.uleb128 0x2d
 	.long	0x30
-	.long	0x8fb
+	.long	0x935
 	.uleb128 0x2f
 	.long	0x16e
 	.word	0x5ef
 	.byte	0
 	.uleb128 0x30
-	.long	.LASF73
+	.long	.LASF75
 	.byte	0x7
 	.byte	0x1
-	.long	0x90d
+	.long	0x947
 	.byte	0x1
 	.byte	0x5
 	.byte	0x3
 	.long	_binary_fontrom_start
 	.uleb128 0xc
-	.long	0x8ea
+	.long	0x924
 	.uleb128 0x2d
 	.long	0x30
-	.long	0x923
+	.long	0x95d
 	.uleb128 0x2f
 	.long	0x16e
 	.word	0x11c1
 	.byte	0
 	.uleb128 0x30
-	.long	.LASF74
+	.long	.LASF76
 	.byte	0x8
 	.byte	0x2
-	.long	0x935
+	.long	0x96f
 	.byte	0x1
 	.byte	0x5
 	.byte	0x3
 	.long	_binary_blip_start
 	.uleb128 0xc
-	.long	0x912
+	.long	0x94c
 	.uleb128 0x31
 	.byte	0x1
-	.long	.LASF75
+	.long	.LASF77
 	.byte	0x9
 	.byte	0
-	.long	.LASF90
+	.long	.LASF92
 	.byte	0x1
 	.long	0x82
 	.byte	0x1
-	.long	0x956
+	.long	0x990
 	.uleb128 0x32
 	.long	0x294
 	.byte	0
 	.uleb128 0x33
 	.byte	0x1
-	.long	.LASF77
+	.long	.LASF78
 	.byte	0xa
-	.byte	0x12
+	.byte	0x20
 	.byte	0x1
 	.byte	0x1
 	.uleb128 0x1c
 	.byte	0x1
-	.long	.LASF76
+	.long	.LASF63
 	.byte	0x1
-	.byte	0x81
+	.byte	0x83
 	.long	0x82
 	.byte	0x1
-	.long	0x973
+	.long	0x9ad
 	.uleb128 0x1d
 	.byte	0
+	.uleb128 0x33
+	.byte	0x1
+	.long	.LASF79
+	.byte	0xa
+	.byte	0x14
+	.byte	0x1
+	.byte	0x1
 	.uleb128 0x34
 	.byte	0x1
-	.long	.LASF83
+	.long	.LASF80
 	.byte	0xa
-	.byte	0x1c
+	.byte	0x32
 	.byte	0x1
-	.long	0x982
+	.byte	0x1
+	.long	0x9cb
+	.uleb128 0x32
+	.long	0x49
+	.byte	0
+	.uleb128 0x33
+	.byte	0x1
+	.long	.LASF81
+	.byte	0xa
+	.byte	0x1a
+	.byte	0x1
+	.byte	0x1
+	.uleb128 0x1c
+	.byte	0x1
+	.long	.LASF64
+	.byte	0x1
+	.byte	0x87
+	.long	0x82
+	.byte	0x1
+	.long	0x9e8
 	.uleb128 0x1d
 	.byte	0
 	.uleb128 0x35
 	.byte	0x1
-	.long	.LASF80
+	.long	.LASF82
 	.byte	0x3
 	.byte	0x7c
 	.byte	0x1
 	.long	0x1b5
 	.byte	0x1
-	.long	0x9a4
+	.long	0xa0a
 	.uleb128 0x32
 	.long	0x28c
 	.uleb128 0x32
@@ -6667,21 +6727,27 @@ _binary_blip_start:
 	.uleb128 0x32
 	.long	0x1f3
 	.byte	0
-	.uleb128 0x33
+	.uleb128 0x35
 	.byte	0x1
-	.long	.LASF78
+	.long	.LASF83
+	.byte	0xb
+	.byte	0xb6
+	.byte	0x1
+	.long	0x82
+	.byte	0x1
+	.long	0xa23
+	.uleb128 0x32
+	.long	0x294
+	.uleb128 0x1d
+	.byte	0
+	.uleb128 0x34
+	.byte	0x1
+	.long	.LASF84
 	.byte	0xa
-	.byte	0x11
+	.byte	0x2c
 	.byte	0x1
 	.byte	0x1
-	.uleb128 0x36
-	.byte	0x1
-	.long	.LASF79
-	.byte	0xa
-	.byte	0x1b
-	.byte	0x1
-	.byte	0x1
-	.long	0x9d1
+	.long	0xa46
 	.uleb128 0x32
 	.long	0x28e
 	.uleb128 0x32
@@ -6693,40 +6759,40 @@ _binary_blip_start:
 	.byte	0
 	.uleb128 0x35
 	.byte	0x1
-	.long	.LASF81
+	.long	.LASF85
 	.byte	0x3
 	.byte	0x7a
 	.byte	0x1
 	.long	0x1b5
 	.byte	0x1
-	.long	0x9e9
+	.long	0xa5e
 	.uleb128 0x32
-	.long	0x5e5
+	.long	0x61c
 	.byte	0
 	.uleb128 0x35
 	.byte	0x1
-	.long	.LASF82
+	.long	.LASF86
 	.byte	0x3
 	.byte	0x7b
 	.byte	0x1
 	.long	0x1b5
 	.byte	0x1
-	.long	0xa01
+	.long	0xa76
 	.uleb128 0x32
 	.long	0x294
 	.byte	0
-	.uleb128 0x37
+	.uleb128 0x36
 	.byte	0x1
-	.long	.LASF91
-	.byte	0xb
+	.long	.LASF93
+	.byte	0xc
 	.byte	0x12
 	.byte	0x1
 	.long	0x49
 	.byte	0x1
-	.uleb128 0x38
+	.uleb128 0x37
 	.byte	0x1
-	.long	.LASF84
-	.byte	0xb
+	.long	.LASF94
+	.byte	0xc
 	.byte	0x17
 	.byte	0x1
 	.byte	0x1
@@ -7251,15 +7317,6 @@ _binary_blip_start:
 	.byte	0
 	.byte	0
 	.uleb128 0x25
-	.uleb128 0x4109
-	.byte	0
-	.uleb128 0x11
-	.uleb128 0x1
-	.uleb128 0x2113
-	.uleb128 0xa
-	.byte	0
-	.byte	0
-	.uleb128 0x26
 	.uleb128 0x5
 	.byte	0
 	.uleb128 0x31
@@ -7268,7 +7325,7 @@ _binary_blip_start:
 	.uleb128 0xb
 	.byte	0
 	.byte	0
-	.uleb128 0x27
+	.uleb128 0x26
 	.uleb128 0x5
 	.byte	0
 	.uleb128 0x31
@@ -7277,7 +7334,7 @@ _binary_blip_start:
 	.uleb128 0xa
 	.byte	0
 	.byte	0
-	.uleb128 0x28
+	.uleb128 0x27
 	.uleb128 0xb
 	.byte	0x1
 	.uleb128 0x11
@@ -7286,11 +7343,20 @@ _binary_blip_start:
 	.uleb128 0x1
 	.byte	0
 	.byte	0
-	.uleb128 0x29
+	.uleb128 0x28
 	.uleb128 0x5
 	.byte	0
 	.uleb128 0x31
 	.uleb128 0x13
+	.byte	0
+	.byte	0
+	.uleb128 0x29
+	.uleb128 0x4109
+	.byte	0
+	.uleb128 0x11
+	.uleb128 0x1
+	.uleb128 0x2113
+	.uleb128 0xa
 	.byte	0
 	.byte	0
 	.uleb128 0x2a
@@ -7438,6 +7504,8 @@ _binary_blip_start:
 	.uleb128 0xb
 	.uleb128 0x3b
 	.uleb128 0xb
+	.uleb128 0x27
+	.uleb128 0xc
 	.uleb128 0x3c
 	.uleb128 0xc
 	.uleb128 0x1
@@ -7467,25 +7535,6 @@ _binary_blip_start:
 	.byte	0
 	.uleb128 0x36
 	.uleb128 0x2e
-	.byte	0x1
-	.uleb128 0x3f
-	.uleb128 0xc
-	.uleb128 0x3
-	.uleb128 0xe
-	.uleb128 0x3a
-	.uleb128 0xb
-	.uleb128 0x3b
-	.uleb128 0xb
-	.uleb128 0x27
-	.uleb128 0xc
-	.uleb128 0x3c
-	.uleb128 0xc
-	.uleb128 0x1
-	.uleb128 0x13
-	.byte	0
-	.byte	0
-	.uleb128 0x37
-	.uleb128 0x2e
 	.byte	0
 	.uleb128 0x3f
 	.uleb128 0xc
@@ -7503,7 +7552,7 @@ _binary_blip_start:
 	.uleb128 0xc
 	.byte	0
 	.byte	0
-	.uleb128 0x38
+	.uleb128 0x37
 	.uleb128 0x2e
 	.byte	0x1
 	.uleb128 0x3f
@@ -7657,29 +7706,29 @@ _binary_blip_start:
 	.long	0
 	.long	0
 .LLST10:
-	.long	.LVL24
-	.long	.LVL25-1
-	.word	0x1
-	.byte	0x50
 	.long	.LVL28
 	.long	.LVL29-1
+	.word	0x1
+	.byte	0x50
+	.long	.LVL32
+	.long	.LVL33-1
 	.word	0x1
 	.byte	0x50
 	.long	0
 	.long	0
 .LLST11:
-	.long	.LVL39
-	.long	.LVL40
+	.long	.LVL43
+	.long	.LVL44
 	.word	0x1
 	.byte	0x50
 	.long	0
 	.long	0
 .LLST12:
-	.long	.LVL25
-	.long	.LVL34
+	.long	.LVL29
+	.long	.LVL38
 	.word	0x1
 	.byte	0x5a
-	.long	.LVL34
+	.long	.LVL38
 	.long	.LFE12
 	.word	0x4
 	.byte	0x91
@@ -7688,13 +7737,13 @@ _binary_blip_start:
 	.long	0
 	.long	0
 .LLST13:
-	.long	.LVL43
-	.long	.LVL55
+	.long	.LVL47
+	.long	.LVL59
 	.word	0x6
 	.byte	0x3
 	.long	ball2
 	.byte	0x9f
-	.long	.LVL57
+	.long	.LVL61
 	.long	.LFE12
 	.word	0x6
 	.byte	0x3
@@ -7703,13 +7752,13 @@ _binary_blip_start:
 	.long	0
 	.long	0
 .LLST14:
-	.long	.LVL43
-	.long	.LVL55
+	.long	.LVL47
+	.long	.LVL59
 	.word	0x6
 	.byte	0x3
 	.long	ball1
 	.byte	0x9f
-	.long	.LVL57
+	.long	.LVL61
 	.long	.LFE12
 	.word	0x6
 	.byte	0x3
@@ -7718,13 +7767,13 @@ _binary_blip_start:
 	.long	0
 	.long	0
 .LLST15:
-	.long	.LVL45
-	.long	.LVL46
+	.long	.LVL49
+	.long	.LVL50
 	.word	0x6
 	.byte	0x3
 	.long	vect
 	.byte	0x9f
-	.long	.LVL57
+	.long	.LVL61
 	.long	.LFE12
 	.word	0x6
 	.byte	0x3
@@ -7733,13 +7782,13 @@ _binary_blip_start:
 	.long	0
 	.long	0
 .LLST16:
-	.long	.LVL45
-	.long	.LVL46
+	.long	.LVL49
+	.long	.LVL50
 	.word	0x6
 	.byte	0x3
 	.long	ball1
 	.byte	0x9f
-	.long	.LVL57
+	.long	.LVL61
 	.long	.LFE12
 	.word	0x6
 	.byte	0x3
@@ -7748,13 +7797,13 @@ _binary_blip_start:
 	.long	0
 	.long	0
 .LLST17:
-	.long	.LVL45
-	.long	.LVL46
+	.long	.LVL49
+	.long	.LVL50
 	.word	0x6
 	.byte	0x3
 	.long	ball2
 	.byte	0x9f
-	.long	.LVL57
+	.long	.LVL61
 	.long	.LFE12
 	.word	0x6
 	.byte	0x3
@@ -7815,10 +7864,12 @@ _binary_blip_start:
 	.string	"FR_NOT_READY"
 .LASF12:
 	.string	"fs_type"
-.LASF84:
+.LASF94:
 	.string	"machine_setstatusregister"
 .LASF16:
 	.string	"n_rootdir"
+.LASF83:
+	.string	"printf"
 .LASF10:
 	.string	"long long unsigned int"
 .LASF43:
@@ -7829,33 +7880,33 @@ _binary_blip_start:
 	.string	"long long int"
 .LASF0:
 	.string	"signed char"
-.LASF69:
+.LASF71:
 	.string	"ball1"
-.LASF70:
+.LASF72:
 	.string	"ball2"
-.LASF63:
+.LASF65:
 	.string	"buff"
-.LASF88:
+.LASF90:
 	.string	"fatimageloader"
-.LASF64:
+.LASF66:
 	.string	"wanted"
 .LASF22:
 	.string	"fsize"
-.LASF68:
+.LASF70:
 	.string	"ballimage"
 .LASF17:
 	.string	"n_fatent"
-.LASF78:
+.LASF81:
 	.string	"video_commit"
 .LASF6:
 	.string	"long int"
-.LASF75:
+.LASF77:
 	.string	"__builtin_puts"
 .LASF36:
 	.string	"FR_NO_FILESYSTEM"
 .LASF4:
 	.string	"uint16_t"
-.LASF73:
+.LASF75:
 	.string	"_binary_fontrom_start"
 .LASF23:
 	.string	"org_clust"
@@ -7869,7 +7920,7 @@ _binary_blip_start:
 	.string	"xinc"
 .LASF14:
 	.string	"csize"
-.LASF74:
+.LASF76:
 	.string	"_binary_blip_start"
 .LASF53:
 	.string	"thisframe"
@@ -7881,9 +7932,9 @@ _binary_blip_start:
 	.string	"curr_clust"
 .LASF8:
 	.string	"long unsigned int"
-.LASF79:
+.LASF84:
 	.string	"video_gputs"
-.LASF67:
+.LASF69:
 	.string	"port0"
 .LASF38:
 	.string	"width"
@@ -7897,24 +7948,26 @@ _binary_blip_start:
 	.string	"speedx"
 .LASF47:
 	.string	"speedy"
-.LASF86:
+.LASF88:
 	.string	"main.c"
 .LASF30:
 	.string	"FR_DISK_ERR"
 .LASF49:
 	.string	"newball"
-.LASF82:
+.LASF86:
 	.string	"pf_open"
 .LASF26:
 	.string	"FATFS"
-.LASF90:
+.LASF92:
 	.string	"puts"
 .LASF21:
 	.string	"fptr"
-.LASF66:
+.LASF68:
 	.string	"vidflags"
 .LASF34:
 	.string	"FR_NOT_OPENED"
+.LASF79:
+	.string	"video_begin"
 .LASF27:
 	.string	"sizetype"
 .LASF59:
@@ -7923,27 +7976,27 @@ _binary_blip_start:
 	.string	"interrupthandler"
 .LASF19:
 	.string	"dirbase"
-.LASF80:
+.LASF82:
 	.string	"pf_read"
 .LASF32:
 	.string	"FR_NO_FILE"
-.LASF85:
+.LASF87:
 	.string	"GNU C 4.7.1"
 .LASF48:
 	.string	"ball"
 .LASF35:
 	.string	"FR_NOT_ENABLED"
-.LASF65:
+.LASF67:
 	.string	"printfat"
 .LASF55:
 	.string	"updateball"
 .LASF52:
 	.string	"ballcollision"
-.LASF71:
+.LASF73:
 	.string	"fbdirty"
 .LASF25:
 	.string	"dsect"
-.LASF72:
+.LASF74:
 	.string	"_Bool"
 .LASF1:
 	.string	"unsigned char"
@@ -7953,16 +8006,18 @@ _binary_blip_start:
 	.string	"image"
 .LASF2:
 	.string	"short int"
-.LASF83:
+.LASF80:
 	.string	"video_clear"
 .LASF13:
 	.string	"flag"
-.LASF76:
+.LASF63:
 	.string	"video_setconfig"
-.LASF87:
+.LASF89:
 	.string	"/home/daniel/coding/musasim/examples/m68ktestapp"
 .LASF7:
 	.string	"uint32_t"
+.LASF64:
+	.string	"video_waitforvblank"
 .LASF62:
 	.string	"initvideo"
 .LASF28:
@@ -7973,15 +8028,15 @@ _binary_blip_start:
 	.string	"vect"
 .LASF15:
 	.string	"pad1"
-.LASF77:
+.LASF78:
 	.string	"video_flip"
 .LASF3:
 	.string	"uint8_t"
-.LASF91:
+.LASF93:
 	.string	"machine_getstatusregister"
 .LASF61:
 	.string	"vblank_handler"
-.LASF81:
+.LASF85:
 	.string	"pf_mount"
 .LASF37:
 	.string	"FRESULT"
@@ -7991,7 +8046,7 @@ _binary_blip_start:
 	.string	"FR_NO_PATH"
 .LASF39:
 	.string	"height"
-.LASF89:
+.LASF91:
 	.string	"main"
 .LASF57:
 	.string	"result"

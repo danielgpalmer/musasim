@@ -67,9 +67,9 @@ void video_plot(int x, int y, uint16_t colour) {
 	*(video_start + (VIDEO_PLAYFIELDWIDTH * y) + x) = colour;
 }
 
-void video_clear() {
+void video_clear(uint16_t clearcolour) {
 	static uint32_t count = VIDEO_PLAYFIELDWIDTH * VIDEO_PLAYFIELDHEIGHT;
-	dma_fillblock((uint32_t) video_start, 0xFFFF, count);
+	dma_fillblock((uint32_t) video_start, clearcolour, count);
 }
 
 void video_fillrect(int x, int y, int width, int height) {

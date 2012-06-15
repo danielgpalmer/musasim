@@ -42,7 +42,13 @@ void video_blitimage(int width, int height, int x, int y, void* data, dataloader
  */
 void video_blitimage_nocopy(int width, int height, int x, int y, uint16_t* data);
 void video_gputs(char* string, uint8_t* font, int col, int row);
-void video_clear();
+
+/**
+ * fills the playfield with a single colour
+ */
+
+void video_clear(uint16_t clearcolour);
+
 void video_fillrect(int x, int y, int width, int height);
 void video_drawline(vector* v);
 

@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <inttypes.h>
+
 #include "fontrom.h"
 
 #include <libunagipai/video.h>
@@ -117,8 +119,8 @@ static bool fbdirty = false;
 void vblank_handler() {
 
 	if (fbdirty) {
-		video_flip();
 		fbdirty = false;
+		video_flip();
 	}
 }
 
@@ -127,7 +129,11 @@ void uart_handler() {
 
 void initvideo() {
 	video_setconfig(true, false);
-	video_clear();
+	video_begin();
+	video_clear(0xFFFF);
+	video_commit();
+	video_waitforvblank();
+	video_flip();
 }
 
 static void printffresult(FRESULT result) {
@@ -212,11 +218,10 @@ int main(void) {
 	while (1) {
 
 		if (fbdirty) {
-			printf("still dirty\n");
+			printf("still dirty %d"PRId16"\n", video_register_frame);
 			continue;
 		}
 
-		//printf("Whassup homes\n");
 		static uint16_t lastframe = 0;
 		static uint16_t thisframe;
 
@@ -229,7 +234,7 @@ int main(void) {
 		ballcollision(&ball1, &ball2);
 
 		video_begin();
-		video_clear();
+		video_clear(0xFFFF);
 		video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
 		sprite_draw(ball1.sprite);
 		sprite_draw(ball2.sprite);
