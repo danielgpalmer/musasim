@@ -207,20 +207,10 @@ static void video_write_word(uint32_t address, uint16_t data) {
 }
 
 static uint8_t video_read_byte(uint32_t address) {
-
-	if (!video_validaddress(address)) {
-		return 0;
-	}
-
 	return 0;
-
 }
 
 static uint16_t video_read_word(uint32_t address) {
-
-	if (!video_validaddress(address)) {
-		return 0;
-	}
 
 	if (address >= registersstart) {
 		uint8_t reg = GETVIDREG(address);

@@ -14,6 +14,7 @@
 #include "logging.h"
 #include "musashi/m68k.h"
 
+// all of the hardware headers
 #include "hardware/board.h"
 #include "hardware/cards/romcard.h"
 #include "hardware/cards/basicvideo.h"
@@ -26,18 +27,23 @@
 #include "hardware/cards/dmacard.h"
 #include "hardware/cards/timercard.h"
 
-#define SIM_KEY_RESET	SDLK_r
-#define SIM_KEY_PAUSE	SDLK_p
-#define SIM_KEY_NMI		SDLK_n
+// keys that the sim uses
+#define SIM_KEY_PAUSE	SDLK_F1
+#define SIM_KEY_RESET	SDLK_F2
+#define SIM_KEY_NMI		SDLK_F3
+#define SIM_KEY_MUTE	SDLK_F4
 #define SIM_KEY_QUIT	SDLK_ESCAPE
 
+// state
 static bool shouldexit = false;
 static bool paused = false;
 static bool initialised = false;
 
+// machine configuration
 static bool basicvideo = false;
 static bool basicsound = false;
 
+static const char WINDOWTITLE[] = "musasim";
 static const char TAG[] = "sim";
 
 void cpu_pulse_reset(void) {
@@ -72,17 +78,24 @@ void cpu_set_fc(unsigned int fc) {
 }
 
 void sim_setoptions(bool usebasicvideo, bool usebasicsound) {
-	if (!initialised) {
-		basicvideo = usebasicvideo;
-		basicsound = usebasicsound;
-
+	if (initialised) {
+		log_println(LEVEL_WARNING, TAG, "setoptions can only be called before the sim starts running");
+		return;
 	}
+
+	basicvideo = usebasicvideo;
+	basicsound = usebasicsound;
 }
 
 void sim_init() {
+	if (initialised) {
+		log_println(LEVEL_WARNING, TAG, "sim is apparently already running");
+		return;
+	}
+
 	log_println(LEVEL_DEBUG, TAG, "sim_init()");
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE);
-	SDL_WM_SetCaption("musasim", "musasim");
+	SDL_WM_SetCaption(WINDOWTITLE, WINDOWTITLE);
 
 	board_add_device(SLOT_ROMCARD, &romcard);
 	board_add_device(SLOT_VIDEOCARD, basicvideo ? &basicvideocard : &videocard);
@@ -92,6 +105,7 @@ void sim_init() {
 	board_add_device(SLOT_DMACARD, &dmacard);
 	board_add_device(SLOT_TIMERCARD, &timercard);
 	board_add_device(SLOT_INPUTCARD, &inputcard);
+
 	initialised = true;
 }
 
@@ -144,6 +158,7 @@ void sim_tick() {
 		return;
 	}
 
+	// pick out the events that the sim wants
 	for (int i = 0; i < SDL_PeepEvents(events, 10, SDL_PEEKEVENT, SDL_KEYDOWNMASK | SDL_KEYUPMASK); i++) {
 		if (events[i].type == SDL_KEYUP) {
 			switch (events[i].key.keysym.sym) {
@@ -151,6 +166,8 @@ void sim_tick() {
 					m68k_set_irq(7);
 					break;
 				case SIM_KEY_RESET:
+					break;
+				case SIM_KEY_MUTE:
 					break;
 				case SIM_KEY_PAUSE:
 					paused = !paused;
@@ -185,7 +202,8 @@ void sim_tick() {
 	gettimeofday(&start, NULL);
 
 	if (!board_bus_locked()) {
-		m68k_execute(SIM_CLOCKS_PERTICK);
+		m68k_execute(SIM_CLOCKS_PERTICK / SIM_CPUCLOCK_DIVIDER);
+		// maybe STOP happened
 		if (shouldexit) {
 			return;
 		}

@@ -18,8 +18,9 @@ void cpu_pulse_reset(void);
 void cpu_pulse_stop(void);
 void cpu_set_fc(unsigned int fc);
 
-#define SIM_TARGET_FREQUENCY 10000000 // 10mhz
-#define SIM_CLOCKS_PERTICK 100 // this needs to high enough that the time a tick takes is a good number of micro seconds. On the other hand, if its too high emulation accuracy will be bad
+#define SIM_TARGET_FREQUENCY 50000000 // 50mhz
+#define SIM_CPUCLOCK_DIVIDER 4 // Divide the base clock by this to get the cpu clock
+#define SIM_CLOCKS_PERTICK 1000 // this needs to high enough that the time a tick takes is a good number of micro seconds. On the other hand, if its too high emulation accuracy will be bad
 #define SIM_TICKS_PERSECOND (SIM_TARGET_FREQUENCY/SIM_CLOCKS_PERTICK) //
 #define SIM_USECSPERTICK (1000000 / SIM_TICKS_PERSECOND)
 

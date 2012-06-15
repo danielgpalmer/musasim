@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 #include <string.h>
 
-#include <libunagipai/uart.h>
+#include "include/uart.h"
 
 #define STDIN_FILENO 0 /* standard input file descriptor */
 #define STDOUT_FILENO 1 /* standard output file descriptor */
@@ -109,7 +109,7 @@ caddr_t _sbrk(int incr) {
 		abort ();
 #else
 		errno = ENOMEM;
-		return (caddr_t) -1;
+		return (caddr_t) - 1;
 #endif
 	}
 
