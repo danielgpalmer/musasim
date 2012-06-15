@@ -44,6 +44,18 @@ static uint32_t registersstart;
 
 #define ISACTIVE (!(flags & FLAG_HBLANK || flags & FLAG_VBLANK))
 
+static void video_updaterects() {
+	region.x = posx + winx;
+	region.y = posy + winy;
+	region.w = winwidth;
+	region.h = winheight;
+
+	window.x = winx;
+	window.y = winy;
+	window.w = 0;
+	window.h = 0;
+}
+
 static void video_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
@@ -75,6 +87,8 @@ static void video_init() {
 	log_println(LEVEL_DEBUG, TAG,
 			"Active area is %d pixel, Total area  is %d pixels, refresh rate %d, pixels per second %d, pixels per tick %d",
 			VIDEO_ACTIVEPIXELS, VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELSPERSECOND, PIXELSPERTICK);
+
+	video_updaterects();
 
 }
 
@@ -138,15 +152,6 @@ static void video_tick() {
 				}
 
 				// FIXME
-				region.x = posx + winx;
-				region.y = posy + winy;
-				region.w = winwidth;
-				region.h = winheight;
-
-				window.x = winx;
-				window.y = winy;
-				window.w = 0;
-				window.h = 0;
 
 				SDL_FillRect(screen, NULL, 0x0);
 				SDL_BlitSurface(VISIBLESURFACE, &region, screen, &window);
@@ -209,6 +214,12 @@ static void video_write_word(uint32_t address, uint16_t data) {
 			}
 		}
 		*(video_registers[reg]) = data;
+
+		// update the window rects
+		if (reg == VIDEO_REG_POSX || reg == VIDEO_REG_POSY || reg == VIDEO_REG_WINHEIGHT || reg == VIDEO_REG_WINWIDTH
+				|| reg == VIDEO_REG_WINX || reg == VIDEO_REG_WINY) {
+			video_updaterects();
+		}
 	}
 
 }
