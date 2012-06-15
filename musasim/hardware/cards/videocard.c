@@ -165,8 +165,6 @@ static void video_tick() {
 		}
 		pixel++;
 	}
-
-//printf("%d, %d\n", pixel, line);
 }
 
 static void video_write_byte(uint32_t address, uint8_t data) {
