@@ -80,6 +80,8 @@ void video_fillrect(int x, int y, int width, int height) {
 
 void video_drawline(vector* v) {
 
+	dma_commit();
+
 	int dx, dy, err, sx, sy, e2;
 	dx = abs(v->x2 - v->x1);
 	dy = abs(v->y2 - v->y1);
@@ -104,6 +106,8 @@ void video_drawline(vector* v) {
 
 		}
 	}
+
+	dma_begin();
 
 }
 
@@ -145,6 +149,8 @@ void video_blitimage_nocopy(int width, int height, int x, int y, uint16_t* data)
 
 void video_gputs(char* string, uint8_t* font, int col, int row) {
 
+	dma_commit();
+
 	int charoffset = 32 * CHARHEIGHT;
 	char c = 0;
 
@@ -170,4 +176,6 @@ void video_gputs(char* string, uint8_t* font, int col, int row) {
 
 		col++;
 	}
+
+	dma_begin();
 }

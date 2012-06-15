@@ -41,6 +41,8 @@ static uint32_t registersstart;
 #define WRITEABLESURFACE ((config & VIDEO_CONFIG_FLIP) ? rendersurfaces[0] : rendersurfaces[1])
 #define VISIBLESURFACE ( !(config & VIDEO_CONFIG_FLIP) ? rendersurfaces[1] : rendersurfaces[0])
 
+#define ISACTIVE (!(flags & FLAG_HBLANK || flags & FLAG_VBLANK))
+
 static void video_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
@@ -195,10 +197,16 @@ static void video_write_word(uint32_t address, uint16_t data) {
 		uint8_t reg = GETVIDREG(address);
 		if (reg == 1) {
 			if (*(video_registers[reg]) & VIDEO_CONFIG_FLIP) {
-				log_println(LEVEL_DEBUG, TAG, "surface 1");
+				if (ISACTIVE) {
+					log_println(LEVEL_INFO, TAG, "flipped while active");
+				}
+				log_println(LEVEL_INFO, TAG, "surface 1");
 			}
 			else {
-				log_println(LEVEL_DEBUG, TAG, "surface 0");
+				if (ISACTIVE) {
+					log_println(LEVEL_INFO, TAG, "flipped while active");
+				}
+				log_println(LEVEL_INFO, TAG, "surface 0");
 			}
 		}
 		*(video_registers[reg]) = data;

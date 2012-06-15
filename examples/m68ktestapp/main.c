@@ -114,14 +114,29 @@ static void ballcollision(ball* b1, ball* b2) {
 	}
 }
 
-static bool fbdirty = false;
-
 void vblank_handler() {
+	static uint16_t lastframe = 0;
+	static uint16_t thisframe;
 
-	if (fbdirty) {
-		fbdirty = false;
-		video_flip();
-	}
+	uint16_t vidflags = video_register_flags;
+	uint8_t port0 = input_port0;
+	thisframe = video_register_frame;
+
+	updateball(&ball1, thisframe, lastframe);
+	updateball(&ball2, thisframe, lastframe);
+	ballcollision(&ball1, &ball2);
+
+	video_begin();
+	video_clear(0xFFFF);
+	video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
+	sprite_draw(ball1.sprite);
+	sprite_draw(ball2.sprite);
+	video_drawline(&vect);
+	video_gputs("Hello World!", _binary_fontrom_start, 0, 0);
+	video_commit();
+
+	lastframe = thisframe;
+	video_flip();
 }
 
 void uart_handler() {
@@ -217,33 +232,6 @@ int main(void) {
 
 	while (1) {
 
-		if (fbdirty) {
-			printf("still dirty %d"PRId16"\n", video_register_frame);
-			continue;
-		}
-
-		static uint16_t lastframe = 0;
-		static uint16_t thisframe;
-
-		uint16_t vidflags = video_register_flags;
-		uint8_t port0 = input_port0;
-		thisframe = video_register_frame;
-
-		updateball(&ball1, thisframe, lastframe);
-		updateball(&ball2, thisframe, lastframe);
-		ballcollision(&ball1, &ball2);
-
-		video_begin();
-		video_clear(0xFFFF);
-		video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
-		sprite_draw(ball1.sprite);
-		sprite_draw(ball2.sprite);
-		video_commit();
-		video_drawline(&vect);
-		video_gputs("Hello World!", _binary_fontrom_start, 0, 0);
-
-		lastframe = thisframe;
-		fbdirty = true;
 	}
 
 	return 0;
