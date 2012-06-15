@@ -17,7 +17,6 @@
 static bool transactionopen = false;
 
 void video_flip() {
-	video_waitforvblank();
 	if (video_register_config & VIDEO_CONFIG_FLIP) {
 		video_register_config &= ~VIDEO_CONFIG_FLIP;
 	}
@@ -27,7 +26,6 @@ void video_flip() {
 }
 
 void video_waitforvblank() {
-
 	if ((video_register_config & VIDEO_CONFIG_MODE_MASK) == VIDEO_CONFIG_MODE_DISABLED) {
 		return;
 	}
@@ -37,12 +35,10 @@ void video_waitforvblank() {
 }
 
 void video_setconfig(bool vblankint, bool hblankint) {
-	video_waitforvblank();
 	video_register_config = VIDEO_CONFIG_MODE_BITMAP | VIDEO_CONFIG_ENVBINT;
 }
 
 void video_changewindow() {
-	video_waitforvblank();
 }
 
 void video_begin() {
@@ -147,10 +143,8 @@ void video_blitimage_nocopy(int width, int height, int x, int y, uint16_t* data)
 #define COLS (VIDEO_PLAYFIELDWIDTH/CHARWIDTH)
 #define ROWSIZE (COLS * CHARWIDTH * CHARHEIGHT)
 
-void video_gputs(char* string, uint8_t* font) {
+void video_gputs(char* string, uint8_t* font, int col, int row) {
 
-	static int col = 0;
-	static int row = 0;
 	int charoffset = 32 * CHARHEIGHT;
 	char c = 0;
 

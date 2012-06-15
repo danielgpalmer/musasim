@@ -9,13 +9,13 @@
 
 
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/machine.h" 1 3
-# 13 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/machine.h" 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stdint.h" 1 3 4
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/machine.h" 1 3
+# 13 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/machine.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stdint.h" 1 3 4
 
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdint.h" 1 3 4
-# 41 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdint.h" 3 4
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdint.h" 1 3 4
+# 41 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdint.h" 3 4
 typedef signed char int8_t ;
 typedef unsigned char uint8_t ;
 
@@ -30,22 +30,22 @@ typedef unsigned char uint_least8_t;
 
 typedef signed short int16_t;
 typedef unsigned short uint16_t;
-# 67 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdint.h" 3 4
+# 67 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdint.h" 3 4
 typedef int16_t int_least16_t;
 typedef uint16_t uint_least16_t;
-# 79 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdint.h" 3 4
+# 79 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdint.h" 3 4
 typedef signed long int32_t;
 typedef unsigned long uint32_t;
-# 97 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdint.h" 3 4
+# 97 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdint.h" 3 4
 typedef int32_t int_least32_t;
 typedef uint32_t uint_least32_t;
-# 119 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdint.h" 3 4
+# 119 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdint.h" 3 4
 typedef signed long long int64_t;
 typedef unsigned long long uint64_t;
-# 129 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdint.h" 3 4
+# 129 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdint.h" 3 4
 typedef int64_t int_least64_t;
 typedef uint64_t uint_least64_t;
-# 159 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdint.h" 3 4
+# 159 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdint.h" 3 4
   typedef signed int int_fast8_t;
   typedef unsigned int uint_fast8_t;
 
@@ -60,7 +60,7 @@ typedef uint64_t uint_least64_t;
 
   typedef signed int int_fast32_t;
   typedef unsigned int uint_fast32_t;
-# 213 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdint.h" 3 4
+# 213 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdint.h" 3 4
   typedef int_least64_t int_fast64_t;
   typedef uint_least64_t uint_fast64_t;
 
@@ -71,13 +71,13 @@ typedef uint64_t uint_least64_t;
 
 
   typedef long long int intmax_t;
-# 231 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdint.h" 3 4
+# 231 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdint.h" 3 4
   typedef long long unsigned int uintmax_t;
-# 243 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdint.h" 3 4
+# 243 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdint.h" 3 4
 typedef signed long int intptr_t;
 typedef unsigned long int uintptr_t;
-# 4 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stdint.h" 2 3 4
-# 14 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/machine.h" 2 3
+# 4 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stdint.h" 2 3 4
+# 14 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/machine.h" 2 3
 
 
 
@@ -93,8 +93,8 @@ void machine_disablerom();
 
 void machine_reset() __attribute__ ((section (".data")));
 # 9 "main.c" 2
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/pff.h" 1 3
-# 69 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/pff.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/pff.h" 1 3
+# 69 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/pff.h" 3
 typedef struct {
  uint8_t fs_type;
  uint8_t flag;
@@ -156,25 +156,25 @@ FRESULT pf_lseek( uint32_t);
 FRESULT pf_opendir(DIR*, const char*);
 FRESULT pf_readdir(DIR*, FILINFO*);
 # 10 "main.c" 2
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/video_registers.h" 1 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/video_registers.h" 1 3
 # 11 "main.c" 2
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/video_registermasks.h" 1 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/video_registermasks.h" 1 3
 # 12 "main.c" 2
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/dma_registers.h" 1 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/dma_registers.h" 1 3
 # 13 "main.c" 2
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/dma_registermasks.h" 1 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/dma_registermasks.h" 1 3
 # 14 "main.c" 2
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/input_registers.h" 1 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/input_registers.h" 1 3
 # 15 "main.c" 2
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/sound_registers.h" 1 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/sound_registers.h" 1 3
 # 16 "main.c" 2
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/image.h" 1 3
-# 11 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/image.h" 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stdbool.h" 1 3 4
-# 12 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/image.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/image.h" 1 3
+# 11 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/image.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stdbool.h" 1 3 4
+# 12 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/image.h" 2 3
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/pff.h" 1 3
-# 14 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/image.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/pff.h" 1 3
+# 14 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/image.h" 2 3
 
 typedef struct {
  uint16_t width;
@@ -194,10 +194,10 @@ void image_loadimagefromfile(FATFS* fs, image* image, const char* path, _Bool co
 void image_loadmaskedimagefromfile(FATFS* fs, image* image, const char* imagepath, const char* maskpath,
   _Bool compressed);
 # 17 "main.c" 2
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/sprite.h" 1 3
-# 13 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/sprite.h" 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/image.h" 1 3
-# 14 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/sprite.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/sprite.h" 1 3
+# 13 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/sprite.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/image.h" 1 3
+# 14 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/sprite.h" 2 3
 
 typedef struct {
  int x;
@@ -208,8 +208,8 @@ typedef struct {
 void sprite_draw(sprite* s);
 _Bool sprite_checkoverlap(sprite* s1, sprite* s2);
 # 18 "main.c" 2
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/math.h" 1 3
-# 11 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/math.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/math.h" 1 3
+# 11 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/math.h" 3
 typedef struct {
  int x1;
  int y1;
@@ -228,73 +228,73 @@ typedef struct {
 # 1 "main.h" 1
 # 11 "main.h"
 void interrupthandler() __attribute__ (( interrupt ));
-void sound_handler() __attribute__ ((interrupt));
-void vblank_handler() __attribute__ (( interrupt));
-void uart_handler() __attribute__ (( interrupt));
+void sound_handler() __attribute__ (( interrupt ));
+void vblank_handler() __attribute__ (( interrupt ));
+void uart_handler() __attribute__ (( interrupt ));
 # 21 "main.c" 2
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdlib.h" 1 3
-# 10 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdlib.h" 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/ieeefp.h" 1 3
-# 11 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdlib.h" 2 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/_ansi.h" 1 3
-# 15 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/_ansi.h" 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/newlib.h" 1 3
-# 16 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/_ansi.h" 2 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/config.h" 1 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdlib.h" 1 3
+# 10 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdlib.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/ieeefp.h" 1 3
+# 11 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdlib.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/_ansi.h" 1 3
+# 15 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/_ansi.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/newlib.h" 1 3
+# 16 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/_ansi.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/config.h" 1 3
 
 
 
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/features.h" 1 3
-# 6 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/config.h" 2 3
-# 17 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/_ansi.h" 2 3
-# 12 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdlib.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/features.h" 1 3
+# 6 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/config.h" 2 3
+# 17 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/_ansi.h" 2 3
+# 12 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdlib.h" 2 3
 
 
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stddef.h" 1 3 4
-# 213 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stddef.h" 3 4
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stddef.h" 1 3 4
+# 213 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stddef.h" 3 4
 typedef long unsigned int size_t;
-# 325 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stddef.h" 3 4
+# 325 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stddef.h" 3 4
 typedef long int wchar_t;
-# 16 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdlib.h" 2 3
+# 16 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdlib.h" 2 3
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/reent.h" 1 3
-# 13 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/reent.h" 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/_ansi.h" 1 3
-# 14 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/reent.h" 2 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/_types.h" 1 3
-# 12 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/_types.h" 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/_types.h" 1 3
-
-
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/reent.h" 1 3
+# 13 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/reent.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/_ansi.h" 1 3
+# 14 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/reent.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/_types.h" 1 3
+# 12 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/_types.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/_types.h" 1 3
 
 
 
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/_default_types.h" 1 3
-# 26 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/_default_types.h" 3
+
+
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/_default_types.h" 1 3
+# 26 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/_default_types.h" 3
 typedef signed char __int8_t ;
 typedef unsigned char __uint8_t ;
-# 36 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/_default_types.h" 3
+# 36 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/_default_types.h" 3
 typedef signed short __int16_t;
 typedef unsigned short __uint16_t;
-# 46 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/_default_types.h" 3
+# 46 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/_default_types.h" 3
 typedef __int16_t __int_least16_t;
 typedef __uint16_t __uint_least16_t;
-# 58 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/_default_types.h" 3
+# 58 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/_default_types.h" 3
 typedef signed int __int32_t;
 typedef unsigned int __uint32_t;
-# 76 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/_default_types.h" 3
+# 76 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/_default_types.h" 3
 typedef __int32_t __int_least32_t;
 typedef __uint32_t __uint_least32_t;
-# 99 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/_default_types.h" 3
+# 99 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/_default_types.h" 3
 typedef signed long long __int64_t;
 typedef unsigned long long __uint64_t;
-# 8 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/_types.h" 2 3
-# 13 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/_types.h" 2 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/lock.h" 1 3
+# 8 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/_types.h" 2 3
+# 13 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/_types.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/lock.h" 1 3
 
 
 
@@ -302,7 +302,7 @@ typedef unsigned long long __uint64_t;
 
 typedef int _LOCK_T;
 typedef int _LOCK_RECURSIVE_T;
-# 14 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/_types.h" 2 3
+# 14 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/_types.h" 2 3
 
 
 typedef long _off_t;
@@ -334,7 +334,7 @@ __extension__ typedef long long _off64_t;
 
 
 typedef long _fpos_t;
-# 56 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/_types.h" 3
+# 56 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/_types.h" 3
 typedef int _ssize_t;
 
 
@@ -342,10 +342,10 @@ typedef int _ssize_t;
 
 
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stddef.h" 1 3 4
-# 354 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stddef.h" 3 4
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stddef.h" 1 3 4
+# 354 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stddef.h" 3 4
 typedef unsigned int wint_t;
-# 64 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/_types.h" 2 3
+# 64 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/_types.h" 2 3
 
 
 
@@ -367,7 +367,7 @@ typedef _LOCK_RECURSIVE_T _flock_t;
 
 
 typedef void *_iconv_t;
-# 15 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/reent.h" 2 3
+# 15 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/reent.h" 2 3
 
 
 
@@ -375,7 +375,7 @@ typedef void *_iconv_t;
 
 
 typedef unsigned long __ULong;
-# 37 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/reent.h" 3
+# 37 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/reent.h" 3
 struct _reent;
 
 
@@ -419,7 +419,7 @@ struct _on_exit_args {
 
  __ULong _is_cxa;
 };
-# 89 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/reent.h" 3
+# 89 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/reent.h" 3
 struct _atexit {
  struct _atexit *_next;
  int _ind;
@@ -427,12 +427,12 @@ struct _atexit {
  void (*_fns[32])(void);
         struct _on_exit_args _on_exit_args;
 };
-# 105 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/reent.h" 3
+# 105 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/reent.h" 3
 struct __sbuf {
  unsigned char *_base;
  int _size;
 };
-# 169 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/reent.h" 3
+# 169 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/reent.h" 3
 struct __sFILE {
   unsigned char *_p;
   int _r;
@@ -482,7 +482,7 @@ struct __sFILE {
   _mbstate_t _mbstate;
   int _flags2;
 };
-# 273 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/reent.h" 3
+# 273 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/reent.h" 3
 typedef struct __sFILE __FILE;
 
 
@@ -493,7 +493,7 @@ struct _glue
   int _niobs;
   __FILE *_iobs;
 };
-# 305 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/reent.h" 3
+# 305 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/reent.h" 3
 struct _rand48 {
   unsigned short _seed[3];
   unsigned short _mult[3];
@@ -503,7 +503,7 @@ struct _rand48 {
 
 
 };
-# 580 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/reent.h" 3
+# 580 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/reent.h" 3
 struct _reent
 {
   int _errno;
@@ -581,17 +581,17 @@ struct _reent
   struct _glue __sglue;
   __FILE __sf[3];
 };
-# 818 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/reent.h" 3
+# 818 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/reent.h" 3
 extern struct _reent *_impure_ptr ;
 extern struct _reent *const _global_impure_ptr ;
 
 void _reclaim_reent (struct _reent *);
-# 18 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdlib.h" 2 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/stdlib.h" 1 3
-# 19 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdlib.h" 2 3
+# 18 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdlib.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/stdlib.h" 1 3
+# 19 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdlib.h" 2 3
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/alloca.h" 1 3
-# 21 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdlib.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/alloca.h" 1 3
+# 21 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdlib.h" 2 3
 
 
 
@@ -618,7 +618,7 @@ typedef struct
   long long int quot;
   long long int rem;
 } lldiv_t;
-# 58 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdlib.h" 3
+# 58 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdlib.h" 3
 int __locale_mb_cur_max (void);
 
 
@@ -759,7 +759,7 @@ unsigned long long _strtoull_r (struct _reent *, const char *__n, char **__end_P
 void cfree (void *);
 int unsetenv (const char *__string);
 int _unsetenv_r (struct _reent *, const char *__string);
-# 206 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdlib.h" 3
+# 206 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdlib.h" 3
 char * _dtoa_r (struct _reent *, double, int, int, int *, int*, char**);
 
 void * _malloc_r (struct _reent *, size_t) ;
@@ -780,31 +780,31 @@ void __eprintf (const char *, const char *, unsigned int, const char *);
 
 
 # 23 "main.c" 2
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 1 3
-# 34 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stddef.h" 1 3 4
-# 35 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 1 3
+# 34 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stddef.h" 1 3 4
+# 35 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 2 3
 
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stdarg.h" 1 3 4
-# 40 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stdarg.h" 3 4
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stdarg.h" 1 3 4
+# 40 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stdarg.h" 3 4
 typedef __builtin_va_list __gnuc_va_list;
-# 38 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 2 3
-# 46 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/types.h" 1 3
-# 69 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/types.h" 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stddef.h" 1 3 4
-# 150 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/include/stddef.h" 3 4
+# 38 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 2 3
+# 46 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/types.h" 1 3
+# 69 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/types.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stddef.h" 1 3 4
+# 150 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/include/stddef.h" 3 4
 typedef long int ptrdiff_t;
-# 70 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/types.h" 2 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/types.h" 1 3
-# 19 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/machine/types.h" 3
+# 70 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/types.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/types.h" 1 3
+# 19 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/machine/types.h" 3
 typedef long int __off_t;
 typedef int __pid_t;
 
 __extension__ typedef long long int __loff_t;
-# 71 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/types.h" 2 3
-# 92 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/types.h" 3
+# 71 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/types.h" 2 3
+# 92 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/types.h" 3
 typedef unsigned char u_char;
 typedef unsigned short u_short;
 typedef unsigned int u_int;
@@ -848,7 +848,7 @@ typedef char * caddr_t;
 
 
 typedef unsigned short ino_t;
-# 163 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/types.h" 3
+# 163 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/types.h" 3
 typedef _off_t off_t;
 typedef __dev_t dev_t;
 typedef __uid_t uid_t;
@@ -869,14 +869,14 @@ typedef int pid_t;
 typedef long key_t;
 
 typedef _ssize_t ssize_t;
-# 196 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/types.h" 3
+# 196 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/types.h" 3
 typedef unsigned int mode_t __attribute__ ((__mode__ (__SI__)));
 
 
 
 
 typedef unsigned short nlink_t;
-# 223 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/types.h" 3
+# 223 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/types.h" 3
 typedef long fd_mask;
 
 
@@ -888,7 +888,7 @@ typedef long fd_mask;
 typedef struct _types_fd_set {
  fd_mask fds_bits[(((64)+(((sizeof (fd_mask) * 8))-1))/((sizeof (fd_mask) * 8)))];
 } _types_fd_set;
-# 254 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/types.h" 3
+# 254 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/types.h" 3
 typedef unsigned long clockid_t;
 
 
@@ -900,7 +900,7 @@ typedef unsigned long timer_t;
 
 typedef unsigned long useconds_t;
 typedef long suseconds_t;
-# 47 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 2 3
+# 47 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 2 3
 
 
 
@@ -915,9 +915,9 @@ typedef _fpos_t fpos_t;
 
 
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/sys/stdio.h" 1 3
-# 62 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 2 3
-# 171 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/sys/stdio.h" 1 3
+# 62 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 2 3
+# 171 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 3
 FILE * tmpfile (void);
 char * tmpnam (char *);
 int fclose (FILE *);
@@ -1051,7 +1051,7 @@ int vsnprintf (char *, size_t, const char *, __gnuc_va_list) __attribute__ ((__f
                                                             ;
 int vsscanf (const char *, const char *, __gnuc_va_list) __attribute__ ((__format__ (__scanf__, 2, 0)))
                                                            ;
-# 313 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 3
+# 313 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 3
 FILE * fdopen (int, const char *);
 
 int fileno (FILE *);
@@ -1068,7 +1068,7 @@ int ftrylockfile (FILE *);
 void funlockfile (FILE *);
 int putc_unlocked (int, FILE *);
 int putchar_unlocked (int);
-# 338 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 3
+# 338 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 3
 int dprintf (int, const char *, ...) __attribute__ ((__format__ (__printf__, 2, 3)))
                                                             ;
 
@@ -1219,10 +1219,10 @@ int _vsscanf_r (struct _reent *, const char *, const char *, __gnuc_va_list) __a
 int fpurge (FILE *);
 ssize_t __getdelim (char **, size_t *, int, FILE *);
 ssize_t __getline (char **, size_t *, FILE *);
-# 515 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 3
+# 515 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 3
 int __srget_r (struct _reent *, FILE *);
 int __swbuf_r (struct _reent *, int, FILE *);
-# 535 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 3
+# 535 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 3
 FILE *funopen (const void * __cookie, int (*__readfn)(void * __cookie, char *__buf, int __n), int (*__writefn)(void * __cookie, const char *__buf, int __n), fpos_t (*__seekfn)(void * __cookie, fpos_t __off, int __whence), int (*__closefn)(void * __cookie))
 
 
@@ -1263,7 +1263,7 @@ FILE *fopencookie (void *__cookie, const char *__mode, cookie_io_functions_t __f
                                                          ;
 FILE *_fopencookie_r (struct _reent *, void *__cookie, const char *__mode, cookie_io_functions_t __functions)
                                                          ;
-# 683 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/stdio.h" 3
+# 683 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/stdio.h" 3
 
 # 24 "main.c" 2
 
@@ -1271,10 +1271,10 @@ FILE *_fopencookie_r (struct _reent *, void *__cookie, const char *__mode, cooki
 const uint8_t _binary_fontrom_start[1520];
 # 26 "main.c" 2
 
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/video.h" 1 3
-# 11 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/video.h" 3
-# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/math.h" 1 3
-# 12 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.0/../../../../m68k-elf/include/libunagipai/video.h" 2 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/video.h" 1 3
+# 11 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/video.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/math.h" 1 3
+# 12 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.1/../../../../m68k-elf/include/libunagipai/video.h" 2 3
 
 
 typedef void (*dataloader)(void* data, uint16_t* buff, int wanted);
@@ -1290,7 +1290,7 @@ void video_blitimage(int width, int height, int x, int y, void* data, dataloader
 
 
 void video_blitimage_nocopy(int width, int height, int x, int y, uint16_t* data);
-void video_gputs(char* string, uint8_t* font);
+void video_gputs(char* string, uint8_t* font, int col, int row);
 void video_clear();
 void video_fillrect(int x, int y, int width, int height);
 void video_drawline(vector* v);
@@ -1764,32 +1764,14 @@ static void ballcollision(ball* b1, ball* b2) {
  }
 }
 
+static _Bool fbdirty = 0;
+
 void vblank_handler() {
 
- static uint16_t lastframe = 0;
- static uint16_t thisframe;
-
- uint16_t vidflags = (*(volatile uint16_t*) 0x280000);
- uint8_t port0 = (*(volatile uint8_t*) 0xe00000);
- thisframe = (*(volatile uint16_t*) 0x280008);
-
- updateball(&ball1, thisframe, lastframe);
- updateball(&ball2, thisframe, lastframe);
- ballcollision(&ball1, &ball2);
-
- video_begin();
- video_clear();
- video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
- sprite_draw(ball1.sprite);
- sprite_draw(ball2.sprite);
- video_commit();
- video_drawline(&vect);
- video_flip();
-
-
-
-
- lastframe = thisframe;
+ if (fbdirty) {
+  video_flip();
+  fbdirty = 0;
+ }
 }
 
 void uart_handler() {
@@ -1841,10 +1823,7 @@ void fatimageloader (void* data, uint16_t* buff, int wanted) {
 }
 
 int main(void) {
-
- uint16_t sr = machine_getstatusregister();
- machine_setstatusregister((sr & 0xf8ff));
-# 209 "main.c"
+# 188 "main.c"
  FATFS fs;
  FRESULT result;
  result = pf_mount(&fs);
@@ -1866,11 +1845,39 @@ int main(void) {
 
  initvideo();
 
- video_gputs("Hello World!", _binary_fontrom_start);
+ uint16_t sr = machine_getstatusregister();
+ machine_setstatusregister((sr & 0xf8ff));
 
  while (1) {
 
+  if (fbdirty) {
+   printf("still dirty\n");
+   continue;
+  }
 
+
+  static uint16_t lastframe = 0;
+  static uint16_t thisframe;
+
+  uint16_t vidflags = (*(volatile uint16_t*) 0x280000);
+  uint8_t port0 = (*(volatile uint8_t*) 0xe00000);
+  thisframe = (*(volatile uint16_t*) 0x280008);
+
+  updateball(&ball1, thisframe, lastframe);
+  updateball(&ball2, thisframe, lastframe);
+  ballcollision(&ball1, &ball2);
+
+  video_begin();
+  video_clear();
+  video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
+  sprite_draw(ball1.sprite);
+  sprite_draw(ball2.sprite);
+  video_commit();
+  video_drawline(&vect);
+  video_gputs("Hello World!", _binary_fontrom_start, 0, 0);
+
+  lastframe = thisframe;
+  fbdirty = 1;
  }
 
  return 0;

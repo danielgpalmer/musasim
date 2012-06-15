@@ -112,32 +112,14 @@ static void ballcollision(ball* b1, ball* b2) {
 	}
 }
 
+static bool fbdirty = false;
+
 void vblank_handler() {
 
-	static uint16_t lastframe = 0;
-	static uint16_t thisframe;
-
-	uint16_t vidflags = video_register_flags;
-	uint8_t port0 = input_port0;
-	thisframe = video_register_frame;
-
-	updateball(&ball1, thisframe, lastframe);
-	updateball(&ball2, thisframe, lastframe);
-	ballcollision(&ball1, &ball2);
-
-	video_begin();
-	video_clear();
-	video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
-	sprite_draw(ball1.sprite);
-	sprite_draw(ball2.sprite);
-	video_commit();
-	video_drawline(&vect);
-	video_flip();
-	//col = 0;
-	//row = 0;
-	//gputs("Shizzle me nizzle dizzle bizzle izzle. ABCDEFGHI");
-
-	lastframe = thisframe;
+	if (fbdirty) {
+		video_flip();
+		fbdirty = false;
+	}
 }
 
 void uart_handler() {
@@ -190,9 +172,6 @@ void fatimageloader DATALOADERARGS {
 
 int main(void) {
 
-	uint16_t sr = machine_getstatusregister();
-	machine_setstatusregister((sr & 0xf8ff));
-
 	//*uart_chan0_interruptenable |= INTERRUPTENABLE_ERBFI;
 
 	//uint16_t* blip = _binary_blip_start;
@@ -227,11 +206,39 @@ int main(void) {
 
 	initvideo();
 
-	video_gputs("Hello World!", _binary_fontrom_start);
+	uint16_t sr = machine_getstatusregister();
+	machine_setstatusregister((sr & 0xf8ff));
 
 	while (1) {
-		//printf("Whassup homes\n");
 
+		if (fbdirty) {
+			printf("still dirty\n");
+			continue;
+		}
+
+		//printf("Whassup homes\n");
+		static uint16_t lastframe = 0;
+		static uint16_t thisframe;
+
+		uint16_t vidflags = video_register_flags;
+		uint8_t port0 = input_port0;
+		thisframe = video_register_frame;
+
+		updateball(&ball1, thisframe, lastframe);
+		updateball(&ball2, thisframe, lastframe);
+		ballcollision(&ball1, &ball2);
+
+		video_begin();
+		video_clear();
+		video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
+		sprite_draw(ball1.sprite);
+		sprite_draw(ball2.sprite);
+		video_commit();
+		video_drawline(&vect);
+		video_gputs("Hello World!", _binary_fontrom_start, 0, 0);
+
+		lastframe = thisframe;
+		fbdirty = true;
 	}
 
 	return 0;

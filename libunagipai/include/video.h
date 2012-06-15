@@ -13,18 +13,35 @@
 #define DATALOADERARGS (void* data, uint16_t* buff, int wanted)
 typedef void (*dataloader)DATALOADERARGS;
 
+/**
+ * start a video transaction
+ */
+
 void video_begin(void);
+
+/**
+ * commit all of the pending video actions
+ */
+
 void video_commit(void);
+
+/**
+ * switches the currently displayed framebuffer, this should be done in the vblank
+ */
+
 void video_flip(void);
+
 /**
  * blits an image to the frame buffer, data is supplied via your loader callback.
  */
+
 void video_blitimage(int width, int height, int x, int y, void* data, dataloader);
+
 /**
  * blits an image from a buffer to the framebuffer
  */
 void video_blitimage_nocopy(int width, int height, int x, int y, uint16_t* data);
-void video_gputs(char* string, uint8_t* font);
+void video_gputs(char* string, uint8_t* font, int col, int row);
 void video_clear();
 void video_fillrect(int x, int y, int width, int height);
 void video_drawline(vector* v);
