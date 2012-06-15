@@ -22,7 +22,15 @@ void uart_handler() {
 
 void inthandler1() __attribute__ (( interrupt));
 void inthandler1() {
-	printf("int 1\n");
+	//printf("int 1\n");
+	volatile uint16_t* basicvideo = (uint16_t*) 0x200000;
+	static uint8_t i = 0;
+	for (int y = 0; y < 128; y++) {
+		for (int x = 0; x < (256 / 2); x++) {
+			*(basicvideo + (((256 / 2) * y) + x)) = (uint16_t) i | (uint16_t)(i << 8);
+		}
+	}
+	i++;
 }
 
 void inthandler3() __attribute__ (( interrupt));
@@ -79,10 +87,7 @@ static void test_dma() {
 
 int main(void) {
 
-	uint16_t sr = machine_getstatusregister();
-	machine_setstatusregister((sr & 0xf8ff));
-
-	uart_configureinterrupts(0, true, false, false, false);
+	//uart_configureinterrupts(0, true, false, false, false);
 
 	volatile uint16_t* basicvideo = (uint16_t*) 0x200000;
 	volatile uint16_t* basicsound = (uint16_t*) 0x600000;
@@ -92,26 +97,30 @@ int main(void) {
 	vt100_erase_screen();
 	vt100_cursor_home_pos(1, 0);
 
-	printf("Hello, World!\n");
-	uint16_t c = 0;
+	test_dma();
 
-	//test_dma();
+	//while(1){};
 
-	uint16_t i = 0;
-	while (1) {
-		printf("here 0x%04"PRIx16"\n", i);
-		for (int y = 0; y < 128; y++) {
-			for (int x = 0; x < (256 / 2); x++) {
-				if (y < 128 / 2) {
-					*(basicvideo + (((256 / 2) * y) + x)) = x < (128 / 2) ? 0xE0E0 : 0x0707;
-				}
-				else {
-					*(basicvideo + (((256 / 2) * y) + x)) = x < (128 / 2) ? 0x1818 : 0x1f1f;
-				}
-			}
-		}
-		i++;
-	}
+	//while (1) {
+
+	//	printf("Hello, World! 0x%02"PRIx8"\n", input_port0);
+
+	//	for (int y = 0; y < 128; y++) {
+	//		for (int x = 0; x < (256 / 2); x++) {
+	//			*(basicvideo + (((256 / 2) * y) + x)) = i;
+	//if (y < 128 / 2) {
+	//	*(basicvideo + (((256 / 2) * y) + x)) = x < (128 / 2) ? 0xE0E0 : 0x0707;
+	//}
+	//else {
+	//	*(basicvideo + (((256 / 2) * y) + x)) = x < (128 / 2) ? 0x1818 : 0x1f1f;
+	//}
+	//		}
+	//	}
+	//	i++;
+	//}
+
+	uint16_t sr = machine_getstatusregister();
+	machine_setstatusregister((sr & 0xf8ff));
 
 	while (1) {
 		vt100_cursor_save;
@@ -152,13 +161,7 @@ int main(void) {
 		printf("\n");
 		vt100_cursor_unsave();
 
-		//for (int y = 0; y < 128; y++) {
-		//	for (int x = 0; x < (256 / 2); x++) {
-		//		*(basicvideo + (((256 / 2) * y) + x)) = x * y;
-		//	}
-		//}
-		c++;
-
 	}
+
 	return 0;
 }

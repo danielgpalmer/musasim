@@ -562,14 +562,16 @@ void registersighandler() {
 
 }
 
+#define REGSTRINGLEN 168
+
 static char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7, int a0, int a1, int a2,
 		int a3, int a4, int a5, int fp, int sp, int ps, int pc) {
 
-	static char registersstring[168];
-	memset(registersstring, 0, 168);
+	static char registersstring[REGSTRINGLEN];
+	memset(registersstring, 0, REGSTRINGLEN);
 
-	sprintf(registersstring, "%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x", d0, d1, d2, d3,
-			d4, d5, d6, d7, a0, a1, a2, a3, a4, a5, fp, sp, ps, pc);
+	snprintf(registersstring, REGSTRINGLEN, "%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x%08x",
+			d0, d1, d2, d3, d4, d5, d6, d7, a0, a1, a2, a3, a4, a5, fp, sp, ps, pc);
 
 	return registersstring;
 
