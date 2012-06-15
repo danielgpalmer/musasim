@@ -31,6 +31,7 @@ static uint16_t* video_registers[] = { &flags, &config, &pixel, &line, &frame, &
 
 static SDL_Surface* screen = NULL;
 static SDL_Surface* rendersurfaces[2];
+static SDL_Surface* osd;
 static SDL_Rect region;
 static SDL_Rect window;
 
@@ -38,8 +39,8 @@ static uint32_t registersstart;
 
 #define GETVIDREG(x) ( x = 0 ? 0 : (x & ~registersstart) / 2)
 
-#define WRITEABLESURFACE ((config & VIDEO_CONFIG_FLIP) ? rendersurfaces[0] : rendersurfaces[1])
-#define VISIBLESURFACE ( !(config & VIDEO_CONFIG_FLIP) ? rendersurfaces[1] : rendersurfaces[0])
+#define WRITEABLESURFACE	((config & VIDEO_CONFIG_FLIP) ? rendersurfaces[0] : rendersurfaces[1])
+#define VISIBLESURFACE 		(!(config & VIDEO_CONFIG_FLIP) ? rendersurfaces[1] : rendersurfaces[0])
 
 #define ISACTIVE (!(flags & FLAG_HBLANK || flags & FLAG_VBLANK))
 
@@ -63,6 +64,8 @@ static void video_init() {
 		rendersurfaces[i] = rendersurface;
 
 	}
+
+	osd = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, 0, 0, 0, 0);
 
 	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
 			screen->format->BitsPerPixel);
@@ -111,16 +114,9 @@ static void video_tick() {
 		return;
 	}
 
-	log_println(LEVEL_INSANE, TAG, "video_tick()");
-
-	//int ticksperpixel = VIDEO_TOTALPIXELS;
-
-	//printf("ticks per pixel %d %d\n", ticksperpixel, SIM_TICKS_PERSECOND);
-
 	for (int i = 0; i < PIXELSPERTICK; i++) {
 
-		pixel++;
-
+		// hblank handling
 		if (pixel == VIDEO_WIDTH) {
 			flags |= FLAG_HBLANK;
 			if (config & VIDEO_CONFIG_ENHBINT) {
@@ -128,44 +124,49 @@ static void video_tick() {
 			}
 		}
 
+		// line handling
 		else if (pixel == (VIDEO_WIDTH + HBLANKPERIOD)) {
+			// turn hblank off
 			flags &= !FLAG_HBLANK;
 			pixel = 0;
-			line++;
 
+			// vblank handling
 			if (line == VIDEO_HEIGHT) {
 				flags |= FLAG_VBLANK;
 				if (config & VIDEO_CONFIG_ENVBINT) {
-
-					region.x = posx + winx;
-					region.y = posy + winy;
-					region.w = winwidth;
-					region.h = winheight;
-
-					window.x = winx;
-					window.y = winy;
-					window.w = 0;
-					window.h = 0;
-
-					SDL_FillRect(screen, NULL, 0x0);
-					SDL_BlitSurface(VISIBLESURFACE, &region, screen, &window);
-					if (config & VIDEO_CONFIG_ENVBINT) {
-						board_raise_interrupt(&videocard);
-					}
+					board_raise_interrupt(&videocard);
 				}
 
+				// FIXME
+				region.x = posx + winx;
+				region.y = posy + winy;
+				region.w = winwidth;
+				region.h = winheight;
+
+				window.x = winx;
+				window.y = winy;
+				window.w = 0;
+				window.h = 0;
+
+				SDL_FillRect(screen, NULL, 0x0);
+				SDL_BlitSurface(VISIBLESURFACE, &region, screen, &window);
+				//SDL_BlitSurface(osd, NULL, screen, NULL);
+				SDL_Flip(screen);
+				//
 			}
 
 			else if (line == (VIDEO_HEIGHT + VBLANKPERIOD)) {
+				// turn vblank off
 				flags &= ~FLAG_VBLANK;
 				line = 0;
-				SDL_Flip(screen);
 				frame++;
 			}
+			line++;
 		}
+		pixel++;
 	}
 
-	//printf("%d, %d\n", pixel, line);
+//printf("%d, %d\n", pixel, line);
 }
 
 static void video_write_byte(uint32_t address, uint8_t data) {
