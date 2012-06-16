@@ -50,11 +50,13 @@ static const char TAG[] = "sim";
 static void sim_updatesdl() {
 
 	static int ticks = 0;
-	if(ticks < 200){
+	if (ticks < 200) {
 		ticks++;
 		return;
 	}
 	ticks = 0;
+
+	osd_update();
 
 	// Check some keys
 	SDL_PumpEvents();
@@ -195,10 +197,6 @@ static int timeval_subtract(result, x, y)
 
 void sim_tick() {
 
-	log_println(LEVEL_INSANE, TAG, "sim_tick()");
-
-	osd_update();
-
 	static struct timeval start, end, diff;
 	static long int lastoutput = 0;
 	static long int average = 0;
@@ -218,7 +216,7 @@ void sim_tick() {
 	gettimeofday(&start, NULL);
 
 	if (!board_bus_locked()) {
-		m68k_execute(SIM_CLOCKS_PERTICK / SIM_CPUCLOCK_DIVIDER);
+		m68k_execute(SIM_CPUCLOCKS_PERTICK);
 		// maybe STOP happened
 		if (shouldexit) {
 			return;

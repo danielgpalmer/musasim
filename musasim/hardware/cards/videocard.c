@@ -101,10 +101,10 @@ static void video_dispose() {
 
 static bool video_validaddress(uint32_t address) {
 
-	if (address >= registersstart && address < registersstart + sizeof(video_registers)) {
-		return true;
-	}
-	return false;
+	//if (address >= registersstart && address < registersstart + sizeof(video_registers)) {
+	//	return true;
+	//}
+	return true;
 }
 
 static void video_tick() {
@@ -179,8 +179,7 @@ static void video_write_word(uint32_t address, uint16_t data) {
 	else {
 
 		if (ISACTIVE) {
-			log_println(LEVEL_INFO, TAG, "write to registers during active period ignored");
-			return;
+			log_println(LEVEL_INFO, TAG, "write to registers during active period");
 		}
 
 		uint8_t reg = GETVIDREG(address);
@@ -232,6 +231,7 @@ void videocard_refresh() {
 	// FIXME
 	SDL_FillRect(screen, NULL, 0x0);
 	SDL_BlitSurface(VISIBLESURFACE, &region, screen, &window);
+	//SDL_BlitSurface(WRITEABLESURFACE, &region, screen, &window);
 	if (osd) {
 		SDL_BlitSurface(osd, NULL, screen, NULL);
 	}

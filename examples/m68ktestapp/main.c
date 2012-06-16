@@ -122,6 +122,7 @@ void vblank_handler() {
 	//	video_flip();
 	//	fbready = false;
 	//}
+	video_flip();
 }
 
 void uart_handler() {
@@ -216,34 +217,30 @@ int main(void) {
 	//machine_setstatusregister((sr & 0xf8ff));
 
 	while (1) {
-		//if (fbready) {
-		//	printf("surface hasnt been drawn yet\n");
-		//	continue;
-		//}
+		static uint16_t lastframe = 0;
+		static uint16_t thisframe;
 
-		//fbready = false;
-		//static uint16_t lastframe = 0;
-		//static uint16_t thisframe;
+		uint16_t vidflags = video_register_flags;
+		uint8_t port0 = input_port0;
+		thisframe = video_register_frame;
 
-		//uint16_t vidflags = video_register_flags;
-		//uint8_t port0 = input_port0;
-		//thisframe = video_register_frame;
+		updateball(&ball1, thisframe, lastframe);
+		updateball(&ball2, thisframe, lastframe);
+		ballcollision(&ball1, &ball2);
 
-		//updateball(&ball1, thisframe, lastframe);
-		//updateball(&ball2, thisframe, lastframe);
-		//ballcollision(&ball1, &ball2);
+		video_begin();
+		video_clear(0xFFFF);
+		video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
+		sprite_draw(ball1.sprite);
+		sprite_draw(ball2.sprite);
+		video_drawline(&vect);
+		video_gputs("Hello World!", _binary_fontrom_start, 1, 1);
+		video_commit();
 
-		//video_begin();
-		//video_clear(0xFFFF);
-		//video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
-		//sprite_draw(ball1.sprite);
-		//sprite_draw(ball2.sprite);
-		//video_drawline(&vect);
-		//video_gputs("Hello World!", _binary_fontrom_start, 1, 1);
-		//video_commit();
+		lastframe = thisframe;
+		video_waitforvblank();
+		video_flip();
 
-		//lastframe = thisframe;
-		//fbready = true;
 	}
 
 	return 0;
