@@ -149,9 +149,10 @@ static void dmacard_popwindow() {
 
 }
 
+static bool transferinprogress = false;
+
 static void dmacard_tick() {
 
-	static bool transferinprogress = false;
 	static int state = 0; // for transfer modes to track their current phase of the unit
 	static uint16_t holding = 0; // for stashing data between phases
 
@@ -470,6 +471,10 @@ static bool dmacard_validaddress(uint32_t address) {
 	}
 }
 
+bool dmacard_active() {
+	return transferinprogress;
+}
+
 const card dmacard = { "DMA Controller", //
 		dmacard_init, //
 		NULL, //
@@ -484,6 +489,6 @@ const card dmacard = { "DMA Controller", //
 		NULL, //
 		dmacard_write_word, //
 		NULL, //
-		NULL //
+		dmacard_active //
 		};
 

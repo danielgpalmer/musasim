@@ -4,7 +4,7 @@ LIBCARDS=./hardware/cards/libcards.a
 LIBCARDSGDB=./hardware/cards/libcardsgdb.a
 LIBMODULES=./hardware/modules/libmodules.a
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
-BASESTUFF=sim.o logging.o utils.o elfloader.o
+BASESTUFF=sim.o logging.o utils.o elfloader.o osd.o
 
 all: gdbserver musasim genheader dist
 	
@@ -27,7 +27,10 @@ logging.o: logging.c logging.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) logging.c -o $@
 
 utils.o: utils.c utils.h
-	$(CC) $(CFLAGS) $(LOCALCFLAGS) utils.c -o $@
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
+
+osd.o: osd.c osd.h
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
 
 args.o: args.h args.c
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) args.c -o $@

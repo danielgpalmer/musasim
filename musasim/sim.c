@@ -11,6 +11,7 @@
 #include <sys/time.h>
 
 #include "sim.h"
+#include "osd.h"
 #include "logging.h"
 #include "musashi/m68k.h"
 
@@ -106,6 +107,8 @@ void sim_init() {
 	board_add_device(SLOT_TIMERCARD, &timercard);
 	board_add_device(SLOT_INPUTCARD, &inputcard);
 
+	osd_init();
+
 	initialised = true;
 }
 
@@ -139,6 +142,8 @@ static int timeval_subtract(result, x, y)
 void sim_tick() {
 
 	log_println(LEVEL_INSANE, TAG, "sim_tick()");
+
+	osd_update();
 
 	static struct timeval start, end, diff;
 	static long int lastoutput = 0;
@@ -211,6 +216,7 @@ void sim_tick() {
 
 	board_tick();
 
+	videocard_refresh();
 	gettimeofday(&end, NULL);
 
 	timeval_subtract(&diff, &end, &start);
@@ -232,7 +238,7 @@ void sim_tick() {
 
 	sleep = SIM_USECSPERTICK - average;
 	if (sleep > 0) {
-		usleep(sleep);
+		//usleep(sleep);
 	}
 
 }

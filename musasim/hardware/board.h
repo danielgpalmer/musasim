@@ -26,6 +26,8 @@ void board_lock_bus(const card* card);
 void board_unlock_bus(const card* card);
 bool board_bus_locked();
 
+const card* board_getcardinslot(int slot);
+
 void board_reset();
 
 #define SLOT_ADDRESS_MASK 0x1FFFFF

@@ -329,3 +329,7 @@ void board_reset() {
 		}
 	}
 }
+
+const card* board_getcardinslot(int slot) {
+	return slots[slot];
+}

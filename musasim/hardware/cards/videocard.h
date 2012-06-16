@@ -10,7 +10,6 @@
 #define VIDEO_PLAYFIELDHEIGHT 512
 #define HBLANKPERIOD 40 //FIXME
 #define VBLANKPERIOD 80 //FIXME
-
 #define VIDEO_MEMORYEND (VIDEO_PLAYFIELDWIDTH * VIDEO_PLAYFIELDHEIGHT) * VIDEO_PIXELSIZE
 #define VIDEO_REFRESHRATE 50
 #define VIDEO_ACTIVEPIXELS (VIDEO_WIDTH * VIDEO_HEIGHT)
@@ -32,5 +31,8 @@
 #include "card.h"
 
 const card videocard;
+
+void videocard_setosd(SDL_Surface* s);
+void videocard_refresh(void);
 
 #endif

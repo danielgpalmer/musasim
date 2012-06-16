@@ -77,8 +77,6 @@ static void video_init() {
 
 	}
 
-	osd = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, 0, 0, 0, 0);
-
 	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
 			screen->format->BitsPerPixel);
 
@@ -151,13 +149,6 @@ static void video_tick() {
 					board_raise_interrupt(&videocard);
 				}
 
-				// FIXME
-
-				SDL_FillRect(screen, NULL, 0x0);
-				SDL_BlitSurface(VISIBLESURFACE, &region, screen, &window);
-				//SDL_BlitSurface(osd, NULL, screen, NULL);
-				SDL_Flip(screen);
-				//
 			}
 
 			else if (line == (VIDEO_HEIGHT + VBLANKPERIOD)) {
@@ -241,6 +232,23 @@ static uint16_t video_read_word(uint32_t address) {
 
 static void videocard_irqack() {
 	board_lower_interrupt(&videocard);
+}
+
+void videocard_setosd(SDL_Surface* s) {
+	osd = s;
+}
+
+void videocard_refresh() {
+	// FIXME
+
+	SDL_FillRect(screen, NULL, 0x0);
+	SDL_BlitSurface(VISIBLESURFACE, &region, screen, &window);
+	if (osd) {
+		SDL_BlitSurface(osd, NULL, screen, NULL);
+	}
+	SDL_Flip(screen);
+	//
+
 }
 
 const card videocard = { "VIDEO CARD", //
