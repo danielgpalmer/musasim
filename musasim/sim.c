@@ -50,7 +50,7 @@ static const char TAG[] = "sim";
 static void sim_updatesdl() {
 
 	static int ticks = 0;
-	if(ticks < 100){
+	if(ticks < 200){
 		ticks++;
 		return;
 	}

@@ -101,30 +101,19 @@ static void video_dispose() {
 
 static bool video_validaddress(uint32_t address) {
 
-	if (address < VIDEO_MEMORYEND) {
-		if ((config & VIDEO_CONFIG_MODE_MASK) == VIDEO_CONFIG_MODE_DISABLED) {
-			log_println(LEVEL_DEBUG, TAG, "access to video memory while disabled");
-			return false;
-		}
+	if (address >= registersstart && address < registersstart + sizeof(video_registers)) {
 		return true;
 	}
-
-	else if (address >= registersstart && address < registersstart + sizeof(video_registers)) {
-		return true;
-	}
-
-	printf("0x%x is not a valid address\n", address);
-
 	return false;
 }
 
 static void video_tick() {
 
-	int mode = config & VIDEO_CONFIG_MODE_MASK;
+	//int mode = config & VIDEO_CONFIG_MODE_MASK;
 
-	if (mode == VIDEO_CONFIG_MODE_DISABLED) {
-		return;
-	}
+	//if (mode == VIDEO_CONFIG_MODE_DISABLED) {
+	//	return;
+	//}
 
 	for (int i = 0; i < PIXELSPERTICK; i++) {
 
@@ -164,7 +153,6 @@ static void video_tick() {
 }
 
 static void video_write_byte(uint32_t address, uint8_t data) {
-
 	if (address < registersstart) {
 		if (SDL_MUSTLOCK(WRITEABLESURFACE)) {
 			SDL_LockSurface(WRITEABLESURFACE);
@@ -189,18 +177,18 @@ static void video_write_word(uint32_t address, uint16_t data) {
 	}
 
 	else {
+
+		if (ISACTIVE) {
+			log_println(LEVEL_INFO, TAG, "write to registers during active period ignored");
+			return;
+		}
+
 		uint8_t reg = GETVIDREG(address);
 		if (reg == 1) {
 			if (*(video_registers[reg]) & VIDEO_CONFIG_FLIP) {
-				if (ISACTIVE) {
-					log_println(LEVEL_INFO, TAG, "flipped while active");
-				}
 				log_println(LEVEL_INFO, TAG, "surface 1");
 			}
 			else {
-				if (ISACTIVE) {
-					log_println(LEVEL_INFO, TAG, "flipped while active");
-				}
 				log_println(LEVEL_INFO, TAG, "surface 0");
 			}
 		}
@@ -225,6 +213,8 @@ static uint16_t video_read_word(uint32_t address) {
 		uint8_t reg = GETVIDREG(address);
 		return *(video_registers[reg]);
 	}
+
+	printf("invalid read\n");
 
 	return 0;
 

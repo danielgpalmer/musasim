@@ -114,40 +114,25 @@ static void ballcollision(ball* b1, ball* b2) {
 	}
 }
 
+//static bool fbready = false;
+
 void vblank_handler() {
-	static uint16_t lastframe = 0;
-	static uint16_t thisframe;
 
-	uint16_t vidflags = video_register_flags;
-	uint8_t port0 = input_port0;
-	thisframe = video_register_frame;
-
-	updateball(&ball1, thisframe, lastframe);
-	updateball(&ball2, thisframe, lastframe);
-	ballcollision(&ball1, &ball2);
-
-	video_begin();
-	video_clear(0xFFFF);
-	video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
-	sprite_draw(ball1.sprite);
-	sprite_draw(ball2.sprite);
-	video_drawline(&vect);
-	video_gputs("Hello World!", _binary_fontrom_start, 1, 1);
-	video_commit();
-
-	lastframe = thisframe;
-	video_flip();
+	//if (fbready) {
+	//	video_flip();
+	//	fbready = false;
+	//}
 }
 
 void uart_handler() {
 }
 
 void initvideo() {
-	video_setconfig(true, false);
 	video_begin();
 	video_clear(0xFFFF);
 	video_commit();
 	video_waitforvblank();
+	video_setconfig(true, false);
 	video_flip();
 }
 
@@ -227,11 +212,38 @@ int main(void) {
 
 	initvideo();
 
-	uint16_t sr = machine_getstatusregister();
-	machine_setstatusregister((sr & 0xf8ff));
+	//uint16_t sr = machine_getstatusregister();
+	//machine_setstatusregister((sr & 0xf8ff));
 
 	while (1) {
+		//if (fbready) {
+		//	printf("surface hasnt been drawn yet\n");
+		//	continue;
+		//}
 
+		//fbready = false;
+		//static uint16_t lastframe = 0;
+		//static uint16_t thisframe;
+
+		//uint16_t vidflags = video_register_flags;
+		//uint8_t port0 = input_port0;
+		//thisframe = video_register_frame;
+
+		//updateball(&ball1, thisframe, lastframe);
+		//updateball(&ball2, thisframe, lastframe);
+		//ballcollision(&ball1, &ball2);
+
+		//video_begin();
+		//video_clear(0xFFFF);
+		//video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
+		//sprite_draw(ball1.sprite);
+		//sprite_draw(ball2.sprite);
+		//video_drawline(&vect);
+		//video_gputs("Hello World!", _binary_fontrom_start, 1, 1);
+		//video_commit();
+
+		//lastframe = thisframe;
+		//fbready = true;
 	}
 
 	return 0;

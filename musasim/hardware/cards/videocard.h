@@ -32,6 +32,7 @@
 
 const card videocard;
 
+#include <SDL/SDL.h>
 void videocard_setosd(SDL_Surface* s);
 void videocard_refresh(void);
 

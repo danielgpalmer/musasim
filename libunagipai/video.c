@@ -17,25 +17,22 @@
 static bool transactionopen = false;
 
 void video_flip() {
-	if (video_register_config & VIDEO_CONFIG_FLIP) {
-		video_register_config &= ~VIDEO_CONFIG_FLIP;
+	uint16_t config = video_register_config;
+	if (config & VIDEO_CONFIG_FLIP) {
+		video_register_config = config & ~VIDEO_CONFIG_FLIP;
 	}
 	else {
-		video_register_config |= VIDEO_CONFIG_FLIP;
+		video_register_config = config | VIDEO_CONFIG_FLIP;
 	}
 }
 
 void video_waitforvblank() {
-	if ((video_register_config & VIDEO_CONFIG_MODE_MASK) == VIDEO_CONFIG_MODE_DISABLED) {
-		return;
-	}
-
 	while (!(video_register_flags & FLAG_VBLANK)) {
 	}
 }
 
 void video_setconfig(bool vblankint, bool hblankint) {
-	video_register_config = VIDEO_CONFIG_MODE_BITMAP | VIDEO_CONFIG_ENVBINT;
+	video_register_config = VIDEO_CONFIG_MODE_BITMAP;// | VIDEO_CONFIG_ENVBINT;
 }
 
 void video_changewindow() {
