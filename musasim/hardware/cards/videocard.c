@@ -240,7 +240,6 @@ void videocard_setosd(SDL_Surface* s) {
 
 void videocard_refresh() {
 	// FIXME
-
 	SDL_FillRect(screen, NULL, 0x0);
 	SDL_BlitSurface(VISIBLESURFACE, &region, screen, &window);
 	if (osd) {
@@ -248,7 +247,6 @@ void videocard_refresh() {
 	}
 	SDL_Flip(screen);
 	//
-
 }
 
 const card videocard = { "VIDEO CARD", //

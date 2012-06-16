@@ -47,6 +47,60 @@ static bool basicsound = false;
 static const char WINDOWTITLE[] = "musasim";
 static const char TAG[] = "sim";
 
+static void sim_updatesdl() {
+
+	static int ticks = 0;
+	if(ticks < 100){
+		ticks++;
+		return;
+	}
+	ticks = 0;
+
+	// Check some keys
+	SDL_PumpEvents();
+	static SDL_Event events[10];
+	if (SDL_PeepEvents(events, 1, SDL_GETEVENT, SDL_QUITMASK)) {
+		log_println(LEVEL_INFO, TAG, "Window was closed");
+		sim_quit();
+		return;
+	}
+
+	// pick out the events that the sim wants
+	for (int i = 0; i < SDL_PeepEvents(events, 10, SDL_PEEKEVENT, SDL_KEYDOWNMASK | SDL_KEYUPMASK); i++) {
+		if (events[i].type == SDL_KEYUP) {
+			switch (events[i].key.keysym.sym) {
+				case SIM_KEY_NMI:
+					m68k_set_irq(7);
+					break;
+				case SIM_KEY_RESET:
+					break;
+				case SIM_KEY_MUTE:
+					break;
+				case SIM_KEY_PAUSE:
+					paused = !paused;
+					if (paused) {
+						log_println(LEVEL_INFO, TAG, "sim is now paused");
+					}
+					else {
+						log_println(LEVEL_INFO, TAG, "sim is now running");
+					}
+					// drain all the events.. better way to fix this?
+					while (SDL_PollEvent(events))
+						;
+
+					return;
+				case SIM_KEY_QUIT:
+					sim_quit();
+					return;
+				default:
+					break;
+			}
+			break;
+		}
+	}
+	videocard_refresh();
+}
+
 void cpu_pulse_reset(void) {
 	log_println(LEVEL_INFO, TAG, "reset called");
 	board_reset();
@@ -154,49 +208,6 @@ void sim_tick() {
 		return;
 	}
 
-	// Check some keys
-	SDL_PumpEvents();
-	static SDL_Event events[10];
-	if (SDL_PeepEvents(events, 1, SDL_GETEVENT, SDL_QUITMASK)) {
-		log_println(LEVEL_INFO, TAG, "Window was closed");
-		sim_quit();
-		return;
-	}
-
-	// pick out the events that the sim wants
-	for (int i = 0; i < SDL_PeepEvents(events, 10, SDL_PEEKEVENT, SDL_KEYDOWNMASK | SDL_KEYUPMASK); i++) {
-		if (events[i].type == SDL_KEYUP) {
-			switch (events[i].key.keysym.sym) {
-				case SIM_KEY_NMI:
-					m68k_set_irq(7);
-					break;
-				case SIM_KEY_RESET:
-					break;
-				case SIM_KEY_MUTE:
-					break;
-				case SIM_KEY_PAUSE:
-					paused = !paused;
-					if (paused) {
-						log_println(LEVEL_INFO, TAG, "sim is now paused");
-					}
-					else {
-						log_println(LEVEL_INFO, TAG, "sim is now running");
-					}
-					// drain all the events.. better way to fix this?
-					while (SDL_PollEvent(events))
-						;
-
-					return;
-				case SIM_KEY_QUIT:
-					sim_quit();
-					return;
-				default:
-					break;
-			}
-			break;
-		}
-	}
-
 	//
 
 	if (paused) {
@@ -215,8 +226,7 @@ void sim_tick() {
 	}
 
 	board_tick();
-
-	videocard_refresh();
+	sim_updatesdl();
 	gettimeofday(&end, NULL);
 
 	timeval_subtract(&diff, &end, &start);
