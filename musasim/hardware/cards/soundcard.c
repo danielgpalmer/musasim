@@ -326,5 +326,19 @@ static bool soundcard_validaddress(uint32_t address) {
 	return true;
 }
 
-const card soundcard = { "SOUND CARD", soundcard_init, soundcard_dispose, NULL, soundcard_tick, soundcard_irqack, NULL,
-		soundcard_validaddress, NULL, soundcard_read_word, NULL, NULL, soundcard_write_word, NULL };
+const card soundcard = { "SOUND CARD", //
+		soundcard_init, //
+		soundcard_dispose, //
+		NULL, //
+		soundcard_tick, //
+		soundcard_irqack, //
+		NULL, //
+		soundcard_validaddress, //
+		NULL, //
+		soundcard_read_word, //
+		NULL, //
+		NULL, //
+		soundcard_write_word, //
+		NULL, //
+		NULL //
+		};

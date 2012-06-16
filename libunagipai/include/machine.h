@@ -12,6 +12,9 @@
 
 #include <stdint.h>
 
+#define MACHINE_SR_MASK (1 << 13)
+
+
 /**
  * get the status register
  */

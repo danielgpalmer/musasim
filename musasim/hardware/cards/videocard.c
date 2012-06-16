@@ -31,7 +31,7 @@ static uint16_t* video_registers[] = { &flags, &config, &pixel, &line, &frame, &
 
 static SDL_Surface* screen = NULL;
 static SDL_Surface* rendersurfaces[2];
-static SDL_Surface* osd;
+static SDL_Surface* osd = NULL;
 static SDL_Rect region;
 static SDL_Rect window;
 
@@ -256,4 +256,6 @@ const card videocard = { "VIDEO CARD", //
 		NULL, //
 		video_write_byte, //
 		video_write_word, //
-		NULL };
+		NULL, //
+		NULL //
+		};

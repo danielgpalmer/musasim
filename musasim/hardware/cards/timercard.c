@@ -38,4 +38,6 @@ const card timercard = { "timer card", //
 		NULL, //
 		NULL, //
 		NULL, //
-		NULL };
+		NULL, //
+		NULL //
+		};

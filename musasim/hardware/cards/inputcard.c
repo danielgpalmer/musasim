@@ -179,5 +179,6 @@ const card inputcard = { "INPUT CARD", // tag
 		NULL, // read long
 		NULL, // write byte
 		NULL, // write word
-		NULL // write long
+		NULL, // write long
+		NULL //
 		};

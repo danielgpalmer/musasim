@@ -11,7 +11,7 @@
 #include <stdint.h>
 
 uint16_t machine_getstatusregister() {
-	uint16_t temp;
+	volatile uint16_t temp; // stops this guy getting optimised out
 	asm volatile (
 			"move.w %%sr, %0\n\t"
 			:
@@ -34,6 +34,12 @@ void machine_enableinterrupts() {
 
 void machine_disableinterrupts() {
 
+}
+
+void machine_switchtousermode() {
+	uint16_t sr = machine_getstatusregister();
+	sr |= MACHINE_SR_MASK;
+	machine_setstatusregister(sr);
 }
 
 void machine_disablerom() {
