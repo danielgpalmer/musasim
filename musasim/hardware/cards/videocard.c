@@ -118,7 +118,7 @@ static void video_tick() {
 	for (int i = 0; i < PIXELSPERTICK; i++) {
 
 		if (pixel == 0 && line == 0) {
-			log_println(LEVEL_INFO, TAG, "refresh");
+			//log_println(LEVEL_INFO, TAG, "refresh");
 			videocard_refresh();
 		}
 
@@ -137,16 +137,16 @@ static void video_tick() {
 			// vblank handling
 			if (line == VIDEO_HEIGHT - 1) {
 				flags |= FLAG_VBLANK;
-				log_println(LEVEL_INFO, TAG, "v blank start");
+				//log_println(LEVEL_INFO, TAG, "v blank start");
 				if (config & VIDEO_CONFIG_ENVBINT) {
 					board_raise_interrupt(&videocard);
 				}
 
-			}
+			}	// FIXME
 			else if (line == (VIDEO_HEIGHT + VBLANKPERIOD - 1)) {
 				// turn vblank off
 				flags &= ~FLAG_VBLANK;
-				log_println(LEVEL_INFO, TAG, "v blank end");
+				//log_println(LEVEL_INFO, TAG, "v blank end");
 			}
 
 			line++;
@@ -197,10 +197,10 @@ static void video_write_word(uint32_t address, uint16_t data) {
 		uint8_t reg = GETVIDREG(address);
 		if (reg == 1) {
 			if (*(video_registers[reg]) & VIDEO_CONFIG_FLIP) {
-				log_println(LEVEL_INFO, TAG, "surface 1");
+				//log_println(LEVEL_INFO, TAG, "surface 1");
 			}
 			else {
-				log_println(LEVEL_INFO, TAG, "surface 0");
+				//log_println(LEVEL_INFO, TAG, "surface 0");
 			}
 		}
 		*(video_registers[reg]) = data;
@@ -240,8 +240,12 @@ void videocard_setosd(SDL_Surface* s) {
 }
 
 void videocard_refresh() {
-	// FIXME
-	SDL_FillRect(screen, NULL, 0x0);
+
+	// if the current window covers the whole surface don't bother clearing it.
+	if (!((region.x == 0) && (region.y == 0) && (region.w == VIDEO_WIDTH) && (region.h == VIDEO_HEIGHT))) {
+		SDL_FillRect(screen, NULL, 0x0);
+	}
+
 	SDL_BlitSurface(VISIBLESURFACE, &region, screen, &window);
 	if (osd) {
 		SDL_BlitSurface(osd, NULL, screen, NULL);

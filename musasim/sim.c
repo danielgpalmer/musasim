@@ -6,12 +6,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
+#include <math.h>
 #include <glib.h>
 #include <unistd.h>
 #include <SDL.h>
 
 #include <sys/time.h>
 
+#include "utils.h"
 #include "sim.h"
 #include "osd.h"
 #include "logging.h"
@@ -55,7 +57,7 @@ static const char TAG[] = "sim";
 static void sim_updatesdl() {
 
 	static int ticks = 0;
-	if (ticks < 200) {
+	if (ticks < SIM_TICKS_PERSECOND / 60) {
 		ticks++;
 		return;
 	}
@@ -185,35 +187,41 @@ void sim_tick() {
 		return;
 	}
 
-	if(paused){
+	if (paused) {
 		usleep(5000);
 		return;
 	}
 
-	clock_gettime(CLOCK_MONOTONIC, &start);
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
 	if (!board_bus_locked()) {
 		m68k_execute(SIM_CPUCLOCKS_PERTICK);
 	}
 
 	board_tick();
 	sim_updatesdl();
-	clock_gettime(CLOCK_MONOTONIC, &end);
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
 
-	long int timetaken = end.tv_nsec - start.tv_nsec;
+	long int timetaken = timespecdiff(&start, &end)->tv_nsec;
+	if (timetaken > SIM_NANOSECSPERTICK * 2) {
+		log_println(LEVEL_INFO, TAG, "timetaken got clamped, was %ld", timetaken);
+		timetaken = SIM_NANOSECSPERTICK * 2;
+	}
 	long int overrun = timetaken - SIM_NANOSECSPERTICK;
 	long int sleeptime = 0;
 
 	owed += overrun;
+	//log_println(LEVEL_INFO, TAG, "%ld overrun owed %ld", overrun, owed);
 	if (owed < 0) { // If the amount of nanos owed has become negative we're in the black, so sleep for a bit
-		sleeptime = -owed;
+		sleeptime = labs(owed);
+		//log_println(LEVEL_INFO, TAG, "sleeping for %ld", sleeptime);
 		owed = 0;
 	}
 
-	if (sleeptime > 5000)
-		sleeptime = 5000;
+	//if (sleeptime > 5000) {
+	//	sleeptime = 5000;
+	//}
 
 	if (throttle && owed == 0 && sleeptime > 0) {
-		log_println(LEVEL_INFO, TAG, "sleeping for %ld", sleeptime);
 		sleep.tv_nsec = sleeptime;
 		nanosleep(&sleep, NULL);
 	}
