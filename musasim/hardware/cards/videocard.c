@@ -117,8 +117,13 @@ static void video_tick() {
 
 	for (int i = 0; i < PIXELSPERTICK; i++) {
 
+		if (pixel == 0 && line == 0) {
+			log_println(LEVEL_INFO, TAG, "refresh");
+			videocard_refresh();
+		}
+
 		// hblank handling
-		if (pixel == VIDEO_WIDTH) {
+		if (pixel == (VIDEO_WIDTH - 1)) {
 			flags |= FLAG_HBLANK;
 			if (config & VIDEO_CONFIG_ENHBINT) {
 				board_raise_interrupt(&videocard);
@@ -126,29 +131,38 @@ static void video_tick() {
 		}
 
 		// line handling
-		else if (pixel == (VIDEO_WIDTH + HBLANKPERIOD)) {
+		else if (pixel == (VIDEO_WIDTH + HBLANKPERIOD - 1)) {
 			// turn hblank off
 			flags &= !FLAG_HBLANK;
-			pixel = 0;
-
 			// vblank handling
-			if (line == VIDEO_HEIGHT) {
+			if (line == VIDEO_HEIGHT - 1) {
 				flags |= FLAG_VBLANK;
+				log_println(LEVEL_INFO, TAG, "v blank start");
 				if (config & VIDEO_CONFIG_ENVBINT) {
 					board_raise_interrupt(&videocard);
 				}
 
 			}
-
-			else if (line == (VIDEO_HEIGHT + VBLANKPERIOD)) {
+			else if (line == (VIDEO_HEIGHT + VBLANKPERIOD - 1)) {
 				// turn vblank off
 				flags &= ~FLAG_VBLANK;
-				line = 0;
-				frame++;
+				log_println(LEVEL_INFO, TAG, "v blank end");
 			}
-			line++;
+
+			if (line + 1 == VIDEO_HEIGHT + VBLANKPERIOD) {
+				line = 0;
+			}
+			else {
+				line++;
+			}
 		}
-		pixel++;
+
+		if (pixel + 1 == VIDEO_WIDTH + HBLANKPERIOD) {
+			pixel = 0;
+		}
+		else {
+			pixel++;
+		}
 	}
 }
 
@@ -231,7 +245,6 @@ void videocard_refresh() {
 	// FIXME
 	SDL_FillRect(screen, NULL, 0x0);
 	SDL_BlitSurface(VISIBLESURFACE, &region, screen, &window);
-	//SDL_BlitSurface(WRITEABLESURFACE, &region, screen, &window);
 	if (osd) {
 		SDL_BlitSurface(osd, NULL, screen, NULL);
 	}

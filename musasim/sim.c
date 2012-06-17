@@ -29,13 +29,16 @@
 #include "hardware/cards/timercard.h"
 
 // keys that the sim uses
-#define SIM_KEY_PAUSE	SDLK_F1
-#define SIM_KEY_RESET	SDLK_F2
-#define SIM_KEY_NMI		SDLK_F3
-#define SIM_KEY_MUTE	SDLK_F4
-#define SIM_KEY_QUIT	SDLK_ESCAPE
+#define SIM_KEY_PAUSE			SDLK_F1
+#define SIM_KEY_RESET			SDLK_F2
+#define SIM_KEY_NMI				SDLK_F3
+#define SIM_KEY_MUTE			SDLK_F4
+#define SIM_KEY_TOGGLEOSD		SDLK_F5
+#define SIM_KEY_TOGGLETHROTTLE	SDLK_F6
+#define SIM_KEY_QUIT			SDLK_ESCAPE
 
 // state
+static bool throttle = true;
 static bool shouldexit = false;
 static bool paused = false;
 static bool initialised = false;
@@ -78,6 +81,9 @@ static void sim_updatesdl() {
 					break;
 				case SIM_KEY_MUTE:
 					break;
+				case SIM_KEY_TOGGLETHROTTLE:
+					throttle = !throttle;
+					break;
 				case SIM_KEY_PAUSE:
 					paused = !paused;
 					if (paused) {
@@ -100,7 +106,7 @@ static void sim_updatesdl() {
 			break;
 		}
 	}
-	videocard_refresh();
+	//videocard_refresh();
 }
 
 void cpu_pulse_reset(void) {
@@ -245,8 +251,8 @@ void sim_tick() {
 	}
 
 	sleep = SIM_USECSPERTICK - average;
-	if (sleep > 0) {
-		//usleep(sleep);
+	if (throttle && sleep > 0) {
+		usleep(sleep);
 	}
 
 }

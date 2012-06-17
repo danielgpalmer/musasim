@@ -50,22 +50,23 @@ static image pai;
 static ball ball1, ball2;
 
 static void updateball(ball* b, uint16_t thisframe, uint16_t lastframe) {
-	for (int i = 0; i < thisframe - lastframe; i++) {
 
-		b->sprite->x += (b->speedx * b->xinc);
+	//for (int i = 0; i < thisframe - lastframe; i++) {
 
-		if (b->sprite->x >= VIDEO_WIDTH - b->sprite->image->width - 1 || b->sprite->x <= 0) {
-			b->sprite->x = b->xinc > 0 ? VIDEO_WIDTH - 1 - b->sprite->image->width : 0;
-			b->xinc = -b->xinc;
-		}
+	b->sprite->x += (b->speedx * b->xinc);
 
-		b->sprite->y += (b->speedy * b->yinc);
-
-		if (b->sprite->y >= VIDEO_HEIGHT - b->sprite->image->height - 1 || b->sprite->y <= 0) {
-			b->sprite->y = b->yinc > 0 ? VIDEO_HEIGHT - 1 - b->sprite->image->height : 0;
-			b->yinc = -b->yinc;
-		}
+	if (b->sprite->x >= VIDEO_WIDTH - b->sprite->image->width - 1 || b->sprite->x <= 0) {
+		b->sprite->x = b->xinc > 0 ? VIDEO_WIDTH - 1 - b->sprite->image->width : 0;
+		b->xinc = -b->xinc;
 	}
+
+	b->sprite->y += (b->speedy * b->yinc);
+
+	if (b->sprite->y >= VIDEO_HEIGHT - b->sprite->image->height - 1 || b->sprite->y <= 0) {
+		b->sprite->y = b->yinc > 0 ? VIDEO_HEIGHT - 1 - b->sprite->image->height : 0;
+		b->yinc = -b->yinc;
+	}
+	//}
 
 }
 
@@ -129,6 +130,12 @@ void uart_handler() {
 }
 
 void initvideo() {
+	video_begin();
+	video_clear(0xFFFF);
+	video_commit();
+	video_waitforvblank();
+	video_flip();
+
 	video_begin();
 	video_clear(0xFFFF);
 	video_commit();
@@ -222,6 +229,7 @@ int main(void) {
 
 		uint16_t vidflags = video_register_flags;
 		uint8_t port0 = input_port0;
+
 		thisframe = video_register_frame;
 
 		updateball(&ball1, thisframe, lastframe);
@@ -230,11 +238,11 @@ int main(void) {
 
 		video_begin();
 		video_clear(0xFFFF);
-		video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
+		//video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
 		sprite_draw(ball1.sprite);
 		sprite_draw(ball2.sprite);
 		video_drawline(&vect);
-		video_gputs("Hello World!", _binary_fontrom_start, 1, 1);
+		//video_gputs("Hello World!", _binary_fontrom_start, 1, 1);
 		video_commit();
 
 		lastframe = thisframe;
