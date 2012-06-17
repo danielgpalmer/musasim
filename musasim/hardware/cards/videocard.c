@@ -66,7 +66,7 @@ static void video_init() {
 
 		SDL_Surface* rendersurface = NULL;
 
-		rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_PLAYFIELDWIDTH, VIDEO_PLAYFIELDHEIGHT,
+		rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_ASYNCBLIT, VIDEO_PLAYFIELDWIDTH, VIDEO_PLAYFIELDHEIGHT,
 				VIDEO_PIXELFORMAT, 0, 0, 0, 0);
 
 		if (rendersurface != NULL) {
@@ -149,20 +149,18 @@ static void video_tick() {
 				log_println(LEVEL_INFO, TAG, "v blank end");
 			}
 
-			if (line + 1 == VIDEO_HEIGHT + VBLANKPERIOD) {
+			line++;
+			if (line == VIDEO_HEIGHT + VBLANKPERIOD) {
 				line = 0;
 			}
-			else {
-				line++;
-			}
+
 		}
 
-		if (pixel + 1 == VIDEO_WIDTH + HBLANKPERIOD) {
+		pixel++;
+		if (pixel == VIDEO_WIDTH + HBLANKPERIOD) {
 			pixel = 0;
 		}
-		else {
-			pixel++;
-		}
+
 	}
 }
 

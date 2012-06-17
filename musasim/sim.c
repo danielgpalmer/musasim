@@ -178,16 +178,14 @@ void sim_init() {
 
 void sim_tick() {
 
+	static long int owed = 0;
 	struct timespec start, end, sleep;
-//	static long int sleep = 0;
 
 	if (shouldexit) {
 		return;
 	}
 
-	//
-
-	if (paused) {
+	if(paused){
 		usleep(5000);
 		return;
 	}
@@ -195,10 +193,6 @@ void sim_tick() {
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	if (!board_bus_locked()) {
 		m68k_execute(SIM_CPUCLOCKS_PERTICK);
-		// maybe STOP happened
-		if (shouldexit) {
-			return;
-		}
 	}
 
 	board_tick();
@@ -206,15 +200,21 @@ void sim_tick() {
 	clock_gettime(CLOCK_MONOTONIC, &end);
 
 	long int timetaken = end.tv_nsec - start.tv_nsec;
-	long int sleeptime = SIM_NANOSECSPERTICK - timetaken;
-	sleep.tv_nsec = sleeptime;
+	long int overrun = timetaken - SIM_NANOSECSPERTICK;
+	long int sleeptime = 0;
 
-	if (sleeptime < 0) {
-		log_println(LEVEL_INFO, TAG, "Target tick time is %d took %ld sleep %ld", SIM_NANOSECSPERTICK, timetaken,
-				sleeptime);
+	owed += overrun;
+	if (owed < 0) { // If the amount of nanos owed has become negative we're in the black, so sleep for a bit
+		sleeptime = -owed;
+		owed = 0;
 	}
 
-	if (throttle && sleeptime > 0) {
+	if (sleeptime > 5000)
+		sleeptime = 5000;
+
+	if (throttle && owed == 0 && sleeptime > 0) {
+		log_println(LEVEL_INFO, TAG, "sleeping for %ld", sleeptime);
+		sleep.tv_nsec = sleeptime;
 		nanosleep(&sleep, NULL);
 	}
 
