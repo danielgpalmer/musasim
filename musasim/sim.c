@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 1993309
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -174,39 +176,10 @@ void sim_init() {
 	initialised = true;
 }
 
-/* Subtract the `struct timeval' values X and Y,
- storing the result in RESULT.
- Return 1 if the difference is negative, otherwise 0.  */
-
-static int timeval_subtract(result, x, y)
-	struct timeval *result, *x, *y; {
-	/* Perform the carry for the later subtraction by updating y. */
-	if (x->tv_usec < y->tv_usec) {
-		int nsec = (y->tv_usec - x->tv_usec) / 1000000 + 1;
-		y->tv_usec -= 1000000 * nsec;
-		y->tv_sec += nsec;
-	}
-	if (x->tv_usec - y->tv_usec > 1000000) {
-		int nsec = (x->tv_usec - y->tv_usec) / 1000000;
-		y->tv_usec += 1000000 * nsec;
-		y->tv_sec -= nsec;
-	}
-
-	/* Compute the time remaining to wait.
-	 tv_usec is certainly positive. */
-	result->tv_sec = x->tv_sec - y->tv_sec;
-	result->tv_usec = x->tv_usec - y->tv_usec;
-
-	/* Return 1 if result is negative. */
-	return x->tv_sec < y->tv_sec;
-}
-
 void sim_tick() {
 
-	static struct timeval start, end, diff;
-	static long int lastoutput = 0;
-	static long int average = 0;
-	static long int sleep = 0;
+	struct timespec start, end, sleep;
+//	static long int sleep = 0;
 
 	if (shouldexit) {
 		return;
@@ -219,8 +192,7 @@ void sim_tick() {
 		return;
 	}
 
-	gettimeofday(&start, NULL);
-
+	clock_gettime(CLOCK_MONOTONIC, &start);
 	if (!board_bus_locked()) {
 		m68k_execute(SIM_CPUCLOCKS_PERTICK);
 		// maybe STOP happened
@@ -231,28 +203,19 @@ void sim_tick() {
 
 	board_tick();
 	sim_updatesdl();
-	gettimeofday(&end, NULL);
+	clock_gettime(CLOCK_MONOTONIC, &end);
 
-	timeval_subtract(&diff, &end, &start);
+	long int timetaken = end.tv_nsec - start.tv_nsec;
+	long int sleeptime = SIM_NANOSECSPERTICK - timetaken;
+	sleep.tv_nsec = sleeptime;
 
-	average = (average + diff.tv_usec) / 2;
-
-	if (diff.tv_sec > 0) {
-		log_println(LEVEL_DEBUG, TAG, "tick took longer than one second");
+	if (sleeptime < 0) {
+		log_println(LEVEL_INFO, TAG, "Target tick time is %d took %ld sleep %ld", SIM_NANOSECSPERTICK, timetaken,
+				sleeptime);
 	}
 
-	if (lastoutput == 0) {
-		lastoutput = end.tv_sec;
-	}
-
-	if (lastoutput < (end.tv_sec - 10)) {
-		lastoutput = end.tv_sec;
-		log_println(LEVEL_DEBUG, TAG, "tick is taking %ld us, %d target, %ld sleep", average, SIM_USECSPERTICK, sleep);
-	}
-
-	sleep = SIM_USECSPERTICK - average;
-	if (throttle && sleep > 0) {
-		usleep(sleep);
+	if (throttle && sleeptime > 0) {
+		nanosleep(&sleep, NULL);
 	}
 
 }
