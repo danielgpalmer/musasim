@@ -41,7 +41,7 @@ static void basicsound_init() {
 		return;
 	}
 
-	blip_set_rates(buf, SIM_TARGET_FREQUENCY, SAMPLERATE);
+	blip_set_rates(buf, SIM_CPUCLOCK, SAMPLERATE);
 
 	SDL_AudioSpec fmt;
 	fmt.freq = SAMPLERATE;
@@ -126,5 +126,4 @@ const card basicsoundcard = { "BASIC SOUND CARD", //
 		NULL, //
 		basicsound_write_word, //
 		NULL, //
-		NULL
-		};
+		NULL };

@@ -14,18 +14,18 @@
 #define VIDEO_HEIGHT 0x110
 #define VIDEO_PLAYFIELDWIDTH 0x200
 #define VIDEO_PLAYFIELDHEIGHT 0x200
-#define video_end (*(volatile uint16_t*) 0x280000)
-#define video_register_flags (*(volatile uint16_t*) 0x280000)
-#define video_register_config (*(volatile uint16_t*) 0x280002)
-#define video_register_pixel (*(volatile uint16_t*) 0x280004)
-#define video_register_line (*(volatile uint16_t*) 0x280006)
-#define video_register_frame (*(volatile uint16_t*) 0x280008)
-#define video_register_posx (*(volatile uint16_t*) 0x28000a)
-#define video_register_posy (*(volatile uint16_t*) 0x28000c)
-#define video_register_winx (*(volatile uint16_t*) 0x28000e)
-#define video_register_winy (*(volatile uint16_t*) 0x280010)
-#define video_register_winwidth (*(volatile uint16_t*) 0x280012)
-#define video_register_winheight (*(volatile uint16_t*) 0x280014)
-#define video_start ((volatile uint16_t*) 0x200000)
+#define video_register_flags (*(volatile uint16_t*) 0x200000)
+#define video_register_config (*(volatile uint16_t*) 0x200002)
+#define video_register_pixel (*(volatile uint16_t*) 0x200004)
+#define video_register_line (*(volatile uint16_t*) 0x200006)
+#define video_register_frame (*(volatile uint16_t*) 0x200008)
+#define video_register_posx (*(volatile uint16_t*) 0x20000a)
+#define video_register_posy (*(volatile uint16_t*) 0x20000c)
+#define video_register_winx (*(volatile uint16_t*) 0x20000e)
+#define video_register_winy (*(volatile uint16_t*) 0x200010)
+#define video_register_winwidth (*(volatile uint16_t*) 0x200012)
+#define video_register_winheight (*(volatile uint16_t*) 0x200014)
+#define video_framebuffer ((volatile uint16_t*) 0x280000)
+#define video_compositingbuffer ((volatile uint16_t*) 0x300000)
 
 #endif // VIDEOREGISTERS

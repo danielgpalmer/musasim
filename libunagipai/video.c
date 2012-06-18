@@ -32,7 +32,7 @@ void video_waitforvblank() {
 }
 
 void video_setconfig(bool vblankint, bool hblankint) {
-	video_register_config = VIDEO_CONFIG_MODE_BITMAP;// | VIDEO_CONFIG_ENVBINT;
+	video_register_config = VIDEO_CONFIG_MODE_BITMAP; // | VIDEO_CONFIG_ENVBINT;
 }
 
 void video_changewindow() {
@@ -61,12 +61,12 @@ void video_plot(int x, int y, uint16_t colour) {
 	if ((x < 0 || x > VIDEO_PLAYFIELDWIDTH - 1) || (y < 0 || y > VIDEO_PLAYFIELDHEIGHT - 1)) {
 		return;
 	}
-	*(video_start + (VIDEO_PLAYFIELDWIDTH * y) + x) = colour;
+	*(video_framebuffer + (VIDEO_PLAYFIELDWIDTH * y) + x) = colour;
 }
 
 void video_clear(uint16_t clearcolour) {
 	static uint32_t count = VIDEO_PLAYFIELDWIDTH * VIDEO_PLAYFIELDHEIGHT;
-	dma_fillblock((uint32_t) video_start, clearcolour, count);
+	dma_fillblock((uint32_t) video_framebuffer, clearcolour, count);
 }
 
 void video_fillrect(int x, int y, int width, int height) {
@@ -114,7 +114,7 @@ void video_blitimage(int width, int height, int x, int y, void* data, dataloader
 	for (int i = 0; i < height; i++) {
 		loader(data, buff, sizeof(buff));
 		for (int p = 0; p < width; p++) {
-			*(video_start + (VIDEO_PLAYFIELDWIDTH * (i + y)) + p + x) = buff[p];
+			*(video_framebuffer + (VIDEO_PLAYFIELDWIDTH * (i + y)) + p + x) = buff[p];
 		}
 	}
 
@@ -125,14 +125,14 @@ void video_blitimage_nocopy(int width, int height, int x, int y, uint16_t* data)
 	bool usedma = true;
 	if (usedma) {
 		uint32_t count = width * height;
-		dma_transfer_nonlinearblock(data, (uint32_t)(video_start + (VIDEO_PLAYFIELDWIDTH * y) + x), count, width,
-				VIDEO_PLAYFIELDWIDTH - width);
+		dma_transfer_nonlinearblock((uint32_t) data, (uint32_t)(video_framebuffer + (VIDEO_PLAYFIELDWIDTH * y) + x),
+				count, width, VIDEO_PLAYFIELDWIDTH - width);
 
 	}
 	else {
 		for (int i = 0; i < height; i++) {
 			for (int p = 0; p < width; p++) {
-				*(video_start + (VIDEO_PLAYFIELDWIDTH * (i + y)) + p + x) = data[(i * width) + p];
+				*(video_framebuffer + (VIDEO_PLAYFIELDWIDTH * (i + y)) + p + x) = data[(i * width) + p];
 			}
 		}
 	}
@@ -162,10 +162,10 @@ void video_gputs(char* string, uint8_t* font, int col, int row) {
 
 				int pixel = character & 0x01;
 				if (pixel) {
-					*(video_start + offset) = 0x0000;
+					*(video_framebuffer + offset) = 0x0000;
 				}
 				else {
-					*(video_start + offset) = 0xFFFF;
+					*(video_framebuffer + offset) = 0xFFFF;
 				}
 				character = (character >> 1);
 			}

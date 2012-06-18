@@ -14,6 +14,8 @@
 
 static const char TAG[] = "video";
 
+static bool vramtouched = false;
+
 static uint16_t flags = 0;
 static uint16_t config = 0;
 static uint16_t pixel = 0;
@@ -34,13 +36,12 @@ static SDL_Surface* rendersurfaces[2];
 static SDL_Surface* osd = NULL;
 static SDL_Rect region;
 static SDL_Rect window;
+static void* compositingbuffer;
 
-static uint32_t registersstart;
+#define GETVIDREG(x) ( x = 0 ? 0 : (x / 2)) //FIXME there should be mirrors of the registers
 
-#define GETVIDREG(x) ( x = 0 ? 0 : (x & ~registersstart) / 2)
-
-#define WRITEABLESURFACE	((config & VIDEO_CONFIG_FLIP) ? rendersurfaces[0] : rendersurfaces[1])
-#define VISIBLESURFACE 		(!(config & VIDEO_CONFIG_FLIP) ? rendersurfaces[1] : rendersurfaces[0])
+#define FRONTSURFACE	((config & VIDEO_CONFIG_FLIP) ? rendersurfaces[0] : rendersurfaces[1])
+#define BACKSURFACE 		(!(config & VIDEO_CONFIG_FLIP) ? rendersurfaces[1] : rendersurfaces[0])
 
 #define ISACTIVE (!(flags & FLAG_HBLANK || flags & FLAG_VBLANK))
 
@@ -77,11 +78,11 @@ static void video_init() {
 
 	}
 
+	compositingbuffer = malloc(VIDEO_COMPOSITINGBUFFER_SIZE);
+
 	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
 			screen->format->BitsPerPixel);
 
-	registersstart = utils_nextpow(VIDEO_MEMORYEND);
-	log_println(LEVEL_DEBUG, TAG, "Memory size is 0x%x, registers start at 0x%x", VIDEO_MEMORYEND, registersstart);
 	log_println(LEVEL_DEBUG, TAG,
 			"Active area is %d pixel, Total area  is %d pixels, refresh rate %d, pixels per second %d, pixels per tick %d",
 			VIDEO_ACTIVEPIXELS, VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELSPERSECOND, PIXELSPERTICK);
@@ -95,6 +96,8 @@ static void video_dispose() {
 	for (int i = 0; i < SIZEOFARRAY(rendersurfaces); i++) {
 		SDL_FreeSurface(rendersurfaces[i]);
 	}
+
+	free(compositingbuffer);
 
 	log_println(LEVEL_DEBUG, TAG, "video_dispose()");
 }
@@ -142,7 +145,7 @@ static void video_tick() {
 					board_raise_interrupt(&videocard);
 				}
 
-			}	// FIXME
+			} // FIXME
 			else if (line == (VIDEO_HEIGHT + VBLANKPERIOD - 1)) {
 				// turn vblank off
 				flags &= ~FLAG_VBLANK;
@@ -165,30 +168,29 @@ static void video_tick() {
 }
 
 static void video_write_byte(uint32_t address, uint8_t data) {
-	if (address < registersstart) {
-		if (SDL_MUSTLOCK(WRITEABLESURFACE)) {
-			SDL_LockSurface(WRITEABLESURFACE);
+
+	if (address < VIDEO_FRAMEBUFFER_START) {
+
+	}
+
+	else if (address < VIDEO_COMPOSITINGBUFFER_START) {
+		if (SDL_MUSTLOCK(FRONTSURFACE)) {
+			SDL_LockSurface(FRONTSURFACE);
 		}
-		*((uint8_t*) WRITEABLESURFACE->pixels + address) = data;
-		if (SDL_MUSTLOCK(WRITEABLESURFACE)) {
-			SDL_UnlockSurface(WRITEABLESURFACE);
+		*((uint8_t*) FRONTSURFACE->pixels + (address - VIDEO_FRAMEBUFFER_START)) = data;
+		vramtouched = true;
+		if (SDL_MUSTLOCK(FRONTSURFACE)) {
+			SDL_UnlockSurface(FRONTSURFACE);
 		}
+	}
+	else {
+
 	}
 }
 
 static void video_write_word(uint32_t address, uint16_t data) {
 
-	if (address < registersstart) {
-		if (SDL_MUSTLOCK(WRITEABLESURFACE)) {
-			SDL_LockSurface(WRITEABLESURFACE);
-		}
-		*((uint16_t*) WRITEABLESURFACE->pixels + (address / 2)) = data;
-		if (SDL_MUSTLOCK(WRITEABLESURFACE)) {
-			SDL_UnlockSurface(WRITEABLESURFACE);
-		}
-	}
-
-	else {
+	if (address < VIDEO_FRAMEBUFFER_START) {
 
 		if (ISACTIVE) {
 			log_println(LEVEL_INFO, TAG, "write to registers during active period");
@@ -212,6 +214,20 @@ static void video_write_word(uint32_t address, uint16_t data) {
 		}
 	}
 
+	else if (address < VIDEO_COMPOSITINGBUFFER_START) {
+		if (SDL_MUSTLOCK(FRONTSURFACE)) {
+			SDL_LockSurface(FRONTSURFACE);
+		}
+		*((uint16_t*) FRONTSURFACE->pixels + ((address - VIDEO_FRAMEBUFFER_START) / 2)) = data;
+		vramtouched = true;
+		if (SDL_MUSTLOCK(FRONTSURFACE)) {
+			SDL_UnlockSurface(FRONTSURFACE);
+		}
+	}
+	else {
+
+	}
+
 }
 
 static uint8_t video_read_byte(uint32_t address) {
@@ -220,7 +236,7 @@ static uint8_t video_read_byte(uint32_t address) {
 
 static uint16_t video_read_word(uint32_t address) {
 
-	if (address >= registersstart) {
+	if (address < VIDEO_FRAMEBUFFER_START) {
 		uint8_t reg = GETVIDREG(address);
 		return *(video_registers[reg]);
 	}
@@ -241,16 +257,20 @@ void videocard_setosd(SDL_Surface* s) {
 
 void videocard_refresh() {
 
+	if (!vramtouched)
+		return;
+
 	// if the current window covers the whole surface don't bother clearing it.
 	if (!((region.x == 0) && (region.y == 0) && (region.w == VIDEO_WIDTH) && (region.h == VIDEO_HEIGHT))) {
 		SDL_FillRect(screen, NULL, 0x0);
 	}
 
-	SDL_BlitSurface(VISIBLESURFACE, &region, screen, &window);
+	SDL_BlitSurface(BACKSURFACE, &region, screen, &window);
 	if (osd) {
 		SDL_BlitSurface(osd, NULL, screen, NULL);
 	}
 	SDL_Flip(screen);
+	vramtouched = false;
 	//
 }
 

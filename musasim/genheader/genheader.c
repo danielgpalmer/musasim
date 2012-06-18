@@ -167,31 +167,28 @@ static void ata() {
 
 static void video() {
 
-	uint32_t registers = VIDEO_MEMORYEND;
-	registers = utils_nextpow(registers);
-
 	printf("#define VIDEO_WIDTH 0x%x\n", VIDEO_WIDTH);
 	printf("#define VIDEO_HEIGHT 0x%x\n", VIDEO_HEIGHT);
 	printf("#define VIDEO_PLAYFIELDWIDTH 0x%x\n", VIDEO_PLAYFIELDWIDTH);
 	printf("#define VIDEO_PLAYFIELDHEIGHT 0x%x\n", VIDEO_PLAYFIELDHEIGHT);
 
-	char* registernames[] = { "end", "register_flags", "register_config", "register_pixel", "register_line",
-			"register_frame", "register_posx", "register_posy", "register_winx", "register_winy", "register_winwidth",
+	char* registernames[] = { "register_flags", "register_config", "register_pixel", "register_line", "register_frame",
+			"register_posx", "register_posy", "register_winx", "register_winy", "register_winwidth",
 			"register_winheight" };
 
-	uint32_t regoffset = SLOT_OFFSET(SLOT_VIDEOCARD) + registers;
-
-	uint32_t registeroffsets[] = { SLOT_OFFSET(SLOT_VIDEOCARD) + VIDEO_MEMORYEND, regoffset + VIDEO_REG_FLAGS, regoffset
-			+ VIDEO_REG_CONFIG, regoffset + VIDEO_REG_PIXEL, regoffset + VIDEO_REG_LINE, regoffset + VIDEO_REG_FRAME,
-			regoffset + VIDEO_REG_POSX, regoffset + VIDEO_REG_POSY, SLOT_OFFSET(SLOT_VIDEOCARD) + registers
-					+ VIDEO_REG_WINX, regoffset + VIDEO_REG_WINY, regoffset + VIDEO_REG_WINWIDTH, regoffset
-					+ VIDEO_REG_WINHEIGHT };
+	uint32_t registeroffsets[] = { VIDEO_REG_FLAGS, VIDEO_REG_CONFIG, VIDEO_REG_PIXEL, VIDEO_REG_LINE, VIDEO_REG_FRAME,
+			VIDEO_REG_POSX, VIDEO_REG_POSY, VIDEO_REG_WINX, VIDEO_REG_WINY, VIDEO_REG_WINWIDTH, VIDEO_REG_WINHEIGHT };
 
 	for (int reg = 0; reg < SIZEOFARRAY(registernames); reg++) {
-		printf("#define video_%s (*(volatile uint16_t*) 0x%x)\n", registernames[reg], registeroffsets[reg]);
+		printf("#define video_%s (*(volatile uint16_t*) 0x%x)\n", registernames[reg],
+				SLOT_OFFSET(SLOT_VIDEOCARD) + registeroffsets[reg]);
 	}
 
-	printf("#define video_%s ((volatile uint16_t*) 0x%x)\n", "start", SLOT_OFFSET(SLOT_VIDEOCARD));
+	// buffers
+	printf("#define video_framebuffer ((volatile uint16_t*) 0x%x)\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + VIDEO_FRAMEBUFFER_START);
+	printf("#define video_compositingbuffer ((volatile uint16_t*) 0x%x)\n",
+			SLOT_OFFSET(SLOT_VIDEOCARD) + VIDEO_COMPOSITINGBUFFER_START);
 
 }
 
@@ -236,7 +233,8 @@ static void sound() {
 
 static void uart() {
 
-	char* registernames[] = { "rxtx", "interruptenable", "fifocontrol", "linecontrol", "modemcontrol", "linestatus", "modemstatus", "stratch" };
+	char* registernames[] = { "rxtx", "interruptenable", "fifocontrol", "linecontrol", "modemcontrol", "linestatus",
+			"modemstatus", "stratch" };
 
 	uint8_t chanlen = 0x10;
 
