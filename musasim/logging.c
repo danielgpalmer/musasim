@@ -41,13 +41,13 @@ static bool checkstate() {
 #define CHECKSTATE if(!checkstate()){ return; }
 
 void log_init() {
-	mutex = g_mutex_new();
+	g_mutex_init(mutex);
 	buffer = malloc(BUFFERSIZE);
 	inited = true;
 }
 
 void log_shutdown() {
-	g_mutex_free(mutex);
+	g_mutex_clear(mutex);
 	free(buffer);
 	inited = false;
 }
