@@ -17,7 +17,7 @@ typedef struct {
 	void (*init)(); // Do anything you need to do at program startup here
 	void (*dispose)(); // Do anything you need to do before the program exits, i.e. free'ing stuff, here
 	void (*reset)(); // This is called when the m68k pulls the reset line down
-	void (*tick)(); //
+	void (*tick)(int cyclesexecuted); //
 	void (*irqack)();
 	void (*busreqack)();
 	bool (*validaddress)(uint32_t address); // This should return true if the address is valid within the card's address space

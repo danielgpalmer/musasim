@@ -157,7 +157,7 @@ static int16_t soundcard_mixsamples(int16_t sample1, int16_t sample2, uint8_t vo
 	return (int16_t) mixed;
 }
 
-static void soundcard_tick() {
+static void soundcard_tick(int cyclesexecuted) {
 
 	static unsigned int bufferindex = 0;
 	static int scaler = 0;

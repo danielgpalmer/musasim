@@ -130,7 +130,7 @@ static void inputcard_decodekey(SDLKey key, bool up) {
 	}
 }
 
-static void inputcard_tick() {
+static void inputcard_tick(int cyclesexecuted) {
 	// "latch" stuff here
 
 	static SDL_Event events[10];

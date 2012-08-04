@@ -10,8 +10,6 @@
 #include "../../logging.h"
 #include "../../utils.h"
 
-#define PIXELSPERTICK (VIDEO_PIXELSPERSECOND/SIM_TICKS_PERSECOND)
-
 static const char TAG[] = "video";
 
 static bool vramtouched = false;
@@ -39,7 +37,6 @@ static SDL_Rect window;
 static void* compositingbuffer;
 
 #define GETVIDREG(x) ( x = 0 ? 0 : (x / 2)) //FIXME there should be mirrors of the registers
-
 #define FRONTSURFACE	((config & VIDEO_CONFIG_FLIP) ? rendersurfaces[0] : rendersurfaces[1])
 #define BACKSURFACE 		(!(config & VIDEO_CONFIG_FLIP) ? rendersurfaces[1] : rendersurfaces[0])
 
@@ -83,9 +80,8 @@ static void video_init() {
 	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
 			screen->format->BitsPerPixel);
 
-	log_println(LEVEL_DEBUG, TAG,
-			"Active area is %d pixel, Total area  is %d pixels, refresh rate %d, pixels per second %d, pixels per tick %d",
-			VIDEO_ACTIVEPIXELS, VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELSPERSECOND, PIXELSPERTICK);
+	log_println(LEVEL_DEBUG, TAG, "Active area is %d pixel, Total area  is %d pixels, refresh rate %d, pixelclock %d",
+			VIDEO_ACTIVEPIXELS, VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELCLOCK);
 
 	video_updaterects();
 
@@ -110,7 +106,7 @@ static bool video_validaddress(uint32_t address) {
 	return true;
 }
 
-static void video_tick() {
+static void video_tick(int cyclesexecuted) {
 
 	//int mode = config & VIDEO_CONFIG_MODE_MASK;
 
@@ -118,7 +114,9 @@ static void video_tick() {
 	//	return;
 	//}
 
-	for (int i = 0; i < PIXELSPERTICK; i++) {
+	int pixelclocks = cyclesexecuted / VIDEO_MACHINECLOCKSPERPIXELCLOCK;
+
+	for (int i = 0; i < pixelclocks; i++) {
 
 		if (pixel == 0 && line == 0) {
 			//log_println(LEVEL_INFO, TAG, "refresh");

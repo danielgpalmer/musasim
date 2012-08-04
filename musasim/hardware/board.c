@@ -52,11 +52,11 @@ void board_add_device(uint8_t slot, const card *card) {
 	}
 }
 
-void board_tick() {
+void board_tick(int cyclesexecuted) {
 	for (int i = 0; i < NUM_SLOTS; i++) {
 		if (slots[i] != NULL) {
 			if (slots[i]->tick != NULL) {
-				(slots[i]->tick)();
+				(slots[i]->tick)(cyclesexecuted);
 			}
 		}
 	}

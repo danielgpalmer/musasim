@@ -192,12 +192,15 @@ void sim_tick() {
 		return;
 	}
 
+	int cpucyclesexecuted = SIM_CPUCLOCKS_PERTICK;
+
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
 	if (!board_bus_locked()) {
-		m68k_execute(SIM_CPUCLOCKS_PERTICK);
+		//TODO what causes the emulator to run less cycles than we want?
+		cpucyclesexecuted = m68k_execute(SIM_CPUCLOCKS_PERTICK);
 	}
 
-	board_tick();
+	board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER);
 	sim_updatesdl();
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
 

@@ -288,7 +288,7 @@ void uart_enable_logging() {
 	loggingenabled = true;
 }
 
-static void uart_tick() {
+static void uart_tick(int cyclesexecuted) {
 
 	static int clocks = 0;
 	clocks++;

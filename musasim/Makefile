@@ -18,7 +18,7 @@ musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) musasim.c -o musasim.o
 
 gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h 
-	$(CC) $(CFLAGS) $(LOCALCFLAGS) gdbserver.c -o gdbserver.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
 
 sim.o: sim.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) sim.c -o sim.o

@@ -151,7 +151,7 @@ static void dmacard_popwindow() {
 
 static bool transferinprogress = false;
 
-static void dmacard_tick() {
+static void dmacard_tick(int cyclesexecuted) {
 
 	static int state = 0; // for transfer modes to track their current phase of the unit
 	static uint16_t holding = 0; // for stashing data between phases

@@ -21,7 +21,7 @@ static void timercard_init() {
 
 }
 
-static void timercard_tick() {
+static void timercard_tick(int cyclesexecuted) {
 	timermodule.tick(timer);
 }
 

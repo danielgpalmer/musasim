@@ -8,7 +8,7 @@
 #include "cards/card.h"
 
 void board_add_device(uint8_t slot, const card* card);
-void board_tick();
+void board_tick(int cyclesexecuted);
 void board_poweroff();
 
 unsigned int board_read_byte(unsigned int address);
