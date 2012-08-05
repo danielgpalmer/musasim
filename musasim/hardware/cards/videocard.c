@@ -204,6 +204,7 @@ static void video_write_word(uint32_t address, uint16_t data) {
 				log_println(LEVEL_INFO, TAG, "surface 0");
 			}
 		}
+
 		*(video_registers[reg]) = data;
 
 		// update the window rects
