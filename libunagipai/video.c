@@ -32,7 +32,14 @@ void video_waitforvblank() {
 }
 
 void video_setconfig(bool vblankint, bool hblankint) {
-	video_register_config = VIDEO_CONFIG_MODE_BITMAP; // | VIDEO_CONFIG_ENVBINT;
+
+	uint16_t flags = VIDEO_CONFIG_MODE_BITMAP;
+	if (vblankint)
+		flags |= VIDEO_CONFIG_ENVBINT;
+	if (hblankint)
+		flags |= VIDEO_CONFIG_ENHBINT;
+
+	video_register_config = flags;
 }
 
 void video_changewindow() {

@@ -38,7 +38,7 @@ static void* compositingbuffer;
 
 #define GETVIDREG(x) ( x = 0 ? 0 : (x / 2)) //FIXME there should be mirrors of the registers
 #define FRONTSURFACE	((config & VIDEO_CONFIG_FLIP) ? rendersurfaces[0] : rendersurfaces[1])
-#define BACKSURFACE 		(!(config & VIDEO_CONFIG_FLIP) ? rendersurfaces[1] : rendersurfaces[0])
+#define BACKSURFACE 		((config & VIDEO_CONFIG_FLIP) ? rendersurfaces[1] : rendersurfaces[0])
 
 #define ISACTIVE (!(flags & FLAG_HBLANK || flags & FLAG_VBLANK))
 
@@ -115,11 +115,12 @@ static void video_tick(int cyclesexecuted) {
 	//}
 
 	int pixelclocks = cyclesexecuted / VIDEO_MACHINECLOCKSPERPIXELCLOCK;
+	//log_println(LEVEL_INFO, TAG, "machine clocks %d, video clocks %d", cyclesexecuted, pixelclocks);
 
 	for (int i = 0; i < pixelclocks; i++) {
 
 		if (pixel == 0 && line == 0) {
-			//log_println(LEVEL_INFO, TAG, "refresh");
+			log_println(LEVEL_INFO, TAG, "refresh");
 			videocard_refresh();
 		}
 
@@ -197,10 +198,10 @@ static void video_write_word(uint32_t address, uint16_t data) {
 		uint8_t reg = GETVIDREG(address);
 		if (reg == 1) {
 			if (*(video_registers[reg]) & VIDEO_CONFIG_FLIP) {
-				//log_println(LEVEL_INFO, TAG, "surface 1");
+				log_println(LEVEL_INFO, TAG, "surface 1");
 			}
 			else {
-				//log_println(LEVEL_INFO, TAG, "surface 0");
+				log_println(LEVEL_INFO, TAG, "surface 0");
 			}
 		}
 		*(video_registers[reg]) = data;

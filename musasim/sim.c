@@ -56,13 +56,6 @@ static const char TAG[] = "sim";
 
 static void sim_updatesdl() {
 
-	static int ticks = 0;
-	if (ticks < SIM_TICKS_PERSECOND / 60) {
-		ticks++;
-		return;
-	}
-	ticks = 0;
-
 	osd_update();
 
 	// Check some keys
@@ -178,10 +171,14 @@ void sim_init() {
 	initialised = true;
 }
 
+/*
+ * Cranks the cpu and then cranks everything else by the same amount of cycles that the
+ * cpu rolled over.
+ */
+
 void sim_tick() {
 
-	static long int owed = 0;
-	struct timespec start, end, sleep;
+	struct timespec start, end;
 
 	if (shouldexit) {
 		return;
@@ -192,42 +189,23 @@ void sim_tick() {
 		return;
 	}
 
-	int cpucyclesexecuted = SIM_CPUCLOCKS_PERTICK;
+	int cpucyclesexecuted = SIM_MAXCPUCLOCKSPERTICK;
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
 	if (!board_bus_locked()) {
 		//TODO what causes the emulator to run less cycles than we want?
-		cpucyclesexecuted = m68k_execute(SIM_CPUCLOCKS_PERTICK);
+		cpucyclesexecuted = m68k_execute(SIM_MAXCPUCLOCKSPERTICK);
+		//log_println(LEVEL_INFO, TAG, "executed %d cycles", cpucyclesexecuted);
 	}
 
 	board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER);
 	sim_updatesdl();
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
 
-	long int timetaken = timespecdiff(&start, &end)->tv_nsec;
-	if (timetaken > SIM_NANOSECSPERTICK * 2) {
-		log_println(LEVEL_INFO, TAG, "timetaken got clamped, was %ld", timetaken);
-		timetaken = SIM_NANOSECSPERTICK * 2;
-	}
-	long int overrun = timetaken - SIM_NANOSECSPERTICK;
-	long int sleeptime = 0;
+	//long int timetaken = timespecdiff(&start, &end)->tv_nsec;
+	//long int target = SIM_CPUCLOCKDURATION * cpucyclesexecuted;
 
-	owed += overrun;
-	//log_println(LEVEL_INFO, TAG, "%ld overrun owed %ld", overrun, owed);
-	if (owed < 0) { // If the amount of nanos owed has become negative we're in the black, so sleep for a bit
-		sleeptime = labs(owed);
-		//log_println(LEVEL_INFO, TAG, "sleeping for %ld", sleeptime);
-		owed = 0;
-	}
-
-	//if (sleeptime > 5000) {
-	//	sleeptime = 5000;
-	//}
-
-	if (throttle && owed == 0 && sleeptime > 0) {
-		sleep.tv_nsec = sleeptime;
-		nanosleep(&sleep, NULL);
-	}
+	//log_println(LEVEL_INFO, TAG, "target %ld, actual %ld", target, timetaken);
 
 }
 
@@ -240,9 +218,7 @@ void sim_quit() {
 }
 
 void sim_reset() {
-
 	log_println(LEVEL_DEBUG, TAG, "sim_reset()");
-
 	m68k_pulse_reset();
 }
 

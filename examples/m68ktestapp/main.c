@@ -115,33 +115,31 @@ static void ballcollision(ball* b1, ball* b2) {
 	}
 }
 
-//static bool fbready = false;
+//static volatile bool fbready = false;
 
 void vblank_handler() {
-
 	//if (fbready) {
 	//	video_flip();
 	//	fbready = false;
 	//}
-	video_flip();
 }
 
 void uart_handler() {
 }
 
 void initvideo() {
-	video_begin();
-	video_clear(0xFFFF);
-	video_commit();
-	video_waitforvblank();
-	video_flip();
+	//video_begin();
+	//video_clear(0xFFFF);
+	//video_commit();
+	//video_waitforvblank();
+	//video_flip();
 
-	video_begin();
-	video_clear(0xFFFF);
-	video_commit();
-	video_waitforvblank();
-	video_setconfig(true, false);
-	video_flip();
+	//video_begin();
+	//video_clear(0xFFFF);
+	//video_commit();
+	//video_waitforvblank();
+	//video_setconfig(true, false);
+	//video_flip();
 }
 
 static void printffresult(FRESULT result) {
@@ -224,6 +222,10 @@ int main(void) {
 	//machine_setstatusregister((sr & 0xf8ff));
 
 	while (1) {
+
+		//if (fbready)
+		//	continue;
+
 		static uint16_t lastframe = 0;
 		static uint16_t thisframe;
 
@@ -238,16 +240,16 @@ int main(void) {
 
 		video_begin();
 		video_clear(0xFFFF);
-		////video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
+		video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
 		sprite_draw(ball1.sprite);
 		sprite_draw(ball2.sprite);
 		//video_drawline(&vect);
 		//video_gputs("Hello World!", _binary_fontrom_start, 1, 1);
-		video_commit();
 
 		lastframe = thisframe;
-		video_waitforvblank();
+		video_commit();
 		video_flip();
+		//fbready = true;
 
 	}
 

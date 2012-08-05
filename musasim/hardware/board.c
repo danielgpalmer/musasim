@@ -4,6 +4,7 @@
 #include "board.h"
 #include "../logging.h"
 #include "../musashi/m68kcpu.h"
+#include "../musashi/m68k.h"
 #include "../utils.h"
 
 static char TAG[] = "board";
@@ -98,7 +99,9 @@ void board_lock_bus(const card* card) {
 
 	busrequestwaiting[board_which_slot(card)] = true;
 	buslocked = true;
+	m68k_end_timeslice();
 	(card->busreqack)();
+
 }
 
 void board_unlock_bus(const card* card) {

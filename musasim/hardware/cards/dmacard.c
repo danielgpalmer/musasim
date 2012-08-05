@@ -54,6 +54,7 @@ static uint32_t destination = 0;
 static bool done = false;
 static bool started = false;
 static bool wordtransfer = false;
+static bool havebuslock = false;
 
 static void dmacard_init() {
 	memset(regwindows, 0, sizeof(regwindows));
@@ -64,12 +65,8 @@ static void dmacard_irqack() {
 
 }
 
-static bool havebuslock = false;
-static bool busrequested = false;
-
 static void dmacard_buslock() {
 	log_println(LEVEL_DEBUG, TAG, "dmacard_buslock");
-	busrequested = true;
 	board_lock_bus(&dmacard);
 }
 
@@ -81,9 +78,7 @@ static void dmacard_busgrant() {
 static void dmacard_busrelease() {
 	log_println(LEVEL_DEBUG, TAG, "dmacard_busrelease");
 	board_unlock_bus(&dmacard);
-	busrequested = false;
 	havebuslock = false;
-
 }
 
 static uint16_t dmacard_mutate(window* window, uint16_t value1, uint16_t value2) {
@@ -156,16 +151,8 @@ static void dmacard_tick(int cyclesexecuted) {
 	static int state = 0; // for transfer modes to track their current phase of the unit
 	static uint16_t holding = 0; // for stashing data between phases
 
-	log_println(LEVEL_INSANE, TAG, "dmacard_tick");
-
 	// A DMA session hasn't been started
 	if (!started) {
-		return;
-	}
-
-	// Triggered but we haven't requested the bus yet
-	else if (started && !havebuslock && !busrequested) {
-		dmacard_buslock();
 		return;
 	}
 
@@ -174,7 +161,7 @@ static void dmacard_tick(int cyclesexecuted) {
 		return;
 	}
 
-	for (int i = 0; i < SIM_CLOCKS_PERTICK * 10; i++) { // hack to make things faster..
+	for (int i = 0; i < cyclesexecuted; i++) {
 
 		bool unitcomplete = false;
 
@@ -384,12 +371,12 @@ static void dmacard_dumpconfig(window* window) {
 
 	switch (config & DMA_REGISTER_CONFIG_MODE) {
 		case DMA_REGISTER_CONFIG_MODE_FILL:
-			log_println(LEVEL_DEBUG, TAG, "copying data [0x%04x] 0x%08x times as %s to 0x%08x", data, counter,
-					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", destination);
+			log_println(LEVEL_DEBUG, TAG, "copying data [0x%04x] 0x%08x times as %s to 0x%08x, will take %d cycles",
+					data, counter, config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", destination, counter);
 			break;
 		case DMA_REGISTER_CONFIG_MODE_BLOCK:
-			log_println(LEVEL_DEBUG, TAG, "transferring 0x%08x %s from 0x%08x to 0x%08x", counter,
-					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", source, destination);
+			log_println(LEVEL_DEBUG, TAG, "transferring 0x%08x %s from 0x%08x to 0x%08x, will take %d cycles", counter,
+					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", source, destination, counter * 2);
 			break;
 	}
 
@@ -434,6 +421,7 @@ static void dmacard_write_word(uint32_t address, uint16_t value) {
 			windowpointer = 0;
 			started = true;
 			done = false;
+			dmacard_buslock();
 		}
 		// strip off the start and done bits if set
 		value &= 0x3fff;
