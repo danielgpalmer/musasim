@@ -83,12 +83,12 @@ static int phase = +1; /* +1 or -1 */
 static int volume = 10000;
 static int amp; /* current amplitude in delta buffer */
 
-static void basicsound_tick() {
+static void basicsound_tick(int cyclesexectuded) {
 
 	if (!inited)
 		return;
 
-	for (time = 0; time < SIM_CLOCKS_PERTICK; time++) {
+	for (time = 0; time < cyclesexectuded; time++) {
 		counter += 1;
 		if (counter == latcheddivisor) {
 			counter = 0;
@@ -100,7 +100,7 @@ static void basicsound_tick() {
 		}
 	}
 
-	blip_end_frame(buf, SIM_CLOCKS_PERTICK);
+	blip_end_frame(buf, cyclesexectuded);
 
 }
 
@@ -125,5 +125,6 @@ const card basicsoundcard = { "BASIC SOUND CARD", //
 		NULL, //
 		NULL, //
 		basicsound_write_word, //
+		NULL, //
 		NULL, //
 		NULL };

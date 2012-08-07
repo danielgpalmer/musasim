@@ -28,6 +28,7 @@ typedef struct {
 	void (*write_word)(uint32_t address, uint16_t value);
 	void (*write_long)(uint32_t address, uint32_t value);
 	bool (*active)(); // returns true when the card is doing something, for OSD
+	int (*cyclesleft)(); // how many clock cycles can run before something is going to happen that needs cpu sync, -1 if we don't care
 } card;
 
 #endif /* CARD_H_ */

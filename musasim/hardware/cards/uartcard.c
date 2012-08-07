@@ -474,5 +474,5 @@ const card uartcard = { "UART CARD", //
 		uart_write_byte, //
 		NULL, //
 		NULL, //
-		NULL //
-		};
+		NULL, //
+		NULL };

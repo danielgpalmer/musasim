@@ -288,5 +288,5 @@ const card videocard = { "VIDEO CARD", //
 		video_write_byte, //
 		video_write_word, //
 		NULL, //
-		NULL //
-		};
+		NULL, //
+		NULL };

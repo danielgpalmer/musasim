@@ -477,6 +477,6 @@ const card dmacard = { "DMA Controller", //
 		NULL, //
 		dmacard_write_word, //
 		NULL, //
-		dmacard_active //
-		};
+		dmacard_active, //
+		NULL };
 

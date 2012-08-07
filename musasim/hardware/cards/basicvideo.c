@@ -64,6 +64,19 @@ static void videocard_irqack() {
 	board_lower_interrupt(&basicvideocard);
 }
 
-const card basicvideocard = { "BASIC VIDEO CARD", video_init, video_dispose, NULL, video_tick, videocard_irqack, NULL,
-		video_validaddress, NULL, video_read_word, NULL, NULL, video_write_word, NULL };
+const card basicvideocard = { "BASIC VIDEO CARD", //
+		video_init, //
+		video_dispose, //
+		NULL, //
+		video_tick, //
+		videocard_irqack, //
+		NULL, //
+		video_validaddress, //
+		NULL, //
+		video_read_word, //
+		NULL, //
+		NULL, //
+		video_write_word, //
+		NULL, //
+		NULL };
 
