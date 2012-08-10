@@ -30,6 +30,8 @@ const card* board_getcardinslot(int slot);
 
 void board_reset();
 
+int board_maxcycles(int numberofcyclesplanned);
+
 #define SLOT_ADDRESS_MASK 0x1FFFFF
 #define SLOT_OFFSET(SLOTNUM) (SLOTNUM << 21)
 

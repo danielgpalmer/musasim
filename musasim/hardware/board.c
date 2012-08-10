@@ -333,6 +333,24 @@ void board_reset() {
 	}
 }
 
+int board_maxcycles(int numberofcyclesplanned) {
+
+	int cycles = numberofcyclesplanned;
+
+	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
+		const card* c = slots[i];
+		if (c != NULL) {
+			if (c->cyclesleft != NULL) {
+				int cardcycles = c->cyclesleft();
+				if (cardcycles != -1 && cardcycles < cycles)
+					cycles = cardcycles;
+			}
+		}
+	}
+	return cycles;
+
+}
+
 const card* board_getcardinslot(int slot) {
 	return slots[slot];
 }

@@ -42,6 +42,9 @@ static void* compositingbuffer;
 
 #define ISACTIVE (!(flags & FLAG_HBLANK || flags & FLAG_VBLANK))
 
+#define HBLANKENABLED (config & VIDEO_CONFIG_ENHBINT)
+#define VBLANKENABLED (config & VIDEO_CONFIG_ENVBINT)
+
 static void video_updaterects() {
 	region.x = posx + winx;
 	region.y = posy + winy;
@@ -127,7 +130,7 @@ static void video_tick(int cyclesexecuted) {
 		// hblank handling
 		if (pixel == (VIDEO_WIDTH - 1)) {
 			flags |= FLAG_HBLANK;
-			if (config & VIDEO_CONFIG_ENHBINT) {
+			if (HBLANKENABLED) {
 				board_raise_interrupt(&videocard);
 			}
 		}
@@ -140,7 +143,7 @@ static void video_tick(int cyclesexecuted) {
 			if (line == VIDEO_HEIGHT - 1) {
 				flags |= FLAG_VBLANK;
 				//log_println(LEVEL_INFO, TAG, "v blank start");
-				if (config & VIDEO_CONFIG_ENVBINT) {
+				if (VBLANKENABLED) {
 					board_raise_interrupt(&videocard);
 				}
 
@@ -274,6 +277,18 @@ void videocard_refresh() {
 	//
 }
 
+static int videocard_cyclesleft() {
+	if (HBLANKENABLED) {
+		return 1;
+	}
+	else if (VBLANKENABLED) {
+		return 1;
+	}
+	else {
+		return -1;
+	}
+}
+
 const card videocard = { "VIDEO CARD", //
 		video_init, //
 		video_dispose, //
@@ -289,4 +304,5 @@ const card videocard = { "VIDEO CARD", //
 		video_write_word, //
 		NULL, //
 		NULL, //
-		NULL };
+		videocard_cyclesleft //
+		};
