@@ -277,16 +277,31 @@ void videocard_refresh() {
 	//
 }
 
+static int videocard_bestcasecycles() {
+
+	return ((VIDEO_WIDTH + HBLANKPERIOD) * VBLANKPERIOD) * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
+
+}
+
 static int videocard_cyclesleft() {
-	if (HBLANKENABLED) {
-		return 1;
+
+	if (line < VIDEO_HEIGHT) {
+		if (pixel < VIDEO_WIDTH) {
+			int pixelsuntilhblank = VIDEO_WIDTH - pixel;
+			log_println(LEVEL_INFO, TAG, "pixels until hblank %d", pixelsuntilhblank);
+			return pixelsuntilhblank * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
+		}
+		else if (pixel >= VIDEO_WIDTH) {
+			int pixelsuntilexitinghblank = (VIDEO_WIDTH + HBLANKPERIOD) - pixel;
+			log_println(LEVEL_INFO, TAG, "pixels until exiting hblank %d", pixelsuntilexitinghblank);
+			return pixelsuntilexitinghblank * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
+		}
 	}
-	else if (VBLANKENABLED) {
-		return 1;
-	}
-	else {
-		return -1;
-	}
+
+	int linesuntilexitingvblank = (VIDEO_HEIGHT + VBLANKPERIOD) - line;
+	log_println(LEVEL_INFO, TAG, "lines until exiting vblank %d", linesuntilexitingvblank);
+	return (linesuntilexitingvblank * (VIDEO_WIDTH + HBLANKPERIOD)) * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
+
 }
 
 const card videocard = { "VIDEO CARD", //
@@ -304,5 +319,6 @@ const card videocard = { "VIDEO CARD", //
 		video_write_word, //
 		NULL, //
 		NULL, //
+		videocard_bestcasecycles, //
 		videocard_cyclesleft //
 		};

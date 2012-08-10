@@ -127,4 +127,5 @@ const card basicsoundcard = { "BASIC SOUND CARD", //
 		basicsound_write_word, //
 		NULL, //
 		NULL, //
+		NULL, //
 		NULL };

@@ -189,7 +189,9 @@ void sim_tick() {
 		return;
 	}
 
-	int cyclestoexecute = board_maxcycles(SIM_CYCLESPERCRANK) / SIM_CPUCLOCK_DIVIDER;
+	int cyclestoexecute = board_maxcycles(board_bestcasecycles()) / SIM_CPUCLOCK_DIVIDER;
+	if (cyclestoexecute < 16)
+		cyclestoexecute = 16;
 
 	log_println(LEVEL_INFO, TAG, "going to execute %d cpu cycles", cyclestoexecute);
 

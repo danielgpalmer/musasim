@@ -341,4 +341,5 @@ const card soundcard = { "SOUND CARD", //
 		soundcard_write_word, //
 		NULL, //
 		NULL, //
+		NULL, //
 		NULL };

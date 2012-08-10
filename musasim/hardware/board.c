@@ -333,6 +333,10 @@ void board_reset() {
 	}
 }
 
+int board_bestcasecycles() {
+	return slots[SLOT_VIDEOCARD]->bestcasecycles();
+}
+
 int board_maxcycles(int numberofcyclesplanned) {
 
 	int cycles = numberofcyclesplanned;
@@ -347,6 +351,7 @@ int board_maxcycles(int numberofcyclesplanned) {
 			}
 		}
 	}
+
 	return cycles;
 
 }

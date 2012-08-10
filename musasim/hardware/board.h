@@ -9,7 +9,7 @@
 
 void board_add_device(uint8_t slot, const card* card);
 void board_tick(int cyclesexecuted);
-void board_poweroff();
+void board_poweroff(void);
 
 unsigned int board_read_byte(unsigned int address);
 unsigned int board_read_word(unsigned int address);
@@ -28,7 +28,9 @@ bool board_bus_locked();
 
 const card* board_getcardinslot(int slot);
 
-void board_reset();
+void board_reset(void);
+
+int board_bestcasecycles(void);
 
 int board_maxcycles(int numberofcyclesplanned);
 
