@@ -189,16 +189,16 @@ void sim_tick() {
 		return;
 	}
 
-	int cyclestoexecute = board_maxcycles(SIM_MAXCPUCLOCKSPERTICK);
+	int cyclestoexecute = board_maxcycles(SIM_CYCLESPERCRANK) / SIM_CPUCLOCK_DIVIDER;
 
-	log_println(LEVEL_INFO, TAG, "going to execute %d cycles", cyclestoexecute);
+	log_println(LEVEL_INFO, TAG, "going to execute %d cpu cycles", cyclestoexecute);
 
 	int cpucyclesexecuted = 0;
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
 	if (!board_bus_locked()) {
 		//TODO what causes the emulator to run less cycles than we want?
 		cpucyclesexecuted = m68k_execute(cyclestoexecute);
-		//log_println(LEVEL_INFO, TAG, "executed %d cycles", cpucyclesexecuted);
+		log_println(LEVEL_INFO, TAG, "executed %d cpu cycles", cpucyclesexecuted);
 	}
 	else
 		cpucyclesexecuted = cyclestoexecute;
