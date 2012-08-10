@@ -136,7 +136,7 @@ static void video_tick(int cyclesexecuted) {
 		}
 
 		// line handling
-		else if (pixel == (VIDEO_WIDTH + HBLANKPERIOD - 1)) {
+		else if (pixel == (VIDEO_WIDTH + VIDEO_HBLANKPERIOD - 1)) {
 			// turn hblank off
 			flags &= !FLAG_HBLANK;
 			// vblank handling
@@ -148,21 +148,21 @@ static void video_tick(int cyclesexecuted) {
 				}
 
 			} // FIXME
-			else if (line == (VIDEO_HEIGHT + VBLANKPERIOD - 1)) {
+			else if (line == (VIDEO_HEIGHT + VIDEO_VBLANKPERIOD - 1)) {
 				// turn vblank off
 				flags &= ~FLAG_VBLANK;
 				//log_println(LEVEL_INFO, TAG, "v blank end");
 			}
 
 			line++;
-			if (line == VIDEO_HEIGHT + VBLANKPERIOD) {
+			if (line == VIDEO_HEIGHT + VIDEO_VBLANKPERIOD) {
 				line = 0;
 			}
 
 		}
 
 		pixel++;
-		if (pixel == VIDEO_WIDTH + HBLANKPERIOD) {
+		if (pixel == VIDEO_WIDTH + VIDEO_HBLANKPERIOD) {
 			pixel = 0;
 		}
 
@@ -279,7 +279,7 @@ void videocard_refresh() {
 
 static int videocard_bestcasecycles() {
 
-	return ((VIDEO_WIDTH + HBLANKPERIOD) * VBLANKPERIOD) * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
+	return ((VIDEO_WIDTH + VIDEO_HBLANKPERIOD) * VIDEO_VBLANKPERIOD) * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
 
 }
 
@@ -288,19 +288,19 @@ static int videocard_cyclesleft() {
 	if (line < VIDEO_HEIGHT) {
 		if (pixel < VIDEO_WIDTH) {
 			int pixelsuntilhblank = VIDEO_WIDTH - pixel;
-			log_println(LEVEL_INFO, TAG, "pixels until hblank %d", pixelsuntilhblank);
+			//log_println(LEVEL_INFO, TAG, "pixels until hblank %d", pixelsuntilhblank);
 			return pixelsuntilhblank * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
 		}
 		else if (pixel >= VIDEO_WIDTH) {
-			int pixelsuntilexitinghblank = (VIDEO_WIDTH + HBLANKPERIOD) - pixel;
-			log_println(LEVEL_INFO, TAG, "pixels until exiting hblank %d", pixelsuntilexitinghblank);
+			int pixelsuntilexitinghblank = (VIDEO_WIDTH + VIDEO_HBLANKPERIOD) - pixel;
+			//log_println(LEVEL_INFO, TAG, "pixels until exiting hblank %d", pixelsuntilexitinghblank);
 			return pixelsuntilexitinghblank * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
 		}
 	}
 
-	int linesuntilexitingvblank = (VIDEO_HEIGHT + VBLANKPERIOD) - line;
-	log_println(LEVEL_INFO, TAG, "lines until exiting vblank %d", linesuntilexitingvblank);
-	return (linesuntilexitingvblank * (VIDEO_WIDTH + HBLANKPERIOD)) * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
+	int linesuntilexitingvblank = (VIDEO_HEIGHT + VIDEO_VBLANKPERIOD) - line;
+	//log_println(LEVEL_INFO, TAG, "lines until exiting vblank %d", linesuntilexitingvblank);
+	return (linesuntilexitingvblank * (VIDEO_WIDTH + VIDEO_HBLANKPERIOD)) * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
 
 }
 

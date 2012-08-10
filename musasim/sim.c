@@ -209,10 +209,15 @@ void sim_tick() {
 	sim_updatesdl();
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
 
-	//long int timetaken = timespecdiff(&start, &end)->tv_nsec;
-	//long int target = SIM_CPUCLOCKDURATION * cpucyclesexecuted;
+	long int timetaken = timespecdiff(&start, &end)->tv_nsec;
+	long int target = SIM_CPUCLOCKDURATION * cpucyclesexecuted;
 
-	//log_println(LEVEL_INFO, TAG, "target %ld, actual %ld", target, timetaken);
+	long int diff = target - timetaken;
+	if (diff > 0) {
+		usleep(diff / 1000);
+	}
+
+	log_println(LEVEL_INFO, TAG, "target %ld, actual %ld", target, timetaken);
 
 }
 
