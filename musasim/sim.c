@@ -179,6 +179,7 @@ void sim_init() {
 void sim_tick() {
 
 	struct timespec start, end;
+	static long int owed = 0;
 
 	if (shouldexit) {
 		return;
@@ -212,12 +213,24 @@ void sim_tick() {
 	long int timetaken = timespecdiff(&start, &end)->tv_nsec;
 	long int target = SIM_CPUCLOCKDURATION * cpucyclesexecuted;
 
-	long int diff = target - timetaken;
-	if (diff > 0) {
-		usleep(diff / 1000);
+	if (timetaken > 100000) {
+		log_println(LEVEL_INFO, TAG, "CLAMP!");
+		timetaken = 100000;
 	}
 
-	log_println(LEVEL_INFO, TAG, "target %ld, actual %ld", target, timetaken);
+	long int diff = target - timetaken;
+	if (diff > 0) {
+		owed -= diff;
+		if (owed < 0) {
+			usleep(abs(owed) / 1000);
+			owed = 0;
+		}
+	}
+	else {
+		owed += labs(diff);
+	}
+
+	log_println(LEVEL_INFO, TAG, "target %ld, actual %ld, owed %ld", target, timetaken, owed);
 
 }
 

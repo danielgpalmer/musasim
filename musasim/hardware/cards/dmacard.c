@@ -55,6 +55,7 @@ static bool done = false;
 static bool started = false;
 static bool wordtransfer = false;
 static bool havebuslock = false;
+static uint32_t cyclesleft = 0;
 
 static void dmacard_init() {
 	memset(regwindows, 0, sizeof(regwindows));
@@ -129,11 +130,13 @@ static void dmacard_perform_act(window* window, int index) {
 	}
 }
 
+#define FULLCOUNTER(w) ((w->counth << 16) | w->countl)
+
 static window* workingwindow;
 static void dmacard_popwindow() {
 
 	workingwindow = &(regwindows[windowpointer]);
-	counter = (workingwindow->counth << 16) | workingwindow->countl;
+	counter = FULLCOUNTER(workingwindow);
 	source = ((workingwindow->sourceh << 16) | workingwindow->sourcel);
 	destination = ((workingwindow->destinationh << 16) | workingwindow->destinationl);
 	data = ((workingwindow->datah << 16) | workingwindow->datal);
@@ -162,6 +165,8 @@ static void dmacard_tick(int cyclesexecuted) {
 	}
 
 	for (int i = 0; i < cyclesexecuted; i++) {
+
+		cyclesleft--;
 
 		bool unitcomplete = false;
 
@@ -366,17 +371,30 @@ static uint16_t* dmacard_decodereg(uint32_t address) {
 
 }
 
+static int dmacard_howmanycycles(window* window) {
+	uint16_t config = window->config;
+	switch (config & DMA_REGISTER_CONFIG_MODE) {
+		case DMA_REGISTER_CONFIG_MODE_FILL:
+			return FULLCOUNTER(window);
+		case DMA_REGISTER_CONFIG_MODE_BLOCK:
+			return FULLCOUNTER(window) * 2;
+	}
+	return 1;
+}
+
 static void dmacard_dumpconfig(window* window) {
 	uint16_t config = window->config;
+
+	int cycles = dmacard_howmanycycles(window);
 
 	switch (config & DMA_REGISTER_CONFIG_MODE) {
 		case DMA_REGISTER_CONFIG_MODE_FILL:
 			log_println(LEVEL_DEBUG, TAG, "copying data [0x%04x] 0x%08x times as %s to 0x%08x, will take %d cycles",
-					data, counter, config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", destination, counter);
+					data, counter, config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", destination, cycles);
 			break;
 		case DMA_REGISTER_CONFIG_MODE_BLOCK:
 			log_println(LEVEL_DEBUG, TAG, "transferring 0x%08x %s from 0x%08x to 0x%08x, will take %d cycles", counter,
-					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", source, destination, counter * 2);
+					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", source, destination, cycles);
 			break;
 	}
 
@@ -403,6 +421,19 @@ static uint16_t dmacard_read_word(uint32_t address) {
 	return value;
 }
 
+static void dmacard_start() {
+	windowpointer = 0;
+	started = true;
+	done = false;
+	dmacard_buslock();
+
+	cyclesleft = 0;
+	for (int i = 0; i <= curwindowindex; i++) {
+		cyclesleft += dmacard_howmanycycles(&regwindows[i]);
+	}
+	log_println(LEVEL_INFO, TAG, "total cycles %d", cyclesleft);
+}
+
 static void dmacard_write_word(uint32_t address, uint16_t value) {
 
 // DMA transfer was started
@@ -418,10 +449,7 @@ static void dmacard_write_word(uint32_t address, uint16_t value) {
 	if (reg == DMACARD_REGISTER_CONFIG) {
 		// start has been triggered, get this show rolling
 		if (value & DMA_REGISTER_CONFIG_START) {
-			windowpointer = 0;
-			started = true;
-			done = false;
-			dmacard_buslock();
+			dmacard_start();
 		}
 		// strip off the start and done bits if set
 		value &= 0x3fff;
@@ -459,8 +487,16 @@ static bool dmacard_validaddress(uint32_t address) {
 	}
 }
 
-bool dmacard_active() {
+static bool dmacard_active() {
 	return transferinprogress;
+}
+
+static int dmacard_cyclesleft() {
+	if (!started)
+		return -1;
+
+	log_println(LEVEL_INFO, TAG, "cycles left %d", cyclesleft);
+	return cyclesleft;
 }
 
 const card dmacard = { "DMA Controller", //
@@ -479,5 +515,5 @@ const card dmacard = { "DMA Controller", //
 		NULL, //
 		dmacard_active, //
 		NULL, //
-		NULL };
+		dmacard_cyclesleft };
 
