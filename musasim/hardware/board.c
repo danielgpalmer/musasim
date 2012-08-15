@@ -265,7 +265,7 @@ unsigned int board_read_long(unsigned int address) {
 			}
 		}
 		else {
-			log_println(LEVEL_INFO, TAG, "slot %d doesn't support long read", slot);
+			log_println(LEVEL_INFO, TAG, "slot %d doesn't support long read, PC[0x%08x]", slot, GETPC);
 		}
 	}
 	return 0;
@@ -317,7 +317,7 @@ void board_write_long(unsigned int address, unsigned int value) {
 			}
 		}
 		else {
-			log_println(LEVEL_INFO, TAG, "slot %d doesn't support long write", slot);
+			log_println(LEVEL_INFO, TAG, "slot %d doesn't support long write,  PC[0x%08x]", slot, GETPC);
 		}
 	}
 }

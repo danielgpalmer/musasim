@@ -117,11 +117,11 @@ static void ballcollision(ball* b1, ball* b2) {
 static volatile bool fbready = false;
 
 void vblank_handler() {
-	//printf("vblank\n");
-	//if (fbready) {
-	//	video_flip();
-	//	fbready = false;
-	//}
+	printf("vblank\n");
+	if (fbready) {
+		//video_flip();
+		fbready = false;
+	}
 }
 
 void uart_handler() {
@@ -138,7 +138,7 @@ void initvideo() {
 	//video_clear(0xFFFF);
 	//video_commit();
 	video_waitforvblank();
-	video_setconfig(false, false);
+	video_setconfig(true, false);
 	//video_flip();
 }
 
@@ -218,13 +218,13 @@ int main(void) {
 
 	initvideo();
 
-	//uint16_t sr = machine_getstatusregister();
-	//machine_setstatusregister((sr & 0xf8ff));
+	uint16_t sr = machine_getstatusregister();
+	machine_setstatusregister((sr & 0xf8ff));
 
 	while (1) {
 
-		//if (fbready)
-		//	continue;
+		if (fbready)
+			continue;
 
 		static uint16_t lastframe = 0;
 		static uint16_t thisframe;
@@ -248,9 +248,15 @@ int main(void) {
 
 		lastframe = thisframe;
 		video_commit();
-		video_waitforvblank();
-		video_flip();
+		//video_waitforvblank();
+		//video_flip();
 		fbready = true;
+
+	}
+
+	printf("Shouldn't have got here!");
+
+	while (1) {
 
 	}
 

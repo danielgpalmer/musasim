@@ -194,14 +194,14 @@ void sim_tick() {
 	if (cyclestoexecute < 16)
 		cyclestoexecute = 16;
 
-	log_println(LEVEL_INFO, TAG, "going to execute %d cpu cycles", cyclestoexecute);
+	//log_println(LEVEL_INFO, TAG, "going to execute %d cpu cycles", cyclestoexecute);
 
 	int cpucyclesexecuted = 0;
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
 	if (!board_bus_locked()) {
 		//TODO what causes the emulator to run less cycles than we want?
 		cpucyclesexecuted = m68k_execute(cyclestoexecute);
-		log_println(LEVEL_INFO, TAG, "executed %d cpu cycles", cpucyclesexecuted);
+		//log_println(LEVEL_INFO, TAG, "executed %d cpu cycles", cpucyclesexecuted);
 	}
 	else
 		cpucyclesexecuted = cyclestoexecute;
@@ -230,7 +230,7 @@ void sim_tick() {
 		owed += labs(diff);
 	}
 
-	log_println(LEVEL_INFO, TAG, "target %ld, actual %ld, owed %ld", target, timetaken, owed);
+	//log_println(LEVEL_INFO, TAG, "target %ld, actual %ld, owed %ld", target, timetaken, owed);
 
 }
 
