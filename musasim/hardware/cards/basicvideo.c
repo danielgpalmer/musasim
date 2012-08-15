@@ -71,6 +71,7 @@ const card basicvideocard = { "BASIC VIDEO CARD", //
 		video_tick, //
 		videocard_irqack, //
 		NULL, //
+		NULL, //
 		video_validaddress, //
 		NULL, //
 		video_read_word, //

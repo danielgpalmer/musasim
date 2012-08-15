@@ -225,6 +225,7 @@ const card romcard = { "ROM CARD", //
 		NULL, //
 		NULL, //
 		NULL, //
+		NULL, //
 		romcard_validaddress, //
 		romcard_read_byte, //
 		romcard_read_word, //

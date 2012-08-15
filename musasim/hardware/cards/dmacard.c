@@ -131,15 +131,18 @@ static void dmacard_perform_act(window* window, int index) {
 }
 
 #define FULLCOUNTER(w) ((w->counth << 16) | w->countl)
+#define FULLSOURCE(w) ((w->sourceh << 16) | w->sourcel)
+#define FULLDESTINATION(w) ((w->destinationh << 16) | w->destinationl)
+#define FULLDATA(w) ((w->datah << 16) | w->datal)
 
 static window* workingwindow;
 static void dmacard_popwindow() {
 
 	workingwindow = &(regwindows[windowpointer]);
 	counter = FULLCOUNTER(workingwindow);
-	source = ((workingwindow->sourceh << 16) | workingwindow->sourcel);
-	destination = ((workingwindow->destinationh << 16) | workingwindow->destinationl);
-	data = ((workingwindow->datah << 16) | workingwindow->datal);
+	source = FULLSOURCE(workingwindow);
+	destination = FULLDESTINATION(workingwindow);
+	data = FULLDATA(workingwindow);
 	wordtransfer = workingwindow->config & DMA_REGISTER_CONFIG_SIZE;
 	windowpointer++;
 
@@ -390,11 +393,13 @@ static void dmacard_dumpconfig(window* window) {
 	switch (config & DMA_REGISTER_CONFIG_MODE) {
 		case DMA_REGISTER_CONFIG_MODE_FILL:
 			log_println(LEVEL_DEBUG, TAG, "copying data [0x%04x] 0x%08x times as %s to 0x%08x, will take %d cycles",
-					data, counter, config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", destination, cycles);
+					data, counter, config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", FULLDESTINATION(window),
+					cycles);
 			break;
 		case DMA_REGISTER_CONFIG_MODE_BLOCK:
 			log_println(LEVEL_DEBUG, TAG, "transferring 0x%08x %s from 0x%08x to 0x%08x, will take %d cycles", counter,
-					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", source, destination, cycles);
+					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", FULLSOURCE(window), FULLDESTINATION(window),
+					cycles);
 			break;
 	}
 
@@ -494,9 +499,8 @@ static bool dmacard_active() {
 static int dmacard_cyclesleft() {
 	if (!started)
 		return -1;
-
-	log_println(LEVEL_INFO, TAG, "cycles left %d", cyclesleft);
-	return cyclesleft;
+	else
+		return cyclesleft;
 }
 
 const card dmacard = { "DMA Controller", //
@@ -506,6 +510,7 @@ const card dmacard = { "DMA Controller", //
 		dmacard_tick, //
 		dmacard_irqack, //
 		dmacard_busgrant, //
+		NULL, //
 		dmacard_validaddress, //
 		NULL, //
 		dmacard_read_word, //

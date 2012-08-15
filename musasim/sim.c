@@ -134,7 +134,7 @@ void cpu_pulse_stop(void) {
 
 /* Called when the CPU changes the function code pins */
 void cpu_set_fc(unsigned int fc) {
-	g_fc = fc;
+	board_setfc(fc);
 }
 
 void sim_setoptions(bool usebasicvideo, bool usebasicsound) {

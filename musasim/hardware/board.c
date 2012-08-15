@@ -356,6 +356,17 @@ int board_maxcycles(int numberofcyclesplanned) {
 
 }
 
+void board_setfc(unsigned int fc) {
+	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
+		const card* c = slots[i];
+		if (c != NULL) {
+			if (c->setfc != NULL) {
+				c->setfc(fc);
+			}
+		}
+	}
+}
+
 const card* board_getcardinslot(int slot) {
 	return slots[slot];
 }

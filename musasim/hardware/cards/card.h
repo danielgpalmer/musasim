@@ -20,6 +20,7 @@ typedef struct {
 	void (*tick)(int cyclesexecuted); //
 	void (*irqack)();
 	void (*busreqack)();
+	void (*setfc)();
 	bool (*validaddress)(uint32_t address); // This should return true if the address is valid within the card's address space
 	uint8_t (*read_byte)(uint32_t address); // Read a byte from the cards address space
 	uint16_t (*read_word)(uint32_t address); // ^ but for word (16bits)

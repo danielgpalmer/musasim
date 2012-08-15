@@ -333,6 +333,7 @@ const card soundcard = { "SOUND CARD", //
 		soundcard_tick, //
 		soundcard_irqack, //
 		NULL, //
+		NULL, //
 		soundcard_validaddress, //
 		NULL, //
 		soundcard_read_word, //

@@ -36,7 +36,5 @@ int board_maxcycles(int numberofcyclesplanned);
 
 #define SLOT_ADDRESS_MASK 0x1FFFFF
 #define SLOT_OFFSET(SLOTNUM) (SLOTNUM << 21)
-
-unsigned int g_fc; /* Current function code from CPU */
-
+void board_setfc(unsigned int fc);
 #endif

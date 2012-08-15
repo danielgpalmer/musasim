@@ -311,6 +311,7 @@ const card videocard = { "VIDEO CARD", //
 		video_tick, //
 		videocard_irqack, //
 		NULL, //
+		NULL, //
 		video_validaddress, //
 		video_read_byte, //
 		video_read_word, //

@@ -119,6 +119,7 @@ const card basicsoundcard = { "BASIC SOUND CARD", //
 		basicsound_tick, // tick
 		NULL, //
 		NULL, //
+		NULL,
 		basicsound_validaddress, //
 		NULL, //
 		basicsound_read_word, //
