@@ -8,6 +8,7 @@
 #include "../utils.h"
 
 static char TAG[] = "board";
+static unsigned int currentfc;
 
 /*
  *
@@ -215,7 +216,30 @@ int board_ack_interrupt(int level) {
 
 }
 
-//
+
+// this will be for checking if an access to an address is valid in the current
+// mode etc.. not decided if this will just be for the gdb version or if this
+// will go in hardware too.
+static void board_checkaccess(uint8_t slot, uint32_t address, unsigned int fc, bool write) {
+
+	uint8_t memorytype = DEFAULTMEMORYTYPE;
+
+	if (slots[slot]->memorytype != NULL)
+		memorytype = slots[slot]->memorytype(address);
+
+	if (memorytype & CARDMEMORYTYPE_SUPERVISOR) {
+
+	}
+
+	if (memorytype & CARDMEMORYTYPE_EXECUTABLE) {
+
+	}
+
+	if (memorytype & CARDMEMORYTYPE_WRITABLE) {
+
+	}
+
+}
 
 unsigned int board_read_byte(unsigned int address) {
 	uint8_t slot = board_decode_slot(address);
@@ -259,6 +283,9 @@ unsigned int board_read_long(unsigned int address) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
+
+		board_checkaccess(slot, slotaddress, currentfc, false);
+
 		if (slots[slot]->read_long != NULL) {
 			if (slots[slot]->validaddress(slotaddress)) {
 				return (slots[slot]->read_long)(slotaddress);
@@ -357,6 +384,9 @@ int board_maxcycles(int numberofcyclesplanned) {
 }
 
 void board_setfc(unsigned int fc) {
+
+	currentfc = fc;
+
 	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
 		const card* c = slots[i];
 		if (c != NULL) {
