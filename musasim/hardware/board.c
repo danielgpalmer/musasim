@@ -216,28 +216,33 @@ int board_ack_interrupt(int level) {
 
 }
 
-
 // this will be for checking if an access to an address is valid in the current
 // mode etc.. not decided if this will just be for the gdb version or if this
 // will go in hardware too.
-static void board_checkaccess(uint8_t slot, uint32_t address, unsigned int fc, bool write) {
+static bool board_checkaccess(uint8_t slot, uint32_t address, unsigned int fc, bool write) {
 
 	uint8_t memorytype = DEFAULTMEMORYTYPE;
+	bool failed = false;
 
 	if (slots[slot]->memorytype != NULL)
 		memorytype = slots[slot]->memorytype(address);
 
-	if (memorytype & CARDMEMORYTYPE_SUPERVISOR) {
-
+	if ((fc == 1 || fc == 2) && (memorytype & CARDMEMORYTYPE_SUPERVISOR)) {
+		// access to supervisor memory as user!
+		failed = true;
 	}
 
-	if (memorytype & CARDMEMORYTYPE_EXECUTABLE) {
-
+	if ((fc == 2 || fc == 6) && !(memorytype & CARDMEMORYTYPE_EXECUTABLE)) {
+		// trying to execute from non-executable memory
+		failed = true;
 	}
 
-	if (memorytype & CARDMEMORYTYPE_WRITABLE) {
-
+	if (write && !(memorytype & CARDMEMORYTYPE_WRITABLE)) {
+		// address isn't writable and this is a write!!
+		failed = true;
 	}
+
+	return failed;
 
 }
 
