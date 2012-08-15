@@ -175,6 +175,7 @@ const card inputcard = { "INPUT CARD", // tag
 		NULL, // BUSRQ ack
 		NULL, //
 		input_validaddress, //valid address
+		NULL, //
 		inputcard_read_byte, // read byte
 		NULL, // read word
 		NULL, // read long

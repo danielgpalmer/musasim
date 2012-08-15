@@ -22,6 +22,7 @@ typedef struct {
 	void (*busreqack)();
 	void (*setfc)();
 	bool (*validaddress)(uint32_t address); // This should return true if the address is valid within the card's address space
+	uint8_t (*memorytype)(uint32_t address);
 	uint8_t (*read_byte)(uint32_t address); // Read a byte from the cards address space
 	uint16_t (*read_word)(uint32_t address); // ^ but for word (16bits)
 	uint32_t (*read_long)(uint32_t address); // ^ but for long word (32bits)
@@ -33,4 +34,7 @@ typedef struct {
 	int (*cyclesleft)(); // how many clock cycles can run before something is going to happen that needs cpu sync, -1 if we don't care
 } card;
 
+#define CARDMEMORYTYPE_SUPERVISOR 0x1	// memory is only accessible in supervisor mode
+#define CARDMEMORYTYPE_EXECUTABLE 0x2	// memory is executable
+#define CARDMEMORYTYPE_WRITABLE 0x4		// memory is writable
 #endif /* CARD_H_ */

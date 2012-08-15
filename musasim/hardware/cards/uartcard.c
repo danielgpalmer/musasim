@@ -469,6 +469,7 @@ const card uartcard = { "UART CARD", //
 		NULL, //
 		NULL, //
 		uart_validaddress, //
+		NULL, //
 		uart_read_byte, //
 		NULL, //
 		NULL, //

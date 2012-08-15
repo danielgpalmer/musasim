@@ -336,6 +336,7 @@ const card soundcard = { "SOUND CARD", //
 		NULL, //
 		soundcard_validaddress, //
 		NULL, //
+		NULL, //
 		soundcard_read_word, //
 		NULL, //
 		NULL, //

@@ -513,6 +513,7 @@ const card dmacard = { "DMA Controller", //
 		NULL, //
 		dmacard_validaddress, //
 		NULL, //
+		NULL, //
 		dmacard_read_word, //
 		NULL, //
 		NULL, //

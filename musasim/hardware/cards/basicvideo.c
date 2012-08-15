@@ -74,6 +74,7 @@ const card basicvideocard = { "BASIC VIDEO CARD", //
 		NULL, //
 		video_validaddress, //
 		NULL, //
+		NULL, //
 		video_read_word, //
 		NULL, //
 		NULL, //

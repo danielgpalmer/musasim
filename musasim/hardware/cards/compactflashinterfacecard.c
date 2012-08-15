@@ -320,6 +320,7 @@ const card compactflashinterfacecard = { "CF INTERFACE", //
 		NULL, //
 		NULL, //
 		cfint_validaddress, //
+		NULL, //
 		cfintf_read_byte, //
 		cfintf_read_word, //
 		NULL, //

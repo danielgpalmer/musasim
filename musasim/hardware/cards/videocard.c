@@ -313,6 +313,7 @@ const card videocard = { "VIDEO CARD", //
 		NULL, //
 		NULL, //
 		video_validaddress, //
+		NULL, //
 		video_read_byte, //
 		video_read_word, //
 		NULL, //

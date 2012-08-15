@@ -115,18 +115,20 @@ static uint16_t basicsound_read_word(uint32_t address) {
 const card basicsoundcard = { "BASIC SOUND CARD", //
 		basicsound_init, //init
 		basicsound_dispose, // dispose
-		NULL, //
+		NULL, // reset
 		basicsound_tick, // tick
-		NULL, //
-		NULL, //
-		NULL,
-		basicsound_validaddress, //
-		NULL, //
+		NULL, // irqack
+		NULL, // busreqack
+		NULL, // setfc
+		basicsound_validaddress, // valid address
+		NULL, // memory type
+		NULL, // read byte
 		basicsound_read_word, //
-		NULL, //
-		NULL, //
+		NULL, // read long
+		NULL, // write byte
 		basicsound_write_word, //
-		NULL, //
-		NULL, //
-		NULL, //
-		NULL };
+		NULL, // write long
+		NULL, // active
+		NULL, // bestcasecycles
+		NULL // cyclesled
+		};

@@ -7,6 +7,8 @@
 
 #include "cards/card.h"
 
+#define DEFAULTMEMORYTYPE CARDMEMORYTYPE_WRITABLE
+
 void board_add_device(uint8_t slot, const card* card);
 void board_tick(int cyclesexecuted);
 void board_poweroff(void);
