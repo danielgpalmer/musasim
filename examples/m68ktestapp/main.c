@@ -119,7 +119,7 @@ static volatile bool fbready = false;
 void vblank_handler() {
 	printf("vblank\n");
 	if (fbready) {
-		//video_flip();
+		video_flip();
 		fbready = false;
 	}
 }
@@ -240,16 +240,14 @@ int main(void) {
 
 		video_begin();
 		video_clear(0xFFFF);
-		video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
+		//video_blitimage_nocopy(pai.width, pai.height, 30, 30, pai.data);
 		sprite_draw(ball1.sprite);
 		sprite_draw(ball2.sprite);
-		video_drawline(&vect);
-		video_gputs("Hello World!", _binary_fontrom_start, 1, 1);
+		//video_drawline(&vect);
+		//video_gputs("Hello World!", _binary_fontrom_start, 1, 1);
 
-		lastframe = thisframe;
+		//lastframe = thisframe;
 		video_commit();
-		//video_waitforvblank();
-		//video_flip();
 		fbready = true;
 
 	}

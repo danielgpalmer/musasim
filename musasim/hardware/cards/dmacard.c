@@ -167,9 +167,9 @@ static void dmacard_tick(int cyclesexecuted) {
 		return;
 	}
 
-	for (int i = 0; i < cyclesexecuted; i++) {
+	cyclesleft -= cyclesexecuted;
 
-		cyclesleft--;
+	for (int i = 0; i < cyclesexecuted; i++) {
 
 		bool unitcomplete = false;
 
