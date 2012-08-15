@@ -23,6 +23,7 @@
 
 static uint8_t* rom; /* ROM */
 static uint8_t* ram; /* RAM */
+static bool registersenabled = false;
 
 static const char TAG[] = "romcard";
 
@@ -83,6 +84,9 @@ static bool disableromonreset = false;
 static bool romdisabled = false;
 
 static bool romcard_checkcommand(uint32_t address, uint16_t data) {
+
+	if (!registersenabled)
+		return false;
 
 	static bool disablecommandone = false;
 
@@ -218,6 +222,13 @@ static void romcard_reset() {
 	}
 }
 
+static void romcard_setfc(unsigned int fc) {
+	if (fc == 0x5 || fc == 0x6)
+		registersenabled = true;
+	else
+		registersenabled = false;
+}
+
 const card romcard = { "ROM CARD", //
 		romcard_init, //
 		romcard_dispose, //
@@ -225,7 +236,7 @@ const card romcard = { "ROM CARD", //
 		NULL, //
 		NULL, //
 		NULL, //
-		NULL, //
+		romcard_setfc, //
 		romcard_validaddress, //
 		romcard_read_byte, //
 		romcard_read_word, //
