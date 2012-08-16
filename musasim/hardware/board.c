@@ -234,6 +234,7 @@ static bool board_checkaccess(uint8_t slot, uint32_t address, unsigned int fc, b
 
 	if ((fc == 2 || fc == 6) && !(memorytype & CARDMEMORYTYPE_EXECUTABLE)) {
 		// trying to execute from non-executable memory
+		log_println(LEVEL_INFO, TAG, "Executing non-executable memory");
 		failed = true;
 	}
 

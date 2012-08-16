@@ -229,6 +229,10 @@ static void romcard_setfc(unsigned int fc) {
 		registersenabled = false;
 }
 
+static uint8_t romcard_memorytype(uint32_t address) {
+	return CARDMEMORYTYPE_EXECUTABLE;
+}
+
 const card romcard = { "ROM CARD", //
 		romcard_init, //
 		romcard_dispose, //
@@ -238,7 +242,7 @@ const card romcard = { "ROM CARD", //
 		NULL, //
 		romcard_setfc, //
 		romcard_validaddress, //
-		NULL, //
+		romcard_memorytype, //
 		romcard_read_byte, //
 		romcard_read_word, //
 		romcard_read_long, //

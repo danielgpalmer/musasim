@@ -445,7 +445,7 @@ static bool uart_validaddress(uint32_t address) {
 
 	uint8_t reg = (address & REGISTERMASK);
 
-	switch (reg) {
+  	switch (reg) {
 		case UART_REGISTER_RXTXBUFFER:
 		case UART_REGISTER_INTERRUPTENABLE:
 		case UART_REGISTER_FIFOCONTROL:
