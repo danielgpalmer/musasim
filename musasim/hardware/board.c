@@ -22,6 +22,7 @@ static bool busrequestwaiting[NUM_SLOTS];
 
 #define NOCARD 0xFF
 
+#define GETPPC m68k_get_reg(NULL, M68K_REG_PPC)
 #define GETPC m68k_get_reg(NULL, M68K_REG_PC)
 
 /**
@@ -31,7 +32,6 @@ static bool busrequestwaiting[NUM_SLOTS];
 #define SLOTADDRESSMASK 0xE00000
 
 static uint8_t board_decode_slot(uint32_t address) {
-
 	uint8_t slot = (address & SLOTADDRESSMASK) >> 21;
 
 	if (slots[slot] == NULL) {
@@ -41,11 +41,9 @@ static uint8_t board_decode_slot(uint32_t address) {
 	}
 
 	return slot;
-
 }
 
 void board_add_device(uint8_t slot, const card *card) {
-
 	log_println(LEVEL_DEBUG, TAG, "Inserting %s into slot %d", card->boardinfo, slot);
 
 	slots[slot] = card;
@@ -91,7 +89,6 @@ static uint8_t board_which_slot(const card* card) {
 static bool buslocked = false;
 
 void board_lock_bus(const card* card) {
-
 	// The real board will have an arbiter that decides which bus request to forward to the CPU
 	// and route the result back to that card.
 
@@ -102,7 +99,6 @@ void board_lock_bus(const card* card) {
 	buslocked = true;
 	m68k_end_timeslice();
 	(card->busreqack)();
-
 }
 
 void board_unlock_bus(const card* card) {
@@ -126,7 +122,7 @@ bool board_bus_locked() {
  servicing it's interrupt
  */
 
-int curslot = 0; // the slot that is driving atm
+static int curslot = 0; // the slot that is driving atm
 
 static bool board_interrupt_sanitycheck(int slot) {
 	if (slot != NOCARD && slot != 0 && slot != 7) {
@@ -202,7 +198,6 @@ void board_lower_interrupt(const card* card) {
 }
 
 int board_ack_interrupt(int level) {
-
 	log_println(LEVEL_INSANE, TAG, "board_ack_interrupt(%d)", level);
 
 	if (slots[curslot]->irqack != NULL) {
@@ -213,28 +208,26 @@ int board_ack_interrupt(int level) {
 		log_println(LEVEL_WARNING, TAG, "card in %d doesn't have interrupt ack", curslot);
 		return M68K_INT_ACK_SPURIOUS;
 	}
-
 }
 
 // this will be for checking if an access to an address is valid in the current
 // mode etc.. not decided if this will just be for the gdb version or if this
 // will go in hardware too.
 static bool board_checkaccess(uint8_t slot, uint32_t address, unsigned int fc, bool write) {
-
 	uint8_t memorytype = DEFAULTMEMORYTYPE;
 	bool failed = false;
 
 	if (slots[slot]->memorytype != NULL)
 		memorytype = slots[slot]->memorytype(address);
 
-	if ((fc == 1 || fc == 2) && (memorytype & CARDMEMORYTYPE_SUPERVISOR)) {
-		// access to supervisor memory as user!
+	if (!write && (fc == 2 || fc == 6) && !(memorytype & CARDMEMORYTYPE_EXECUTABLE)) {
+		// trying to execute from non-executable memory
+		log_println(LEVEL_INFO, TAG, "Executing non-executable memory, PC[0x%08x], PPC[0x%08x]", GETPC, GETPPC);
 		failed = true;
 	}
 
-	if ((fc == 2 || fc == 6) && !(memorytype & CARDMEMORYTYPE_EXECUTABLE)) {
-		// trying to execute from non-executable memory
-		log_println(LEVEL_INFO, TAG, "Executing non-executable memory");
+	if ((fc == 1 || fc == 2) && (memorytype & CARDMEMORYTYPE_SUPERVISOR)) {
+		// access to supervisor memory as user!
 		failed = true;
 	}
 
@@ -243,8 +236,10 @@ static bool board_checkaccess(uint8_t slot, uint32_t address, unsigned int fc, b
 		failed = true;
 	}
 
-	return failed;
+	if (failed)
+		sim_quit();
 
+	return failed;
 }
 
 unsigned int board_read_byte(unsigned int address) {
@@ -264,7 +259,6 @@ unsigned int board_read_byte(unsigned int address) {
 }
 
 unsigned int board_read_word(unsigned int address) {
-
 	if (address % 2 != 0) {
 		log_println(LEVEL_DEBUG, TAG, "Word reads must be aligned, read from 0x%08x PC[0x%08x]", address, GETPC);
 		return 0;
@@ -273,6 +267,7 @@ unsigned int board_read_word(unsigned int address) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
+		board_checkaccess(slot, slotaddress, currentfc, false);
 		if (slots[slot]->read_word != NULL) {
 			if (slots[slot]->validaddress(slotaddress)) {
 				return (slots[slot]->read_word)(slotaddress);
@@ -320,7 +315,6 @@ void board_write_byte(unsigned int address, unsigned int value) {
 }
 
 void board_write_word(unsigned int address, unsigned int value) {
-
 	if (address % 2 != 0) {
 		log_println(LEVEL_DEBUG, TAG, "Word writes must be aligned, PC[0x%08x]", GETPC);
 		return;
@@ -371,7 +365,6 @@ int board_bestcasecycles() {
 }
 
 int board_maxcycles(int numberofcyclesplanned) {
-
 	int cycles = numberofcyclesplanned;
 
 	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
@@ -386,11 +379,9 @@ int board_maxcycles(int numberofcyclesplanned) {
 	}
 
 	return cycles;
-
 }
 
 void board_setfc(unsigned int fc) {
-
 	currentfc = fc;
 
 	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
