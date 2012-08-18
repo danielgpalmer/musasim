@@ -7,6 +7,10 @@
 #include "../musashi/m68k.h"
 #include "../utils.h"
 
+#ifdef GDBSERVER
+#include "../gdbserver.h"
+#endif
+
 static char TAG[] = "board";
 static unsigned int currentfc;
 
@@ -239,12 +243,15 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 	}
 
 	if (failed)
-		sim_sandboxvoilated();
-
+#ifdef GDBSERVER
+		gdb_break();
+#else
+	sim_sandboxvoilated();
+#endif
 	return failed;
 }
 
-unsigned int board_read_byte(unsigned int address) {
+unsigned int board_read_byte_internal(unsigned int address, bool skipchecks) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
@@ -262,7 +269,11 @@ unsigned int board_read_byte(unsigned int address) {
 	return 0;
 }
 
-unsigned int board_read_word(unsigned int address) {
+unsigned int board_read_byte(unsigned int address) {
+	return board_read_byte_internal(address, false);
+}
+
+unsigned int board_read_word_internal(unsigned int address, bool skipchecks) {
 	if (address % 2 != 0) {
 		log_println(LEVEL_DEBUG, TAG, "Word reads must be aligned, read from 0x%08x PC[0x%08x]", address, GETPC);
 		return 0;
@@ -272,7 +283,8 @@ unsigned int board_read_word(unsigned int address) {
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		const card* card = slots[slot];
-		board_checkaccess(card, slotaddress, currentfc, false);
+		if (!skipchecks)
+			board_checkaccess(card, slotaddress, currentfc, false);
 		if (card->read_word != NULL) {
 			if (card->validaddress(slotaddress)) {
 				return (card->read_word)(slotaddress);
@@ -285,7 +297,11 @@ unsigned int board_read_word(unsigned int address) {
 	return 0;
 }
 
-unsigned int board_read_long(unsigned int address) {
+unsigned int board_read_word(unsigned int address) {
+	return board_read_word_internal(address, false);
+}
+
+unsigned int board_read_long_internal(unsigned int address, bool skipchecks) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
@@ -301,6 +317,10 @@ unsigned int board_read_long(unsigned int address) {
 		}
 	}
 	return 0;
+}
+
+unsigned int board_read_long(unsigned int address) {
+	return board_read_long_internal(address, false);
 }
 
 void board_write_byte(unsigned int address, unsigned int value) {

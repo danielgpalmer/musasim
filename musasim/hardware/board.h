@@ -13,9 +13,13 @@ void board_add_device(uint8_t slot, const card* card);
 void board_tick(int cyclesexecuted);
 void board_poweroff(void);
 
+unsigned int board_read_byte_internal(unsigned int address, bool skipchecks);
 unsigned int board_read_byte(unsigned int address);
+unsigned int board_read_word_internal(unsigned int address, bool skipchecks);
 unsigned int board_read_word(unsigned int address);
+unsigned int board_read_long_internal(unsigned int address, bool skipchecks);
 unsigned int board_read_long(unsigned int address);
+
 void board_write_byte(unsigned int address, unsigned int value);
 void board_write_word(unsigned int address, unsigned int value);
 void board_write_long(unsigned int address, unsigned int value);

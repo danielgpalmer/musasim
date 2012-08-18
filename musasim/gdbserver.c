@@ -585,7 +585,7 @@ static char* getmemorystring(unsigned int address, int len) {
 	unsigned int byte;
 	int i;
 	for (i = 0; i < len; i++) {
-		byte = (board_read_byte(address + i));
+		byte = (board_read_byte_internal(address + i, true));
 		sprintf(&memorystring[i * 2], "%02x", byte);
 	}
 
