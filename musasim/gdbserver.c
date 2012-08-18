@@ -871,6 +871,7 @@ void gdb_onpcmodified(uint32_t a) {
 
 void gdb_break() {
 	printf("gdb_break()\n");
+	m68k_end_timeslice();
 	state = BREAKING;
 }
 
