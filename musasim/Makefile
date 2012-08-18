@@ -9,7 +9,7 @@ BASESTUFF=sim.o logging.o utils.o elfloader.o osd.o
 all: gdbserver musasim genheader dist
 	
 gdbserver: musashi $(BASESTUFF) hardware gdbserver.o argsgdb.o profiler.o
-	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o profiler.o $(BASESTUFF) $(LIBCARDSGDB) $(LIBMODULES) ./hardware/board.o -o gdbserver -lelf
+	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o profiler.o $(BASESTUFF) $(LIBCARDSGDB) $(LIBMODULES) ./hardware/boardgdb.o -o gdbserver -lelf
 
 musasim: musashi $(BASESTUFF) hardware musasim.o args.o 
 	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) $(LIBMODULES) ./hardware/board.o -o $@ -lelf
