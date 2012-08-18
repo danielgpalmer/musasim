@@ -256,7 +256,8 @@ unsigned int board_read_byte_internal(unsigned int address, bool skipchecks) {
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		const card* card = slots[slot];
-		board_checkaccess(card, slotaddress, currentfc, false);
+		if (!skipchecks)
+			board_checkaccess(card, slotaddress, currentfc, false);
 		if (card->read_byte != NULL) {
 			if (card->validaddress(slotaddress)) {
 				return (card->read_byte)(slotaddress);
