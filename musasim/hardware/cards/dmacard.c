@@ -211,6 +211,11 @@ static void dmacard_tick(int cyclesexecuted) {
 						}
 						//write phase
 						else {
+
+							if (destination < 0x200000) {
+								log_println(LEVEL_ALL, TAG, "DMA write to 0x%x.. possible corruption", destination);
+							}
+
 							if (wordtransfer) {
 								board_write_word(destination, dmacard_mutate(workingwindow, holding, data));
 							}
@@ -224,6 +229,11 @@ static void dmacard_tick(int cyclesexecuted) {
 						break;
 
 					case DMA_REGISTER_CONFIG_MODE_FILL: // Takes one clock
+
+						if (destination < 0x200000) {
+							log_println(LEVEL_ALL, TAG, "block DMA write to 0x%x.. possible corruption", destination);
+						}
+
 						if (wordtransfer) {
 							board_write_word(destination, (uint16_t) (data & 0xffff));
 						}
@@ -246,6 +256,7 @@ static void dmacard_tick(int cyclesexecuted) {
 								state = 1;
 								break;
 							case 1:
+
 								if (wordtransfer) {
 									holding = dmacard_mutate(workingwindow, holding, board_read_word(data));
 								}
@@ -255,6 +266,12 @@ static void dmacard_tick(int cyclesexecuted) {
 								state = 2;
 								break;
 							case 2:
+
+								if (destination < 0x200000) {
+									log_println(LEVEL_ALL, TAG, "mix DMA write to 0x%x.. possible corruption",
+											destination);
+								}
+
 								if (wordtransfer) {
 									board_write_word(destination, holding);
 								}
@@ -300,6 +317,11 @@ static void dmacard_tick(int cyclesexecuted) {
 								if ((wordtransfer && shifts == 16) || shifts == 8) {
 									shifts = 0;
 									counter--;
+								}
+
+								if (destination < 0x200000) {
+									log_println(LEVEL_ALL, TAG, "mixc DMA write to 0x%x.. possible corruption",
+											destination);
 								}
 
 								if (wordtransfer) {

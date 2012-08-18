@@ -251,7 +251,7 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 	return failed;
 }
 
-unsigned int board_read_byte_internal(unsigned int address, bool skipchecks) {
+unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, card* busmaster) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
@@ -271,10 +271,10 @@ unsigned int board_read_byte_internal(unsigned int address, bool skipchecks) {
 }
 
 unsigned int board_read_byte(unsigned int address) {
-	return board_read_byte_internal(address, false);
+	return board_read_byte_internal(address, false, NULL);
 }
 
-unsigned int board_read_word_internal(unsigned int address, bool skipchecks) {
+unsigned int board_read_word_internal(unsigned int address, bool skipchecks, card* busmaster) {
 	if (address % 2 != 0) {
 		log_println(LEVEL_DEBUG, TAG, "Word reads must be aligned, read from 0x%08x PC[0x%08x]", address, GETPC);
 		return 0;
@@ -299,10 +299,10 @@ unsigned int board_read_word_internal(unsigned int address, bool skipchecks) {
 }
 
 unsigned int board_read_word(unsigned int address) {
-	return board_read_word_internal(address, false);
+	return board_read_word_internal(address, false, NULL);
 }
 
-unsigned int board_read_long_internal(unsigned int address, bool skipchecks) {
+unsigned int board_read_long_internal(unsigned int address, bool skipchecks, card* busmaster) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
@@ -322,7 +322,7 @@ unsigned int board_read_long_internal(unsigned int address, bool skipchecks) {
 }
 
 unsigned int board_read_long(unsigned int address) {
-	return board_read_long_internal(address, false);
+	return board_read_long_internal(address, false, NULL);
 }
 
 void board_write_byte(unsigned int address, unsigned int value) {
