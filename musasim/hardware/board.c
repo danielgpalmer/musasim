@@ -213,31 +213,33 @@ int board_ack_interrupt(int level) {
 // this will be for checking if an access to an address is valid in the current
 // mode etc.. not decided if this will just be for the gdb version or if this
 // will go in hardware too.
-static bool board_checkaccess(uint8_t slot, uint32_t address, unsigned int fc, bool write) {
+static bool board_checkaccess(const card* card, uint32_t address, unsigned int fc, bool write) {
 	uint8_t memorytype = DEFAULTMEMORYTYPE;
 	bool failed = false;
 
-	if (slots[slot]->memorytype != NULL)
-		memorytype = slots[slot]->memorytype(address);
+	if (card->memorytype != NULL)
+		memorytype = card->memorytype(address);
 
+	// trying to execute from non-executable memory
 	if (!write && (fc == 2 || fc == 6) && !(memorytype & CARDMEMORYTYPE_EXECUTABLE)) {
-		// trying to execute from non-executable memory
 		log_println(LEVEL_INFO, TAG, "Executing non-executable memory, PC[0x%08x], PPC[0x%08x]", GETPC, GETPPC);
 		failed = true;
 	}
 
+	// access to supervisor memory as user!
 	if ((fc == 1 || fc == 2) && (memorytype & CARDMEMORYTYPE_SUPERVISOR)) {
-		// access to supervisor memory as user!
+		log_println(LEVEL_INFO, TAG, "Accessing supervisor memory as user PC[0x%08x], PPC[0x%08x]", GETPC, GETPPC);
 		failed = true;
 	}
 
+	// address isn't writable and this is a write!!
 	if (write && !(memorytype & CARDMEMORYTYPE_WRITABLE)) {
-		// address isn't writable and this is a write!!
+		log_println(LEVEL_INFO, TAG, "writing to readonly memory PC[0x%08x], PPC[0x%08x]", GETPC, GETPPC);
 		failed = true;
 	}
 
 	if (failed)
-		sim_quit();
+		sim_sandboxvoilated();
 
 	return failed;
 }
@@ -246,9 +248,11 @@ unsigned int board_read_byte(unsigned int address) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
-		if (slots[slot]->read_byte != NULL) {
-			if (slots[slot]->validaddress(slotaddress)) {
-				return (slots[slot]->read_byte)(slotaddress);
+		const card* card = slots[slot];
+		board_checkaccess(card, slotaddress, currentfc, false);
+		if (card->read_byte != NULL) {
+			if (card->validaddress(slotaddress)) {
+				return (card->read_byte)(slotaddress);
 			}
 		}
 		else {
@@ -267,10 +271,11 @@ unsigned int board_read_word(unsigned int address) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
-		board_checkaccess(slot, slotaddress, currentfc, false);
-		if (slots[slot]->read_word != NULL) {
-			if (slots[slot]->validaddress(slotaddress)) {
-				return (slots[slot]->read_word)(slotaddress);
+		const card* card = slots[slot];
+		board_checkaccess(card, slotaddress, currentfc, false);
+		if (card->read_word != NULL) {
+			if (card->validaddress(slotaddress)) {
+				return (card->read_word)(slotaddress);
 			}
 		}
 		else {
@@ -284,12 +289,11 @@ unsigned int board_read_long(unsigned int address) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
-
-		board_checkaccess(slot, slotaddress, currentfc, false);
-
-		if (slots[slot]->read_long != NULL) {
-			if (slots[slot]->validaddress(slotaddress)) {
-				return (slots[slot]->read_long)(slotaddress);
+		const card* card = slots[slot];
+		board_checkaccess(card, slotaddress, currentfc, false);
+		if (card->read_long != NULL) {
+			if (card->validaddress(slotaddress)) {
+				return (card->read_long)(slotaddress);
 			}
 		}
 		else {
@@ -303,9 +307,11 @@ void board_write_byte(unsigned int address, unsigned int value) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
-		if (slots[slot]->write_byte != NULL) {
-			if (slots[slot]->validaddress(slotaddress)) {
-				(slots[slot]->write_byte)(slotaddress, value);
+		const card* card = slots[slot];
+		board_checkaccess(card, slotaddress, currentfc, true);
+		if (card->write_byte != NULL) {
+			if (card->validaddress(slotaddress)) {
+				(card->write_byte)(slotaddress, value);
 			}
 		}
 		else {
@@ -323,9 +329,11 @@ void board_write_word(unsigned int address, unsigned int value) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
-		if (slots[slot]->write_word != NULL) {
-			if (slots[slot]->validaddress(slotaddress)) {
-				(slots[slot]->write_word)(slotaddress, value);
+		const card* card = slots[slot];
+		board_checkaccess(card, slotaddress, currentfc, true);
+		if (card->write_word != NULL) {
+			if (card->validaddress(slotaddress)) {
+				(card->write_word)(slotaddress, value);
 			}
 		}
 		else {
@@ -338,9 +346,11 @@ void board_write_long(unsigned int address, unsigned int value) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
-		if (slots[slot]->write_long != NULL) {
-			if (slots[slot]->validaddress(slotaddress)) {
-				(slots[slot]->write_long)(slotaddress, value);
+		const card* card = slots[slot];
+		board_checkaccess(card, slotaddress, currentfc, true);
+		if (card->write_long != NULL) {
+			if (card->validaddress(slotaddress)) {
+				(card->write_long)(slotaddress, value);
 			}
 		}
 		else {

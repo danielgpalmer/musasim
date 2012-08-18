@@ -229,8 +229,8 @@ static void romcard_setfc(unsigned int fc) {
 		registersenabled = false;
 }
 
-static uint8_t romcard_memorytype(uint32_t address) {
-	return CARDMEMORYTYPE_EXECUTABLE;
+const static uint8_t romcard_memorytype(uint32_t address) {
+	return CARDMEMORYTYPE_EXECUTABLE | CARDMEMORYTYPE_WRITABLE;
 }
 
 const card romcard = { "ROM CARD", //

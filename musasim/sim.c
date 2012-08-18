@@ -202,6 +202,11 @@ void sim_tick() {
 		//TODO what causes the emulator to run less cycles than we want?
 		cpucyclesexecuted = m68k_execute(cyclestoexecute);
 		//log_println(LEVEL_INFO, TAG, "executed %d cpu cycles", cpucyclesexecuted);
+		if (shouldexit) {
+			log_println(LEVEL_ALL, TAG, "oh noes!");
+			sim_quit();
+			return;
+		}
 	}
 	else
 		cpucyclesexecuted = cyclestoexecute;
@@ -232,6 +237,12 @@ void sim_tick() {
 
 	//log_println(LEVEL_INFO, TAG, "target %ld, actual %ld, owed %ld", target, timetaken, owed);
 
+}
+
+void sim_sandboxvoilated() {
+	log_println(LEVEL_ALL, TAG, "sim_sandboxvoilated()");
+	m68k_end_timeslice();
+	shouldexit = true;
 }
 
 void sim_quit() {
