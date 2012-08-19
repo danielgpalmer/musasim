@@ -280,6 +280,16 @@ static unsigned int board_read(unsigned int address, bool skipchecks, const card
 					log_println(LEVEL_INFO, TAG, "slot %d doesn't support word read", slot);
 				}
 				break;
+			case 32:
+				if (card->read_long != NULL) {
+					if (card->validaddress(slotaddress)) {
+						return (card->read_long)(slotaddress);
+					}
+				}
+				else {
+					log_println(LEVEL_INFO, TAG, "slot %d doesn't support long read, PC[0x%08x]", slot, GETPC);
+				}
+				break;
 		}
 	}
 	return 0;
@@ -303,22 +313,7 @@ unsigned int board_read_word(unsigned int address) {
 }
 
 unsigned int board_read_long_internal(unsigned int address, bool skipchecks, const card* busmaster) {
-	uint8_t slot = board_decode_slot(address);
-	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
-	if (slot != NOCARD) {
-		const card* card = slots[slot];
-		if (!skipchecks)
-			board_checkaccess(card, slotaddress, currentfc, false);
-		if (card->read_long != NULL) {
-			if (card->validaddress(slotaddress)) {
-				return (card->read_long)(slotaddress);
-			}
-		}
-		else {
-			log_println(LEVEL_INFO, TAG, "slot %d doesn't support long read, PC[0x%08x]", slot, GETPC);
-		}
-	}
-	return 0;
+	return board_read(address, skipchecks, busmaster, 32);
 }
 
 unsigned int board_read_long(unsigned int address) {
