@@ -244,7 +244,7 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 
 	if (failed)
 #ifdef GDBSERVER
-		gdb_break();
+		gdb_break("sandbox violation");
 #else
 	sim_sandboxvoilated();
 #endif
@@ -266,18 +266,12 @@ static unsigned int board_read(unsigned int address, bool skipchecks, const card
 						return (card->read_byte)(slotaddress);
 					}
 				}
-				else {
-					log_println(LEVEL_INFO, TAG, "slot %d doesn't support byte read", slot);
-				}
 				break;
 			case 16:
 				if (card->read_word != NULL) {
 					if (card->validaddress(slotaddress)) {
 						return (card->read_word)(slotaddress);
 					}
-				}
-				else {
-					log_println(LEVEL_INFO, TAG, "slot %d doesn't support word read", slot);
 				}
 				break;
 			case 32:
@@ -286,11 +280,14 @@ static unsigned int board_read(unsigned int address, bool skipchecks, const card
 						return (card->read_long)(slotaddress);
 					}
 				}
-				else {
-					log_println(LEVEL_INFO, TAG, "slot %d doesn't support long read, PC[0x%08x]", slot, GETPC);
-				}
 				break;
 		}
+
+		log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d bit read, PC[0x%08x]", slot, width, GETPC);
+#ifdef GDBSERVER
+		gdb_break("unsupported read access");
+#endif
+
 	}
 	return 0;
 
@@ -320,21 +317,48 @@ unsigned int board_read_long(unsigned int address) {
 	return board_read_long_internal(address, false, NULL);
 }
 
-void board_write_byte_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
+static void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster, int width) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		const card* card = slots[slot];
 		board_checkaccess(card, slotaddress, currentfc, true);
-		if (card->write_byte != NULL) {
-			if (card->validaddress(slotaddress)) {
-				(card->write_byte)(slotaddress, value);
-			}
+		switch (width) {
+			case 8:
+				if (card->write_byte != NULL) {
+					if (card->validaddress(slotaddress)) {
+						(card->write_byte)(slotaddress, value);
+						return;
+					}
+				}
+				break;
+			case 16:
+				if (card->write_word != NULL) {
+					if (card->validaddress(slotaddress)) {
+						(card->write_word)(slotaddress, value);
+						return;
+					}
+				}
+				break;
+			case 32:
+				if (card->write_long != NULL) {
+					if (card->validaddress(slotaddress)) {
+						(card->write_long)(slotaddress, value);
+						return;
+					}
+				}
+				break;
 		}
-		else {
-			log_println(LEVEL_INFO, TAG, "slot %d doesn't support byte write", slot);
-		}
+
+		log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d bit write", slot, width);
+#ifdef GDBSERVER
+		gdb_break("unsupported memory write");
+#endif
 	}
+}
+
+void board_write_byte_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
+	board_write(address, value, skipchecks, busmaster, 8);
 }
 
 void board_write_byte(unsigned int address, unsigned int value) {
@@ -342,25 +366,7 @@ void board_write_byte(unsigned int address, unsigned int value) {
 }
 
 void board_write_word_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
-	if (address % 2 != 0) {
-		log_println(LEVEL_DEBUG, TAG, "Word writes must be aligned, PC[0x%08x]", GETPC);
-		return;
-	}
-
-	uint8_t slot = board_decode_slot(address);
-	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
-	if (slot != NOCARD) {
-		const card* card = slots[slot];
-		board_checkaccess(card, slotaddress, currentfc, true);
-		if (card->write_word != NULL) {
-			if (card->validaddress(slotaddress)) {
-				(card->write_word)(slotaddress, value);
-			}
-		}
-		else {
-			log_println(LEVEL_INFO, TAG, "slot %d doesn't support word write, PC[0x%08x]", slot, GETPC);
-		}
-	}
+	board_write(address, value, skipchecks, busmaster, 16);
 }
 
 void board_write_word(unsigned int address, unsigned int value) {
@@ -368,20 +374,7 @@ void board_write_word(unsigned int address, unsigned int value) {
 }
 
 void board_write_long_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
-	uint8_t slot = board_decode_slot(address);
-	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
-	if (slot != NOCARD) {
-		const card* card = slots[slot];
-		board_checkaccess(card, slotaddress, currentfc, true);
-		if (card->write_long != NULL) {
-			if (card->validaddress(slotaddress)) {
-				(card->write_long)(slotaddress, value);
-			}
-		}
-		else {
-			log_println(LEVEL_INFO, TAG, "slot %d doesn't support long write,  PC[0x%08x]", slot, GETPC);
-		}
-	}
+	board_write(address, value, skipchecks, busmaster, 32);
 }
 
 void board_write_long(unsigned int address, unsigned int value) {

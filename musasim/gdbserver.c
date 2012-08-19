@@ -799,8 +799,26 @@ static char* readmem(char* commandbuffer) {
 	return getmemorystring(ad, sz);
 }
 
+bool funkytrigger = false;
+
 void gdbserver_instruction_hook_callback() {
+
+	if (m68k_get_reg(NULL, M68K_REG_A0) == 0x489e001f) {
+		gdb_break("funky register");
+		funkytrigger = true;
+	}
+
+	if(funkytrigger)
+		printf("pc - 0x%x\n", m68k_get_reg(NULL, M68K_REG_PC));
+
+	else if (m68k_get_reg(NULL, M68K_REG_PC) == 0x489e001f) {
+		gdb_break("fucked up pc");
+	}
+
 	uint32_t pc = m68k_get_reg(NULL, M68K_REG_PC);
+
+
+
 	gdbserver_check_breakpoints(pc);
 	profiler_onpcchange(pc);
 }
@@ -861,16 +879,19 @@ void gdb_hitstop() {
 	cpu_pulse_stop();
 }
 
+
 void gdb_onpcmodified(uint32_t a) {
 
-	if (state == RUNNING) {
-		profiler_onpcmodified(m68k_get_reg(NULL, M68K_REG_PPC), a);
-	}
+
+
+	//if (state == RUNNING) {
+	//	profiler_onpcmodified(m68k_get_reg(NULL, M68K_REG_PPC), a);
+	//}
 
 }
 
-void gdb_break() {
-	printf("gdb_break()\n");
+void gdb_break(const char* reason) {
+	printf("gdb_break(%s)\n", reason);
 	m68k_end_timeslice();
 	state = BREAKING;
 }
