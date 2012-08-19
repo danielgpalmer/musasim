@@ -251,58 +251,58 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 	return failed;
 }
 
-unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, card* busmaster) {
+static unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, int width) {
+
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		const card* card = slots[slot];
 		if (!skipchecks)
 			board_checkaccess(card, slotaddress, currentfc, false);
-		if (card->read_byte != NULL) {
-			if (card->validaddress(slotaddress)) {
-				return (card->read_byte)(slotaddress);
-			}
-		}
-		else {
-			log_println(LEVEL_INFO, TAG, "slot %d doesn't support byte read", slot);
+		switch (width) {
+			case 8:
+				if (card->read_byte != NULL) {
+					if (card->validaddress(slotaddress)) {
+						return (card->read_byte)(slotaddress);
+					}
+				}
+				else {
+					log_println(LEVEL_INFO, TAG, "slot %d doesn't support byte read", slot);
+				}
+				break;
+			case 16:
+				if (card->read_word != NULL) {
+					if (card->validaddress(slotaddress)) {
+						return (card->read_word)(slotaddress);
+					}
+				}
+				else {
+					log_println(LEVEL_INFO, TAG, "slot %d doesn't support word read", slot);
+				}
+				break;
 		}
 	}
 	return 0;
+
+}
+
+unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, const card* busmaster) {
+	return board_read(address, skipchecks, busmaster, 8);
 }
 
 unsigned int board_read_byte(unsigned int address) {
 	return board_read_byte_internal(address, false, NULL);
 }
 
-unsigned int board_read_word_internal(unsigned int address, bool skipchecks, card* busmaster) {
-	if (address % 2 != 0) {
-		log_println(LEVEL_DEBUG, TAG, "Word reads must be aligned, read from 0x%08x PC[0x%08x]", address, GETPC);
-		return 0;
-	}
-
-	uint8_t slot = board_decode_slot(address);
-	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
-	if (slot != NOCARD) {
-		const card* card = slots[slot];
-		if (!skipchecks)
-			board_checkaccess(card, slotaddress, currentfc, false);
-		if (card->read_word != NULL) {
-			if (card->validaddress(slotaddress)) {
-				return (card->read_word)(slotaddress);
-			}
-		}
-		else {
-			log_println(LEVEL_INFO, TAG, "slot %d doesn't support word read", slot);
-		}
-	}
-	return 0;
+unsigned int board_read_word_internal(unsigned int address, bool skipchecks, const card* busmaster) {
+	return board_read(address, skipchecks, busmaster, 16);
 }
 
 unsigned int board_read_word(unsigned int address) {
 	return board_read_word_internal(address, false, NULL);
 }
 
-unsigned int board_read_long_internal(unsigned int address, bool skipchecks, card* busmaster) {
+unsigned int board_read_long_internal(unsigned int address, bool skipchecks, const card* busmaster) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
@@ -325,7 +325,7 @@ unsigned int board_read_long(unsigned int address) {
 	return board_read_long_internal(address, false, NULL);
 }
 
-void board_write_byte(unsigned int address, unsigned int value) {
+void board_write_byte_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
@@ -342,7 +342,11 @@ void board_write_byte(unsigned int address, unsigned int value) {
 	}
 }
 
-void board_write_word(unsigned int address, unsigned int value) {
+void board_write_byte(unsigned int address, unsigned int value) {
+	board_write_byte_internal(address, value, false, NULL);
+}
+
+void board_write_word_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
 	if (address % 2 != 0) {
 		log_println(LEVEL_DEBUG, TAG, "Word writes must be aligned, PC[0x%08x]", GETPC);
 		return;
@@ -364,7 +368,11 @@ void board_write_word(unsigned int address, unsigned int value) {
 	}
 }
 
-void board_write_long(unsigned int address, unsigned int value) {
+void board_write_word(unsigned int address, unsigned int value) {
+	board_write_word_internal(address, value, false, NULL);
+}
+
+void board_write_long_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
@@ -379,6 +387,10 @@ void board_write_long(unsigned int address, unsigned int value) {
 			log_println(LEVEL_INFO, TAG, "slot %d doesn't support long write,  PC[0x%08x]", slot, GETPC);
 		}
 	}
+}
+
+void board_write_long(unsigned int address, unsigned int value) {
+	board_write_long_internal(address, value, false, NULL);
 }
 
 void board_reset() {

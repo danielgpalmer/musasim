@@ -217,11 +217,13 @@ static void dmacard_tick(int cyclesexecuted) {
 							}
 
 							if (wordtransfer) {
-								board_write_word(destination, dmacard_mutate(workingwindow, holding, data));
+								board_write_word_internal(destination, dmacard_mutate(workingwindow, holding, data),
+										false, &dmacard);
 							}
 							else {
-								board_write_byte(destination,
-										(uint8_t) (dmacard_mutate(workingwindow, holding, data) & 0xff));
+								board_write_byte_internal(destination,
+										(uint8_t) (dmacard_mutate(workingwindow, holding, data) & 0xff), false,
+										&dmacard);
 							}
 							state = 0;
 							unitcomplete = true;
@@ -235,10 +237,10 @@ static void dmacard_tick(int cyclesexecuted) {
 						}
 
 						if (wordtransfer) {
-							board_write_word(destination, (uint16_t) (data & 0xffff));
+							board_write_word_internal(destination, (uint16_t) (data & 0xffff), false, &dmacard);
 						}
 						else {
-							board_write_byte(destination, (uint8_t) (data & 0xff));
+							board_write_byte_internal(destination, (uint8_t) (data & 0xff), false, &dmacard);
 						}
 						unitcomplete = true;
 						break;
@@ -273,10 +275,10 @@ static void dmacard_tick(int cyclesexecuted) {
 								}
 
 								if (wordtransfer) {
-									board_write_word(destination, holding);
+									board_write_word_internal(destination, holding, false, &dmacard);
 								}
 								else {
-									board_write_byte(destination, holding);
+									board_write_byte_internal(destination, holding, false, &dmacard);
 								}
 								state = 0;
 								unitcomplete = true;
@@ -325,10 +327,10 @@ static void dmacard_tick(int cyclesexecuted) {
 								}
 
 								if (wordtransfer) {
-									board_write_word(destination, holding);
+									board_write_word_internal(destination, holding, false, &dmacard);
 								}
 								else {
-									board_write_byte(destination, holding);
+									board_write_byte_internal(destination, holding, false, &dmacard);
 								}
 								dmacard_perform_act(workingwindow, 2); // increment dest pointer
 								state = 0;
