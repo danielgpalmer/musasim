@@ -165,10 +165,10 @@
 /* ----------------------------- COMPATIBILITY ---------------------------- */
 
 /* The following options set optimizations that violate the current ANSI
- * standard, but will be compliant under the forthcoming C9X standard.
+ * standard, but will be complaint under the forthcoming C9X standard.
  */
 
-/* If on, the enulation core will use 64-bit integers to speed up some
+/* If on, the emulation core will use 64-bit integers to speed up some
  * operations.
  */
 

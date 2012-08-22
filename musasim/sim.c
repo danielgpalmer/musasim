@@ -219,7 +219,7 @@ void sim_tick() {
 	long int target = SIM_CPUCLOCKDURATION * cpucyclesexecuted;
 
 	if (timetaken > 100000) {
-		log_println(LEVEL_INFO, TAG, "CLAMP!");
+		//log_println(LEVEL_INFO, TAG, "CLAMP!");
 		timetaken = 100000;
 	}
 
@@ -240,7 +240,28 @@ void sim_tick() {
 }
 
 void sim_sandboxvoilated() {
-	log_println(LEVEL_ALL, TAG, "sim_sandboxvoilated()");
+	log_println(LEVEL_INFO, TAG, "sim_sandboxvoilated()");
+
+	printf("D0[0x%08x]\nD1[0x%08x]\nD2[0x%08x]\nD3[0x%08x]\nD4[0x%08x]\nD5[0x%08x]\nD6[0x%08x]\nD7[0x%08x]\n", //
+			m68k_get_reg(NULL, M68K_REG_D0), //
+			m68k_get_reg(NULL, M68K_REG_D1), //
+			m68k_get_reg(NULL, M68K_REG_D2), //
+			m68k_get_reg(NULL, M68K_REG_D3), //
+			m68k_get_reg(NULL, M68K_REG_D4), //
+			m68k_get_reg(NULL, M68K_REG_D5), //
+			m68k_get_reg(NULL, M68K_REG_D6), //
+			m68k_get_reg(NULL, M68K_REG_D7));
+
+	printf("A0[0x%08x]\nA1[0x%08x]\nA2[0x%08x]\nA3[0x%08x]\nA4[0x%08x]\nA5[0x%08x]\nA6[0x%08x]\nA7[0x%08x]\n", //
+			m68k_get_reg(NULL, M68K_REG_A0), //
+			m68k_get_reg(NULL, M68K_REG_A1), //
+			m68k_get_reg(NULL, M68K_REG_A2), //
+			m68k_get_reg(NULL, M68K_REG_A3), //
+			m68k_get_reg(NULL, M68K_REG_A4), //
+			m68k_get_reg(NULL, M68K_REG_A5), //
+			m68k_get_reg(NULL, M68K_REG_A6), //
+			m68k_get_reg(NULL, M68K_REG_A7));
+
 	m68k_end_timeslice();
 	shouldexit = true;
 }

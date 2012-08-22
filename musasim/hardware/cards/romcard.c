@@ -114,7 +114,7 @@ static void romcard_invalidwrite(uint32_t address) {
 	log_println(LEVEL_INFO, TAG, "invalid write to 0x%08x, write to ROM? PC[0x%08x]", address,
 			m68k_get_reg(NULL, M68K_REG_PC));
 #ifdef GDBSERVER
-	gdb_break();
+	gdb_break("write to rom");
 #endif
 
 }

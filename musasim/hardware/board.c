@@ -226,7 +226,10 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 
 	// trying to execute from non-executable memory
 	if (!write && (fc == 2 || fc == 6) && !(memorytype & CARDMEMORYTYPE_EXECUTABLE)) {
-		log_println(LEVEL_INFO, TAG, "Executing non-executable memory, PC[0x%08x], PPC[0x%08x]", GETPC, GETPPC);
+		char buff[] = "this should be a disassembly";
+		//m68k_disassemble(buff, GETPC, M68K_CPU_TYPE_68000);
+		log_println(LEVEL_INFO, TAG, "Executing non-executable memory, PC[0x%08x], PPC[0x%08x], %s", GETPC, GETPPC,
+				buff);
 		failed = true;
 	}
 
