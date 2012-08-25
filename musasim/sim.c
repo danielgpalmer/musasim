@@ -242,6 +242,28 @@ void sim_tick() {
 void sim_sandboxvoilated() {
 	log_println(LEVEL_INFO, TAG, "sim_sandboxvoilated()");
 
+	m68k_end_timeslice();
+	shouldexit = true;
+}
+
+void sim_quit() {
+	log_println(LEVEL_DEBUG, TAG, "sim_quit()");
+	board_poweroff();
+	m68k_end_timeslice();
+	shouldexit = true;
+	log_shutdown();
+}
+
+void sim_reset() {
+	log_println(LEVEL_DEBUG, TAG, "sim_reset()");
+	m68k_pulse_reset();
+}
+
+bool sim_has_quit() {
+	return shouldexit;
+}
+
+void utils_printregisters() {
 	printf("D0[0x%08x]\nD1[0x%08x]\nD2[0x%08x]\nD3[0x%08x]\nD4[0x%08x]\nD5[0x%08x]\nD6[0x%08x]\nD7[0x%08x]\n", //
 			m68k_get_reg(NULL, M68K_REG_D0), //
 			m68k_get_reg(NULL, M68K_REG_D1), //
@@ -262,23 +284,5 @@ void sim_sandboxvoilated() {
 			m68k_get_reg(NULL, M68K_REG_A6), //
 			m68k_get_reg(NULL, M68K_REG_A7));
 
-	m68k_end_timeslice();
-	shouldexit = true;
-}
-
-void sim_quit() {
-	log_println(LEVEL_DEBUG, TAG, "sim_quit()");
-	board_poweroff();
-	m68k_end_timeslice();
-	shouldexit = true;
-	log_shutdown();
-}
-
-void sim_reset() {
-	log_println(LEVEL_DEBUG, TAG, "sim_reset()");
-	m68k_pulse_reset();
-}
-
-bool sim_has_quit() {
-	return shouldexit;
+	printf("PC[0x%08x]\nPPC[0x%08x]\n", m68k_get_reg(NULL, M68K_REG_PC), m68k_get_reg(NULL, M68K_REG_PPC));
 }

@@ -55,7 +55,7 @@ static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 	for (int i = 0; i < len; i++) {
 
 		if (audiobuffertail == audiobufferhead) {
-			log_println(LEVEL_INFO, TAG, "audio underrun");
+			log_println(LEVEL_DEBUG, TAG, "audio underrun");
 			*stream++ = 0x00;
 		}
 

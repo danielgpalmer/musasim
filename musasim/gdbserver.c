@@ -18,6 +18,7 @@
 #include "sim.h"
 #include "musashi/m68k.h"
 #include "args.h"
+#include "utils.h"
 
 #include "hardware/cards/romcard.h"
 #include "logging.h"
@@ -74,7 +75,7 @@ static void gdbserver_set_watchpoint(uint32_t address, unsigned int length, bool
 static void gdbserver_clear_watchpoint(uint32_t address, unsigned int length, bool read, bool write);
 
 // stuff that pokes the sim
-static char* readmem(char* commandbuffer);
+static char* gdbserver_readmem(char* commandbuffer);
 
 // utils
 static char* getmemorystring(unsigned int address, int len);
@@ -264,7 +265,7 @@ static void gdbserver_readcommand(int s) {
 				break;
 			case 'm':
 				log_println(LEVEL_INSANE, TAG, "GDB wants to read from memory");
-				data = readmem(inputbuffer);
+				data = gdbserver_readmem(inputbuffer);
 				break;
 			case 'M':
 				printf("GDB wants to write to memory\n");
@@ -601,7 +602,7 @@ void gdbserver_clear_breakpoint(uint32_t address) {
 	breakpoints = g_slist_remove(breakpoints, GUINT_TO_POINTER(address));
 }
 
-static GSList* addwatchpoint(GSList* list, uint32_t address, unsigned int length) {
+static GSList* gdbserver_addwatchpoint(GSList* list, uint32_t address, unsigned int length) {
 
 	watchpoint* wp = malloc(sizeof(wp));
 	wp->address = address;
@@ -611,7 +612,7 @@ static GSList* addwatchpoint(GSList* list, uint32_t address, unsigned int length
 
 }
 
-static GSList* clearwatchpoint(GSList* list, uint32_t address, unsigned int length) {
+static GSList* gdbserver_clearwatchpoint(GSList* list, uint32_t address, unsigned int length) {
 
 	GSList* iterator;
 	for (iterator = list; iterator; iterator = iterator->next) {
@@ -626,7 +627,7 @@ static GSList* clearwatchpoint(GSList* list, uint32_t address, unsigned int leng
 
 }
 
-static bool checkwatchpoints(GSList* list, uint32_t address, int size) {
+static bool gdbserver_checkwatchpoints(GSList* list, uint32_t address, int size) {
 
 	GSList* iterator;
 	for (iterator = list; iterator; iterator = iterator->next) {
@@ -657,30 +658,30 @@ static bool checkwatchpoints(GSList* list, uint32_t address, int size) {
 void gdbserver_set_watchpoint(uint32_t address, unsigned int length, bool read, bool write) {
 
 	if (read && write) {
-		watchpoints_access = addwatchpoint(watchpoints_access, address, length);
+		watchpoints_access = gdbserver_addwatchpoint(watchpoints_access, address, length);
 	}
 
 	else if (read) {
-		watchpoints_read = addwatchpoint(watchpoints_read, address, length);
+		watchpoints_read = gdbserver_addwatchpoint(watchpoints_read, address, length);
 	}
 
 	else if (write) {
-		watchpoints_write = addwatchpoint(watchpoints_write, address, length);
+		watchpoints_write = gdbserver_addwatchpoint(watchpoints_write, address, length);
 	}
 }
 
 void gdbserver_clear_watchpoint(uint32_t address, unsigned int length, bool read, bool write) {
 
 	if (read && write) {
-		watchpoints_access = clearwatchpoint(watchpoints_access, address, length);
+		watchpoints_access = gdbserver_clearwatchpoint(watchpoints_access, address, length);
 	}
 
 	else if (read) {
-		watchpoints_read = clearwatchpoint(watchpoints_read, address, length);
+		watchpoints_read = gdbserver_clearwatchpoint(watchpoints_read, address, length);
 	}
 
 	else if (write) {
-		watchpoints_write = clearwatchpoint(watchpoints_write, address, length);
+		watchpoints_write = gdbserver_clearwatchpoint(watchpoints_write, address, length);
 	}
 }
 
@@ -688,7 +689,7 @@ void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, i
 
 	static char stopreply[256];
 
-	if (checkwatchpoints(watchpoints_access, address, size)) {
+	if (gdbserver_checkwatchpoints(watchpoints_access, address, size)) {
 		m68k_end_timeslice();
 		log_println(LEVEL_INFO, TAG, "Access at 0x%08x;", address);
 		state = WAITING;
@@ -697,7 +698,7 @@ void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, i
 	}
 
 	if (write) {
-		if (checkwatchpoints(watchpoints_write, address, size)) {
+		if (gdbserver_checkwatchpoints(watchpoints_write, address, size)) {
 			m68k_end_timeslice();
 			log_println(LEVEL_INFO, TAG, "Write 0x%08x to 0x%08x PC[0x%08x]", value, address,
 					m68k_get_reg(NULL, M68K_REG_PC));
@@ -708,7 +709,7 @@ void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, i
 	}
 
 	else {
-		if (checkwatchpoints(watchpoints_read, address, size)) {
+		if (gdbserver_checkwatchpoints(watchpoints_read, address, size)) {
 			m68k_end_timeslice();
 			log_println(LEVEL_INFO, TAG, "Read at 0x%08x;", address);
 			state = WAITING;
@@ -788,7 +789,7 @@ char* gbdserver_readregs(char* commandbuffer) {
 			m68k_get_reg(NULL, M68K_REG_PC));
 }
 
-static char* readmem(char* commandbuffer) {
+static char* gdbserver_readmem(char* commandbuffer) {
 	char *address = strtok(&commandbuffer[1], "m,#");
 	char *size = strtok(NULL, "m,#");
 
@@ -803,21 +804,15 @@ bool funkytrigger = false;
 
 void gdbserver_instruction_hook_callback() {
 
-	if (m68k_get_reg(NULL, M68K_REG_A0) == 0x489e001f) {
-		gdb_break("funky register");
-		funkytrigger = true;
+	if (m68k_get_reg(NULL, M68K_REG_D7) == 0x489e001f) {
+		gdb_break("funky register.. ");
+
 	}
 
-	if(funkytrigger)
-		printf("pc - 0x%x\n", m68k_get_reg(NULL, M68K_REG_PC));
-
-	else if (m68k_get_reg(NULL, M68K_REG_PC) == 0x489e001f) {
+	else if (m68k_get_reg(NULL, M68K_REG_PC) == 0x489e001f)
 		gdb_break("fucked up pc");
-	}
 
 	uint32_t pc = m68k_get_reg(NULL, M68K_REG_PC);
-
-
 
 	gdbserver_check_breakpoints(pc);
 	profiler_onpcchange(pc);
@@ -879,10 +874,7 @@ void gdb_hitstop() {
 	cpu_pulse_stop();
 }
 
-
 void gdb_onpcmodified(uint32_t a) {
-
-
 
 	//if (state == RUNNING) {
 	//	profiler_onpcmodified(m68k_get_reg(NULL, M68K_REG_PPC), a);
@@ -893,6 +885,7 @@ void gdb_onpcmodified(uint32_t a) {
 void gdb_break(const char* reason) {
 	printf("gdb_break(%s)\n", reason);
 	m68k_end_timeslice();
+	utils_printregisters();
 	state = BREAKING;
 }
 

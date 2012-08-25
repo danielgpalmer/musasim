@@ -38,4 +38,6 @@ void cpu_set_fc(unsigned int fc);
 #define SLOT_TIMERCARD	6
 #define SLOT_INPUTCARD	7
 
+void utils_printregisters(void);
+
 #endif /* SIM__HEADER */

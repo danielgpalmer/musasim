@@ -9,7 +9,10 @@
 
 #include "utils.h"
 #include <stdint.h>
+#include <stddef.h>
+#include "musashi/m68k.h"
 #include <time.h>
+#include <stdio.h>
 
 uint32_t utils_nextpow(uint32_t value) {
 	value--;
@@ -34,3 +37,5 @@ struct timespec* timespecdiff(struct timespec *start, struct timespec *end) {
 	}
 	return &temp;
 }
+
+
