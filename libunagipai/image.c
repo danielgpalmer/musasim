@@ -31,8 +31,8 @@ void image_loadimagefromfile(FATFS* fs, image* image, const char* path, bool com
 	// calculate the size of the raw data
 	unsigned int rlen = 2 * (image->width * image->height);
 
-	printf("compressed image is %u * %u, compressed data is %u bytes\n", (unsigned) image->width,
-			(unsigned) image->height, cdatalen);
+	//printf("compressed image is %u * %u, compressed data is %u bytes\n", (unsigned) image->width,
+	//		(unsigned) image->height, cdatalen);
 
 	uint8_t* rawdata = malloc(rlen);
 
@@ -40,7 +40,7 @@ void image_loadimagefromfile(FATFS* fs, image* image, const char* path, bool com
 		uint8_t* compresseddata = malloc(cdatalen);
 		pf_read(compresseddata, cdatalen, &len);
 		if (lzfx_decompress(compresseddata, cdatalen, rawdata, &rlen) == 0) {
-			printf("decompressed!\n");
+			//printf("decompressed!\n");
 			free(compresseddata);
 		}
 	}

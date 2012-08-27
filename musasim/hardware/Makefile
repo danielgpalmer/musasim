@@ -7,7 +7,7 @@ all: board.o boardgdb.o
 board.o: board.c board.h
 	$(CC) $(CFLAGS) -std=gnu99 $< -o $@
 
-boardgdb.o: board.c board.h
+boardgdb.o: board.c board.h ../gdbserver.h
 	$(CC) $(CFLAGS) -DGDBSERVER -std=gnu99 $< -o $@
 
 clean:

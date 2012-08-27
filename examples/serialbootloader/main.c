@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include "ymodem.h"
+#include <libunagipai/machine.h>
 #include <libunagipai/uart.h>
 
 static uint8_t* ram = (uint8_t*) 0x100000;

@@ -7,6 +7,7 @@
 
 #include "include/sprite.h"
 #include "include/image.h"
+#include "include/video.h"
 #include <stdio.h>
 
 #include <stdbool.h>

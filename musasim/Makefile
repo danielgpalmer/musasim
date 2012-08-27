@@ -45,7 +45,7 @@ profiler.o: profiler.c profiler.h
 
 # hardware 
 
-.PHONY: docs genheader musashi hardware clean
+.PHONY: docs genheader musashi hardware clean check
 
 hardware:
 	$(MAKE) -C hardware
@@ -73,3 +73,6 @@ clean:
 	$(MAKE) -C musashi clean
 	$(MAKE) -C genheader clean
 	$(MAKE) -C hardware clean
+
+check:
+	cppcheck ./ --std=c99
