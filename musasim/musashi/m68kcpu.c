@@ -796,7 +796,7 @@ int m68k_execute(int num_cycles)
 			m68ki_use_data_space(); /* auto-disable (see m68kcpu.h) */
 
 			/* Call external hook to peek at CPU */
-			m68ki_instr_hook(); /* auto-disable (see m68kcpu.h) */
+			//m68ki_instr_hook(); /* auto-disable (see m68kcpu.h) */
 
 			/* Record previous program counter */
 			REG_PPC = REG_PC;
@@ -808,6 +808,10 @@ int m68k_execute(int num_cycles)
 
 			/* Trace m68k_exception, if necessary */
 			m68ki_exception_if_trace(); /* auto-disable (see m68kcpu.h) */
+
+			// ~dgp move this here to see if it corrects the break sloppiness.
+			/* Call external hook to peek at CPU */
+			m68ki_instr_hook(); /* auto-disable (see m68kcpu.h) */
 		} while(GET_CYCLES() > 0);
 
 		/* set previous PC to current PC for the next entry into the loop */

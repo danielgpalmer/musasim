@@ -21,8 +21,8 @@
 #include "../../logging.h"
 #include "../../elfloader.h"
 
-static uint8_t* rom; /* ROM */
-static uint8_t* ram; /* RAM */
+static uint8_t* rom = NULL; /* ROM */
+static uint8_t* ram = NULL; /* RAM */
 static bool registersenabled = false;
 
 static const char TAG[] = "romcard";
@@ -32,14 +32,18 @@ static const char TAG[] = "romcard";
 
 static void romcard_init() {
 
-	if (rom == NULL) {
+	if (rom == NULL ) {
 		rom = malloc(SIZE_ROM);
+		if (rom == NULL )
+			log_println(LEVEL_INFO, TAG, "Failed to malloc ram!");
 		memset(rom, 0, SIZE_ROM);
 	}
 
-	if (ram == NULL) {
+	if (ram == NULL ) {
 		ram = malloc(SIZE_RAM);
-		memset(ram, 0, SIZE_RAM);
+		if (ram == NULL )
+			log_println(LEVEL_INFO, TAG, "Failed to malloc ram!");
+		memset(ram, 0x00, SIZE_RAM);
 	}
 
 	log_println(LEVEL_INFO, TAG, "ROM section from 0x%08x to 0x%08x", ROMCARD_OFFSET_ROM, MAX_ROM);
@@ -65,7 +69,7 @@ bool romcard_loadrom(const char* path, bool elf) {
 	}
 	else {
 		FILE* fhandle;
-		if ((fhandle = fopen(path, "rb")) == NULL) {
+		if ((fhandle = fopen(path, "rb")) == NULL ) {
 			log_println(LEVEL_WARNING, TAG, "Unable to open %s\n", path);
 			return false;
 		}
@@ -90,22 +94,22 @@ static bool romcard_checkcommand(uint32_t address, uint16_t data) {
 
 	static bool disablecommandone = false;
 
-	if ((address == ROMDISABLE_ADDRESS_0) && (data == ROMDISABLE_DATA_0)) {
-		log_println(LEVEL_WARNING, TAG, "ROM disable armed");
-		disablecommandone = true;
-		return true;
-	}
+	if ((address == ROMDISABLE_ADDRESS_0)&& (data == ROMDISABLE_DATA_0)){
+	log_println(LEVEL_WARNING, TAG, "ROM disable armed");
+	disablecommandone = true;
+	return true;
+}
 
-	else if ((address == ROMDISABLE_ADDRESS_1) && (data == ROMDISABLE_DATA_1) && disablecommandone) {
-		log_println(LEVEL_WARNING, TAG, "ROM disable fired, ROM will be disabled on reset");
-		disableromonreset = true;
-		return true;
-	}
+else if ((address == ROMDISABLE_ADDRESS_1) && (data == ROMDISABLE_DATA_1) && disablecommandone) {
+	log_println(LEVEL_WARNING, TAG, "ROM disable fired, ROM will be disabled on reset");
+	disableromonreset = true;
+	return true;
+}
 
-	else {
-		disablecommandone = false;
-		return false;
-	}
+else {
+	disablecommandone = false;
+	return false;
+}
 
 }
 
