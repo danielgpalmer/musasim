@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -76,6 +77,7 @@ static void gdbserver_clear_watchpoint(uint32_t address, unsigned int length, bo
 
 // stuff that pokes the sim
 static char* gdbserver_readmem(char* commandbuffer);
+static void gdbserver_writereg(char* commandbuffer);
 
 // utils
 static char* getmemorystring(unsigned int address, int len);
@@ -250,6 +252,7 @@ static void gdbserver_readcommand(int s) {
 		char* data = OK; // by default we send OK
 
 		char command = inputbuffer[0];
+		log_println(LEVEL_INFO, TAG, "command buffer %s", inputbuffer);
 		switch (command) {
 			case 'g':
 				log_println(LEVEL_INFO, TAG, "GDB wants to read the registers");
@@ -264,6 +267,7 @@ static void gdbserver_readcommand(int s) {
 				break;
 			case 'P':
 				log_println(LEVEL_INSANE, TAG, "GDB wants to write a single register");
+				gdbserver_writereg(inputbuffer);
 				break;
 			case 'm':
 				log_println(LEVEL_INSANE, TAG, "GDB wants to read from memory");
@@ -778,8 +782,7 @@ char* gdbserver_query(char* commandbuffer) {
 	return ret;
 }
 
-char* gbdserver_readregs(char* commandbuffer) {
-
+static char* gbdserver_readregs(char* commandbuffer) {
 	return getregistersstring(m68k_get_reg(NULL, M68K_REG_D0), m68k_get_reg(NULL, M68K_REG_D1),
 			m68k_get_reg(NULL, M68K_REG_D2), m68k_get_reg(NULL, M68K_REG_D3), m68k_get_reg(NULL, M68K_REG_D4),
 			m68k_get_reg(NULL, M68K_REG_D5), m68k_get_reg(NULL, M68K_REG_D6), m68k_get_reg(NULL, M68K_REG_D7),
@@ -789,6 +792,73 @@ char* gbdserver_readregs(char* commandbuffer) {
 			m68k_get_reg(NULL, M68K_REG_A7), // sp
 			m68k_get_reg(NULL, M68K_REG_SR), // ps
 			m68k_get_reg(NULL, M68K_REG_PC));
+}
+
+static void gdbserver_writereg(char* commandbuffer) {
+
+	uint8_t reg;
+	uint32_t value;
+	sscanf(&commandbuffer[1], "%"SCNx8"=%"SCNx32, &reg, &value);
+	log_println(LEVEL_INFO, TAG, "reg %"PRIx8" value 0x%"PRIx32, reg, value);
+
+	// todo make this smaller..
+	switch (reg) {
+		case 0:
+			m68k_set_reg(M68K_REG_D0, value);
+			break;
+		case 1:
+			m68k_set_reg(M68K_REG_D1, value);
+			break;
+		case 2:
+			m68k_set_reg(M68K_REG_D2, value);
+			break;
+		case 3:
+			m68k_set_reg(M68K_REG_D3, value);
+			break;
+		case 4:
+			m68k_set_reg(M68K_REG_D4, value);
+			break;
+		case 5:
+			m68k_set_reg(M68K_REG_D5, value);
+			break;
+		case 6:
+			m68k_set_reg(M68K_REG_D6, value);
+			break;
+		case 7:
+			m68k_set_reg(M68K_REG_D7, value);
+			break;
+		case 8:
+			m68k_set_reg(M68K_REG_A0, value);
+			break;
+		case 9:
+			m68k_set_reg(M68K_REG_A1, value);
+			break;
+		case 0xa:
+			m68k_set_reg(M68K_REG_A2, value);
+			break;
+		case 0xb:
+			m68k_set_reg(M68K_REG_A3, value);
+			break;
+		case 0xc:
+			m68k_set_reg(M68K_REG_A4, value);
+			break;
+		case 0xd:
+			m68k_set_reg(M68K_REG_A5, value);
+			break;
+		case 0xe: // fp
+			m68k_set_reg(M68K_REG_A6, value);
+			break;
+		case 0xf:
+			m68k_set_reg(M68K_REG_A7, value);
+			break;
+		case 0x11:
+			m68k_set_reg(M68K_REG_PC, value);
+			break;
+		default:
+			log_println(LEVEL_INFO, TAG, "what is %"PRIx8, reg);
+			break;
+	}
+
 }
 
 static char* gdbserver_readmem(char* commandbuffer) {

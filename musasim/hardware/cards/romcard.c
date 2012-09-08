@@ -21,8 +21,9 @@
 #include "../../logging.h"
 #include "../../elfloader.h"
 
-static uint8_t* rom = NULL; /* ROM */
-static uint8_t* ram = NULL; /* RAM */
+static uint8_t* bootloaderrom = NULL; //BOOTLOADER ROM
+static uint8_t* rom = NULL; //ROM
+static uint8_t* ram = NULL; // RAM
 static bool registersenabled = false;
 
 static const char TAG[] = "romcard";
@@ -31,6 +32,10 @@ static const char TAG[] = "romcard";
 #define ISRAMSPACE(address) (address >= OFFSET_RAM && address <= MAX_RAM)
 
 static void romcard_init() {
+
+	if (bootloaderrom == NULL ) {
+		bootloaderrom = malloc(SIZE_ROM);
+	}
 
 	if (rom == NULL ) {
 		rom = malloc(SIZE_ROM);
@@ -53,6 +58,7 @@ static void romcard_init() {
 
 static void romcard_dispose() {
 
+	free(bootloaderrom);
 	free(rom);
 	free(ram);
 

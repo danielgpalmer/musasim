@@ -64,6 +64,7 @@ static uint8_t inputcard_read_byte(uint32_t address) {
 		case INPUT_PORT1:
 			return ports[1];
 		case INPUT_RNG:
+			//todo in GDBSERVER mode this should be deterministic.
 			return rand() & 0xff;
 	}
 
