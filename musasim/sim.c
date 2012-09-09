@@ -81,6 +81,9 @@ static void sim_updatesdl() {
 				case SIM_KEY_TOGGLETHROTTLE:
 					throttle = !throttle;
 					break;
+				case SIM_KEY_TOGGLEOSD:
+					osd_toggle();
+					break;
 				case SIM_KEY_PAUSE:
 					paused = !paused;
 					if (paused) {

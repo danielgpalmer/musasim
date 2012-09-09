@@ -13,5 +13,6 @@
 void osd_init(void);
 void osd_update(void);
 void osd_visible(bool visible);
+void osd_toggle(void);
 
 #endif /* OSD_H_ */

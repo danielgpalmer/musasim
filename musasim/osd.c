@@ -15,6 +15,11 @@
 static SDL_Surface* osd = NULL;
 static SDL_Rect rect;
 static Uint32 colourkey, active, inactive;
+static bool osdvisible = false;
+
+static void osd_set() {
+	videocard_setosd(osdvisible ? osd : NULL );
+}
 
 void osd_init() {
 	osd = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_ASYNCBLIT, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, 0, 0, 0, 0);
@@ -29,7 +34,7 @@ void osd_init() {
 	rect.x = 0;
 	rect.y = 10;
 
-	videocard_setosd(osd);
+	osd_set();
 
 }
 
@@ -41,8 +46,8 @@ void osd_update() {
 		Uint32 colour = inactive;
 		const card* c = board_getcardinslot(i);
 
-		if (c != NULL) {
-			if (c->active != NULL) {
+		if (c != NULL ) {
+			if (c->active != NULL ) {
 				if (c->active()) {
 					colour = active;
 				}
@@ -54,8 +59,14 @@ void osd_update() {
 	}
 }
 
-void osd_visible(bool visible) {
+void osd_toggle() {
+	osdvisible = !osdvisible;
+	osd_set();
+}
 
+void osd_visible(bool visible) {
+	osdvisible = visible;
+	osd_set();
 }
 
 void osd_dispose() {
