@@ -248,6 +248,7 @@ int main(void) {
 
 		//lastframe = thisframe;
 		video_commit();
+		//video_flip();
 		fbready = true;
 
 	}

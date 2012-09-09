@@ -282,11 +282,11 @@ static void gdbserver_readcommand(int s) {
 				newstate = RUNNING;
 				break;
 			case 's':
-				printf("GDB wants execution to step\n");
+				log_println(LEVEL_INFO, TAG, "GDB wants execution to step\n");
 				newstate = STEPPING;
 				break;
 			case '?':
-				printf("GDB wants to know why we halted\n");
+				log_println(LEVEL_INFO, TAG, "GDB wants to know why we halted\n");
 				data = STOP_WEBROKE;
 				break;
 			case 'r':
@@ -296,17 +296,17 @@ static void gdbserver_readcommand(int s) {
 				break;
 
 			case 'q':
-				printf("GDB is querying something\n");
+				log_println(LEVEL_INFO, TAG, "GDB is querying something\n");
 				data = gdbserver_query(inputbuffer);
 				break;
 
 			case 'D':
-				printf("GDB is detaching!\n");
+				log_println(LEVEL_INFO, TAG, "GDB is detaching!\n");
 				newstate = LISTENING;
 				break;
 
 			case 'k':
-				printf("GDB killed us\n");
+				log_println(LEVEL_INFO, TAG, "GDB killed us\n");
 				newstate = LISTENING;
 				break;
 

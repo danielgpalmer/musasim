@@ -38,7 +38,7 @@ static bool busrequestwaiting[NUM_SLOTS];
 static uint8_t board_decode_slot(uint32_t address) {
 	uint8_t slot = (address & SLOTADDRESSMASK) >> 21;
 
-	if (slots[slot] == NULL) {
+	if (slots[slot] == NULL ) {
 		log_println(LEVEL_DEBUG, TAG, "Address decoded to slot %d but there is no card in that slot, PC[0x%08x]", slot,
 				GETPC);
 		return NOCARD;
@@ -51,15 +51,15 @@ void board_add_device(uint8_t slot, const card *card) {
 	log_println(LEVEL_DEBUG, TAG, "Inserting %s into slot %d", card->boardinfo, slot);
 
 	slots[slot] = card;
-	if (card->init != NULL) {
+	if (card->init != NULL ) {
 		(card->init)();
 	}
 }
 
 void board_tick(int cyclesexecuted) {
 	for (int i = 0; i < NUM_SLOTS; i++) {
-		if (slots[i] != NULL) {
-			if (slots[i]->tick != NULL) {
+		if (slots[i] != NULL ) {
+			if (slots[i]->tick != NULL ) {
 				(slots[i]->tick)(cyclesexecuted);
 			}
 		}
@@ -68,8 +68,8 @@ void board_tick(int cyclesexecuted) {
 
 void board_poweroff() {
 	for (int i = 0; i < NUM_SLOTS; i++) {
-		if (slots[i] != NULL) {
-			if (slots[i]->dispose != NULL) {
+		if (slots[i] != NULL ) {
+			if (slots[i]->dispose != NULL ) {
 				(slots[i]->dispose)();
 			}
 		}
@@ -164,6 +164,9 @@ void board_raise_interrupt(const card* card) {
 		//printf("board_raise_interrupt(%d) SR - 0x%x\n", slot, m68k_get_reg(NULL, M68K_REG_SR));
 		curslot = board_which_slot(card);
 		m68k_set_irq(slot);
+#ifdef GDBSERVER
+		gdb_break("Entering interrupt");
+#endif
 	}
 	// Someone else is driving.. queue
 	else {
@@ -204,7 +207,7 @@ void board_lower_interrupt(const card* card) {
 int board_ack_interrupt(int level) {
 	log_println(LEVEL_INSANE, TAG, "board_ack_interrupt(%d)", level);
 
-	if (slots[curslot]->irqack != NULL) {
+	if (slots[curslot]->irqack != NULL ) {
 		(slots[curslot]->irqack)();
 		return M68K_INT_ACK_AUTOVECTOR;
 	}
@@ -221,7 +224,7 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 	uint8_t memorytype = DEFAULTMEMORYTYPE;
 	bool failed = false;
 
-	if (card->memorytype != NULL)
+	if (card->memorytype != NULL )
 		memorytype = card->memorytype(address);
 
 	// trying to execute from non-executable memory
@@ -264,21 +267,21 @@ static unsigned int board_read(unsigned int address, bool skipchecks, const card
 			board_checkaccess(card, slotaddress, currentfc, false);
 		switch (width) {
 			case 8:
-				if (card->read_byte != NULL) {
+				if (card->read_byte != NULL ) {
 					if (card->validaddress(slotaddress)) {
 						return (card->read_byte)(slotaddress);
 					}
 				}
 				break;
 			case 16:
-				if (card->read_word != NULL) {
+				if (card->read_word != NULL ) {
 					if (card->validaddress(slotaddress)) {
 						return (card->read_word)(slotaddress);
 					}
 				}
 				break;
 			case 32:
-				if (card->read_long != NULL) {
+				if (card->read_long != NULL ) {
 					if (card->validaddress(slotaddress)) {
 						return (card->read_long)(slotaddress);
 					}
@@ -301,7 +304,7 @@ unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, con
 }
 
 unsigned int board_read_byte(unsigned int address) {
-	return board_read_byte_internal(address, false, NULL);
+	return board_read_byte_internal(address, false, NULL );
 }
 
 unsigned int board_read_word_internal(unsigned int address, bool skipchecks, const card* busmaster) {
@@ -309,7 +312,7 @@ unsigned int board_read_word_internal(unsigned int address, bool skipchecks, con
 }
 
 unsigned int board_read_word(unsigned int address) {
-	return board_read_word_internal(address, false, NULL);
+	return board_read_word_internal(address, false, NULL );
 }
 
 unsigned int board_read_long_internal(unsigned int address, bool skipchecks, const card* busmaster) {
@@ -317,7 +320,7 @@ unsigned int board_read_long_internal(unsigned int address, bool skipchecks, con
 }
 
 unsigned int board_read_long(unsigned int address) {
-	return board_read_long_internal(address, false, NULL);
+	return board_read_long_internal(address, false, NULL );
 }
 
 static void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster, int width) {
@@ -328,7 +331,7 @@ static void board_write(unsigned int address, unsigned int value, bool skipcheck
 		board_checkaccess(card, slotaddress, currentfc, true);
 		switch (width) {
 			case 8:
-				if (card->write_byte != NULL) {
+				if (card->write_byte != NULL ) {
 					if (card->validaddress(slotaddress)) {
 						(card->write_byte)(slotaddress, value);
 						return;
@@ -336,7 +339,7 @@ static void board_write(unsigned int address, unsigned int value, bool skipcheck
 				}
 				break;
 			case 16:
-				if (card->write_word != NULL) {
+				if (card->write_word != NULL ) {
 					if (card->validaddress(slotaddress)) {
 						(card->write_word)(slotaddress, value);
 						return;
@@ -344,7 +347,7 @@ static void board_write(unsigned int address, unsigned int value, bool skipcheck
 				}
 				break;
 			case 32:
-				if (card->write_long != NULL) {
+				if (card->write_long != NULL ) {
 					if (card->validaddress(slotaddress)) {
 						(card->write_long)(slotaddress, value);
 						return;
@@ -365,7 +368,7 @@ void board_write_byte_internal(unsigned int address, unsigned int value, bool sk
 }
 
 void board_write_byte(unsigned int address, unsigned int value) {
-	board_write_byte_internal(address, value, false, NULL);
+	board_write_byte_internal(address, value, false, NULL );
 }
 
 void board_write_word_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
@@ -373,7 +376,7 @@ void board_write_word_internal(unsigned int address, unsigned int value, bool sk
 }
 
 void board_write_word(unsigned int address, unsigned int value) {
-	board_write_word_internal(address, value, false, NULL);
+	board_write_word_internal(address, value, false, NULL );
 }
 
 void board_write_long_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
@@ -381,14 +384,14 @@ void board_write_long_internal(unsigned int address, unsigned int value, bool sk
 }
 
 void board_write_long(unsigned int address, unsigned int value) {
-	board_write_long_internal(address, value, false, NULL);
+	board_write_long_internal(address, value, false, NULL );
 }
 
 void board_reset() {
 	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
 		const card* c = slots[i];
-		if (c != NULL) {
-			if (c->reset != NULL) {
+		if (c != NULL ) {
+			if (c->reset != NULL ) {
 				c->reset();
 			}
 		}
@@ -404,8 +407,8 @@ int board_maxcycles(int numberofcyclesplanned) {
 
 	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
 		const card* c = slots[i];
-		if (c != NULL) {
-			if (c->cyclesleft != NULL) {
+		if (c != NULL ) {
+			if (c->cyclesleft != NULL ) {
 				int cardcycles = c->cyclesleft();
 				if (cardcycles != -1 && cardcycles < cycles)
 					cycles = cardcycles;
@@ -421,8 +424,8 @@ void board_setfc(unsigned int fc) {
 
 	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
 		const card* c = slots[i];
-		if (c != NULL) {
-			if (c->setfc != NULL) {
+		if (c != NULL ) {
+			if (c->setfc != NULL ) {
 				c->setfc(fc);
 			}
 		}
