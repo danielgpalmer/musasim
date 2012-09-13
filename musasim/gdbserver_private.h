@@ -48,6 +48,7 @@ static bool gdbserver_readpacket(int s, char *buffer);
 static bool gdbserver_sendpacket(int s, char* data);
 static char* gdbserver_query(char* commandbuffer);
 
+static char* gdbserver_parser_writemem(char* commandbuffer);
 static void gdbserver_cleanup();
 static void termination_handler(int signum);
 static void registersighandler();

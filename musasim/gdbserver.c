@@ -20,10 +20,8 @@
 #include "musashi/m68k.h"
 #include "args.h"
 #include "utils.h"
-
 #include "hardware/cards/romcard.h"
 #include "logging.h"
-
 #include "gdbserver.h"
 #include "gdbserver_private.h"
 #include "profiler.h"
@@ -235,6 +233,7 @@ static void gdbserver_readcommand(int s) {
 				break;
 			case GDB_COMMAND_WRITEMEMORY:
 				log_println(LEVEL_INFO, TAG, "GDB wants to write to memory");
+				gdbserver_parser_writemem(inputbuffer);
 				break;
 			case GDB_COMMAND_CONTINUE:
 				log_println(LEVEL_INFO, TAG, "GDB wants execution to continue");
@@ -825,6 +824,10 @@ static void gdbserver_writereg(char* commandbuffer) {
 			break;
 	}
 
+}
+
+static char* gdbserver_parser_writemem(char* commandbuffer) {
+	return NULL ;
 }
 
 static char* gdbserver_readmem(char* commandbuffer) {
