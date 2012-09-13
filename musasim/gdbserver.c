@@ -25,6 +25,7 @@
 #include "logging.h"
 
 #include "gdbserver.h"
+#include "gdbserver_private.h"
 #include "profiler.h"
 
 #define GDB_RDP_BACKSTEP bs
@@ -47,19 +48,9 @@ static char STOP_WEBROKE[] = "S05";
 
 #define MAXPACKETLENGTH 256
 
-static void gdbserver_cleanup();
-static void termination_handler(int signum);
-static void registersighandler();
-
 // tcp/ip connection related stuff
 static int socketlistening;
 static int socketconnection;
-
-// stuff that talks to gdb
-static void gdbserver_readcommand(int s);
-static bool gdbserver_readpacket(int s, char *buffer);
-static bool gdbserver_sendpacket(int s, char* data);
-static char* gdbserver_query(char* commandbuffer);
 
 // breakpoint stuff
 static GSList* breakpoints;
@@ -67,33 +58,8 @@ static GSList* watchpoints_write;
 static GSList* watchpoints_read;
 static GSList* watchpoints_access;
 
-typedef struct {
-	uint32_t address;
-	unsigned int length;
-} watchpoint;
-
-static void gbserver_set_breakpoint(uint32_t address);
-static void gdbserver_clear_breakpoint(uint32_t address);
-static void gdbserver_set_watchpoint(uint32_t address, unsigned int length, bool read, bool write);
-static void gdbserver_clear_watchpoint(uint32_t address, unsigned int length, bool read, bool write);
-
-// stuff that pokes the sim
-static char* gdbserver_readmem(char* commandbuffer);
-static void gdbserver_writereg(char* commandbuffer);
-
-// utils
-static char* getmemorystring(unsigned int address, int len);
-static char* gbdserver_readregs(char* commandbuffer);
-static int gdbserver_calcchecksum(char *data);
-static char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7, int a0, int a1, int a2,
-		int a3, int a4, int a5, int fp, int sp, int ps, int pc);
-
-typedef enum State {
-	INIT, LISTENING, WAITING, RUNNING, STEPPING, BREAKING, EXIT
-
-} State;
 static State state = INIT;
-static const char TAG[] = "gdbserver";
+
 static bool interruptbreak = false;
 
 static void gdbserver_mainloop() {
@@ -159,9 +125,7 @@ static void gdbserver_mainloop() {
 }
 
 int main(int argc, char* argv[]) {
-
 	log_init();
-
 	log_println(LEVEL_INFO, TAG, "musashi m68k emulator\tKarl Stenerud with patches from MAME up to 0105");
 	log_println(LEVEL_INFO, TAG, "gdbserver for musashi\tDaniel Palmer (daniel@0x0f.com)");
 
@@ -172,7 +136,6 @@ int main(int argc, char* argv[]) {
 	gdbserver_mainloop();
 	gdbserver_cleanup();
 	return 0;
-
 }
 
 static bool gdbserver_setbreakpoint(char* packet) {
@@ -188,7 +151,6 @@ static bool gdbserver_setbreakpoint(char* packet) {
 		case GDB_BREAKPOINTTYPE_SOFT:
 			gbserver_set_breakpoint(breakaddress);
 			break;
-
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE:
 			gdbserver_set_watchpoint(breakaddress, length, false, true);
 			break;
@@ -252,67 +214,62 @@ static void gdbserver_readcommand(int s) {
 		char command = inputbuffer[0];
 		log_println(LEVEL_INFO, TAG, "command buffer %s", inputbuffer);
 		switch (command) {
-			case 'g':
+			case GDB_COMMAND_READREGISTERS:
 				log_println(LEVEL_INFO, TAG, "GDB wants to read the registers");
 				data = gbdserver_readregs(inputbuffer);
 				break;
-			case 'G':
+			case GDB_COMMAND_WRITEREGISTERS:
 				log_println(LEVEL_INFO, TAG, "GDB wants to write the registers");
 				break;
-			case 'p':
+			case GDB_COMMAND_READREGISTER:
 				log_println(LEVEL_INSANE, TAG, "GDB wants to read a single register");
 				data = "00000000";
 				break;
-			case 'P':
+			case GDB_COMMAND_WRITEREGISTER:
 				log_println(LEVEL_INSANE, TAG, "GDB wants to write a single register");
 				gdbserver_writereg(inputbuffer);
 				break;
-			case 'm':
+			case GDB_COMMAND_READMEMORY:
 				log_println(LEVEL_INSANE, TAG, "GDB wants to read from memory");
 				data = gdbserver_readmem(inputbuffer);
 				break;
-			case 'M':
+			case GDB_COMMAND_WRITEMEMORY:
 				log_println(LEVEL_INFO, TAG, "GDB wants to write to memory");
 				break;
-			case 'c':
+			case GDB_COMMAND_CONTINUE:
 				log_println(LEVEL_INFO, TAG, "GDB wants execution to continue");
 				newstate = RUNNING;
 				break;
-			case 's':
+			case GDB_COMMAND_STEP:
 				log_println(LEVEL_INFO, TAG, "GDB wants execution to step\n");
 				newstate = STEPPING;
 				break;
-			case '?':
+			case GDB_COMMAND_HALTREASON:
 				log_println(LEVEL_INFO, TAG, "GDB wants to know why we halted\n");
 				data = STOP_WEBROKE;
 				break;
-			case 'r':
+			case GDB_COMMAND_RESET:
 				log_println(LEVEL_INFO, TAG, "GDB wants the processor to reset");
 				sim_reset();
 				break;
-
-			case 'q':
+			case GDB_COMMAND_QUERY:
 				log_println(LEVEL_INFO, TAG, "GDB is querying something\n");
 				data = gdbserver_query(inputbuffer);
 				break;
-
-			case 'D':
+			case GDB_COMMAND_DETACH:
 				log_println(LEVEL_INFO, TAG, "GDB is detaching!\n");
 				newstate = LISTENING;
 				break;
-
-			case 'k':
+			case GDB_COMMAND_KILL:
 				log_println(LEVEL_INFO, TAG, "GDB killed us\n");
 				newstate = LISTENING;
 				break;
-
-			case 'z':
+			case GDB_COMMAND_BREAKPOINTSET:
 				if (!gdbserver_unsetbreakpoint(inputbuffer)) {
 					data = "";
 				}
 				break;
-
-			case 'Z':
+			case GDB_COMMAND_BREAKPOINTUNSET:
 				if (!gdbserver_setbreakpoint(inputbuffer)) {
 					data = "";
 				}
@@ -516,7 +473,7 @@ static void gdbserver_cleanup() {
 
 }
 
-void termination_handler(int signum) {
+static void termination_handler(int signum) {
 
 	log_println(LEVEL_INFO, TAG, "Caught interrupt");
 	shutdown(socketconnection, SHUT_RDWR);
@@ -524,14 +481,14 @@ void termination_handler(int signum) {
 	state = EXIT;
 }
 
-void io_handler(int signum) {
+static void io_handler(int signum) {
 	if (state == RUNNING) {
 		log_println(LEVEL_INFO, TAG, "IO has happened on the the socket, breaking");
 		state = BREAKING;
 	}
 }
 
-void registersighandler() {
+static void registersighandler() {
 
 // stolen from; http://www.gnu.org/s/hello/manual/libc/Sigaction-Function-Example.html
 
@@ -595,11 +552,11 @@ static char* getmemorystring(unsigned int address, int len) {
 
 }
 
-void gbserver_set_breakpoint(uint32_t address) {
+static void gbserver_set_breakpoint(uint32_t address) {
 	breakpoints = g_slist_append(breakpoints, GUINT_TO_POINTER(address));
 }
 
-void gdbserver_clear_breakpoint(uint32_t address) {
+static void gdbserver_clear_breakpoint(uint32_t address) {
 	breakpoints = g_slist_remove(breakpoints, GUINT_TO_POINTER(address));
 }
 
@@ -654,8 +611,7 @@ static bool gdbserver_checkwatchpoints(GSList* list, uint32_t address, int size)
 
 }
 
-void gdbserver_set_watchpoint(uint32_t address, unsigned int length, bool read, bool write) {
-
+static void gdbserver_set_watchpoint(uint32_t address, unsigned int length, bool read, bool write) {
 	if (read && write) {
 		watchpoints_access = gdbserver_addwatchpoint(watchpoints_access, address, length);
 	}
@@ -669,8 +625,7 @@ void gdbserver_set_watchpoint(uint32_t address, unsigned int length, bool read, 
 	}
 }
 
-void gdbserver_clear_watchpoint(uint32_t address, unsigned int length, bool read, bool write) {
-
+static void gdbserver_clear_watchpoint(uint32_t address, unsigned int length, bool read, bool write) {
 	if (read && write) {
 		watchpoints_access = gdbserver_clearwatchpoint(watchpoints_access, address, length);
 	}
@@ -684,8 +639,7 @@ void gdbserver_clear_watchpoint(uint32_t address, unsigned int length, bool read
 	}
 }
 
-void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, int size) {
-
+static void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, int size) {
 	static char stopreply[256];
 
 	if (gdbserver_checkwatchpoints(watchpoints_access, address, size)) {
@@ -716,11 +670,9 @@ void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, i
 			gdbserver_sendpacket(socketconnection, stopreply);
 		}
 	}
-
 }
 
-char* gbdserver_munchhexstring(char* buffer, int* len) {
-
+static char* gbdserver_munchhexstring(char* buffer, int* len) {
 	static char string[256];
 	int stringpos = 0;
 
@@ -736,7 +688,7 @@ char* gbdserver_munchhexstring(char* buffer, int* len) {
 	return string;
 }
 
-char* gdbserver_query(char* commandbuffer) {
+static char* gdbserver_query(char* commandbuffer) {
 
 	char* ret = "";
 	if (strncmp(commandbuffer, GDB_QUERY_MONITORCMD, 4) == 0) {
@@ -757,34 +709,34 @@ char* gdbserver_query(char* commandbuffer) {
 		if (strncmp(monitorcommand, cmd_load, sizeof(cmd_load)) == 0) {
 			printf("User has requested that a new binary is loaded into ROM\n");
 			romcard_loadrom(monitorcommand + 5, false);
-			ret = "OK";
+			ret = OK;
 		}
 
 		else if (strncmp(monitorcommand, cmd_reset, sizeof(cmd_reset)) == 0) {
 			printf("User has requested the CPU is reset\n");
 			sim_reset();
-			ret = "OK";
+			ret = OK;
 		}
 
 		else if (strncmp(monitorcommand, cmd_stfu, sizeof(cmd_stfu)) == 0) {
 			printf("User has requested we keep quiet\n");
-			ret = "OK";
+			ret = OK;
 		}
 
 		else if (strncmp(monitorcommand, cmd_talktome, sizeof(cmd_talktome)) == 0) {
 			printf("User wants to know whats going down\n");
-			ret = "OK";
+			ret = OK;
 		}
 
 		else if (strncmp(monitorcommand, cmd_interruptbreak_on, sizeof(cmd_interruptbreak_on))) {
 			printf("User wants break on interrupts\n");
 			interruptbreak = true;
-			ret = "OK";
+			ret = OK;
 		}
 		else if (strncmp(monitorcommand, cmd_interruptbreak_off, sizeof(cmd_interruptbreak_on))) {
 			printf("User doesn't want to break on interruts\n");
 			interruptbreak = false;
-			ret = "OK";
+			ret = OK;
 		}
 
 	}
@@ -891,8 +843,6 @@ static char* gdbserver_readmem(char* commandbuffer) {
 	return getmemorystring(ad, sz);
 }
 
-bool funkytrigger = false;
-
 void gdbserver_instruction_hook_callback() {
 
 	uint32_t pc = m68k_get_reg(NULL, M68K_REG_PC);
@@ -901,7 +851,7 @@ void gdbserver_instruction_hook_callback() {
 	profiler_onpcchange(pc);
 }
 
-void gdbserver_check_breakpoints(uint32_t pc) {
+static void gdbserver_check_breakpoints(uint32_t pc) {
 
 	char disasmbuffer[256];
 
@@ -960,11 +910,6 @@ void gdb_hitstop() {
 }
 
 void gdb_onpcmodified(uint32_t a) {
-
-	//if (state == RUNNING) {
-	//	profiler_onpcmodified(m68k_get_reg(NULL, M68K_REG_PPC), a);
-	//}
-
 }
 
 void gdb_break(const char* reason) {
