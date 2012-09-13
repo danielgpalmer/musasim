@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <sys/stat.h>
@@ -19,7 +20,7 @@ int _write(int file, char * ptr, int len) {
 	return -1;
 }
 
-int _write_r(void* wtf, int file, char * ptr, int len) {
+int _write_r(struct _reent *r, int file, char * ptr, int len) {
 	return _write(file, ptr, len);
 }
 
@@ -36,7 +37,7 @@ int _read(int file, char * ptr, int len) {
 
 }
 
-int _read_r(void* wtf, int file, char * ptr, int len) {
+int _read_r(struct _reent *r, int file, char * ptr, int len) {
 	return _read(file, ptr, len);
 }
 
@@ -45,7 +46,7 @@ int _close(int file) {
 	return 0;
 }
 
-int _close_r(void* wtf, int file) {
+int _close_r(struct _reent *r, int file) {
 	return _close(file);
 }
 
@@ -54,7 +55,7 @@ int _lseek(int file, int ptr, int dir) {
 	return 0;
 }
 
-int _lseek_r(void* wtf, int file, int prt, int dir) {
+int _lseek_r(struct _reent *r, int file, int prt, int dir) {
 	return _lseek(file, prt, dir);
 }
 
@@ -66,7 +67,7 @@ int _isatty(int file) {
 	return 0;
 }
 
-int _isatty_r(void* wtf, int file) {
+int _isatty_r(struct _reent *r, int file) {
 	return _isatty(file);
 }
 
@@ -118,6 +119,6 @@ caddr_t _sbrk(int incr) {
 	return (caddr_t) prev_heap_end;
 }
 
-caddr_t _sbrk_r(void* wtf, int incr) {
+caddr_t _sbrk_r(struct _reent *r, int incr) {
 	return _sbrk(incr);
 }

@@ -43,6 +43,8 @@ static char STOP_WEBROKE[] = "S05";
 #define GDB_BREAKPOINTTYPE_WATCHPOINT_READ 3
 #define GDB_BREAKPOINTTYPE_WATCHPOINT_ACCESS 4
 
+#define GDB_QUERY_MONITORCMD "qRcmd"
+
 #define MAXPACKETLENGTH 256
 
 static void gdbserver_cleanup();
@@ -92,14 +94,11 @@ typedef enum State {
 } State;
 static State state = INIT;
 static const char TAG[] = "gdbserver";
+static bool interruptbreak = false;
 
-static void mainloop() {
+static void gdbserver_mainloop() {
 
 	// the overall state of the program
-
-	//struct timeval tout_val;
-	//tout_val.tv_sec = 2;
-	//tout_val.tv_usec = 0;
 
 	while (state != EXIT) {
 
@@ -170,8 +169,7 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	mainloop();
-
+	gdbserver_mainloop();
 	gdbserver_cleanup();
 	return 0;
 
@@ -275,7 +273,6 @@ static void gdbserver_readcommand(int s) {
 				break;
 			case 'M':
 				log_println(LEVEL_INFO, TAG, "GDB wants to write to memory");
-
 				break;
 			case 'c':
 				log_println(LEVEL_INFO, TAG, "GDB wants execution to continue");
@@ -291,7 +288,6 @@ static void gdbserver_readcommand(int s) {
 				break;
 			case 'r':
 				log_println(LEVEL_INFO, TAG, "GDB wants the processor to reset");
-
 				sim_reset();
 				break;
 
@@ -529,7 +525,6 @@ void termination_handler(int signum) {
 }
 
 void io_handler(int signum) {
-//printf("IO\n");
 	if (state == RUNNING) {
 		log_println(LEVEL_INFO, TAG, "IO has happened on the the socket, breaking");
 		state = BREAKING;
@@ -609,13 +604,11 @@ void gdbserver_clear_breakpoint(uint32_t address) {
 }
 
 static GSList* gdbserver_addwatchpoint(GSList* list, uint32_t address, unsigned int length) {
-
 	watchpoint* wp = malloc(sizeof(wp));
 	wp->address = address;
 	wp->length = length;
 
 	return g_slist_append(list, wp);
-
 }
 
 static GSList* gdbserver_clearwatchpoint(GSList* list, uint32_t address, unsigned int length) {
@@ -726,7 +719,7 @@ void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, i
 
 }
 
-char* gbdserver_munchhexstring(char* buffer) {
+char* gbdserver_munchhexstring(char* buffer, int* len) {
 
 	static char string[256];
 	int stringpos = 0;
@@ -739,47 +732,73 @@ char* gbdserver_munchhexstring(char* buffer) {
 		buffer += 2;
 	}
 
+	*len = stringpos;
 	return string;
 }
 
 char* gdbserver_query(char* commandbuffer) {
 
 	char* ret = "";
-	if (strncmp(commandbuffer, "qRcmd", 4) == 0) {
+	if (strncmp(commandbuffer, GDB_QUERY_MONITORCMD, 4) == 0) {
 
 		char* offset = strchr(commandbuffer, ',') + 1;
-		printf("GDB is sending a monitor command; %s\n", offset);
-		char* monitorcommand = gbdserver_munchhexstring(offset);
+		log_println(LEVEL_INFO, TAG, "GDB is sending a monitor command; %s\n", offset);
 
-		if (strncmp(monitorcommand, "load ", 5) == 0) {
+		int monitorcommandlen = 0;
+		char* monitorcommand = gbdserver_munchhexstring(offset, &monitorcommandlen);
+
+		const char cmd_reset[] = "reset";
+		const char cmd_load[] = "load ";
+		const char cmd_stfu[] = "stfu";
+		const char cmd_talktome[] = "talktome";
+		const char cmd_interruptbreak_on[] = "interruptbreakon";
+		const char cmd_interruptbreak_off[] = "interruptbreakoff";
+
+		if (strncmp(monitorcommand, cmd_load, sizeof(cmd_load)) == 0) {
 			printf("User has requested that a new binary is loaded into ROM\n");
 			romcard_loadrom(monitorcommand + 5, false);
 			ret = "OK";
 		}
 
-		else if (strncmp(monitorcommand, "reset", 5) == 0) {
+		else if (strncmp(monitorcommand, cmd_reset, sizeof(cmd_reset)) == 0) {
 			printf("User has requested the CPU is reset\n");
 			sim_reset();
 			ret = "OK";
 		}
 
-		else if (strncmp(monitorcommand, "stfu", 4) == 0) {
+		else if (strncmp(monitorcommand, cmd_stfu, sizeof(cmd_stfu)) == 0) {
 			printf("User has requested we keep quiet\n");
 			ret = "OK";
 		}
 
-		else if (strncmp(monitorcommand, "talktome", 8) == 0) {
+		else if (strncmp(monitorcommand, cmd_talktome, sizeof(cmd_talktome)) == 0) {
 			printf("User wants to know whats going down\n");
+			ret = "OK";
+		}
+
+		else if (strncmp(monitorcommand, cmd_interruptbreak_on, sizeof(cmd_interruptbreak_on))) {
+			printf("User wants break on interrupts\n");
+			interruptbreak = true;
+			ret = "OK";
+		}
+		else if (strncmp(monitorcommand, cmd_interruptbreak_off, sizeof(cmd_interruptbreak_on))) {
+			printf("User doesn't want to break on interruts\n");
+			interruptbreak = false;
 			ret = "OK";
 		}
 
 	}
 
 	else {
-		printf("Dunno what %s is\n", commandbuffer);
+		log_println(LEVEL_INFO, TAG, "Dunno what %s is\n", commandbuffer);
 	}
 
 	return ret;
+}
+
+void gdbserver_enteringinterrupt() {
+	if (interruptbreak)
+		gdb_break("Entering interrupt");
 }
 
 static char* gbdserver_readregs(char* commandbuffer) {
@@ -875,14 +894,6 @@ static char* gdbserver_readmem(char* commandbuffer) {
 bool funkytrigger = false;
 
 void gdbserver_instruction_hook_callback() {
-
-	if (m68k_get_reg(NULL, M68K_REG_D7) == 0x489e001f) {
-		gdb_break("funky register.. ");
-
-	}
-
-	else if (m68k_get_reg(NULL, M68K_REG_PC) == 0x489e001f)
-		gdb_break("fucked up pc");
 
 	uint32_t pc = m68k_get_reg(NULL, M68K_REG_PC);
 

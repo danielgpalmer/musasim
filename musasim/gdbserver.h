@@ -13,7 +13,8 @@
 void gdbserver_instruction_hook_callback();
 void gdbserver_check_breakpoints(uint32_t pc);
 void gdbserver_setport(int p);
-void gdb_hitstop();
+void gdbserver_enteringinterrupt(void);
+void gdb_hitstop(void);
 void gdb_onpcmodified(uint32_t a);
 void gdb_break(const char* reason);
 
