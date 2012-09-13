@@ -62,6 +62,20 @@ static State state = INIT;
 
 static bool interruptbreak = false;
 
+int main(int argc, char* argv[]) {
+	log_init();
+	log_println(LEVEL_INFO, TAG, "musashi m68k emulator\tKarl Stenerud with patches from MAME up to 0105");
+	log_println(LEVEL_INFO, TAG, "gdbserver for musashi\tDaniel Palmer (daniel@0x0f.com)");
+
+	if (!args_parse(argc, argv)) {
+		return 0;
+	}
+
+	gdbserver_mainloop();
+	gdbserver_cleanup();
+	return 0;
+}
+
 static void gdbserver_mainloop() {
 
 	// the overall state of the program
@@ -122,20 +136,6 @@ static void gdbserver_mainloop() {
 
 	}
 
-}
-
-int main(int argc, char* argv[]) {
-	log_init();
-	log_println(LEVEL_INFO, TAG, "musashi m68k emulator\tKarl Stenerud with patches from MAME up to 0105");
-	log_println(LEVEL_INFO, TAG, "gdbserver for musashi\tDaniel Palmer (daniel@0x0f.com)");
-
-	if (!args_parse(argc, argv)) {
-		return 0;
-	}
-
-	gdbserver_mainloop();
-	gdbserver_cleanup();
-	return 0;
 }
 
 static bool gdbserver_setbreakpoint(char* packet) {
@@ -748,11 +748,6 @@ static char* gdbserver_query(char* commandbuffer) {
 	return ret;
 }
 
-void gdbserver_enteringinterrupt() {
-	if (interruptbreak)
-		gdb_break("Entering interrupt");
-}
-
 static char* gbdserver_readregs(char* commandbuffer) {
 	return getregistersstring(m68k_get_reg(NULL, M68K_REG_D0), m68k_get_reg(NULL, M68K_REG_D1),
 			m68k_get_reg(NULL, M68K_REG_D2), m68k_get_reg(NULL, M68K_REG_D3), m68k_get_reg(NULL, M68K_REG_D4),
@@ -843,14 +838,6 @@ static char* gdbserver_readmem(char* commandbuffer) {
 	return getmemorystring(ad, sz);
 }
 
-void gdbserver_instruction_hook_callback() {
-
-	uint32_t pc = m68k_get_reg(NULL, M68K_REG_PC);
-
-	gdbserver_check_breakpoints(pc);
-	profiler_onpcchange(pc);
-}
-
 static void gdbserver_check_breakpoints(uint32_t pc) {
 
 	char disasmbuffer[256];
@@ -875,6 +862,20 @@ static void gdbserver_check_breakpoints(uint32_t pc) {
 			break;
 		}
 	}
+}
+
+// externally visible stuff
+void gdbserver_enteringinterrupt() {
+	if (interruptbreak)
+		gdb_break("Entering interrupt");
+}
+
+void gdbserver_instruction_hook_callback() {
+
+	uint32_t pc = m68k_get_reg(NULL, M68K_REG_PC);
+
+	gdbserver_check_breakpoints(pc);
+	profiler_onpcchange(pc);
 }
 
 void gdbserver_setport(int port) {

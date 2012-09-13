@@ -24,6 +24,8 @@ typedef enum State {
 
 } State;
 
+static void gdbserver_mainloop(void);
+
 // stuff that pokes the sim
 static char* gdbserver_readmem(char* commandbuffer);
 static void gdbserver_writereg(char* commandbuffer);
