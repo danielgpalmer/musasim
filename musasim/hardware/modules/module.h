@@ -11,7 +11,12 @@
 #include <stdint.h>
 
 typedef struct {
-	void* (*init)();
+	void (*raiseinterrupt)();
+	void (*lowerinterrupt)();
+} module_callback;
+
+typedef struct {
+	void* (*init)(module_callback* callback);
 	void (*dispose)(void* context);
 	void (*tick)(void* context);
 	uint8_t (*read_byte)(void* context, uint16_t address);

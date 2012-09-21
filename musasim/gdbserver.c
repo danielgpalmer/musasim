@@ -727,13 +727,13 @@ static char* gdbserver_query(char* commandbuffer) {
 			ret = OK;
 		}
 
-		else if (strncmp(monitorcommand, cmd_interruptbreak_on, sizeof(cmd_interruptbreak_on))) {
+		else if (strncmp(monitorcommand, cmd_interruptbreak_on, sizeof(cmd_interruptbreak_on)) == 0) {
 			printf("User wants break on interrupts\n");
 			interruptbreak = true;
 			ret = OK;
 		}
-		else if (strncmp(monitorcommand, cmd_interruptbreak_off, sizeof(cmd_interruptbreak_on))) {
-			printf("User doesn't want to break on interruts\n");
+		else if (strncmp(monitorcommand, cmd_interruptbreak_off, sizeof(cmd_interruptbreak_off)) == 0) {
+			printf("User doesn't want to break on interrutps\n");
 			interruptbreak = false;
 			ret = OK;
 		}
