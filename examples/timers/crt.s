@@ -100,7 +100,7 @@ copydata:
 
 
 	jmp	main
-
+	stop	#0x0000
 
 ILL:
 	stop	#0x0003

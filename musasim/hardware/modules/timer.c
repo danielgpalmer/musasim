@@ -32,6 +32,9 @@ static void timer_tick(void* context) {
 	context_t* c = (context_t*) context;
 	c->counter++;
 
+	if (c->counter == c->matcha)
+		c->cb->raiseinterrupt();
+
 }
 
 #define GETREGISTER(a) ((a & 0xf) >> 1)

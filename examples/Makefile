@@ -4,6 +4,7 @@ all:
 	$(MAKE) -C serialbootloader
 	$(MAKE) -C serialpayload
 	$(MAKE) -C fpgatests
+	$(MAKE) -C timers
 
 clean:
 	$(MAKE) -C m68ktestapp clean
@@ -11,3 +12,4 @@ clean:
 	$(MAKE) -C serialbootloader clean
 	$(MAKE) -C serialpayload clean
 	$(MAKE) -C fpgatests clean
+	$(MAKE) -C timers clean

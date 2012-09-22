@@ -11,17 +11,18 @@
 #include "card.h"
 #include "timercard.h"
 #include "../modules/timer.h"
+#include "../board.h"
 
 static char TAG[] = "timercard";
 
 void* timer;
 
 static void timercard_raiseinterrupt() {
-
+	board_raise_interrupt(&timercard);
 }
 
 static void timercard_lowerinterrupt() {
-
+	board_lower_interrupt(&timercard);
 }
 
 static module_callback callback = { //
@@ -52,6 +53,10 @@ static void timercard_writeword(uint32_t address, uint16_t value) {
 	timermodule.write_word(timer, (uint16_t) (address & 0xf), value);
 }
 
+static bool timercard_isvalidaddress(uint32_t address) {
+	return true;
+}
+
 const card timercard = { "timer card", //
 		timercard_init, //
 		timercard_dispose, //
@@ -60,7 +65,7 @@ const card timercard = { "timer card", //
 		NULL, //
 		NULL, //
 		NULL, //
-		NULL, //
+		timercard_isvalidaddress, //
 		NULL, //
 		NULL, //
 		timercard_readword, //
