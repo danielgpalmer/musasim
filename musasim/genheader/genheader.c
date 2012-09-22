@@ -20,6 +20,7 @@
 #include "../hardware/cards/compactflashinterfacecard.h"
 #define WANTSOUNDFUNC
 #include "../hardware/cards/soundcard.h"
+#include "../hardware/cards/timercard.h"
 #include "../utils.h"
 
 char headers[] = "#include <stdint.h>\n"
@@ -270,11 +271,16 @@ static void input() {
 
 static void timers() {
 	uint32_t offset = SLOT_OFFSET(SLOT_TIMERCARD);
-	printf("#define timers_timer_0_flags (*(volatile uint16_t*) 0x%x)\n", offset);
-	printf("#define timers_timer_0_config (*(volatile uint16_t*) 0x%x)\n", offset + 2);
-	printf("#define timers_timer_0_prescaler (*(volatile uint16_t*) 0x%x)\n", offset + 4);
-	printf("#define timers_timer_0_prescalercounter (*(volatile uint16_t*) 0x%x)\n", offset + 6);
-	printf("#define timers_timer_0_counter (*(volatile uint16_t*) 0x%x)\n", offset + 8);
-	printf("#define timers_timer_0_matcha (*(volatile uint16_t*) 0x%x)\n", offset + 10);
-	printf("#define timers_timer_0_matchb (*(volatile uint16_t*) 0x%x)\n", offset + 12);
+
+	for (int i = 0; i < TIMERCARD_NUMBEROFTIMERS; i++) {
+
+		printf("#define timers_timer_%d_flags (*(volatile uint16_t*) 0x%x)\n", i, offset);
+		printf("#define timers_timer_%d_config (*(volatile uint16_t*) 0x%x)\n", i, offset + 2);
+		printf("#define timers_timer_%d_prescaler (*(volatile uint16_t*) 0x%x)\n", i, offset + 4);
+		printf("#define timers_timer_%d_prescalercounter (*(volatile uint16_t*) 0x%x)\n", i, offset + 6);
+		printf("#define timers_timer_%d_counter (*(volatile uint16_t*) 0x%x)\n", i, offset + 8);
+		printf("#define timers_timer_%d_matcha (*(volatile uint16_t*) 0x%x)\n", i, offset + 10);
+		printf("#define timers_timer_%d_matchb (*(volatile uint16_t*) 0x%x)\n", i, offset + 12);
+
+	}
 }
