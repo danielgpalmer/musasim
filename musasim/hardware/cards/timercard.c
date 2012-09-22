@@ -42,7 +42,7 @@ static void timercard_dispose() {
 }
 
 static void timercard_tick(int cyclesexecuted) {
-	timermodule.tick(timer);
+	timermodule.tick(timer, cyclesexecuted);
 }
 
 static uint16_t timercard_readword(uint32_t address) {

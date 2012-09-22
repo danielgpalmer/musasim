@@ -18,7 +18,7 @@ typedef struct {
 typedef struct {
 	void* (*init)(module_callback* callback);
 	void (*dispose)(void* context);
-	void (*tick)(void* context);
+	void (*tick)(void* context, int cycles);
 	uint8_t (*read_byte)(void* context, uint16_t address);
 	uint16_t (*read_word)(void* context, uint16_t address);
 	uint32_t (*read_long)(void* context, uint16_t address);

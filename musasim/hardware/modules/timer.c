@@ -55,37 +55,39 @@ static void* timer_init(module_callback* callback) {
 	return c;
 }
 
-static void timer_tick(void* context) {
+static void timer_tick(void* context, int cycles) {
 
 	context_t* c = (context_t*) context;
 
-	if (c->prescaler == c->prescalercounter) {
-		c->prescalercounter = 0;
-		c->counter++;
-	}
-	else {
-		c->prescalercounter++;
-	}
-
-	if (c->counter == c->matcha) {
-		if (MATCHA_RESET(c)) {
-			c->counter = 0;
+	for (; cycles < 0; cycles--) {
+		if (c->prescaler == c->prescalercounter) {
+			c->prescalercounter = 0;
+			c->counter++;
+		}
+		else {
+			c->prescalercounter++;
 		}
 
-		if (MATCHA_INTERRUPT_ENABLED(c)) {
-			SET_FLAG_INTERRUPTMATCHA(c);
-			c->cb->raiseinterrupt();
-		}
-	}
+		if (c->counter == c->matcha) {
+			if (MATCHA_RESET(c)) {
+				c->counter = 0;
+			}
 
-	if (c->counter == c->matchb) {
-		if (MATCHB_RESET(c)) {
-			c->counter = 0;
+			if (MATCHA_INTERRUPT_ENABLED(c)) {
+				SET_FLAG_INTERRUPTMATCHA(c);
+				c->cb->raiseinterrupt();
+			}
 		}
 
-		if (MATCHB_INTERRUPT_ENABLED(c)) {
-			SET_FLAG_INTERRUPTMATCHB(c);
-			c->cb->raiseinterrupt();
+		if (c->counter == c->matchb) {
+			if (MATCHB_RESET(c)) {
+				c->counter = 0;
+			}
+
+			if (MATCHB_INTERRUPT_ENABLED(c)) {
+				SET_FLAG_INTERRUPTMATCHB(c);
+				c->cb->raiseinterrupt();
+			}
 		}
 	}
 
@@ -139,4 +141,5 @@ const module timermodule = { //
 				NULL, //
 				NULL, //
 				timer_writeword, //
-				NULL };
+				NULL //
+		};
