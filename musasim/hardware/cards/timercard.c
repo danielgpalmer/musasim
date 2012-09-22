@@ -57,12 +57,16 @@ static bool timercard_isvalidaddress(uint32_t address) {
 	return true;
 }
 
+static void timercard_irqack() {
+	board_lower_interrupt(&timercard);
+}
+
 const card timercard = { "timer card", //
 		timercard_init, //
 		timercard_dispose, //
 		NULL, //
 		timercard_tick, //
-		NULL, //
+		timercard_irqack, //
 		NULL, //
 		NULL, //
 		timercard_isvalidaddress, //

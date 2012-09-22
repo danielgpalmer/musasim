@@ -11,7 +11,7 @@
 vectors:
 	dc.l	0x200000
 	dc.l	start		/* Start of program Code */
-	dc.l	INT		/* Bus error */
+	dc.l	BUSERROR	/* Bus error */
 	dc.l	INT 	/* Address error */
 	dc.l	ILL		/* Illegal instruction */
 	dc.l	INT		/* Division by zero */
@@ -33,14 +33,14 @@ vectors:
 	dc.l	INT		/* Reserved (NOT USED) */
 	dc.l	INT		/* Reserved (NOT USED) */
 	dc.l	INT		/* Reserved (NOT USED) */
-	dc.l	INT		/* Spurious Interrupt */
-	dc.l	interrupthandler1		/* IRQ Level 1 */
-	dc.l	interrupthandler2 /* IRQ Level 2 */
-	dc.l	interrupthandler3 /* IRQ Level 3 */
-	dc.l	interrupthandler4 /* IRQ Level 4 */
-	dc.l	interrupthandler5	/* IRQ Level 5 */
-	dc.l	interrupthandler6		/* IRQ Level 6 */
-	dc.l	interrupthandler7		/* IRQ Level 7 */
+	dc.l	SPURIOUS		/* Spurious Interrupt */
+	dc.l	INT		/* IRQ Level 1 */
+	dc.l	INT /* IRQ Level 2 */
+	dc.l	INT /* IRQ Level 3 */
+	dc.l	INT /* IRQ Level 4 */
+	dc.l	INT	/* IRQ Level 5 */
+	dc.l	timerinterrupt		/* IRQ Level 6 */
+	dc.l	INT		/* IRQ Level 7 */
 	dc.l	INT		/* TRAP #00 Exception */
 	dc.l	INT		/* TRAP #01 Exception */
 	dc.l	INT		/* TRAP #02 Exception */
@@ -100,6 +100,12 @@ copydata:
 
 
 	jmp	main
+	stop	#0x0000
+
+SPURIOUS:
+	stop	#0x0000
+
+BUSERROR:
 	stop	#0x0000
 
 ILL:
