@@ -34,12 +34,40 @@ static void timer_tick(void* context) {
 
 }
 
-static void timer_writeword(void* context, uint16_t address, uint16_t value) {
+#define GETREGISTER(a) ((a & 0xf) >> 1)
 
+static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
+	context_t* c = (context_t*) context;
+	switch (GETREGISTER(address)) {
+		case 0x0:
+			return &(c->flags);
+		case 0x1:
+			return &(c->config);
+		case 0x2:
+			return &(c->precaler);
+		case 0x3:
+			return &(c->counter);
+		case 0x4:
+			return &(c->matcha);
+		case 0x5:
+			return &(c->matchb);
+	}
+
+	return NULL ;
+}
+
+static void timer_writeword(void* context, uint16_t address, uint16_t value) {
+	uint16_t* reg = timer_getregisterincontext(context, address);
+	if (reg != NULL )
+		*reg = value;
 }
 
 static uint16_t timer_readword(void* context, uint16_t address) {
-	return 0;
+	uint16_t* reg = timer_getregisterincontext(context, address);
+	if (reg != NULL )
+		return *reg;
+	else
+		return 0;
 }
 
 const module timermodule = { //

@@ -5,6 +5,8 @@
  *      Author: daniel
  */
 
+#include <stdlib.h>
+
 #include "../../logging.h"
 #include "card.h"
 #include "timercard.h"
@@ -34,21 +36,25 @@ static void timercard_init() {
 
 }
 
+static void timercard_dispose() {
+	free(timer);
+}
+
 static void timercard_tick(int cyclesexecuted) {
 	timermodule.tick(timer);
 }
 
 static uint16_t timercard_readword(uint32_t address) {
-	return 0;
+	return timermodule.read_word(timer, (uint16_t) (address & 0xf));
 }
 
 static void timercard_writeword(uint32_t address, uint16_t value) {
-
+	timermodule.write_word(timer, (uint16_t) (address & 0xf), value);
 }
 
 const card timercard = { "timer card", //
 		timercard_init, //
-		NULL, //
+		timercard_dispose, //
 		NULL, //
 		timercard_tick, //
 		NULL, //
