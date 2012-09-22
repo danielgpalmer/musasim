@@ -165,7 +165,7 @@ void board_raise_interrupt(const card* card) {
 		curslot = board_which_slot(card);
 		m68k_set_irq(slot);
 #ifdef GDBSERVER
-		gdbserver_enteringinterrupt();
+		gdbserver_enteringinterrupt(slot);
 #endif
 	}
 	// Someone else is driving.. queue

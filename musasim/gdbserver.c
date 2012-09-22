@@ -868,9 +868,11 @@ static void gdbserver_check_breakpoints(uint32_t pc) {
 }
 
 // externally visible stuff
-void gdbserver_enteringinterrupt() {
-	if (interruptbreak)
+void gdbserver_enteringinterrupt(int irq) {
+	if (interruptbreak) {
+		log_println(LEVEL_INFO, TAG, "irq %d", irq);
 		gdb_break("Entering interrupt");
+	}
 }
 
 void gdbserver_instruction_hook_callback() {
@@ -917,7 +919,7 @@ void gdb_onpcmodified(uint32_t a) {
 }
 
 void gdb_break(const char* reason) {
-	printf("gdb_break(%s)\n", reason);
+	log_println(LEVEL_INFO, TAG, "gdb_break(%s)", reason);
 	m68k_end_timeslice();
 	utils_printregisters();
 	state = BREAKING;
