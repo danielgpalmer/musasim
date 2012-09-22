@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include "include/timers.h"
 #include "include/timers_registers.h"
 #include "include/timers_registermasks.h"
 
