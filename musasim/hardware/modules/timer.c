@@ -11,11 +11,34 @@
 #include "timer.h"
 #include "module.h"
 
+/* flags
+ * f|e|d|c|b|a|9|8|7|6|5|4|3|2|1|0
+ *
+ */
+
+/* config
+ *
+ * f|e|d|c|b|a|9|8|7|6|5|4|3|2|1|0
+ *  | | | | | | | | | | | |R|r|I|i
+ *
+ *  R - reset counter on match a
+ *  r - reset counter on match b
+ *  I - interrupt on match b
+ *  i - interrupt on match a
+ */
+
+#define MATCHA_RESET(c) (c->config & (1 << 3))
+#define MATCHB_RESET(c) (c->config & (1 << 4))
+
+#define MATCHA_INTERRUPT_ENABLED(c) (c->config & 1)
+#define MATCHB_INTERRUPT_ENABLED(c) (c->config & (1 << 2))
+
 typedef struct {
 	module_callback* cb;
 	uint16_t flags;
 	uint16_t config;
-	uint16_t precaler;
+	uint16_t prescaler;
+	uint16_t prescalercounter;
 	uint16_t counter;
 	uint16_t matcha;
 	uint16_t matchb;
@@ -30,10 +53,34 @@ static void* timer_init(module_callback* callback) {
 static void timer_tick(void* context) {
 
 	context_t* c = (context_t*) context;
-	c->counter++;
 
-	if (c->counter == c->matcha)
-		c->cb->raiseinterrupt();
+	if (c->prescaler == c->prescalercounter) {
+		c->prescalercounter = 0;
+		c->counter++;
+	}
+	else {
+		c->prescalercounter++;
+	}
+
+	if (c->counter == c->matcha) {
+		if (MATCHA_RESET(c)) {
+			c->counter = 0;
+		}
+
+		if (MATCHA_INTERRUPT_ENABLED(c)) {
+			c->cb->raiseinterrupt();
+		}
+	}
+
+	if (c->counter == c->matchb) {
+		if (MATCHB_RESET(c)) {
+			c->counter = 0;
+		}
+
+		if (MATCHB_INTERRUPT_ENABLED(c)) {
+			c->cb->raiseinterrupt();
+		}
+	}
 
 }
 
@@ -47,13 +94,16 @@ static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
 		case 0x1:
 			return &(c->config);
 		case 0x2:
-			return &(c->precaler);
+			return &(c->prescaler);
 		case 0x3:
-			return &(c->counter);
+			return &(c->prescalercounter);
 		case 0x4:
-			return &(c->matcha);
+			return &(c->counter);
 		case 0x5:
+			return &(c->matcha);
+		case 0x6:
 			return &(c->matchb);
+
 	}
 
 	return NULL ;

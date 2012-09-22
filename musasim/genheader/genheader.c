@@ -273,7 +273,8 @@ static void timers() {
 	printf("#define timers_timer_0_flags (*(volatile uint16_t*) 0x%x)\n", offset);
 	printf("#define timers_timer_0_config (*(volatile uint16_t*) 0x%x)\n", offset + 2);
 	printf("#define timers_timer_0_prescaler (*(volatile uint16_t*) 0x%x)\n", offset + 4);
-	printf("#define timers_timer_0_counter (*(volatile uint16_t*) 0x%x)\n", offset + 6);
-	printf("#define timers_timer_0_matcha (*(volatile uint16_t*) 0x%x)\n", offset + 8);
-	printf("#define timers_timer_0_matchb (*(volatile uint16_t*) 0x%x)\n", offset + 10);
+	printf("#define timers_timer_0_prescalercounter (*(volatile uint16_t*) 0x%x)\n", offset + 6);
+	printf("#define timers_timer_0_counter (*(volatile uint16_t*) 0x%x)\n", offset + 8);
+	printf("#define timers_timer_0_matcha (*(volatile uint16_t*) 0x%x)\n", offset + 10);
+	printf("#define timers_timer_0_matchb (*(volatile uint16_t*) 0x%x)\n", offset + 12);
 }
