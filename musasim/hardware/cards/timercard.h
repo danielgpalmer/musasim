@@ -8,6 +8,8 @@
 #ifndef TIMERCARD_H_
 #define TIMERCARD_H_
 
+#define TIMERCARD_NUMBEROFTIMERS 4
+
 #include "card.h"
 
 const card timercard;

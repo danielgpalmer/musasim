@@ -9,6 +9,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <timers_registermasks.h>
 #include "timer.h"
 #include "module.h"
 #include "../../logging.h"
@@ -39,19 +40,22 @@ typedef struct {
 /* config
  *
  * f|e|d|c|b|a|9|8|7|6|5|4|3|2|1|0
- *  | | | | | | | | | | | |R|r|I|i
+ *  | | | | | | | | | | |R|r|I|i|e
  *
  *  R - reset counter on match a
  *  r - reset counter on match b
  *  I - interrupt on match b
  *  i - interrupt on match a
+ *  e - enable
  */
 
-#define MATCHA_RESET(c) (c->config & (1 << 2))
-#define MATCHB_RESET(c) (c->config & (1 << 3))
+#define ENABLED(c) (c->config & TIMERS_REGISTER_CONFIG_ENABLE)
 
-#define MATCHA_INTERRUPT_ENABLED(c) (c->config & 1)
-#define MATCHB_INTERRUPT_ENABLED(c) (c->config & (1 << 1))
+#define MATCHA_RESET(c) (c->config & TIMERS_REGISTER_CONFIG_RESETMATCHA)
+#define MATCHB_RESET(c) (c->config & TIMERS_REGISTER_CONFIG_RESETMATCHB)
+
+#define MATCHA_INTERRUPT_ENABLED(c) (c->config & TIMERS_REGISTER_CONFIG_ENMATCHAINT)
+#define MATCHB_INTERRUPT_ENABLED(c) (c->config & TIMERS_REGISTER_CONFIG_ENMATCHBINT)
 
 static void* timer_init(module_callback* callback) {
 	context_t * c = calloc(sizeof(context_t), 1);
@@ -62,6 +66,9 @@ static void* timer_init(module_callback* callback) {
 static void timer_tick(void* context, int cycles) {
 
 	context_t* c = (context_t*) context;
+
+	if (!ENABLED(c))
+		return;
 
 	for (; cycles > 0; cycles--) {
 		if (c->prescaler == c->prescalercounter) {

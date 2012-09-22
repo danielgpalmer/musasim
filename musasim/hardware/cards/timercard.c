@@ -12,10 +12,11 @@
 #include "timercard.h"
 #include "../modules/timer.h"
 #include "../board.h"
+#include "../../utils.h"
 
 static char TAG[] = "timercard";
 
-void* timer;
+void* timers[TIMERCARD_NUMBEROFTIMERS];
 
 static void timercard_raiseinterrupt() {
 	board_raise_interrupt(&timercard);
@@ -33,24 +34,27 @@ static module_callback callback = { //
 static void timercard_init() {
 	log_println(LEVEL_INFO, TAG, "timercard_init()");
 
-	timer = timermodule.init(&callback);
+	for (int t = 0; t < SIZEOFARRAY(timers); t++)
+		timers[t] = timermodule.init(&callback);
 
 }
 
 static void timercard_dispose() {
-	free(timer);
+	for (int t = 0; t < SIZEOFARRAY(timers); t++)
+		free(timers[t]);
 }
 
 static void timercard_tick(int cyclesexecuted) {
-	timermodule.tick(timer, cyclesexecuted);
+	for (int t = 0; t < SIZEOFARRAY(timers); t++)
+		timermodule.tick(timers[t], cyclesexecuted);
 }
 
 static uint16_t timercard_readword(uint32_t address) {
-	return timermodule.read_word(timer, (uint16_t) (address & 0xf));
+	return timermodule.read_word(timers[0], (uint16_t) (address & 0xf));
 }
 
 static void timercard_writeword(uint32_t address, uint16_t value) {
-	timermodule.write_word(timer, (uint16_t) (address & 0xf), value);
+	timermodule.write_word(timers[0], (uint16_t) (address & 0xf), value);
 }
 
 static bool timercard_isvalidaddress(uint32_t address) {
