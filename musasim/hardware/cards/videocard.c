@@ -123,7 +123,7 @@ static void video_tick(int cyclesexecuted) {
 	for (int i = 0; i < pixelclocks; i++) {
 
 		if (pixel == 0 && line == 0) {
-			log_println(LEVEL_INFO, TAG, "refresh");
+			//log_println(LEVEL_INFO, TAG, "refresh");
 			videocard_refresh();
 		}
 

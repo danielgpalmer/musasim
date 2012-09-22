@@ -16,6 +16,7 @@ typedef struct {
 } module_callback;
 
 typedef struct {
+	char* name;
 	void* (*init)(module_callback* callback);
 	void (*dispose)(void* context);
 	void (*tick)(void* context, int cycles);

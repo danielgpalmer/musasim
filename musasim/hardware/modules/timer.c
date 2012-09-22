@@ -8,8 +8,12 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include "timer.h"
 #include "module.h"
+#include "../../logging.h"
+
+#define TAG "timermodule"
 
 typedef struct {
 	module_callback* cb;
@@ -28,9 +32,9 @@ typedef struct {
  */
 
 #define SET_FLAG_INTERRUPTMATCHA(c) (c->flags |= 1)
-#define SET_FLAG_INTERRUPTMATCHB(c) (c->flags |= (1 << 2))
+#define SET_FLAG_INTERRUPTMATCHB(c) (c->flags |= (1 << 1))
 #define CLEAR_FLAG_INTERRUPTMATCHA(c) (c->flags &= ~1)
-#define CLEAR_FLAG_INTERRUPTMATCHB(c) (c->flags &= ~(1 << 2))
+#define CLEAR_FLAG_INTERRUPTMATCHB(c) (c->flags &= ~(1 << 1))
 
 /* config
  *
@@ -43,11 +47,11 @@ typedef struct {
  *  i - interrupt on match a
  */
 
-#define MATCHA_RESET(c) (c->config & (1 << 3))
-#define MATCHB_RESET(c) (c->config & (1 << 4))
+#define MATCHA_RESET(c) (c->config & (1 << 2))
+#define MATCHB_RESET(c) (c->config & (1 << 3))
 
 #define MATCHA_INTERRUPT_ENABLED(c) (c->config & 1)
-#define MATCHB_INTERRUPT_ENABLED(c) (c->config & (1 << 2))
+#define MATCHB_INTERRUPT_ENABLED(c) (c->config & (1 << 1))
 
 static void* timer_init(module_callback* callback) {
 	context_t * c = calloc(sizeof(context_t), 1);
@@ -59,7 +63,7 @@ static void timer_tick(void* context, int cycles) {
 
 	context_t* c = (context_t*) context;
 
-	for (; cycles < 0; cycles--) {
+	for (; cycles > 0; cycles--) {
 		if (c->prescaler == c->prescalercounter) {
 			c->prescalercounter = 0;
 			c->counter++;
@@ -95,6 +99,18 @@ static void timer_tick(void* context, int cycles) {
 
 #define GETREGISTER(a) ((a & 0xf) >> 1)
 
+static void timer_dumpconfig(context_t* context) {
+
+	log_println(LEVEL_INFO, TAG, "flags: 0x%02"PRIx8, context->flags);
+	log_println(LEVEL_INFO, TAG, "config: 0x%02"PRIx8, context->config);
+	log_println(LEVEL_INFO, TAG, "prescaler: 0x%02"PRIx8, context->prescaler);
+	log_println(LEVEL_INFO, TAG, "prescalercounter: 0x%02"PRIx8, context->prescalercounter);
+	log_println(LEVEL_INFO, TAG, "counter: 0x%02"PRIx8, context->counter);
+	log_println(LEVEL_INFO, TAG, "matcha: 0x%02"PRIx8, context->matcha);
+	log_println(LEVEL_INFO, TAG, "matchb: 0x%02"PRIx8, context->matchb);
+
+}
+
 static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
 	context_t* c = (context_t*) context;
 	switch (GETREGISTER(address)) {
@@ -122,6 +138,8 @@ static void timer_writeword(void* context, uint16_t address, uint16_t value) {
 	uint16_t* reg = timer_getregisterincontext(context, address);
 	if (reg != NULL )
 		*reg = value;
+
+	timer_dumpconfig((context_t*) context);
 }
 
 static uint16_t timer_readword(void* context, uint16_t address) {
@@ -133,7 +151,8 @@ static uint16_t timer_readword(void* context, uint16_t address) {
 }
 
 const module timermodule = { //
-		timer_init, //
+		TAG, //
+				timer_init, //
 				NULL, //
 				timer_tick, //
 				NULL, //
