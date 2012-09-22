@@ -33,6 +33,7 @@ static void video(void);
 static void sound(void);
 static void input(void);
 static void uart(void);
+static void timers(void);
 
 #define PRE(tag) printf("#ifndef LIBUNAGIPAI_%s_H_\n#define LIBUNAGIPAI_%s_H_\n\n\n", tag, tag)
 #define POST(tag) printf("\n#endif // %s\n", tag)
@@ -44,6 +45,7 @@ static void uart(void);
 #define TAG_SOUND "SOUNDREGISTERS"
 #define TAG_INPUT "INPUTREGISTERS"
 #define TAG_UART "UARTREGISTERS"
+#define TAG_TIMERS "TIMERSREGISTERS"
 
 static void fileheader(char* filename, char* brief) {
 	printf("/**\n");
@@ -56,7 +58,7 @@ static void fileheader(char* filename, char* brief) {
 int main(int argc, char* argv[]) {
 
 	if (argc != 2) {
-		printf("usage; ./%s [machine|video|sound]\n", argv[0]);
+		printf("usage; ./%s [machine|dma|ata|video|sound|input|uart|timers]\n", argv[0]);
 	}
 	else {
 		if (strcmp(argv[1], "machine") == 0) {
@@ -107,6 +109,13 @@ int main(int argc, char* argv[]) {
 			common();
 			uart();
 			POST(TAG_UART);
+		}
+		else if (strcmp(argv[1], "timers") == 0) {
+			fileheader("timers_registers.h", "Timers register defines");
+			PRE(TAG_TIMERS);
+			common();
+			timers();
+			POST(TAG_TIMERS);
 		}
 	}
 	return 0;
@@ -256,4 +265,8 @@ static void input() {
 	printf("#define input_port0 (*(volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_INPUTCARD) + INPUT_PORT0);
 	printf("#define input_port1 (*(volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_INPUTCARD) + INPUT_PORT1);
 	printf("#define input_rng (*(volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_INPUTCARD) + INPUT_RNG);
+}
+
+static void timers() {
+
 }
