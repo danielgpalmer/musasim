@@ -11,10 +11,26 @@
 #include "timer.h"
 #include "module.h"
 
+typedef struct {
+	module_callback* cb;
+	uint16_t flags;
+	uint16_t config;
+	uint16_t prescaler;
+	uint16_t prescalercounter;
+	uint16_t counter;
+	uint16_t matcha;
+	uint16_t matchb;
+} context_t;
+
 /* flags
  * f|e|d|c|b|a|9|8|7|6|5|4|3|2|1|0
- *
+ *  | | | | | | | | | | | | | |I|i
  */
+
+#define SET_FLAG_INTERRUPTMATCHA(c) (c->flags |= 1)
+#define SET_FLAG_INTERRUPTMATCHB(c) (c->flags |= (1 << 2))
+#define CLEAR_FLAG_INTERRUPTMATCHA(c) (c->flags &= ~1)
+#define CLEAR_FLAG_INTERRUPTMATCHB(c) (c->flags &= ~(1 << 2))
 
 /* config
  *
@@ -33,19 +49,8 @@
 #define MATCHA_INTERRUPT_ENABLED(c) (c->config & 1)
 #define MATCHB_INTERRUPT_ENABLED(c) (c->config & (1 << 2))
 
-typedef struct {
-	module_callback* cb;
-	uint16_t flags;
-	uint16_t config;
-	uint16_t prescaler;
-	uint16_t prescalercounter;
-	uint16_t counter;
-	uint16_t matcha;
-	uint16_t matchb;
-} context_t;
-
 static void* timer_init(module_callback* callback) {
-	context_t * c = malloc(sizeof(context_t));
+	context_t * c = calloc(sizeof(context_t), 1);
 	c->cb = callback;
 	return c;
 }
@@ -68,6 +73,7 @@ static void timer_tick(void* context) {
 		}
 
 		if (MATCHA_INTERRUPT_ENABLED(c)) {
+			SET_FLAG_INTERRUPTMATCHA(c);
 			c->cb->raiseinterrupt();
 		}
 	}
@@ -78,6 +84,7 @@ static void timer_tick(void* context) {
 		}
 
 		if (MATCHB_INTERRUPT_ENABLED(c)) {
+			SET_FLAG_INTERRUPTMATCHB(c);
 			c->cb->raiseinterrupt();
 		}
 	}
