@@ -262,11 +262,18 @@ static void uart() {
 }
 
 static void input() {
-	printf("#define input_port0 (*(volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_INPUTCARD) + INPUT_PORT0);
-	printf("#define input_port1 (*(volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_INPUTCARD) + INPUT_PORT1);
-	printf("#define input_rng (*(volatile uint8_t*) 0x%x)\n", SLOT_OFFSET(SLOT_INPUTCARD) + INPUT_RNG);
+	uint32_t offset = SLOT_OFFSET(SLOT_INPUTCARD);
+	printf("#define input_port0 (*(volatile uint8_t*) 0x%x)\n", offset + INPUT_PORT0);
+	printf("#define input_port1 (*(volatile uint8_t*) 0x%x)\n", offset + INPUT_PORT1);
+	printf("#define input_rng (*(volatile uint8_t*) 0x%x)\n", offset + INPUT_RNG);
 }
 
 static void timers() {
-
+	uint32_t offset = SLOT_OFFSET(SLOT_TIMERCARD);
+	printf("#define timers_timer_0_flags (*(volatile uint16_t*) 0x%x)\n", offset);
+	printf("#define timers_timer_0_config (*(volatile uint16_t*) 0x%x)\n", offset + 2);
+	printf("#define timers_timer_0_prescaler (*(volatile uint16_t*) 0x%x)\n", offset + 4);
+	printf("#define timers_timer_0_counter (*(volatile uint16_t*) 0x%x)\n", offset + 6);
+	printf("#define timers_timer_0_matcha (*(volatile uint16_t*) 0x%x)\n", offset + 8);
+	printf("#define timers_timer_0_matchb (*(volatile uint16_t*) 0x%x)\n", offset + 10);
 }

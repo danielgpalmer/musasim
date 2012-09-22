@@ -10,5 +10,11 @@
 #include <stdint.h>
 
 
+#define timers_timer_0_flags (*(volatile uint16_t*) 0xc00000)
+#define timers_timer_0_config (*(volatile uint16_t*) 0xc00002)
+#define timers_timer_0_prescaler (*(volatile uint16_t*) 0xc00004)
+#define timers_timer_0_counter (*(volatile uint16_t*) 0xc00006)
+#define timers_timer_0_matcha (*(volatile uint16_t*) 0xc00008)
+#define timers_timer_0_matchb (*(volatile uint16_t*) 0xc0000a)
 
 #endif // TIMERSREGISTERS
