@@ -12,13 +12,17 @@
 #include "../board.h"
 
 #include "../modules/timer.h"
+#include "../modules/rtc.h"
+
 #include "card.h"
 #include "timercard.h"
 
 static char TAG[] = "timercard";
 
 #define TIMERFROMADDRESS(a) ((a & 0x30) >> 4)
+
 void* timers[TIMERCARD_NUMBEROFTIMERS];
+void* rtc;
 
 static void timercard_raiseinterrupt() {
 	board_raise_interrupt(&timercard);
@@ -38,6 +42,8 @@ static void timercard_init() {
 
 	for (int t = 0; t < SIZEOFARRAY(timers); t++)
 		timers[t] = timermodule.init(&callback);
+
+	rtc = rtcmodule.init(&callback);
 
 }
 

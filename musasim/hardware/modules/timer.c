@@ -32,10 +32,13 @@ typedef struct {
  *  | | | | | | | | | | | | | |I|i
  */
 
+#define FLAGGED_INTERRUPTMATCHA(c) (c->flags & TIMERS_REGISTER_FLAGS_MATCHAINT)
+#define FLAGGED_INTERRUPTMATCHB(c) (c->flags & TIMERS_REGISTER_FLAGS_MATCHBINT)
+
 #define SET_FLAG_INTERRUPTMATCHA(c) (c->flags |= TIMERS_REGISTER_FLAGS_MATCHAINT)
-#define SET_FLAG_INTERRUPTMATCHB(c) (c->flags |= TIMERS_REGISTER_FLAGS_MATHCBINT)
+#define SET_FLAG_INTERRUPTMATCHB(c) (c->flags |= TIMERS_REGISTER_FLAGS_MATCHBINT)
 #define CLEAR_FLAG_INTERRUPTMATCHA(c) (c->flags &= ~TIMERS_REGISTER_FLAGS_MATCHAINT)
-#define CLEAR_FLAG_INTERRUPTMATCHB(c) (c->flags &= ~TIMERS_REGISTER_FLAGS_MATHCBINT)
+#define CLEAR_FLAG_INTERRUPTMATCHB(c) (c->flags &= ~TIMERS_REGISTER_FLAGS_MATCHBINT)
 
 /* config
  *
@@ -84,7 +87,7 @@ static void timer_tick(void* context, int cycles) {
 				c->counter = 0;
 			}
 
-			if (MATCHA_INTERRUPT_ENABLED(c)) {
+			if (MATCHA_INTERRUPT_ENABLED(c) && !FLAGGED_INTERRUPTMATCHA(c)) {
 				SET_FLAG_INTERRUPTMATCHA(c);
 				c->cb->raiseinterrupt();
 			}
@@ -95,7 +98,7 @@ static void timer_tick(void* context, int cycles) {
 				c->counter = 0;
 			}
 
-			if (MATCHB_INTERRUPT_ENABLED(c)) {
+			if (MATCHB_INTERRUPT_ENABLED(c) && !FLAGGED_INTERRUPTMATCHB(c)) {
 				SET_FLAG_INTERRUPTMATCHB(c);
 				c->cb->raiseinterrupt();
 			}
@@ -108,13 +111,13 @@ static void timer_tick(void* context, int cycles) {
 
 static void timer_dumpconfig(context_t* context) {
 
-	log_println(LEVEL_INFO, TAG, "flags: 0x%02"PRIx8, context->flags);
-	log_println(LEVEL_INFO, TAG, "config: 0x%02"PRIx8, context->config);
-	log_println(LEVEL_INFO, TAG, "prescaler: 0x%02"PRIx8, context->prescaler);
-	log_println(LEVEL_INFO, TAG, "prescalercounter: 0x%02"PRIx8, context->prescalercounter);
-	log_println(LEVEL_INFO, TAG, "counter: 0x%02"PRIx8, context->counter);
-	log_println(LEVEL_INFO, TAG, "matcha: 0x%02"PRIx8, context->matcha);
-	log_println(LEVEL_INFO, TAG, "matchb: 0x%02"PRIx8, context->matchb);
+	log_println(LEVEL_INFO, TAG, "flags: 0x%04"PRIx16, context->flags);
+	log_println(LEVEL_INFO, TAG, "config: 0x%04"PRIx16, context->config);
+	log_println(LEVEL_INFO, TAG, "prescaler: 0x%04"PRIx16, context->prescaler);
+	log_println(LEVEL_INFO, TAG, "prescalercounter: 0x%04"PRIx16, context->prescalercounter);
+	log_println(LEVEL_INFO, TAG, "counter: 0x%04"PRIx16, context->counter);
+	log_println(LEVEL_INFO, TAG, "matcha: 0x%04"PRIx16, context->matcha);
+	log_println(LEVEL_INFO, TAG, "matchb: 0x%04"PRIx16, context->matchb);
 
 }
 
@@ -142,9 +145,17 @@ static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
 }
 
 static void timer_writeword(void* context, uint16_t address, uint16_t value) {
+	context_t* c = (context_t*) context;
 	uint16_t* reg = timer_getregisterincontext(context, address);
-	if (reg != NULL )
-		*reg = value;
+	if (reg != NULL ) {
+		// this a fake write to clear the interrupt flags
+		if (reg == &(c->flags)) {
+			CLEAR_FLAG_INTERRUPTMATCHA(c);
+			CLEAR_FLAG_INTERRUPTMATCHB(c);
+		}
+		else
+			*reg = value;
+	}
 
 	timer_dumpconfig((context_t*) context);
 }

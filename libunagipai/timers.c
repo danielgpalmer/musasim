@@ -15,6 +15,6 @@ void timers_setup() {
 			| TIMERS_REGISTER_CONFIG_RESETMATCHA;
 	timers_timer_0_prescaler = 0xffff;
 	timers_timer_0_matcha = 0xff;
-
+	timers_timer_0_matchb = 0xaa;
 }
 

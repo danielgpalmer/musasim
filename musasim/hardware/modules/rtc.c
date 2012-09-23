@@ -10,9 +10,15 @@
 #include <stddef.h>
 #include "rtc.h"
 
+static void* rtc_init(module_callback* callback) {
+
+	return NULL ;
+
+}
+
 const module rtcmodule = { //
 		TAG, //
-				NULL, //
+				rtc_init, //
 				NULL, //
 				NULL, //
 				NULL, //

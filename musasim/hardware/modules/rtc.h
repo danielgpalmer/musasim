@@ -10,6 +10,6 @@
 
 #include "module.h"
 
-const module rtc;
+const module rtcmodule;
 
 #endif /* RTC_H_ */

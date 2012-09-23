@@ -18,6 +18,12 @@ void timerinterrupt() {
 		printf("match a\n");
 	}
 
+	if (TIMERS_INTERRUPTFIRED_MATCHB) {
+		printf("match b\n");
+	}
+
+	TIMERS_CLEARFLAGS;
+
 }
 
 int main() {
