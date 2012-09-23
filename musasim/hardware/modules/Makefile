@@ -4,11 +4,14 @@ LOCALCFLAGS=-std=gnu99
 
 all: libmodules.a
 
-libmodules.a:	timer.o
+libmodules.a: timer.o rtc.o
 	ar cr $@ $^
 
-timer.o: timer.c
-	$(CC) $(CFLAGS) $(LOCALCFLAGS) timer.c -o timer.o
+timer.o: timer.c module.h
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) 4< -o $@
+
+rtc.o: rtc.c module.h
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
 
 .PHONY: clean
 	
