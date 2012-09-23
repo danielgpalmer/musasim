@@ -8,7 +8,7 @@ libmodules.a: timer.o rtc.o
 	ar cr $@ $^
 
 timer.o: timer.c module.h
-	$(CC) $(CFLAGS) $(LOCALCFLAGS) 4< -o $@
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
 
 rtc.o: rtc.c module.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
