@@ -32,10 +32,10 @@ typedef struct {
  *  | | | | | | | | | | | | | |I|i
  */
 
-#define SET_FLAG_INTERRUPTMATCHA(c) (c->flags |= 1)
-#define SET_FLAG_INTERRUPTMATCHB(c) (c->flags |= (1 << 1))
-#define CLEAR_FLAG_INTERRUPTMATCHA(c) (c->flags &= ~1)
-#define CLEAR_FLAG_INTERRUPTMATCHB(c) (c->flags &= ~(1 << 1))
+#define SET_FLAG_INTERRUPTMATCHA(c) (c->flags |= TIMERS_REGISTER_FLAGS_MATCHAINT)
+#define SET_FLAG_INTERRUPTMATCHB(c) (c->flags |= TIMERS_REGISTER_FLAGS_MATHCBINT)
+#define CLEAR_FLAG_INTERRUPTMATCHA(c) (c->flags &= ~TIMERS_REGISTER_FLAGS_MATCHAINT)
+#define CLEAR_FLAG_INTERRUPTMATCHB(c) (c->flags &= ~TIMERS_REGISTER_FLAGS_MATHCBINT)
 
 /* config
  *

@@ -8,14 +8,16 @@
 #include <stdlib.h>
 
 #include "../../logging.h"
+#include "../../utils.h"
+#include "../board.h"
+
+#include "../modules/timer.h"
 #include "card.h"
 #include "timercard.h"
-#include "../modules/timer.h"
-#include "../board.h"
-#include "../../utils.h"
 
 static char TAG[] = "timercard";
 
+#define TIMERFROMADDRESS(a) ((a & 0x30) >> 4)
 void* timers[TIMERCARD_NUMBEROFTIMERS];
 
 static void timercard_raiseinterrupt() {
@@ -50,11 +52,11 @@ static void timercard_tick(int cyclesexecuted) {
 }
 
 static uint16_t timercard_readword(uint32_t address) {
-	return timermodule.read_word(timers[0], (uint16_t) (address & 0xf));
+	return timermodule.read_word(timers[TIMERFROMADDRESS(address)], (uint16_t) (address & 0xf));
 }
 
 static void timercard_writeword(uint32_t address, uint16_t value) {
-	timermodule.write_word(timers[0], (uint16_t) (address & 0xf), value);
+	timermodule.write_word(timers[TIMERFROMADDRESS(address)], (uint16_t) (address & 0xf), value);
 }
 
 static bool timercard_isvalidaddress(uint32_t address) {

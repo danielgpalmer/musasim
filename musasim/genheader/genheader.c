@@ -273,7 +273,7 @@ static void timers() {
 	uint32_t offset = SLOT_OFFSET(SLOT_TIMERCARD);
 
 	for (int i = 0; i < TIMERCARD_NUMBEROFTIMERS; i++) {
-
+		offset += 0xf;
 		printf("#define timers_timer_%d_flags (*(volatile uint16_t*) 0x%x)\n", i, offset);
 		printf("#define timers_timer_%d_config (*(volatile uint16_t*) 0x%x)\n", i, offset + 2);
 		printf("#define timers_timer_%d_prescaler (*(volatile uint16_t*) 0x%x)\n", i, offset + 4);

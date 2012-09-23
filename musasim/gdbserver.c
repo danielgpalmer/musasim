@@ -240,11 +240,11 @@ static void gdbserver_readcommand(int s) {
 				newstate = RUNNING;
 				break;
 			case GDB_COMMAND_STEP:
-				log_println(LEVEL_INFO, TAG, "GDB wants execution to step\n");
+				log_println(LEVEL_INFO, TAG, "GDB wants execution to step");
 				newstate = STEPPING;
 				break;
 			case GDB_COMMAND_HALTREASON:
-				log_println(LEVEL_INFO, TAG, "GDB wants to know why we halted\n");
+				log_println(LEVEL_INFO, TAG, "GDB wants to know why we halted");
 				data = STOP_WEBROKE;
 				break;
 			case GDB_COMMAND_RESET:
@@ -252,15 +252,15 @@ static void gdbserver_readcommand(int s) {
 				sim_reset();
 				break;
 			case GDB_COMMAND_QUERY:
-				log_println(LEVEL_INFO, TAG, "GDB is querying something\n");
+				log_println(LEVEL_INFO, TAG, "GDB is querying something");
 				data = gdbserver_query(inputbuffer);
 				break;
 			case GDB_COMMAND_DETACH:
-				log_println(LEVEL_INFO, TAG, "GDB is detaching!\n");
+				log_println(LEVEL_INFO, TAG, "GDB is detaching!");
 				newstate = LISTENING;
 				break;
 			case GDB_COMMAND_KILL:
-				log_println(LEVEL_INFO, TAG, "GDB killed us\n");
+				log_println(LEVEL_INFO, TAG, "GDB killed us");
 				newstate = LISTENING;
 				break;
 			case GDB_COMMAND_BREAKPOINTSET:
@@ -693,7 +693,7 @@ static char* gdbserver_query(char* commandbuffer) {
 	if (strncmp(commandbuffer, GDB_QUERY_MONITORCMD, 4) == 0) {
 
 		char* offset = strchr(commandbuffer, ',') + 1;
-		log_println(LEVEL_INFO, TAG, "GDB is sending a monitor command; %s\n", offset);
+		log_println(LEVEL_INFO, TAG, "GDB is sending a monitor command; %s", offset);
 
 		int monitorcommandlen = 0;
 		char* monitorcommand = gbdserver_munchhexstring(offset, &monitorcommandlen);
@@ -741,7 +741,7 @@ static char* gdbserver_query(char* commandbuffer) {
 	}
 
 	else {
-		log_println(LEVEL_INFO, TAG, "Dunno what %s is\n", commandbuffer);
+		log_println(LEVEL_INFO, TAG, "Dunno what %s is", commandbuffer);
 	}
 
 	return ret;
