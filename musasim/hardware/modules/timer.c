@@ -13,6 +13,7 @@
 #include "timer.h"
 #include "module.h"
 #include "../../logging.h"
+#include "../../sim.h"
 
 #define TAG "timermodule"
 
@@ -162,10 +163,22 @@ static void timer_writeword(void* context, uint16_t address, uint16_t value) {
 
 static uint16_t timer_readword(void* context, uint16_t address) {
 	uint16_t* reg = timer_getregisterincontext(context, address);
+	timer_dumpconfig((context_t*) context);
 	if (reg != NULL )
 		return *reg;
 	else
 		return 0;
+}
+
+static int timer_cyclesleft(void* context) {
+
+	context_t* c = (context_t*) context;
+
+	if (c->prescaler != 0)
+		return SIM_MAINCLOCK / c->prescaler;
+
+	return -1;
+
 }
 
 const module timermodule = { //
@@ -178,5 +191,6 @@ const module timermodule = { //
 				NULL, //
 				NULL, //
 				timer_writeword, //
-				NULL //
+				NULL, //
+				timer_cyclesleft //
 		};

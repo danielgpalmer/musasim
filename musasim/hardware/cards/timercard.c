@@ -73,6 +73,18 @@ static void timercard_irqack() {
 	board_lower_interrupt(&timercard);
 }
 
+static int timercard_cyclesleft() {
+
+	int cycles = -1;
+	for (int i = 0; i < SIZEOFARRAY(timers); i++) {
+		int timercycles = timermodule.cyclesleft(timers[i]);
+		if (timercycles > cycles)
+			cycles = timercycles;
+	}
+
+	return cycles;
+}
+
 const card timercard = { "timer card", //
 		timercard_init, //
 		timercard_dispose, //
@@ -91,5 +103,6 @@ const card timercard = { "timer card", //
 		NULL, //
 		NULL, //
 		NULL, //
-		NULL };
+		timercard_cyclesleft //
+		};
 
