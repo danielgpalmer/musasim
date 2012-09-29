@@ -31,6 +31,19 @@ static const char TAG[] = "input";
 // Active Low
 
 static uint8_t ports[2];
+static uint8_t dips;
+static uint8_t debugleds;
+
+#define LEDHEIGHT  10
+#define LEDWIDTH  15
+#define LEDSPACING  5
+#define LEDS (sizeof(debugleds) * 8)
+
+static SDL_Surface* debugledssurface = NULL;
+
+SDL_Surface* inputcard_getledssurface() {
+	return debugledssurface;
+}
 
 static void inputcard_init() {
 
@@ -51,6 +64,9 @@ static void inputcard_init() {
 	SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
 	SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
 
+	debugledssurface = SDL_CreateRGBSurface(SDL_SWSURFACE, (LEDWIDTH * LEDS)+ (LEDSPACING * (LEDS -1
+			)), LEDHEIGHT, 8, 0, 0, 0, 0);
+
 }
 
 static uint8_t inputcard_read_byte(uint32_t address) {
@@ -66,10 +82,18 @@ static uint8_t inputcard_read_byte(uint32_t address) {
 		case INPUT_RNG:
 			//todo in GDBSERVER mode this should be deterministic.
 			return rand() & 0xff;
+		case INPUT_DIPS:
+			return dips;
+		case INPUT_DEBUGLEDS:
+			return debugleds;
 	}
 
 	return 0;
 
+}
+
+static void inputcard_write_byte(uint32_t address, uint8_t value) {
+	debugleds = value;
 }
 
 static void inputcard_decodekey(SDLKey key, bool up) {
@@ -161,16 +185,29 @@ static bool input_validaddress(uint32_t address) {
 		case INPUT_PORT0:
 		case INPUT_PORT1:
 		case INPUT_RNG:
+		case INPUT_DIPS:
+		case INPUT_DEBUGLEDS:
 			return true;
 		default:
 			return false;
 	}
 }
 
+static void inputcard_dispose() {
+	if (debugledssurface != NULL )
+		SDL_FreeSurface(debugledssurface);
+}
+
+static void inputcard_reset() {
+
+	debugleds = 0;
+
+}
+
 const card inputcard = { "INPUT CARD", // tag
 		inputcard_init, // init
-		NULL, // dispose
-		NULL, // reset
+		inputcard_dispose, // dispose
+		inputcard_reset, // reset
 		inputcard_tick, //tick
 		NULL, // IRQ ack
 		NULL, // BUSRQ ack
@@ -180,7 +217,7 @@ const card inputcard = { "INPUT CARD", // tag
 		inputcard_read_byte, // read byte
 		NULL, // read word
 		NULL, // read long
-		NULL, // write byte
+		inputcard_write_byte, // write byte
 		NULL, // write word
 		NULL, // write long
 		NULL, //
