@@ -18,6 +18,7 @@
 
 const card inputcard;
 
-SDL_Surface* inputcard_getledssurface(void);
+void inputcard_setdips(uint8_t dipsvalue);
+uint8_t inputcard_getleds(void);
 
 #endif /* INPUTCARD_H_ */

@@ -70,7 +70,7 @@ static void video_init() {
 		rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_ASYNCBLIT, VIDEO_PLAYFIELDWIDTH, VIDEO_PLAYFIELDHEIGHT,
 				VIDEO_PIXELFORMAT, 0, 0, 0, 0);
 
-		if (rendersurface != NULL) {
+		if (rendersurface != NULL ) {
 			SDL_FillRect(rendersurface, NULL, 0);
 			// FIXME exit here
 		}
@@ -260,21 +260,26 @@ void videocard_setosd(SDL_Surface* s) {
 
 void videocard_refresh() {
 
-	if (!vramtouched)
-		return;
+	// if the vram hasn't changed and the osd isn't visible we don't need to do anything
+	if (vramtouched || osd) {
 
-	// if the current window covers the whole surface don't bother clearing it.
-	if (!((region.x == 0) && (region.y == 0) && (region.w == VIDEO_WIDTH) && (region.h == VIDEO_HEIGHT))) {
-		SDL_FillRect(screen, NULL, 0x0);
+		// if the vram has been touched draw everything.. this should care about registers too at some point
+		if (vramtouched) {
+			// if the current window covers the whole surface don't bother clearing it.
+			if (!((region.x == 0) && (region.y == 0) && (region.w == VIDEO_WIDTH) && (region.h == VIDEO_HEIGHT))) {
+				SDL_FillRect(screen, NULL, 0x0);
+			}
+
+			SDL_BlitSurface(BACKSURFACE, &region, screen, &window);
+			vramtouched = false;
+		}
+		// if the osd is visible draw it over the top
+		if (osd) {
+			SDL_BlitSurface(osd, NULL, screen, NULL );
+		}
+		SDL_Flip(screen);
 	}
 
-	SDL_BlitSurface(BACKSURFACE, &region, screen, &window);
-	if (osd) {
-		SDL_BlitSurface(osd, NULL, screen, NULL);
-	}
-	SDL_Flip(screen);
-	vramtouched = false;
-	//
 }
 
 static int videocard_bestcasecycles() {

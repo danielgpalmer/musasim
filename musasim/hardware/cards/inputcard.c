@@ -34,17 +34,6 @@ static uint8_t ports[2];
 static uint8_t dips;
 static uint8_t debugleds;
 
-#define LEDHEIGHT  10
-#define LEDWIDTH  15
-#define LEDSPACING  5
-#define LEDS (sizeof(debugleds) * 8)
-
-static SDL_Surface* debugledssurface = NULL;
-
-SDL_Surface* inputcard_getledssurface() {
-	return debugledssurface;
-}
-
 static void inputcard_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "inputcard_init()");
@@ -63,9 +52,6 @@ static void inputcard_init() {
 	SDL_EventState(SDL_JOYHATMOTION, SDL_IGNORE);
 	SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
 	SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
-
-	debugledssurface = SDL_CreateRGBSurface(SDL_SWSURFACE, (LEDWIDTH * LEDS)+ (LEDSPACING * (LEDS -1
-			)), LEDHEIGHT, 8, 0, 0, 0, 0);
 
 }
 
@@ -194,14 +180,21 @@ static bool input_validaddress(uint32_t address) {
 }
 
 static void inputcard_dispose() {
-	if (debugledssurface != NULL )
-		SDL_FreeSurface(debugledssurface);
+
 }
 
 static void inputcard_reset() {
 
 	debugleds = 0;
 
+}
+
+void inputcard_setdips(uint8_t dipsvalue) {
+	dips = dipsvalue;
+}
+
+uint8_t inputcard_getleds() {
+	return debugleds;
 }
 
 const card inputcard = { "INPUT CARD", // tag

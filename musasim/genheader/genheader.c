@@ -267,6 +267,9 @@ static void input() {
 	printf("#define input_port0 (*(volatile uint8_t*) 0x%x)\n", offset + INPUT_PORT0);
 	printf("#define input_port1 (*(volatile uint8_t*) 0x%x)\n", offset + INPUT_PORT1);
 	printf("#define input_rng (*(volatile uint8_t*) 0x%x)\n", offset + INPUT_RNG);
+	printf("#define input_dips (*(volatile uint8_t*) 0x%x)\n", offset + INPUT_DIPS);
+	printf("#define input_debugleds (*(volatile uint8_t*) 0x%x)\n", offset + INPUT_DEBUGLEDS);
+
 }
 
 static void timers() {

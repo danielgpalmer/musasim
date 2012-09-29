@@ -13,5 +13,7 @@
 #define input_port0 (*(volatile uint8_t*) 0xe00000)
 #define input_port1 (*(volatile uint8_t*) 0xe00002)
 #define input_rng (*(volatile uint8_t*) 0xe00004)
+#define input_dips (*(volatile uint8_t*) 0xe00006)
+#define input_debugleds (*(volatile uint8_t*) 0xe00008)
 
 #endif // INPUTREGISTERS

@@ -10,12 +10,19 @@
 #include "osd.h"
 #include "hardware/cards/card.h"
 #include "hardware/cards/videocard.h"
+#include "hardware/cards/inputcard.h"
 #include "hardware/board.h"
 
 static SDL_Surface* osd = NULL;
-static SDL_Rect rect;
-static Uint32 colourkey, active, inactive;
+static SDL_Rect rect, rectled;
+static Uint32 colourkey, active, inactive, ledon, ledoff;
 static bool osdvisible = false;
+
+#define LEDHEIGHT  10
+#define LEDWIDTH  15
+#define LEDSPACING  5
+#define LEDSTRIDE (LEDWIDTH + LEDSPACING)
+#define LEDS 8
 
 static void osd_set() {
 	videocard_setosd(osdvisible ? osd : NULL );
@@ -26,6 +33,8 @@ void osd_init() {
 	colourkey = SDL_MapRGB(osd->format, 0, 0, 0);
 	active = SDL_MapRGB(osd->format, 0xff, 0, 0);
 	inactive = SDL_MapRGB(osd->format, 184, 184, 184);
+	ledon = SDL_MapRGB(osd->format, 0, 255, 0);
+	ledoff = SDL_MapRGB(osd->format, 0, 100, 0);
 	SDL_SetColorKey(osd, SDL_SRCCOLORKEY, colourkey);
 	SDL_FillRect(osd, NULL, colourkey);
 
@@ -33,6 +42,11 @@ void osd_init() {
 	rect.w = 20;
 	rect.x = 0;
 	rect.y = 10;
+
+	rectled.h = LEDHEIGHT;
+	rectled.w = LEDWIDTH;
+	rectled.x = 0;
+	rectled.y = 200;
 
 	osd_set();
 
@@ -56,6 +70,13 @@ void osd_update() {
 
 		SDL_FillRect(osd, &rect, colour);
 
+	}
+
+	uint8_t leds = inputcard_getleds();
+	rectled.x = 0;
+	for (int i = 0; i < LEDS; i++) {
+		SDL_FillRect(osd, &rectled, ((leds >> i) & 1) ? ledon : ledoff);
+		rectled.x += LEDSTRIDE;
 	}
 }
 

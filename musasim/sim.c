@@ -82,6 +82,7 @@ static void sim_updatesdl() {
 					throttle = !throttle;
 					break;
 				case SIM_KEY_TOGGLEOSD:
+					log_println(LEVEL_INFO, TAG, "toggling osd");
 					osd_toggle();
 					break;
 				case SIM_KEY_PAUSE:
