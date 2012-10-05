@@ -4,14 +4,14 @@ LIBCARDS=./hardware/cards/libcards.a
 LIBCARDSGDB=./hardware/cards/libcardsgdb.a
 LIBMODULES=./hardware/modules/libmodules.a
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
-BASESTUFF=sim.o logging.o utils.o elfloader.o osd.o
+BASESTUFF=sim.o logging.o utils.o elfloader.o osd.o fontutils.o
 
 all: gdbserver musasim genheader dist
 	
 gdbserver: musashi $(BASESTUFF) hardware gdbserver.o argsgdb.o profiler.o
 	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o profiler.o $(BASESTUFF) $(LIBCARDSGDB) $(LIBMODULES) ./hardware/boardgdb.o -o gdbserver -lelf
 
-musasim: musashi $(BASESTUFF) hardware musasim.o args.o 
+musasim: musashi $(BASESTUFF) hardware musasim.o args.o
 	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) $(LIBMODULES) ./hardware/board.o -o $@ -lelf
 
 musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
@@ -40,7 +40,11 @@ argsgdb.o: args.h args.c
 
 elfloader.o: elfloader.c elfloader.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
+
 profiler.o: profiler.c profiler.h
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
+
+fontutils.o: fontutils.c
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
 
 # hardware 

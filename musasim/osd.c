@@ -6,17 +6,14 @@
  */
 
 #include <SDL/SDL.h>
+#include <SDL_ttf.h>
 #include <stdbool.h>
 #include "osd.h"
+#include "fontutils.h"
 #include "hardware/cards/card.h"
 #include "hardware/cards/videocard.h"
 #include "hardware/cards/inputcard.h"
 #include "hardware/board.h"
-
-static SDL_Surface* osd = NULL;
-static SDL_Rect rect, rectled;
-static Uint32 colourkey, active, inactive, ledon, ledoff;
-static bool osdvisible = false;
 
 #define LEDHEIGHT  10
 #define LEDWIDTH  15
@@ -24,11 +21,33 @@ static bool osdvisible = false;
 #define LEDSTRIDE (LEDWIDTH + LEDSPACING)
 #define LEDS 8
 
+static TTF_Font* font = NULL;
+static SDL_Surface* osd = NULL;
+static SDL_Surface* debuglabel;
+static SDL_Rect rect, rectled;
+static SDL_Color labels = { .r = 0, .g = 0xff, .b = 0 };
+static Uint32 colourkey, active, inactive, ledon, ledoff;
+static bool osdvisible = false;
+
 static void osd_set() {
 	videocard_setosd(osdvisible ? osd : NULL );
 }
 
+void osd_createlabels() {
+	TTF_Init();
+	font = TTF_OpenFont(fontutils_getmonospace(), 12);
+	debuglabel = TTF_RenderUTF8_Solid(font, "debug leds", labels);
+	if (font != NULL )
+		TTF_CloseFont(font);
+
+	TTF_Quit();
+
+}
+
 void osd_init() {
+
+	osd_createlabels();
+
 	osd = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_ASYNCBLIT, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, 0, 0, 0, 0);
 	colourkey = SDL_MapRGB(osd->format, 0, 0, 0);
 	active = SDL_MapRGB(osd->format, 0xff, 0, 0);
@@ -72,6 +91,8 @@ void osd_update() {
 
 	}
 
+	SDL_BlitSurface(debuglabel, NULL, osd, NULL );
+
 	uint8_t leds = inputcard_getleds();
 	rectled.x = 0;
 	for (int i = 0; i < LEDS; i++) {
@@ -92,4 +113,5 @@ void osd_visible(bool visible) {
 
 void osd_dispose() {
 	SDL_FreeSurface(osd);
+
 }
