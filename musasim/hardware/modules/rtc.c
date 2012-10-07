@@ -18,6 +18,7 @@ static void* rtc_init(module_callback* callback, int index) {
 
 const module rtcmodule = { //
 		TAG, //
+				0,//
 				rtc_init, //
 				NULL, //
 				NULL, //

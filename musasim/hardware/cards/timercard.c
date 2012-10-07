@@ -11,9 +11,6 @@
 #include "../../utils.h"
 #include "../board.h"
 
-#include "../modules/timer.h"
-#include "../modules/rtc.h"
-
 #include "card.h"
 #include "timercard.h"
 
@@ -23,6 +20,7 @@ static char TAG[] = "timercard";
 
 uint16_t timerinterrupts = 0;
 static void* timers[TIMERCARD_NUMBEROFTIMERS];
+static void* bigtimers[TIMERCARD_NUMBEROFTIMERS];
 static void* rtc;
 
 static void timercard_raiseinterrupt(int index) {
@@ -51,6 +49,8 @@ static void timercard_init() {
 
 	for (int t = 0; t < SIZEOFARRAY(timers); t++)
 		timers[t] = timermodule.init(&callback, t);
+	for (int t = 0; t < SIZEOFARRAY(bigtimers); t++)
+		timers[t] = bigtimermodule.init(&callback, t);
 
 	rtc = rtcmodule.init(&callback, SIZEOFARRAY(timers) + 1);
 
@@ -67,11 +67,25 @@ static void timercard_tick(int cyclesexecuted) {
 }
 
 static uint16_t timercard_readword(uint32_t address) {
+	if (address == 0)
+		return timerinterrupts;
+
 	return timermodule.read_word(timers[TIMERFROMADDRESS(address)], (uint16_t) (address & 0xf));
 }
 
+static uint32_t timercard_readlong(uint32_t address) {
+	return 0;
+}
+
 static void timercard_writeword(uint32_t address, uint16_t value) {
+	if (address == 0)
+		return;
+
 	timermodule.write_word(timers[TIMERFROMADDRESS(address)], (uint16_t) (address & 0xf), value);
+}
+
+static void timercard_writelong(uint32_t address, uint32_t value) {
+
 }
 
 static bool timercard_isvalidaddress(uint32_t address) {
@@ -110,10 +124,10 @@ const card timercard = { "timer card", //
 		NULL, //
 		NULL, //
 		timercard_readword, //
-		NULL, //
+		timercard_readlong, //
 		NULL, //
 		timercard_writeword, //
-		NULL, //
+		timercard_writelong, //
 		NULL, //
 		NULL, //
 		timercard_cyclesleft //

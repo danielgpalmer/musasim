@@ -14,4 +14,7 @@
 
 const card timercard;
 
+#include "../modules/timer.h"
+#include "../modules/rtc.h"
+
 #endif /* TIMERCARD_H_ */

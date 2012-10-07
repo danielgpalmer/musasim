@@ -18,6 +18,7 @@ typedef struct {
 
 typedef struct {
 	char* name;
+	int registerwords;
 	void* (*init)(module_callback* callback, int index);
 	void (*dispose)(void* context);
 	void (*tick)(void* context, int cycles);

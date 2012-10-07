@@ -24,6 +24,7 @@
 static TTF_Font* font = NULL;
 static SDL_Surface* osd = NULL;
 static SDL_Surface* busactivitylabel;
+static SDL_Surface* dipswitcheslabel;
 static SDL_Surface* debuglabel;
 static SDL_Rect rect, ledlabel, rectled;
 static SDL_Color labels = { .r = 0, .g = 0xff, .b = 0 };
@@ -37,13 +38,13 @@ static void osd_set() {
 void osd_createlabels() {
 	TTF_Init();
 	font = TTF_OpenFont(fontutils_getmonospace(), 15);
-	busactivitylabel = TTF_RenderUTF8_Solid(font, "bus activity", labels);
-	debuglabel = TTF_RenderUTF8_Solid(font, "debug leds", labels);
-	if (font != NULL )
+	if (font != NULL ) {
+		busactivitylabel = TTF_RenderUTF8_Solid(font, "bus activity", labels);
+		dipswitcheslabel = TTF_RenderUTF8_Solid(font, "dip switches", labels);
+		debuglabel = TTF_RenderUTF8_Solid(font, "debug leds", labels);
 		TTF_CloseFont(font);
-
+	}
 	TTF_Quit();
-
 }
 
 void osd_init() {
@@ -94,6 +95,7 @@ void osd_update() {
 	}
 
 	SDL_BlitSurface(busactivitylabel, NULL, osd, NULL );
+	SDL_BlitSurface(dipswitcheslabel, NULL, osd, NULL );
 
 	uint8_t leds = inputcard_getleds();
 	rectled.x = 10;
@@ -122,6 +124,7 @@ void osd_visible(bool visible) {
 void osd_dispose() {
 	SDL_FreeSurface(debuglabel);
 	SDL_FreeSurface(busactivitylabel);
+	SDL_FreeSurface(dipswitcheslabel);
 	SDL_FreeSurface(osd);
 
 }

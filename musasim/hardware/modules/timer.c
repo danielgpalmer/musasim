@@ -140,27 +140,27 @@ static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
 	context_t* c = (context_t*) context;
 	switch (GETREGISTER(address)) {
 		case 0x0:
-			return &(c->flags);
+		return &(c->flags);
 		case 0x1:
-			return &(c->config);
+		return &(c->config);
 		case 0x2:
-			return (uint16_t*)&(c->prescaler);
+		return (uint16_t*)&(c->prescaler);
 		case 0x3:
-			return ((uint16_t*)&(c->prescaler)) + 1;
+		return ((uint16_t*)&(c->prescaler)) + 1;
 		case 0x4:
-			return (uint16_t*)&(c->prescalercounter);
+		return (uint16_t*)&(c->prescalercounter);
 		case 0x5:
-			return (uint16_t*)&(c->counter);
+		return (uint16_t*)&(c->counter);
 		case 0x6:
-			return ((uint16_t*)&(c->counter)) + 1;
+		return ((uint16_t*)&(c->counter)) + 1;
 		case 0x7:
-			return (uint16_t*)&(c->matcha);
+		return (uint16_t*)&(c->matcha);
 		case 0x8:
-			return ((uint16_t*)&(c->matcha)) + 1;
+		return ((uint16_t*)&(c->matcha)) + 1;
 		case 0x9:
-			return (uint16_t*)&(c->matchb);
+		return (uint16_t*)&(c->matchb);
 		case 0x10:
-			return ((uint16_t*)&(c->matchb)) + 1;
+		return ((uint16_t*)&(c->matchb)) + 1;
 	}
 
 	return NULL;
@@ -236,6 +236,11 @@ const module bigtimermodule = { //
 const module timermodule = { //
 #endif
 		TAG, //
+#ifdef TIMER_BIGTIMER
+				BIGTIMERWORDS, //
+#else
+				TIMERWORDS, //
+#endif
 				timer_init, //
 				NULL, //
 				timer_tick, //
