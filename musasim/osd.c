@@ -23,8 +23,9 @@
 
 static TTF_Font* font = NULL;
 static SDL_Surface* osd = NULL;
+static SDL_Surface* busactivitylabel;
 static SDL_Surface* debuglabel;
-static SDL_Rect rect, rectled;
+static SDL_Rect rect, ledlabel, rectled;
 static SDL_Color labels = { .r = 0, .g = 0xff, .b = 0 };
 static Uint32 colourkey, active, inactive, ledon, ledoff;
 static bool osdvisible = false;
@@ -35,7 +36,8 @@ static void osd_set() {
 
 void osd_createlabels() {
 	TTF_Init();
-	font = TTF_OpenFont(fontutils_getmonospace(), 12);
+	font = TTF_OpenFont(fontutils_getmonospace(), 15);
+	busactivitylabel = TTF_RenderUTF8_Solid(font, "bus activity", labels);
 	debuglabel = TTF_RenderUTF8_Solid(font, "debug leds", labels);
 	if (font != NULL )
 		TTF_CloseFont(font);
@@ -58,14 +60,14 @@ void osd_init() {
 	SDL_FillRect(osd, NULL, colourkey);
 
 	rect.h = 10;
-	rect.w = 20;
+	rect.w = LEDWIDTH;
 	rect.x = 0;
 	rect.y = 10;
 
 	rectled.h = LEDHEIGHT;
 	rectled.w = LEDWIDTH;
 	rectled.x = 0;
-	rectled.y = 200;
+	rectled.y = VIDEO_HEIGHT - LEDHEIGHT - 10;
 
 	osd_set();
 
@@ -74,7 +76,7 @@ void osd_init() {
 void osd_update() {
 
 	for (int i = 0; i < NUM_SLOTS; i++) {
-		rect.x = 10 + ((rect.w + 10) * i);
+		rect.x = LEDSPACING + ((rect.w + LEDSPACING) * i);
 
 		Uint32 colour = inactive;
 		const card* c = board_getcardinslot(i);
@@ -91,14 +93,20 @@ void osd_update() {
 
 	}
 
-	SDL_BlitSurface(debuglabel, NULL, osd, NULL );
+	SDL_BlitSurface(busactivitylabel, NULL, osd, NULL );
 
 	uint8_t leds = inputcard_getleds();
-	rectled.x = 0;
+	rectled.x = 10;
 	for (int i = 0; i < LEDS; i++) {
 		SDL_FillRect(osd, &rectled, ((leds >> i) & 1) ? ledon : ledoff);
 		rectled.x += LEDSTRIDE;
 	}
+
+	ledlabel.x = 10;
+	ledlabel.y = rectled.y - debuglabel->h - 5;
+	ledlabel.w = debuglabel->w;
+	ledlabel.h = debuglabel->h;
+	SDL_BlitSurface(debuglabel, NULL, osd, &ledlabel);
 }
 
 void osd_toggle() {
@@ -112,6 +120,8 @@ void osd_visible(bool visible) {
 }
 
 void osd_dispose() {
+	SDL_FreeSurface(debuglabel);
+	SDL_FreeSurface(busactivitylabel);
 	SDL_FreeSurface(osd);
 
 }

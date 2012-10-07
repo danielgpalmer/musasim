@@ -9,15 +9,16 @@
 #define MODULE_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct {
-	void (*raiseinterrupt)();
-	void (*lowerinterrupt)();
+	void (*raiseinterrupt)(int index);
+	void (*lowerinterrupt)(int index);
 } module_callback;
 
 typedef struct {
 	char* name;
-	void* (*init)(module_callback* callback);
+	void* (*init)(module_callback* callback, int index);
 	void (*dispose)(void* context);
 	void (*tick)(void* context, int cycles);
 	uint8_t (*read_byte)(void* context, uint16_t address);

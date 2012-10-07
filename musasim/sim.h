@@ -7,7 +7,7 @@
 
 #include <stdbool.h>
 
-void sim_setoptions(bool usebasicvideo, bool usebasicsound);
+void sim_setoptions(bool usebasicvideo, bool usebasicsound, bool osd);
 void sim_init(void);
 void sim_quit(void);
 void sim_reset(void);

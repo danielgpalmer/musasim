@@ -6,7 +6,7 @@ CP=$(TCPREFIX)/m68k-elf-objcopy
 
 AFLAGS=-ahls -m68000
 CFLAGS=-mc68000 -ggdb -std=gnu99 -Wall -O2 -Wstrict-aliasing -flto
-LFLAGS=-mc68000 -Trom.lds -nostartfiles -Wl,-u_write_r,-u_close_r,-u_isatty_r,-u_lseek_r,-u_sbrk_r,-u_fstat_r,-u_read_r,-Map=prog.map,--cref -flto
+LFLAGS=-mc68000 -Trom.lds -nostartfiles -Wl,-u_write_r,-u_close_r,-u_isatty_r,-u_lseek_r,-u_sbrk_r,-u_fstat_r,-u_read_r,-u_impure_ptr,-u_global_impure_ptr,-Map=prog.map,--cref -flto
 
 all: prog.bin prog.srec
 

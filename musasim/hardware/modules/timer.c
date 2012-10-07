@@ -19,13 +19,22 @@
 
 typedef struct {
 	module_callback* cb;
+	int index;
 	uint16_t flags;
 	uint16_t config;
+#ifdef TIMER_BIGTIMER
+	uint32_t prescaler;
+	uint32_t prescalercounter;
+	uint32_t counter;
+	uint32_t matcha;
+	uint32_t matchb;
+#else
 	uint16_t prescaler;
 	uint16_t prescalercounter;
 	uint16_t counter;
 	uint16_t matcha;
 	uint16_t matchb;
+#endif
 } context_t;
 
 /* flags
@@ -61,9 +70,10 @@ typedef struct {
 #define MATCHA_INTERRUPT_ENABLED(c) (c->config & TIMERS_REGISTER_CONFIG_ENMATCHAINT)
 #define MATCHB_INTERRUPT_ENABLED(c) (c->config & TIMERS_REGISTER_CONFIG_ENMATCHBINT)
 
-static void* timer_init(module_callback* callback) {
+static void* timer_init(module_callback* callback, int index) {
 	context_t * c = calloc(sizeof(context_t), 1);
 	c->cb = callback;
+	c->index = index;
 	return c;
 }
 
@@ -90,7 +100,7 @@ static void timer_tick(void* context, int cycles) {
 
 			if (MATCHA_INTERRUPT_ENABLED(c) && !FLAGGED_INTERRUPTMATCHA(c)) {
 				SET_FLAG_INTERRUPTMATCHA(c);
-				c->cb->raiseinterrupt();
+				c->cb->raiseinterrupt(c->index);
 			}
 		}
 
@@ -101,7 +111,7 @@ static void timer_tick(void* context, int cycles) {
 
 			if (MATCHB_INTERRUPT_ENABLED(c) && !FLAGGED_INTERRUPTMATCHB(c)) {
 				SET_FLAG_INTERRUPTMATCHB(c);
-				c->cb->raiseinterrupt();
+				c->cb->raiseinterrupt(c->index);
 			}
 		}
 	}
@@ -121,6 +131,42 @@ static void timer_dumpconfig(context_t* context) {
 	log_println(LEVEL_INFO, TAG, "matchb: 0x%04"PRIx16, context->matchb);
 
 }
+
+#ifdef TIMER_BIGTIMER
+
+//TODO UNTESTED! Endian issues..
+
+static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
+	context_t* c = (context_t*) context;
+	switch (GETREGISTER(address)) {
+		case 0x0:
+			return &(c->flags);
+		case 0x1:
+			return &(c->config);
+		case 0x2:
+			return (uint16_t*)&(c->prescaler);
+		case 0x3:
+			return ((uint16_t*)&(c->prescaler)) + 1;
+		case 0x4:
+			return (uint16_t*)&(c->prescalercounter);
+		case 0x5:
+			return (uint16_t*)&(c->counter);
+		case 0x6:
+			return ((uint16_t*)&(c->counter)) + 1;
+		case 0x7:
+			return (uint16_t*)&(c->matcha);
+		case 0x8:
+			return ((uint16_t*)&(c->matcha)) + 1;
+		case 0x9:
+			return (uint16_t*)&(c->matchb);
+		case 0x10:
+			return ((uint16_t*)&(c->matchb)) + 1;
+	}
+
+	return NULL;
+}
+
+#else
 
 static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
 	context_t* c = (context_t*) context;
@@ -145,6 +191,8 @@ static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
 	return NULL ;
 }
 
+#endif
+
 static void timer_writeword(void* context, uint16_t address, uint16_t value) {
 	context_t* c = (context_t*) context;
 	uint16_t* reg = timer_getregisterincontext(context, address);
@@ -153,6 +201,7 @@ static void timer_writeword(void* context, uint16_t address, uint16_t value) {
 		if (reg == &(c->flags)) {
 			CLEAR_FLAG_INTERRUPTMATCHA(c);
 			CLEAR_FLAG_INTERRUPTMATCHB(c);
+			c->cb->lowerinterrupt(c->index);
 		}
 		else
 			*reg = value;
@@ -181,7 +230,11 @@ static int timer_cyclesleft(void* context) {
 
 }
 
+#ifdef TIMER_BIGTIMER
+const module bigtimermodule = { //
+#else
 const module timermodule = { //
+#endif
 		TAG, //
 				timer_init, //
 				NULL, //
@@ -194,3 +247,4 @@ const module timermodule = { //
 				NULL, //
 				timer_cyclesleft //
 		};
+

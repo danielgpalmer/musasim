@@ -10,6 +10,7 @@
 #include <stdint.h>
 
 
+#define timers_timerinterrupts (*(volatile uint16_t*) 0xc00000)
 #define timers_timer_0_flags (*(volatile uint16_t*) 0xc00000)
 #define timers_timer_0_config (*(volatile uint16_t*) 0xc00002)
 #define timers_timer_0_prescaler (*(volatile uint16_t*) 0xc00004)

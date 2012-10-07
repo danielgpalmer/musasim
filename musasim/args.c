@@ -31,6 +31,7 @@ bool args_parse(int argc, char* argv[]) {
 	struct arg_file *elfpath = arg_file0("e", "elf", "elf executable", "Path of an Elf binary to load into ROM");
 	struct arg_lit *loguartchone = arg_lit0(NULL, "loguartchanone",
 			"Log bytes coming out of uart channel one to stdout");
+	struct arg_lit *osd = arg_lit0(NULL, "osd", "Display the osd at startup");
 	struct arg_lit *basicvideo = arg_lit0(NULL, "basicvideo", "Use the basic video card");
 	struct arg_lit *basicsound = arg_lit0(NULL, "basicsound", "Use the basic sound card");
 	struct arg_int *loglevel = arg_int0(NULL, "loglevel", "level", "");
@@ -40,10 +41,10 @@ bool args_parse(int argc, char* argv[]) {
 	struct arg_int *gdbport = arg_int1("p", "port", "", "Port to listen for GDB connections");
 	struct arg_file *profile = arg_file0("m", "profileroutput", "",
 			"Trace program execution and write it to a gprof file");
-	void *argtable[] = { help, rompath, elfpath, cfpath, gdbport, profile, loguartchone, loglevel, basicvideo,
+	void *argtable[] = { help, rompath, elfpath, cfpath, gdbport, profile, loguartchone, osd, loglevel, basicvideo,
 			basicsound, end };
 #else
-	void *argtable[] = {help, rompath, elfpath, cfpath, loguartchone, basicvideo, loglevel, basicsound, end};
+	void *argtable[] = {help, rompath, elfpath, cfpath, loguartchone, osd,basicvideo, loglevel, basicsound, end};
 #endif
 
 	if (arg_nullcheck(argtable) != 0) {
@@ -110,7 +111,7 @@ bool args_parse(int argc, char* argv[]) {
 
 #endif
 
-		sim_setoptions(basicvideo->count == 1, basicsound->count == 1);
+		sim_setoptions(basicvideo->count == 1, basicsound->count == 1, osd->count == 1);
 
 		if (loguartchone->count == 1) {
 			uart_enable_logging();

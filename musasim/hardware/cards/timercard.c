@@ -21,14 +21,23 @@ static char TAG[] = "timercard";
 
 #define TIMERFROMADDRESS(a) ((a & 0x30) >> 4)
 
-void* timers[TIMERCARD_NUMBEROFTIMERS];
-void* rtc;
+uint16_t timerinterrupts = 0;
+static void* timers[TIMERCARD_NUMBEROFTIMERS];
+static void* rtc;
 
-static void timercard_raiseinterrupt() {
+static void timercard_raiseinterrupt(int index) {
+
+	if (index < TIMERCARD_NUMBEROFTIMERS) {
+		timerinterrupts |= (1 << index);
+	}
 	board_raise_interrupt(&timercard);
+
 }
 
-static void timercard_lowerinterrupt() {
+static void timercard_lowerinterrupt(int index) {
+	if (index < TIMERCARD_NUMBEROFTIMERS) {
+		timerinterrupts &= ~(1 << index);
+	}
 	board_lower_interrupt(&timercard);
 }
 
@@ -41,9 +50,9 @@ static void timercard_init() {
 	log_println(LEVEL_INFO, TAG, "timercard_init()");
 
 	for (int t = 0; t < SIZEOFARRAY(timers); t++)
-		timers[t] = timermodule.init(&callback);
+		timers[t] = timermodule.init(&callback, t);
 
-	rtc = rtcmodule.init(&callback);
+	rtc = rtcmodule.init(&callback, SIZEOFARRAY(timers) + 1);
 
 }
 
@@ -85,10 +94,14 @@ static int timercard_cyclesleft() {
 	return cycles;
 }
 
+static void timercard_reset() {
+	timerinterrupts = 0;
+}
+
 const card timercard = { "timer card", //
 		timercard_init, //
 		timercard_dispose, //
-		NULL, //
+		timercard_reset, //
 		timercard_tick, //
 		timercard_irqack, //
 		NULL, //

@@ -47,6 +47,9 @@ static bool shouldexit = false;
 static bool paused = false;
 static bool initialised = false;
 
+//
+static bool osdonstate = false;
+
 // machine configuration
 static bool basicvideo = false;
 static bool basicsound = false;
@@ -141,7 +144,7 @@ void cpu_set_fc(unsigned int fc) {
 	board_setfc(fc);
 }
 
-void sim_setoptions(bool usebasicvideo, bool usebasicsound) {
+void sim_setoptions(bool usebasicvideo, bool usebasicsound, bool osd) {
 	if (initialised) {
 		log_println(LEVEL_WARNING, TAG, "setoptions can only be called before the sim starts running");
 		return;
@@ -149,6 +152,7 @@ void sim_setoptions(bool usebasicvideo, bool usebasicsound) {
 
 	basicvideo = usebasicvideo;
 	basicsound = usebasicsound;
+	osdonstate = osd;
 }
 
 void sim_init() {
@@ -171,6 +175,8 @@ void sim_init() {
 	board_add_device(SLOT_INPUTCARD, &inputcard);
 
 	osd_init();
+	if (osdonstate)
+		osd_visible(true);
 
 	initialised = true;
 }

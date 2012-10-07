@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include "rtc.h"
 
-static void* rtc_init(module_callback* callback) {
+static void* rtc_init(module_callback* callback, int index) {
 
 	return NULL ;
 
