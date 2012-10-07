@@ -222,6 +222,12 @@ static uint16_t timer_readword(void* context, uint16_t address) {
 		return 0;
 }
 
+#ifdef TIMER_BIGTIMER
+static uint32_t timer_readlong(void* context, uint16_t address) {
+	return 0;
+}
+#endif
+
 static int timer_cyclesleft(void* context) {
 
 	context_t* c = (context_t*) context;
@@ -249,7 +255,11 @@ const module timermodule = { //
 				timer_tick, //
 				NULL, //
 				timer_readword, //
+#ifdef TIMER_BIGTIMER
+				timer_readlong, //
+#else
 				NULL, //
+#endif
 				NULL, //
 				timer_writeword, //
 				NULL, //

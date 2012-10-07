@@ -24,21 +24,11 @@ static void* timers[TIMERCARD_NUMBEROFTIMERS];
 static void* bigtimers[TIMERCARD_NUMBEROFTIMERS];
 static void* rtc;
 
-static void timercard_raiseinterrupt(int index) {
+static uint32_t timersstart, timersend;
+static uint32_t bigtimersstart, bigtimersend;
 
-	if (index < TIMERCARD_NUMBEROFTIMERS) {
-		timerinterrupts |= (1 << index);
-	}
-	board_raise_interrupt(&timercard);
-
-}
-
-static void timercard_lowerinterrupt(int index) {
-	if (index < TIMERCARD_NUMBEROFTIMERS) {
-		timerinterrupts &= ~(1 << index);
-	}
-	board_lower_interrupt(&timercard);
-}
+static void timercard_raiseinterrupt(int index);
+static void timercard_lowerinterrupt(int index);
 
 static module_callback callback = { //
 		timercard_raiseinterrupt, //
@@ -57,6 +47,22 @@ static void timercard_init() {
 
 }
 
+static void timercard_raiseinterrupt(int index) {
+
+	if (index < TIMERCARD_NUMBEROFTIMERS) {
+		timerinterrupts |= (1 << index);
+	}
+	board_raise_interrupt(&timercard);
+
+}
+
+static void timercard_lowerinterrupt(int index) {
+	if (index < TIMERCARD_NUMBEROFTIMERS) {
+		timerinterrupts &= ~(1 << index);
+	}
+	board_lower_interrupt(&timercard);
+}
+
 static void timercard_dispose() {
 	for (int t = 0; t < SIZEOFARRAY(timers); t++)
 		free(timers[t]);
@@ -70,12 +76,17 @@ static void timercard_tick(int cyclesexecuted) {
 static uint16_t timercard_readword(uint32_t address) {
 	if (address == 0)
 		return timerinterrupts;
-
-	return timermodule.read_word(timers[TIMERFROMADDRESS(address)], (uint16_t) ADDRESSFORTIMER(address));
+	if (address >= timersstart && address <= timersend)
+		return timermodule.read_word(timers[TIMERFROMADDRESS(address)], (uint16_t) ADDRESSFORTIMER(address));
+	else
+		return 0;
 }
 
 static uint32_t timercard_readlong(uint32_t address) {
-	return 0;
+	if (address >= bigtimersstart && address <= bigtimersend)
+		return 1;
+	else
+		return 0;
 }
 
 static void timercard_writeword(uint32_t address, uint16_t value) {

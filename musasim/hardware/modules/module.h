@@ -11,10 +11,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// a struct that will be passed from the host "card" into the module so that it can raise
+// the cards interrupt etc
+
 typedef struct {
 	void (*raiseinterrupt)(int index);
 	void (*lowerinterrupt)(int index);
 } module_callback;
+
+// a struct that represents the access points and some other bits about the module
 
 typedef struct {
 	char* name;
