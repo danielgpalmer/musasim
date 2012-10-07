@@ -170,7 +170,8 @@ static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
 
 static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
 	context_t* c = (context_t*) context;
-	switch (GETREGISTER(address)) {
+	int reg = GETREGISTER(address);
+	switch (reg) {
 		case 0x0:
 			return &(c->flags);
 		case 0x1:
@@ -185,10 +186,12 @@ static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
 			return &(c->matcha);
 		case 0x6:
 			return &(c->matchb);
+		default:
+			log_println(LEVEL_INFO, TAG, "Bad register %d", reg);
+			return NULL ;
 
 	}
 
-	return NULL ;
 }
 
 #endif

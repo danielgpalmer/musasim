@@ -16,7 +16,8 @@
 
 static char TAG[] = "timercard";
 
-#define TIMERFROMADDRESS(a) ((a & 0x30) >> 4)
+#define TIMERFROMADDRESS(a) (((a - 2) & 0x30) >> 4)
+#define ADDRESSFORTIMER(a) ((a - 2) & 0xf)
 
 uint16_t timerinterrupts = 0;
 static void* timers[TIMERCARD_NUMBEROFTIMERS];
@@ -70,7 +71,7 @@ static uint16_t timercard_readword(uint32_t address) {
 	if (address == 0)
 		return timerinterrupts;
 
-	return timermodule.read_word(timers[TIMERFROMADDRESS(address)], (uint16_t) (address & 0xf));
+	return timermodule.read_word(timers[TIMERFROMADDRESS(address)], (uint16_t) ADDRESSFORTIMER(address));
 }
 
 static uint32_t timercard_readlong(uint32_t address) {
@@ -81,7 +82,7 @@ static void timercard_writeword(uint32_t address, uint16_t value) {
 	if (address == 0)
 		return;
 
-	timermodule.write_word(timers[TIMERFROMADDRESS(address)], (uint16_t) (address & 0xf), value);
+	timermodule.write_word(timers[TIMERFROMADDRESS(address)], (uint16_t) ADDRESSFORTIMER(address), value);
 }
 
 static void timercard_writelong(uint32_t address, uint32_t value) {
