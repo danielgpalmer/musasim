@@ -13,5 +13,6 @@
 #define TIMERS_CLEARFLAGS (timers_timer_0_flags = 0x00)
 
 void timers_setup(void);
+void timers_bigsetup(void);
 
 #endif /* TIMERS_H_ */

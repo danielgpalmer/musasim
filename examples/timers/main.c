@@ -33,9 +33,10 @@ void timerinterrupt() {
 int main() {
 
 	timers_setup();
+	timers_bigsetup();
 
 	uint16_t sr = machine_getstatusregister();
-	machine_setstatusregister((sr & 0xf8ff));
+	//machine_setstatusregister((sr & 0xf8ff));
 	while (1) {
 
 	}

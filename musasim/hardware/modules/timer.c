@@ -15,7 +15,11 @@
 #include "../../logging.h"
 #include "../../sim.h"
 
+#ifdef TIMER_BIGTIMER
+#define TAG "bigtimermodule"
+#else
 #define TAG "timermodule"
+#endif
 
 typedef struct {
 	module_callback* cb;
@@ -120,15 +124,23 @@ static void timer_tick(void* context, int cycles) {
 
 #define GETREGISTER(a) ((a & 0xf) >> 1)
 
+#ifdef TIMER_BIGTIMER
+#define PRINTPAD "8"
+#define PRINTTOKEN PRIx32
+#else
+#define PRINTPAD "4"
+#define PRINTTOKEN PRIx16
+#endif
+
 static void timer_dumpconfig(context_t* context) {
 
 	log_println(LEVEL_INFO, TAG, "flags: 0x%04"PRIx16, context->flags);
 	log_println(LEVEL_INFO, TAG, "config: 0x%04"PRIx16, context->config);
-	log_println(LEVEL_INFO, TAG, "prescaler: 0x%04"PRIx16, context->prescaler);
-	log_println(LEVEL_INFO, TAG, "prescalercounter: 0x%04"PRIx16, context->prescalercounter);
-	log_println(LEVEL_INFO, TAG, "counter: 0x%04"PRIx16, context->counter);
-	log_println(LEVEL_INFO, TAG, "matcha: 0x%04"PRIx16, context->matcha);
-	log_println(LEVEL_INFO, TAG, "matchb: 0x%04"PRIx16, context->matchb);
+	log_println(LEVEL_INFO, TAG, "prescaler: 0x%0"PRINTPAD PRINTTOKEN, context->prescaler);
+	log_println(LEVEL_INFO, TAG, "prescalercounter: 0x%0"PRINTPAD PRINTTOKEN, context->prescalercounter);
+	log_println(LEVEL_INFO, TAG, "counter: 0x%0"PRINTPAD PRINTTOKEN, context->counter);
+	log_println(LEVEL_INFO, TAG, "matcha: 0x%0"PRINTPAD PRINTTOKEN, context->matcha);
+	log_println(LEVEL_INFO, TAG, "matchb: 0x%0"PRINTPAD PRINTTOKEN, context->matchb);
 
 }
 
@@ -223,6 +235,10 @@ static uint16_t timer_readword(void* context, uint16_t address) {
 }
 
 #ifdef TIMER_BIGTIMER
+static void timer_writelong(void* context, uint16_t address, uint32_t value) {
+
+}
+
 static uint32_t timer_readlong(void* context, uint16_t address) {
 	return 0;
 }
@@ -262,7 +278,11 @@ const module timermodule = { //
 #endif
 				NULL, //
 				timer_writeword, //
+#ifdef TIMER_BIGTIMER
+				timer_writelong, //
+#else
 				NULL, //
+#endif
 				timer_cyclesleft //
 		};
 
