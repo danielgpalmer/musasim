@@ -12,21 +12,25 @@
 #include "registerplanner.h"
 #include "../utils.h"
 
-static void registerplanner_printblocks(requirements** registerblocks) {
+static void registerplanner_printblocks(requirements** registerblocks, bool traverse) {
 	requirements** blocks = registerblocks;
 	while ((*blocks)) {
 
 		int regwidth = (*blocks)->registerwidth;
 		int numregs = (*blocks)->numberofregisters;
-		int blocksize = regwidth * numregs;
-		(*blocks)->total = blocksize;
 
 		printf(
 				"block -> register width %d, number of registers %d, total size %d, blockstart 0x%08"PRIx32", blockend 0x%08"PRIx32"\n",
-				regwidth, numregs, blocksize, (*blocks)->blockstart, (*blocks)->blockend);
-		blocks++;
+				regwidth, numregs, (*blocks)->total, (*blocks)->blockstart, (*blocks)->blockend);
 
+		if (traverse && (*blocks)->child != NULL ) {
+			printf("---\n");
+			registerplanner_printblocks((*blocks)->child, false);
+			printf("---\n");
+		}
+		blocks++;
 	}
+
 }
 
 static bool registerplanner_sortinner(requirements** registerblocks) {
@@ -65,21 +69,51 @@ static void registerplanner_prep(requirements** registerblocks, int* biggest, in
 	requirements** blocks = registerblocks;
 	while ((*blocks)) {
 		int regwidth = (*blocks)->registerwidth;
-		int numregs = (*blocks)->numberofregisters;
-		int blocksize = regwidth * numregs;
-		(*blocks)->total = blocksize;
 
-		if (blocksize > *biggest)
-			*biggest = blocksize;
+		if (regwidth == 0) {
+			int blocksize = 0;
 
-		*total += blocksize;
+			printf("---\n");
 
+			requirements** children = (*blocks)->child;
+			registerplanner_printblocks(children, false);
+			while ((*children)) {
+				blocksize += (*children)->total;
+				children++;
+			}
+
+			if (blocksize > *biggest)
+				*biggest = blocksize;
+
+			(*blocks)->total = blocksize;
+
+		}
+		else {
+			int numregs = (*blocks)->numberofregisters;
+			int blocksize;
+
+			// pad 8bit registers as they will only be connected to one byte lane
+			if (regwidth == 1)
+				blocksize = 2 * numregs;
+			else if (regwidth == -1)
+				blocksize = numregs;
+			else
+				blocksize = regwidth * numregs;
+
+			(*blocks)->total = blocksize;
+
+			if (blocksize > *biggest)
+				*biggest = blocksize;
+
+			*total += blocksize;
+
+		}
 		blocks++;
-		*numberofblocks = *numberofblocks + 1;
+		(*numberofblocks)++;
 	}
 }
 
-void registerplanner_plan(requirements** registerblocks, scheme s) {
+void registerplanner_plan(requirements** registerblocks, scheme s, bool sort) {
 
 	printf("planning registers\n");
 
@@ -92,19 +126,43 @@ void registerplanner_plan(requirements** registerblocks, scheme s) {
 	if (numberofblocks == 0)
 		return;
 
-	if (numberofblocks > 1)
+	if (sort && numberofblocks > 1)
 		registerplanner_sort(registerblocks);
 
-	requirements** blocks = registerblocks;
-	uint32_t blocksize = utils_nextpow(biggest);
-	uint32_t last = 0;
-	while ((*blocks)) {
-		(*blocks)->blockstart = last;
-		last += blocksize;
-		(*blocks)->blockend = (*blocks)->blockstart + (*blocks)->total;
-		blocks++;
+	switch (s) {
+		case chipselectblocks: {
+			requirements** blocks = registerblocks;
+			uint32_t blocksize = utils_nextpow(biggest);
+			uint32_t last = 0;
+			while ((*blocks)) {
+				(*blocks)->blockstart = last;
+				last += blocksize;
+				(*blocks)->blockend = (*blocks)->blockstart + (*blocks)->total;
+
+				requirements** children = (*blocks)->child;
+				while ((*children)) {
+					(*children)->blockstart += (*blocks)->blockstart;
+					(*children)->blockend += (*blocks)->blockstart;
+					children++;
+				}
+
+				blocks++;
+			}
+		}
+			break;
+		case packed: {
+			requirements** blocks = registerblocks;
+			uint32_t last = 0;
+			while ((*blocks)) {
+				(*blocks)->blockstart = last;
+				last += (*blocks)->total + ((*blocks)->total % 4);
+				(*blocks)->blockend = (*blocks)->blockstart + (*blocks)->total;
+				blocks++;
+			}
+		}
+			break;
 	}
 
 	printf("register layout\n");
-	registerplanner_printblocks(registerblocks);
+	registerplanner_printblocks(registerblocks, true);
 }
