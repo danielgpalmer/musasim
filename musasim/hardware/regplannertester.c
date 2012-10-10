@@ -53,5 +53,11 @@ int main() {
 
 	registerplanner_plan(blocks, chipselectblocks, true);
 
+	uint32_t registeraddress = 0x108;
+	int block = registerplanner_whichblock(blocks, registeraddress);
+	int regnum = registerplanner_whichregister(blocks[block]->child, registeraddress);
+
+	printf("in block %d, register %d \n", block, regnum);
+
 	return 0;
 }

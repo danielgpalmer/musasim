@@ -27,5 +27,7 @@ struct requirements {
 };
 
 void registerplanner_plan(requirements** registerblocks, scheme s, bool sort);
+int registerplanner_whichblock(requirements** blocks, uint32_t address);
+int registerplanner_whichregister(requirements** peripheral, uint32_t address);
 
 #endif /* REGISTERPLANNER_H_ */

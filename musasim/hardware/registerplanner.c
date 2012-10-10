@@ -79,6 +79,7 @@ static void registerplanner_prep(requirements** registerblocks, int* biggest, in
 			registerplanner_printblocks(children, false);
 			while ((*children)) {
 				blocksize += (*children)->total;
+				(*blocks)->numberofregisters += (*children)->numberofregisters;
 				children++;
 			}
 
@@ -97,8 +98,9 @@ static void registerplanner_prep(requirements** registerblocks, int* biggest, in
 				blocksize = 2 * numregs;
 			else if (regwidth == -1)
 				blocksize = numregs;
-			else
-				blocksize = regwidth * numregs;
+			else {
+				blocksize = (regwidth * numregs);
+			}
 
 			(*blocks)->total = blocksize;
 
@@ -156,7 +158,7 @@ void registerplanner_plan(requirements** registerblocks, scheme s, bool sort) {
 			while ((*blocks)) {
 				(*blocks)->blockstart = last;
 				last += (*blocks)->total + ((*blocks)->total % 4);
-				(*blocks)->blockend = (*blocks)->blockstart + (*blocks)->total;
+				(*blocks)->blockend = (*blocks)->blockstart + (*blocks)->total - 1;
 				blocks++;
 			}
 		}
@@ -165,4 +167,37 @@ void registerplanner_plan(requirements** registerblocks, scheme s, bool sort) {
 
 	printf("register layout\n");
 	registerplanner_printblocks(registerblocks, true);
+}
+
+int registerplanner_whichblock(requirements** blocks, uint32_t address) {
+
+	int which = 0;
+
+	while ((*blocks)) {
+
+		if (address >= (*blocks)->blockstart && address <= (*blocks)->blockend)
+			return which;
+
+		which++;
+		blocks++;
+	}
+
+	return -1;
+}
+
+int registerplanner_whichregister(requirements** peripheral, uint32_t address) {
+
+	int which = 0;
+
+	while ((*peripheral)) {
+
+		if (address >= (*peripheral)->blockstart && address <= (*peripheral)->blockend) {
+			return which;
+		}
+
+		which += (*peripheral)->numberofregisters;
+		peripheral++;
+	}
+
+	return -1;
 }
