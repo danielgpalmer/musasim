@@ -32,9 +32,10 @@ int main() {
 	registergroup* peripheral0groups[] = { &peripheral0_0, &peripheral0_1, &peripheral0_2, &peripheral0_3,
 			&peripheral0_4, NULL };
 
-	peripheral peripheral0;
-	peripheral0.registergroups = peripheral0groups;
-	peripheral0.numberofregistergroups = SIZEOFARRAY(peripheral0groups) - 1;
+	unit peripheral0;
+	peripheral0.type = PERIPHERAL;
+	peripheral0.peripheral.registergroups = peripheral0groups;
+	peripheral0.peripheral.numberofregistergroups = SIZEOFARRAY(peripheral0groups) - 1;
 	//
 
 	// peripheral 1
@@ -47,9 +48,10 @@ int main() {
 	registergroup* peripheral1groups[] = { &peripheral1_0, &peripheral1_1, &peripheral1_2, &peripheral1_3,
 			&peripheral1_4, NULL };
 
-	peripheral peripheral1;
-	peripheral1.registergroups = peripheral1groups;
-	peripheral1.numberofregistergroups = SIZEOFARRAY(peripheral1groups) - 1;
+	unit peripheral1;
+	peripheral1.type = PERIPHERAL;
+	peripheral1.peripheral.registergroups = peripheral1groups;
+	peripheral1.peripheral.numberofregistergroups = SIZEOFARRAY(peripheral1groups) - 1;
 	//
 
 	// peripheral 2
@@ -62,17 +64,25 @@ int main() {
 	registergroup* peripheral2groups[] = { &peripheral2_0, &peripheral2_1, &peripheral2_2, &peripheral2_3,
 			&peripheral2_4, NULL };
 
-	peripheral peripheral2;
-	peripheral2.registergroups = peripheral2groups;
-	peripheral2.numberofregistergroups = SIZEOFARRAY(peripheral2groups) - 1;
+	unit peripheral2;
+	peripheral2.type = PERIPHERAL;
+	peripheral2.peripheral.registergroups = peripheral2groups;
+	peripheral2.peripheral.numberofregistergroups = SIZEOFARRAY(peripheral2groups) - 1;
 	//
 
-	peripheral* cardperipherals[] = { &peripheral0, &peripheral1, &peripheral2, NULL };
+	// a block of memory
+	unit block0;
+	block0.type = BLOCK;
+	block0.block.bytes = 1056;
+	//
+
+	unit* cardunits[] = { &peripheral0, &peripheral1, &peripheral2, &block0, NULL };
 	cardaddressspace card;
-	card.peripherals = cardperipherals;
-	card.numberofperipherals = SIZEOFARRAY(cardperipherals) - 1;
+	card.units = cardunits;
+	card.numberofperipherals = SIZEOFARRAY(cardunits) - 1;
 
 	registerplanner_plan(&card);
+	registerplanner_print(&card);
 
 	//uint32_t registeraddress = 0x10a;
 	//int block = registerplanner_whichblock(card, registeraddress);
