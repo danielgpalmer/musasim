@@ -8,56 +8,77 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "registerplanner.h"
+#include "../utils.h"
 
 int main() {
 
 	printf("register planner tester\n");
 
-	requirements peripheral0_0 = { 1, 1, 0, 0, 0, NULL };
-	requirements peripheral0_1 = { 2, 6, 0, 0, 0, NULL };
-	requirements peripheral0_2 = { 4, 20, 0, 0, 0, NULL };
-	requirements peripheral0_3 = { 1, 2, 0, 0, 0, NULL };
-	requirements peripheral0_4 = { 2, 4, 0, 0, 0, NULL };
+	// peripheral 0
+	const char* peripheral0_0_names[] = { "dummyregisters_0_0", NULL };
+	const char* peripheral0_1_names[] = { "dummyregisters_0_1", "dummyregisters_0_2", "dummyregisters_0_3",
+			"dummyregisters_0_4", "dummyregisters_0_5", "dummyregisters_0_6", NULL };
+	const char* peripheral0_2_names[] = { "dummyregisters_0_7", "dummyregisters_0_8", "dummyregisters_0_9", NULL };
+	const char* peripheral0_3_names[] = { "dummyregisters_0_10", "dummyregisters_0_11", "dummyregisters_0_12", NULL };
+	const char* peripheral0_4_names[] = { "dummyregisters_0_13", "dummyregisters_0_14", "dummyregisters_0_15",
+			"dummyregisters_0_16", NULL };
 
-	requirements* peripheral0[] =
-			{ &peripheral0_0, &peripheral0_1, &peripheral0_2, &peripheral0_3, &peripheral0_4, NULL };
+	registergroup peripheral0_0 = { 1, 1, peripheral0_0_names, 0, 0, 0 };
+	registergroup peripheral0_1 = { 2, 6, peripheral0_1_names, 0, 0, 0 };
+	registergroup peripheral0_2 = { 4, 3, peripheral0_2_names, 0, 0, 0 };
+	registergroup peripheral0_3 = { 1, 2, peripheral0_3_names, 0, 0, 0 };
+	registergroup peripheral0_4 = { 2, 4, peripheral0_4_names, 0, 0, 0 };
 
-	registerplanner_plan(peripheral0, packed, false);
+	registergroup* peripheral0groups[] = { &peripheral0_0, &peripheral0_1, &peripheral0_2, &peripheral0_3,
+			&peripheral0_4, NULL };
 
-	requirements peripheral1_0 = { 1, 2, 0, 0, 0, NULL };
-	requirements peripheral1_1 = { 2, 6, 0, 0, 0, NULL };
-	requirements peripheral1_2 = { 4, 20, 0, 0, 0, NULL };
-	requirements peripheral1_3 = { 1, 2, 0, 0, 0, NULL };
-	requirements peripheral1_4 = { 2, 4, 0, 0, 0, NULL };
+	peripheral peripheral0;
+	peripheral0.registergroups = peripheral0groups;
+	peripheral0.numberofregistergroups = SIZEOFARRAY(peripheral0groups) - 1;
+	//
 
-	requirements* peripheral1[] =
-			{ &peripheral1_0, &peripheral1_1, &peripheral1_2, &peripheral1_3, &peripheral1_4, NULL };
+	// peripheral 1
+	registergroup peripheral1_0 = { 1, 2, NULL, 0, 0, 0 };
+	registergroup peripheral1_1 = { 2, 6, NULL, 0, 0, 0 };
+	registergroup peripheral1_2 = { 4, 20, NULL, 0, 0, 0 };
+	registergroup peripheral1_3 = { 1, 2, NULL, 0, 0, 0 };
+	registergroup peripheral1_4 = { 2, 4, NULL, 0, 0, 0 };
 
-	registerplanner_plan(peripheral1, packed, false);
+	registergroup* peripheral1groups[] = { &peripheral1_0, &peripheral1_1, &peripheral1_2, &peripheral1_3,
+			&peripheral1_4, NULL };
 
-	requirements peripheral2_0 = { 1, 3, 0, 0, 0, NULL };
-	requirements peripheral2_1 = { 2, 6, 0, 0, 0, NULL };
-	requirements peripheral2_2 = { 4, 20, 0, 0, 0, NULL };
-	requirements peripheral2_3 = { 1, 2, 0, 0, 0, NULL };
-	requirements peripheral2_4 = { 2, 4, 0, 0, 0, NULL };
+	peripheral peripheral1;
+	peripheral1.registergroups = peripheral1groups;
+	peripheral1.numberofregistergroups = SIZEOFARRAY(peripheral1groups) - 1;
+	//
 
-	requirements* peripheral2[] =
-			{ &peripheral2_0, &peripheral2_1, &peripheral2_2, &peripheral2_3, &peripheral2_4, NULL };
+	// peripheral 2
+	registergroup peripheral2_0 = { 1, 3, NULL, 0, 0, 0 };
+	registergroup peripheral2_1 = { 2, 6, NULL, 0, 0, 0 };
+	registergroup peripheral2_2 = { 4, 20, NULL, 0, 0, 0 };
+	registergroup peripheral2_3 = { 1, 2, NULL, 0, 0, 0 };
+	registergroup peripheral2_4 = { 2, 4, NULL, 0, 0, 0 };
 
-	registerplanner_plan(peripheral2, packed, false);
+	registergroup* peripheral2groups[] = { &peripheral2_0, &peripheral2_1, &peripheral2_2, &peripheral2_3,
+			&peripheral2_4, NULL };
 
-	requirements block0 = { 0, 0, 0, 0, 0, peripheral0 };
-	requirements block1 = { 0, 0, 0, 0, 0, peripheral1 };
-	requirements block2 = { 0, 0, 0, 0, 0, peripheral2 };
-	requirements* blocks[] = { &block0, &block1, &block2, NULL };
+	peripheral peripheral2;
+	peripheral2.registergroups = peripheral2groups;
+	peripheral2.numberofregistergroups = SIZEOFARRAY(peripheral2groups) - 1;
+	//
 
-	registerplanner_plan(blocks, chipselectblocks, true);
+	peripheral* cardperipherals[] = { &peripheral0, &peripheral1, &peripheral2, NULL };
+	cardaddressspace card;
+	card.peripherals = cardperipherals;
+	card.numberofperipherals = SIZEOFARRAY(cardperipherals) - 1;
 
-	uint32_t registeraddress = 0x108;
-	int block = registerplanner_whichblock(blocks, registeraddress);
-	int regnum = registerplanner_whichregister(blocks[block]->child, registeraddress);
+	registerplanner_plan(&card);
 
-	printf("in block %d, register %d \n", block, regnum);
+	//uint32_t registeraddress = 0x10a;
+	//int block = registerplanner_whichblock(card, registeraddress);
+	//int regnum = registerplanner_whichregister(blocks[block]->child, registeraddress);
+
+	//printf("in block %d, register %d \n", block, regnum);
 
 	return 0;
 }

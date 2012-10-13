@@ -13,7 +13,5 @@
 const module timermodule;
 const module bigtimermodule;
 
-#define TIMERWORDS 7
-#define BIGTIMERWORDS 12
 
 #endif /* TIMER_H_ */

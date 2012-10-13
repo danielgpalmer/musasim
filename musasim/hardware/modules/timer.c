@@ -262,9 +262,9 @@ const module timermodule = { //
 #endif
 		TAG, //
 #ifdef TIMER_BIGTIMER
-				BIGTIMERWORDS, //
+				NULL, //
 #else
-				TIMERWORDS, //
+				NULL, //
 #endif
 				timer_init, //
 				NULL, //

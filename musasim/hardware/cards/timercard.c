@@ -41,9 +41,9 @@ static void timercard_init() {
 
 	//fixme this is all fckt..
 	timersstart = 2;
-	timersend = (utils_nextpow((timermodule.registerwords * 2) * TIMERCARD_NUMBEROFTIMERS));
-	bigtimersstart = (utils_nextpow((timermodule.registerwords * 2) * TIMERCARD_NUMBEROFTIMERS) + 2);
-	bigtimersend = (utils_nextpow((bigtimermodule.registerwords * 2) * TIMERCARD_NUMBEROFTIMERS));
+	//timersend = (utils_nextpow((timermodule.registerwords * 2) * TIMERCARD_NUMBEROFTIMERS));
+	//bigtimersstart = (utils_nextpow((timermodule.registerwords * 2) * TIMERCARD_NUMBEROFTIMERS) + 2);
+	//bigtimersend = (utils_nextpow((bigtimermodule.registerwords * 2) * TIMERCARD_NUMBEROFTIMERS));
 	//
 
 	log_println(LEVEL_INFO, TAG, "timers %"PRIx32" -> %"PRIx32, timersstart, timersend);
