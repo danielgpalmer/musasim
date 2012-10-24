@@ -1,3 +1,6 @@
+#I don't want implicit targets 
+.SUFFIXES:
+
 MUSASIM_DIR = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 CC =     gcc
 WARNINGS = -Wall -Werror -Wstrict-aliasing

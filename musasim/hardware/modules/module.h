@@ -24,7 +24,7 @@ typedef struct {
 
 typedef struct {
 	char* name;
-	requirements** registerrequirements;
+	peripheral* peripheral;
 	void* (*init)(module_callback* callback, int index);
 	void (*dispose)(void* context);
 	void (*tick)(void* context, int cycles);

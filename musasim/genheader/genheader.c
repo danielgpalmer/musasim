@@ -284,7 +284,7 @@ static void timers() {
 		printf("#define timers_timer_%d_counter (*(volatile uint16_t*) 0x%x)\n", i, offset + 8);
 		printf("#define timers_timer_%d_matcha (*(volatile uint16_t*) 0x%x)\n", i, offset + 10);
 		printf("#define timers_timer_%d_matchb (*(volatile uint16_t*) 0x%x)\n", i, offset + 12);
-		offset += utils_nextpow(TIMERWORDS << 1);
+		//offset += utils_nextpow(TIMERWORDS << 1);
 	}
 	for (int i = 0; i < TIMERCARD_NUMBEROFTIMERS; i++) {
 		printf("#define timers_bigtimer_%d_flags (*(volatile uint16_t*) 0x%x)\n", i, offset);
@@ -294,6 +294,6 @@ static void timers() {
 		printf("#define timers_bigtimer_%d_counter (*(volatile uint32_t*) 0x%x)\n", i, offset + 12);
 		printf("#define timers_bigtimer_%d_matcha (*(volatile uint32_t*) 0x%x)\n", i, offset + 16);
 		printf("#define timers_bigtimer_%d_matchb (*(volatile uint32_t*) 0x%x)\n", i, offset + 20);
-		offset += utils_nextpow(BIGTIMERWORDS << 1);
+		//offset += utils_nextpow(BIGTIMERWORDS << 1);
 	}
 }

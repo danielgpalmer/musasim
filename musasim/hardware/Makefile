@@ -5,10 +5,10 @@ all: board.o boardgdb.o registerplanner.o
 	$(MAKE) -C cards
 
 registerplanner.o: registerplanner.c registerplanner.h
-	$(CC) $(CFLAGS) -std=gnu99 $< -o $@
+	$(CC) $(CFLAGS) --std=gnu99 $< -o $@
 
 regplannertester: regplannertester.c registerplanner.o
-	$(CC) -std=gnu99 $^ ../utils.o -o $@ 
+	$(CC) --std=gnu99 $^ ../utils.o -o $@ 
 
 board.o: board.c board.h
 	$(CC) $(CFLAGS) -std=gnu99 $< -o $@

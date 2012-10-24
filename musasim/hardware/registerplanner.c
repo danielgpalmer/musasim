@@ -12,24 +12,33 @@
 #include "registerplanner.h"
 #include "../utils.h"
 
-static void registerplanner_preproup(registergroup* reggroup, int* total) {
-	if (reggroup->registerwidth == -1)
-		reggroup->bytes = reggroup->numberofregisters;
-	else if (reggroup->registerwidth == 1)
-		reggroup->bytes = reggroup->numberofregisters * 2;
-	else
-		reggroup->bytes = reggroup->numberofregisters * reggroup->registerwidth;
+static int registerplanner_plangroup(registergroup* reggroup, int offset) {
+	int stride = 1;
 
-	*total += reggroup->bytes;
+	if (reggroup->registerwidth == 1)
+		stride = 2;
+	else
+		stride = reggroup->registerwidth;
+
+	int alignment = offset % stride;
+	reggroup->bytes = alignment + (stride * reggroup->numberofregisters);
+
+	for (int i = 0; i < reggroup->numberofregisters; i++) {
+		printf("register width %d, alignment %d, %d\n", reggroup->registerwidth, alignment,
+				offset + alignment + (stride * i));
+	}
+
+	return offset += reggroup->bytes;
 }
 
 static int registerplanner_planperipheral(peripheral* peripheral) {
 	peripheral->bytes = 0;
 	registergroup** registergroups = peripheral->registergroups;
 	while (*registergroups != NULL ) {
-		registerplanner_preproup(*registergroups, &(peripheral->bytes));
+		peripheral->bytes = registerplanner_plangroup(*registergroups, peripheral->bytes);
 		registergroups++;
 	}
+	printf("---\n");
 
 	peripheral->peripheralstart = 0;
 	peripheral->peripheralend = 0;
@@ -55,7 +64,6 @@ static void registerplanner_printperipheral(peripheral* peripheral) {
 		registerplanner_printregistergroup(*registergroups);
 		registergroups++;
 	}
-
 }
 
 static int registerplanner_planblock(block* block) {
@@ -65,9 +73,7 @@ static int registerplanner_planblock(block* block) {
 }
 
 static void registerplanner_printblock(block* block) {
-
 	printf("0x%08"PRIx32" -> 0x%08"PRIx32 " - block, %d bytes\n", block->blockstart, block->blockend, block->bytes);
-
 }
 
 void registerplanner_print(cardaddressspace* card) {
@@ -110,8 +116,8 @@ void registerplanner_plan(cardaddressspace* card) {
 	uint32_t last = 0;
 	while (*units != NULL ) {
 		((*units)->either).start = last;
-		((*units)->either).end = last + unitspacing - 1;
-		last = last + unitspacing;
+		((*units)->either).end = ((*units)->either).start + ((*units)->either).bytes;
+		last += unitspacing;
 		units++;
 	}
 }

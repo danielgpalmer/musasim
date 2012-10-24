@@ -4,15 +4,19 @@ LIBCARDS=./hardware/cards/libcards.a
 LIBCARDSGDB=./hardware/cards/libcardsgdb.a
 LIBMODULES=./hardware/modules/libmodules.a
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
-BASESTUFF=sim.o logging.o utils.o elfloader.o osd.o fontutils.o ./hardware/registerplanner.o
+
+LOCALOBJECTS=sim.o logging.o utils.o elfloader.o osd.o fontutils.o
+GDBONLYOBJECTS=gdbserver.o argsgdb.o profiler.o
+MUSASIMONLYOBJECTS=args.o
+REMOTEOBJECTS=./hardware/registerplanner.o ./hardware/board.o
 
 all: gdbserver musasim genheader dist
 	
-gdbserver: musashi $(BASESTUFF) hardware gdbserver.o argsgdb.o profiler.o
-	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o gdbserver.o argsgdb.o profiler.o $(BASESTUFF) $(LIBCARDSGDB) $(LIBMODULES) ./hardware/boardgdb.o -o gdbserver -lelf
+gdbserver: musashi $(LOCALOBJECTS) $(GDBONLYOBJECTS) hardware musashi
+	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o $(LOCALOBJECTS) $(REMOTEOBJECTS) $(GDBONLYOBJECTS) $(LIBCARDSGDB) $(LIBMODULES) -o gdbserver -lelf
 
-musasim: musashi $(BASESTUFF) hardware musasim.o args.o
-	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(BASESTUFF) $(LIBCARDS) $(LIBMODULES) ./hardware/board.o -o $@ -lelf
+musasim: musashi $(LOCALOBJECTS) hardware musasim.o args.o musashi
+	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(LOCALOBJECTS) $(REMOTEOBJECTS) $(LIBCARDS) $(LIBMODULES) -o $@ -lelf
 
 musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) musasim.c -o musasim.o
@@ -46,8 +50,6 @@ profiler.o: profiler.c profiler.h
 
 fontutils.o: fontutils.c
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
-
-# hardware 
 
 .PHONY: docs genheader musashi hardware clean check
 

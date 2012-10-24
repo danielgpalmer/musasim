@@ -39,11 +39,19 @@ int main() {
 	//
 
 	// peripheral 1
-	registergroup peripheral1_0 = { 1, 2, NULL, 0, 0, 0 };
-	registergroup peripheral1_1 = { 2, 6, NULL, 0, 0, 0 };
-	registergroup peripheral1_2 = { 4, 20, NULL, 0, 0, 0 };
-	registergroup peripheral1_3 = { 1, 2, NULL, 0, 0, 0 };
-	registergroup peripheral1_4 = { 2, 4, NULL, 0, 0, 0 };
+	const char* peripheral1_0_names[] = { "dummyregisters_1_0", NULL };
+	const char* peripheral1_1_names[] = { "dummyregisters_1_1", "dummyregisters_1_2", "dummyregisters_1_3",
+			"dummyregisters_1_4", "dummyregisters_1_5", "dummyregisters_1_6", NULL };
+	const char* peripheral1_2_names[] = { "dummyregisters_1_7", NULL };
+	const char* peripheral1_3_names[] = { "dummyregisters_1_8", "dummyregisters_1_9", NULL };
+	const char* peripheral1_4_names[] = { "dummyregisters_1_10", "dummyregisters_1_11", "dummyregisters_1_12",
+			"dummyregisters_1_13", NULL };
+
+	registergroup peripheral1_0 = { 1, 2, peripheral1_0_names, 0, 0, 0 };
+	registergroup peripheral1_1 = { 2, 6, peripheral1_1_names, 0, 0, 0 };
+	registergroup peripheral1_2 = { 4, 1, peripheral1_2_names, 0, 0, 0 };
+	registergroup peripheral1_3 = { 1, 2, peripheral1_3_names, 0, 0, 0 };
+	registergroup peripheral1_4 = { 2, 4, peripheral1_4_names, 0, 0, 0 };
 
 	registergroup* peripheral1groups[] = { &peripheral1_0, &peripheral1_1, &peripheral1_2, &peripheral1_3,
 			&peripheral1_4, NULL };
@@ -55,11 +63,20 @@ int main() {
 	//
 
 	// peripheral 2
-	registergroup peripheral2_0 = { 1, 3, NULL, 0, 0, 0 };
-	registergroup peripheral2_1 = { 2, 6, NULL, 0, 0, 0 };
-	registergroup peripheral2_2 = { 4, 20, NULL, 0, 0, 0 };
-	registergroup peripheral2_3 = { 1, 2, NULL, 0, 0, 0 };
-	registergroup peripheral2_4 = { 2, 4, NULL, 0, 0, 0 };
+	const char* peripheral2_0_names[] = { "dummyregisters_2_0", "dummyregisters_2_1", "dummyregisters_2_2", NULL };
+	const char* peripheral2_1_names[] = { "dummyregisters_1_3", "dummyregisters_1_4", "dummyregisters_1_5",
+			"dummyregisters_1_6", "dummyregisters_1_7", "dummyregisters_1_8", NULL };
+	const char* peripheral2_2_names[] = { "dummyregisters_1_9", "dummyregisters_1_10", "dummyregisters_1_11",
+			"dummyregisters_1_12", NULL };
+	const char* peripheral2_3_names[] = { "dummyregisters_1_13", "dummyregisters_1_14", NULL };
+	const char* peripheral2_4_names[] = { "dummyregisters_1_15", "dummyregisters_1_16", "dummyregisters_1_17",
+			"dummyregisters_1_18", NULL };
+
+	registergroup peripheral2_0 = { 1, 3, peripheral2_0_names, 0, 0, 0 };
+	registergroup peripheral2_1 = { 2, 6, peripheral2_1_names, 0, 0, 0 };
+	registergroup peripheral2_2 = { 4, 4, peripheral2_2_names, 0, 0, 0 };
+	registergroup peripheral2_3 = { 1, 2, peripheral2_3_names, 0, 0, 0 };
+	registergroup peripheral2_4 = { 2, 4, peripheral2_4_names, 0, 0, 0 };
 
 	registergroup* peripheral2groups[] = { &peripheral2_0, &peripheral2_1, &peripheral2_2, &peripheral2_3,
 			&peripheral2_4, NULL };
