@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include <string.h>
 #include "registerplanner.h"
 #include "../utils.h"
 
@@ -122,3 +123,19 @@ void registerplanner_plan(cardaddressspace* card) {
 	}
 }
 
+unit* registerplanner_createperipheral(peripheral* template, module* module, void* context) {
+	unit* unit = malloc(sizeof(unit));
+	memcpy(unit, template, sizeof(unit));
+	unit->type = PERIPHERAL;
+	unit->peripheral.module = module;
+	unit->peripheral.context = context;
+	return unit;
+}
+
+unit* registerplanner_createblock(int size, void* backingarray) {
+	unit* unit = malloc(sizeof(unit));
+	unit->type = BLOCK;
+	unit->block.bytes = size;
+	unit->block.block = backingarray;
+	return unit;
+}

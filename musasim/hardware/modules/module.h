@@ -10,7 +10,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "../registerplanner.h"
 
 // a struct that will be passed from the host "card" into the module so that it can raise
 // the cards interrupt etc
@@ -24,7 +23,6 @@ typedef struct {
 
 typedef struct {
 	char* name;
-	peripheral* peripheral;
 	void* (*init)(module_callback* callback, int index);
 	void (*dispose)(void* context);
 	void (*tick)(void* context, int cycles);

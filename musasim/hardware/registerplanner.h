@@ -9,6 +9,7 @@
 #define REGISTERPLANNER_H_
 
 #include <stdint.h>
+#include "modules/module.h"
 
 typedef enum {
 	PERIPHERAL, BLOCK
@@ -34,6 +35,8 @@ struct peripheral {
 	uint32_t peripheralend;
 	int numberofregistergroups;
 	registergroup** registergroups;
+	module* module;
+	void* context;
 };
 
 struct block {
@@ -41,6 +44,7 @@ struct block {
 	int bytes;
 	uint32_t blockstart;
 	uint32_t blockend;
+	void* block;
 };
 
 typedef union {
@@ -57,7 +61,7 @@ struct cardaddressspace {
 
 struct registergroup {
 // provide to the planner
-	int registerwidth; // how many byte wide the registers are. Must be 1, 2,4 or -1, 8bit registers will be expanded to 16bits so that they only sit on one bytelane, to put 8bit registers on both lanes pass -1
+	int registerwidth; // how many bytes wide the registers are. Must be 1, 2,4 or -1, 8bit registers will be expanded to 16bits so that they only sit on one bytelane, to put 8bit registers on both lanes pass -1
 	int numberofregisters; // how many registers you want
 	const char** registernames;
 // filler in by the planner
@@ -68,7 +72,14 @@ struct registergroup {
 
 void registerplanner_plan(cardaddressspace* card);
 void registerplanner_print(cardaddressspace* card);
-int registerplanner_whichperipheral(cardaddressspace* addressspace, uint32_t address);
-int registerplanner_whichregister(peripheral* peripheral, uint32_t address);
+unit* registerplanner_createperipheral(peripheral* template, module* module, void* context);
+unit* registerplanner_createblock(int bytes, void* backingarray);
+
+uint8_t registerplanner_read_byte(cardaddressspace* card, uint16_t address);
+uint16_t registerplanner_read_word(cardaddressspace* card, uint16_t address);
+uint32_t registerplanner_read_long(cardaddressspace* card, uint16_t address);
+void registerplanner_write_byte(cardaddressspace* card, uint16_t address, uint8_t value);
+void registerplanner_write_word(cardaddressspace* card, uint16_t address, uint16_t value);
+void registerplanner_write_long(cardaddressspace* card, uint16_t address, uint32_t value);
 
 #endif /* REGISTERPLANNER_H_ */
