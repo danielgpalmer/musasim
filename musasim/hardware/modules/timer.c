@@ -281,3 +281,14 @@ const module bigtimermodule = { //
 			timer_cyclesleft //
 	};
 
+#ifdef TIMER_BIGTIMER
+static registergroup bigtimerrg0 = { .registerwidth = 2, .numberofregisters = 2 };
+static registergroup bigtimerrg1 = { .registerwidth = 4, .numberofregisters = 5 };
+static registergroup* bigtimergroups[] = { &bigtimerrg0, &bigtimerrg1, NULL };
+const peripheral bigtimerperipheral = { .registergroups = bigtimergroups };
+#else
+static registergroup timerrg0 = {.registerwidth = 2, .numberofregisters = 7};
+static registergroup* timergroups[] = {&timerrg0, NULL};
+const peripheral timerperipheral = {.registergroups = timergroups};
+#endif
+

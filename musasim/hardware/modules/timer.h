@@ -9,9 +9,12 @@
 #define TIMER_H_
 
 #include "module.h"
+#include "../registerplanner.h"
 
 const module timermodule;
 const module bigtimermodule;
 
+const peripheral timerperipheral;
+const peripheral bigtimerperipheral;
 
 #endif /* TIMER_H_ */

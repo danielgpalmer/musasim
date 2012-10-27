@@ -15,7 +15,6 @@ typedef enum {
 	PERIPHERAL, BLOCK
 } unittype;
 
-typedef struct cardaddressspace cardaddressspace;
 typedef struct peripheral peripheral;
 typedef struct block block;
 typedef struct either either;
@@ -33,9 +32,10 @@ struct peripheral {
 	int bytes;
 	uint32_t peripheralstart;
 	uint32_t peripheralend;
+	//
 	int numberofregistergroups;
 	registergroup** registergroups;
-	module* module;
+	const module* module;
 	void* context;
 };
 
@@ -44,6 +44,7 @@ struct block {
 	int bytes;
 	uint32_t blockstart;
 	uint32_t blockend;
+	//
 	void* block;
 };
 
@@ -54,10 +55,10 @@ typedef union {
 	block block;
 } unit;
 
-struct cardaddressspace {
+typedef struct {
 	int numberofperipherals;
 	unit** units;
-};
+} cardaddressspace;
 
 struct registergroup {
 // provide to the planner
@@ -72,14 +73,14 @@ struct registergroup {
 
 void registerplanner_plan(cardaddressspace* card);
 void registerplanner_print(cardaddressspace* card);
-unit* registerplanner_createperipheral(peripheral* template, module* module, void* context);
+unit* registerplanner_createperipheral(const peripheral* template, const module* module, void* context);
 unit* registerplanner_createblock(int bytes, void* backingarray);
 
-uint8_t registerplanner_read_byte(cardaddressspace* card, uint16_t address);
-uint16_t registerplanner_read_word(cardaddressspace* card, uint16_t address);
-uint32_t registerplanner_read_long(cardaddressspace* card, uint16_t address);
-void registerplanner_write_byte(cardaddressspace* card, uint16_t address, uint8_t value);
-void registerplanner_write_word(cardaddressspace* card, uint16_t address, uint16_t value);
-void registerplanner_write_long(cardaddressspace* card, uint16_t address, uint32_t value);
+uint8_t registerplanner_read_byte(cardaddressspace* card, uint32_t address);
+uint16_t registerplanner_read_word(cardaddressspace* card, uint32_t address);
+uint32_t registerplanner_read_long(cardaddressspace* card, uint32_t address);
+void registerplanner_write_byte(cardaddressspace* card, uint32_t address, uint8_t value);
+void registerplanner_write_word(cardaddressspace* card, uint32_t address, uint16_t value);
+void registerplanner_write_long(cardaddressspace* card, uint32_t address, uint32_t value);
 
 #endif /* REGISTERPLANNER_H_ */
