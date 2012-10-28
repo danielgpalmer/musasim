@@ -83,4 +83,7 @@ void registerplanner_write_byte(cardaddressspace* card, uint32_t address, uint8_
 void registerplanner_write_word(cardaddressspace* card, uint32_t address, uint16_t value);
 void registerplanner_write_long(cardaddressspace* card, uint32_t address, uint32_t value);
 
+void registerplanner_iterate(cardaddressspace* card, void (*function)(unit* unit, void* data));
+void registerplanner_tickmodules(cardaddressspace* card, int cyclesexecuted);
+
 #endif /* REGISTERPLANNER_H_ */

@@ -275,7 +275,7 @@ static void input() {
 static void timers() {
 	uint32_t offset = SLOT_OFFSET(SLOT_TIMERCARD);
 	printf("#define timers_timerinterrupts (*(volatile uint16_t*) 0x%x)\n", offset);
-	offset += 2;
+	offset = SLOT_OFFSET(SLOT_TIMERCARD) + 0x20;
 	for (int i = 0; i < TIMERCARD_NUMBEROFTIMERS; i++) {
 		printf("#define timers_timer_%d_flags (*(volatile uint16_t*) 0x%x)\n", i, offset);
 		printf("#define timers_timer_%d_config (*(volatile uint16_t*) 0x%x)\n", i, offset + 2);

@@ -161,6 +161,15 @@ uint8_t registerplanner_read_byte(cardaddressspace* card, uint32_t address) {
 	return 0;
 }
 uint16_t registerplanner_read_word(cardaddressspace* card, uint32_t address) {
+	unit* unit = registerplanner_whichunit(card, address);
+	if (unit != NULL ) {
+		switch (unit->either.type) {
+			case PERIPHERAL:
+				return unit->peripheral.module->read_word(unit->peripheral.context, address);
+			case BLOCK:
+				return *((uint16_t*) unit->block.block); // hack
+		}
+	}
 	return 0;
 }
 uint32_t registerplanner_read_long(cardaddressspace* card, uint32_t address) {
@@ -183,4 +192,19 @@ void registerplanner_write_word(cardaddressspace* card, uint32_t address, uint16
 }
 void registerplanner_write_long(cardaddressspace* card, uint32_t address, uint32_t value) {
 
+}
+
+void registerplanner_iterate(cardaddressspace* card, void (*function)(unit* unit, void* data)) {
+
+}
+
+void registerplanner_tickmodules(cardaddressspace* card, int cyclesexecuted) {
+	unit** currentunit = card->units;
+	while (*currentunit != NULL ) {
+		unit* u = *currentunit;
+		if (u->either.type == PERIPHERAL) {
+			u->peripheral.module->tick(u->peripheral.context, cyclesexecuted);
+		}
+		currentunit++;
+	}
 }

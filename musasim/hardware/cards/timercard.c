@@ -21,10 +21,7 @@
 
 static char TAG[] = "timercard";
 
-#define TIMERFROMADDRESS(a) (((a - 2) & 0x30) >> 4)
-#define ADDRESSFORTIMER(a) ((a - 2) & 0xf)
-
-uint16_t timerinterrupts = 0;
+static uint16_t timerinterrupts = 0;
 static cardaddressspace addressspace;
 
 static void timercard_raiseinterrupt(int index);
@@ -38,10 +35,14 @@ static module_callback callback = { //
 static void timercard_init() {
 	log_println(LEVEL_INFO, TAG, "timercard_init()");
 
-	// allocate enough unit pointers for a set of timers and a set of bigtimers
-	// an rtc module, and a NULL terminator
-	unit** units = malloc(sizeof(unit*) * ((TIMERCARD_NUMBEROFTIMERS * 2) + 1 + 1));
+	// allocate enough unit pointers for the interrupt status registe ,
+	// a set of timers and a set of bigtimers an rtc module, and a NULL terminator
+	unit** units = malloc(sizeof(unit*) * ((TIMERCARD_NUMBEROFTIMERS * 2) + 1 + 1 + 1));
 	unit** currentunit = units;
+
+	unit* interruptregister = registerplanner_createblock(2, &timerinterrupts);
+	*(currentunit++) = interruptregister;
+
 	int index = 0;
 	for (; index < TIMERCARD_NUMBEROFTIMERS; index++) {
 		void* context = timermodule.init(&callback, index);
@@ -60,12 +61,10 @@ static void timercard_init() {
 }
 
 static void timercard_raiseinterrupt(int index) {
-
 	if (index < TIMERCARD_NUMBEROFTIMERS) {
 		timerinterrupts |= (1 << index);
 	}
 	board_raise_interrupt(&timercard);
-
 }
 
 static void timercard_lowerinterrupt(int index) {
@@ -81,10 +80,7 @@ static void timercard_dispose() {
 }
 
 static void timercard_tick(int cyclesexecuted) {
-//	for (int t = 0; t < SIZEOFARRAY(timers); t++)
-//		timermodule.tick(timers[t], cyclesexecuted);
-//	for (int t = 0; t < SIZEOFARRAY(bigtimers); t++)
-//		bigtimermodule.tick(bigtimers[t], cyclesexecuted);
+	registerplanner_tickmodules(&addressspace, cyclesexecuted);
 }
 
 static uint16_t timercard_readword(uint32_t address) {
@@ -121,7 +117,7 @@ static int timercard_cyclesleft() {
 //}
 
 //return cycles;
-	return 10;
+	return 0;
 }
 
 static void timercard_reset() {

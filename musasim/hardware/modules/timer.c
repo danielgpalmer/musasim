@@ -15,6 +15,16 @@
 #include "../../logging.h"
 #include "../../sim.h"
 
+#define GETREGISTER(a) ((a & 0xf) >> 1)
+
+#ifdef TIMER_BIGTIMER
+#define PRINTPAD "8"
+#define PRINTTOKEN PRIx32
+#else
+#define PRINTPAD "4"
+#define PRINTTOKEN PRIx16
+#endif
+
 #ifdef TIMER_BIGTIMER
 #define TAG "bigtimermodule"
 #else
@@ -105,6 +115,7 @@ for (; cycles > 0; cycles--) {
 		if (MATCHA_INTERRUPT_ENABLED(c) && !FLAGGED_INTERRUPTMATCHA(c)) {
 			SET_FLAG_INTERRUPTMATCHA(c);
 			c->cb->raiseinterrupt(c->index);
+			log_println(LEVEL_INFO, TAG, "fired matcha interrupt, index %d", c->index);
 		}
 	}
 
@@ -116,21 +127,14 @@ for (; cycles > 0; cycles--) {
 		if (MATCHB_INTERRUPT_ENABLED(c) && !FLAGGED_INTERRUPTMATCHB(c)) {
 			SET_FLAG_INTERRUPTMATCHB(c);
 			c->cb->raiseinterrupt(c->index);
+			log_println(LEVEL_INFO, TAG, "fired matchb interrupt, index %d", c->index);
 		}
 	}
 }
 
+//log_println(LEVEL_INFO, TAG, "prescaler counter 0x%"PRINTTOKEN" 0x%"PRINTTOKEN, c->prescalercounter, c->counter);
+
 }
-
-#define GETREGISTER(a) ((a & 0xf) >> 1)
-
-#ifdef TIMER_BIGTIMER
-#define PRINTPAD "8"
-#define PRINTTOKEN PRIx32
-#else
-#define PRINTPAD "4"
-#define PRINTTOKEN PRIx16
-#endif
 
 static void timer_dumpconfig(context_t* context) {
 
@@ -212,7 +216,7 @@ static void timer_writeword(void* context, uint16_t address, uint16_t value) {
 context_t* c = (context_t*) context;
 uint16_t* reg = timer_getregisterincontext(context, address);
 if (reg != NULL ) {
-	// this a fake write to clear the interrupt flags
+// this a fake write to clear the interrupt flags
 	if (reg == &(c->flags)) {
 		CLEAR_FLAG_INTERRUPTMATCHA(c);
 		CLEAR_FLAG_INTERRUPTMATCHB(c);
