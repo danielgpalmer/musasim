@@ -1,3 +1,5 @@
+include ../common.mk
+
 all: machine_stuff.h dma_registers.h ata_registers.h video_registers.h sound_registers.h input_registers.h uart_registers.h timers_registers.h
 
 machine_stuff.h: genheader
@@ -32,7 +34,7 @@ timers_registers.h: genheader
 	gcc -x c -fsyntax-only $@
 
 genheader: genheader.c Makefile ../utils.c ../hardware/cards/dmacard.h
-	gcc -std=gnu99 genheader.c ../utils.c -o genheader
+	gcc -std=gnu99 genheader.c ../utils.c   ../hardware/cards/libcards.a ../hardware/modules/libmodules.a ../libmusasim.a $(LIBFLAGS) -lelf -o $@
 
 .PHONY: install clean
 

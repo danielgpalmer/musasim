@@ -73,12 +73,12 @@ static bool active = false;
 static void soundcard_init() {
 
 	sampleram = malloc(SAMPLETOTAL);
-	if (sampleram == NULL) {
+	if (sampleram == NULL ) {
 		log_println(LEVEL_DEBUG, TAG, "sample ram malloc failed");
 	}
 
 	audiobuffer = malloc(BUFFERSIZE);
-	if (audiobuffer == NULL) {
+	if (audiobuffer == NULL ) {
 		log_println(LEVEL_DEBUG, TAG, "audiobuffer malloc failed");
 	}
 
@@ -111,7 +111,7 @@ static void soundcard_init() {
 	fmt.callback = soundcard_sdlcallback;
 	fmt.userdata = NULL;
 
-	if (SDL_OpenAudio(&fmt, NULL) == 0) {
+	if (SDL_OpenAudio(&fmt, NULL ) == 0) {
 		active = true;
 		SDL_PauseAudio(0);
 		log_println(LEVEL_DEBUG, TAG, "SDL output is now active");
@@ -261,7 +261,7 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 			case 1:
 				return &(chan->volume);
 			default:
-				return NULL;
+				return NULL ;
 		}
 	}
 	else {
@@ -280,7 +280,7 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 			default:
 				log_println(LEVEL_DEBUG, TAG, "invalid register %d, address was 0x%08x, chan is %d", reg, address,
 						channelnum - 1);
-				return NULL;
+				return NULL ;
 		}
 
 	}
@@ -293,7 +293,7 @@ static uint16_t soundcard_read_word(uint32_t address) {
 	}
 	else {
 		uint16_t* reg = soundcard_decodereg(address);
-		if (reg != NULL) {
+		if (reg != NULL ) {
 			return *reg;
 		}
 	}
@@ -308,7 +308,7 @@ static void soundcard_write_word(uint32_t address, uint16_t value) {
 	}
 	else {
 		uint16_t* reg = soundcard_decodereg(address);
-		if (reg != NULL) {
+		if (reg != NULL ) {
 			*reg = value;
 			for (int i = 0; i < NUMAUDIOCHANNELS; i++) {
 				soundcard_dump_config(i);
@@ -326,22 +326,25 @@ static bool soundcard_validaddress(uint32_t address) {
 	return true;
 }
 
-const card soundcard = { "SOUND CARD", //
-		soundcard_init, //
-		soundcard_dispose, //
-		NULL, //
-		soundcard_tick, //
-		soundcard_irqack, //
-		NULL, //
-		NULL, //
-		soundcard_validaddress, //
-		NULL, //
-		NULL, //
-		soundcard_read_word, //
-		NULL, //
-		NULL, //
-		soundcard_write_word, //
-		NULL, //
-		NULL, //
-		NULL, //
-		NULL };
+const card soundcard = { //
+		"SOUND CARD", //
+				soundcard_init, //
+				soundcard_dispose, //
+				NULL, //
+				soundcard_tick, //
+				soundcard_irqack, //
+				NULL, //
+				NULL, //
+				soundcard_validaddress, //
+				NULL, //
+				NULL, //
+				soundcard_read_word, //
+				NULL, //
+				NULL, //
+				soundcard_write_word, //
+				NULL, //
+				NULL, //
+				NULL, //
+				NULL, //
+				NULL //
+		};

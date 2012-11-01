@@ -327,5 +327,6 @@ const card videocard = { "VIDEO CARD", //
 		NULL, //
 		NULL, //
 		videocard_bestcasecycles, //
-		videocard_cyclesleft //
-		};
+		videocard_cyclesleft, //
+		NULL //
+};

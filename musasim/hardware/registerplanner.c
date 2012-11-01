@@ -24,11 +24,6 @@ static int registerplanner_plangroup(registergroup* reggroup, int offset) {
 	int alignment = offset % stride;
 	reggroup->bytes = alignment + (stride * reggroup->numberofregisters);
 
-	for (int i = 0; i < reggroup->numberofregisters; i++) {
-		printf("register width %d, alignment %d, %d\n", reggroup->registerwidth, alignment,
-				offset + alignment + (stride * i));
-	}
-
 	reggroup->groupstart = offset;
 	reggroup->groupend = offset + reggroup->bytes - reggroup->registerwidth;
 
@@ -42,7 +37,6 @@ static int registerplanner_planperipheral(peripheral* peripheral) {
 		peripheral->bytes = registerplanner_plangroup(*registergroups, peripheral->bytes);
 		registergroups++;
 	}
-	printf("---\n");
 
 	peripheral->peripheralstart = 0;
 	peripheral->peripheralend = 0;
@@ -54,9 +48,11 @@ static void registerplanner_printregistergroup(registergroup* group) {
 			group->bytes);
 	const char** names = group->registernames;
 	if (names != NULL ) {
+		uint32_t registeraddress = group->groupstart;
 		while (*names != NULL ) {
-			printf(" \\_ %s\n", *names);
+			printf(" \\_ 0x%08"PRIx32" - %s\n", registeraddress, *names);
 			names++;
+			registeraddress += group->registerwidth;
 		}
 	}
 }
@@ -191,6 +187,10 @@ void registerplanner_write_word(cardaddressspace* card, uint32_t address, uint16
 	}
 }
 void registerplanner_write_long(cardaddressspace* card, uint32_t address, uint32_t value) {
+
+}
+
+void registerplanner_iterate_registers(unit* unit, void (*function)(uint32_t address, char* name)) {
 
 }
 

@@ -197,22 +197,25 @@ uint8_t inputcard_getleds() {
 	return debugleds;
 }
 
-const card inputcard = { "INPUT CARD", // tag
-		inputcard_init, // init
-		inputcard_dispose, // dispose
-		inputcard_reset, // reset
-		inputcard_tick, //tick
-		NULL, // IRQ ack
-		NULL, // BUSRQ ack
-		NULL, //
-		input_validaddress, //valid address
-		NULL, //
-		inputcard_read_byte, // read byte
-		NULL, // read word
-		NULL, // read long
-		inputcard_write_byte, // write byte
-		NULL, // write word
-		NULL, // write long
-		NULL, //
-		NULL, //
-		NULL };
+const card inputcard = { //
+		"INPUT CARD", // tag
+				inputcard_init, // init
+				inputcard_dispose, // dispose
+				inputcard_reset, // reset
+				inputcard_tick, //tick
+				NULL, // IRQ ack
+				NULL, // BUSRQ ack
+				NULL, //
+				input_validaddress, //valid address
+				NULL, //
+				inputcard_read_byte, // read byte
+				NULL, // read word
+				NULL, // read long
+				inputcard_write_byte, // write byte
+				NULL, // write word
+				NULL, // write long
+				NULL, //
+				NULL, //
+				NULL, //
+				NULL //
+		};

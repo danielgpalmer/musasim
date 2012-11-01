@@ -22,7 +22,7 @@
 static char TAG[] = "timercard";
 
 static uint16_t timerinterrupts = 0;
-static cardaddressspace addressspace;
+static cardaddressspace* addressspace;
 
 static void timercard_raiseinterrupt(int index);
 static void timercard_lowerinterrupt(int index);
@@ -32,9 +32,8 @@ static module_callback callback = { //
 				timercard_lowerinterrupt //
 		};
 
-static void timercard_init() {
-	log_println(LEVEL_INFO, TAG, "timercard_init()");
-
+static cardaddressspace* timercard_setupaddressspace() {
+	cardaddressspace* as = malloc(sizeof(cardaddressspace));
 	// allocate enough unit pointers for the interrupt status registe ,
 	// a set of timers and a set of bigtimers an rtc module, and a NULL terminator
 	unit** units = malloc(sizeof(unit*) * ((TIMERCARD_NUMBEROFTIMERS * 2) + 1 + 1 + 1));
@@ -55,9 +54,15 @@ static void timercard_init() {
 
 	//void* rtccontext = rtcmodule.init(&callback, index);
 	*currentunit = NULL;
-	addressspace.units = units;
-	registerplanner_plan(&addressspace);
-	registerplanner_print(&addressspace);
+	as->units = units;
+	registerplanner_plan(as);
+	//registerplanner_print(as);
+	return as;
+}
+
+static void timercard_init() {
+	log_println(LEVEL_INFO, TAG, "timercard_init()");
+	addressspace = timercard_setupaddressspace();
 }
 
 static void timercard_raiseinterrupt(int index) {
@@ -80,23 +85,23 @@ static void timercard_dispose() {
 }
 
 static void timercard_tick(int cyclesexecuted) {
-	registerplanner_tickmodules(&addressspace, cyclesexecuted);
+	registerplanner_tickmodules(addressspace, cyclesexecuted);
 }
 
 static uint16_t timercard_readword(uint32_t address) {
-	return registerplanner_read_word(&addressspace, address);
+	return registerplanner_read_word(addressspace, address);
 }
 
 static uint32_t timercard_readlong(uint32_t address) {
-	return registerplanner_read_long(&addressspace, address);
+	return registerplanner_read_long(addressspace, address);
 }
 
 static void timercard_writeword(uint32_t address, uint16_t value) {
-	registerplanner_write_word(&addressspace, address, value);
+	registerplanner_write_word(addressspace, address, value);
 }
 
 static void timercard_writelong(uint32_t address, uint32_t value) {
-	registerplanner_write_long(&addressspace, address, value);
+	registerplanner_write_long(addressspace, address, value);
 }
 
 static bool timercard_isvalidaddress(uint32_t address) {
@@ -142,6 +147,7 @@ const card timercard = { "timer card", //
 		timercard_writelong, //
 		NULL, //
 		NULL, //
-		timercard_cyclesleft //
+		timercard_cyclesleft, //
+		timercard_setupaddressspace //
 		};
 

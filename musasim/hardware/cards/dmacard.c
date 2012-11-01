@@ -393,7 +393,7 @@ static uint16_t* dmacard_decodereg(uint32_t address) {
 		case DMACARD_REGISTER_WINDOW:
 			return &curwindowindex;
 		default:
-			return NULL;
+			return NULL ;
 	}
 
 }
@@ -545,5 +545,7 @@ const card dmacard = { "DMA Controller", //
 		NULL, //
 		dmacard_active, //
 		NULL, //
-		dmacard_cyclesleft };
+		dmacard_cyclesleft, //
+		NULL //
+};
 

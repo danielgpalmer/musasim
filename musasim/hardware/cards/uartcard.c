@@ -125,15 +125,15 @@ static void uart_dispose() {
 
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
 		close(channels[i].ptm);
-		if (channels[i].rxfifo != NULL) {
+		if (channels[i].rxfifo != NULL ) {
 			g_queue_free(channels[i].rxfifo);
 		}
-		if (channels[i].txfifo != NULL) {
+		if (channels[i].txfifo != NULL ) {
 			g_queue_free(channels[i].txfifo);
 		}
 	}
 
-	if (logbuffer != NULL) {
+	if (logbuffer != NULL ) {
 		free(logbuffer);
 	}
 
@@ -251,7 +251,7 @@ static uint8_t* uart_decode_register(uint32_t address, bool write) {
 		case UART_REGISTER_SCRATCH:
 			return &(regs->scratch);
 		default:
-			return NULL;
+			return NULL ;
 	}
 
 }
@@ -445,7 +445,7 @@ static bool uart_validaddress(uint32_t address) {
 
 	uint8_t reg = (address & REGISTERMASK);
 
-  	switch (reg) {
+	switch (reg) {
 		case UART_REGISTER_RXTXBUFFER:
 		case UART_REGISTER_INTERRUPTENABLE:
 		case UART_REGISTER_FIFOCONTROL:
@@ -478,4 +478,6 @@ const card uartcard = { "UART CARD", //
 		NULL, //
 		NULL, //
 		NULL, //
-		NULL };
+		NULL, //
+		NULL //
+};

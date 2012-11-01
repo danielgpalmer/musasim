@@ -21,6 +21,7 @@
 #define WANTSOUNDFUNC
 #include "../hardware/cards/soundcard.h"
 #include "../hardware/cards/timercard.h"
+#include "../hardware/registerplanner.h"
 #include "../utils.h"
 
 char headers[] = "#include <stdint.h>\n"
@@ -273,6 +274,9 @@ static void input() {
 }
 
 static void timers() {
+
+	timercard.setupaddressspace();
+
 	uint32_t offset = SLOT_OFFSET(SLOT_TIMERCARD);
 	printf("#define timers_timerinterrupts (*(volatile uint16_t*) 0x%x)\n", offset);
 	offset = SLOT_OFFSET(SLOT_TIMERCARD) + 0x20;

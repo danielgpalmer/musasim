@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "../registerplanner.h"
+
 typedef struct {
 	char* boardinfo; // A simple description that can be displayed to aid debugging
 	void (*init)(); // Do anything you need to do at program startup here
@@ -32,6 +34,9 @@ typedef struct {
 	bool (*active)(); // returns true when the card is doing something, for OSD
 	int (*bestcasecycles)(); // The maximum amount of cycles that could possibly run before needing cpu sync. -1 if we don't need sync
 	int (*cyclesleft)(); // how many clock cycles can run before something is going to happen that needs cpu sync, -1 if we don't care
+
+	// used for genheaders
+	cardaddressspace* (*setupaddressspace)();
 } card;
 
 #define CARDMEMORYTYPE_SUPERVISOR 0x1	// memory is only accessible in supervisor mode

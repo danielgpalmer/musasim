@@ -15,8 +15,11 @@ all: gdbserver musasim genheader dist
 gdbserver: musashi $(LOCALOBJECTS) $(GDBONLYOBJECTS) hardware musashi
 	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o $(LOCALOBJECTS) $(REMOTEOBJECTS) $(GDBONLYOBJECTS) $(LIBCARDSGDB) $(LIBMODULES) -o gdbserver -lelf
 
-musasim: musashi $(LOCALOBJECTS) hardware musasim.o args.o musashi
+musasim: musashi $(LOCALOBJECTS) hardware musasim.o args.o musashi libmusasim.a
 	$(CC) $(LFLAGS) musasim.o musashi/musashi.o args.o $(LOCALOBJECTS) $(REMOTEOBJECTS) $(LIBCARDS) $(LIBMODULES) -o $@ -lelf
+
+libmusasim.a: musashi $(LOCALOBJECTS) hardware musasim.o args.o musashi
+	ar cr libmusasim.a $(LOCALOBJECTS) musasim.o args.o $(REMOTEOBJECTS) musashi/musashi.o
 
 musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) musasim.c -o musasim.o

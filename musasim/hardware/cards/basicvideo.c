@@ -80,5 +80,7 @@ const card basicvideocard = { "BASIC VIDEO CARD", //
 		NULL, //
 		video_write_word, //
 		NULL, //
-		NULL };
+		NULL, //
+		NULL //
+};
 

@@ -101,7 +101,7 @@ bool cfintf_load(const char* filename) {
 
 	log_println(LEVEL_INFO, TAG, "Image is %d bytes", (int) size);
 
-	if ((image = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED) {
+	if ((image = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED ) {
 		log_println(LEVEL_WARNING, TAG, "Failed to map image, %d", errno);
 		return false;
 	}
@@ -126,7 +126,7 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 
 				if (!sixteenbit) {
 					log_println(LEVEL_DEBUG, TAG, "reads/writes to the data reg should be 16bits");
-					return NULL;
+					return NULL ;
 				}
 
 				//log_println(LEVEL_DEBUG, TAG, "read from/write to data reg -- counter %d", transfercounter);
@@ -192,7 +192,7 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 				}
 			case 0x07:
 				if (write) {
-					return NULL;
+					return NULL ;
 				}
 				else {
 					return &(c.driveaddress);
@@ -202,7 +202,7 @@ static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 
 	// shouldnt get here
 
-	return NULL;
+	return NULL ;
 }
 
 static void cfint_decodecommand() {
@@ -238,7 +238,7 @@ static uint8_t cfintf_read_byte(uint32_t address) {
 
 	uint8_t* reg = ((uint8_t*) cfintf_decodereg(address, false, false));
 
-	if (reg == NULL) {
+	if (reg == NULL ) {
 		return 0;
 	}
 
@@ -253,7 +253,7 @@ static uint16_t cfintf_read_word(uint32_t address) {
 
 	uint16_t* reg = ((uint16_t*) cfintf_decodereg(address, false, true));
 
-	if (reg == NULL) {
+	if (reg == NULL ) {
 		return 0;
 	}
 
@@ -267,7 +267,7 @@ static void cfintf_write_byte(uint32_t address, uint8_t value) {
 	}
 
 	uint8_t* reg = cfintf_decodereg(address, true, false);
-	if (reg != NULL) {
+	if (reg != NULL ) {
 		*reg = value;
 		cfint_decodecommand(); // only a byte write has the potential to cause the command register to be dirty
 	}
@@ -279,7 +279,7 @@ static void cfintf_write_word(uint32_t address, uint16_t value) {
 	}
 
 	uint16_t* reg = (uint16_t*) cfintf_decodereg(address, true, true);
-	if (reg != NULL) {
+	if (reg != NULL ) {
 		*reg = value;
 	}
 }
@@ -328,4 +328,6 @@ const card compactflashinterfacecard = { "CF INTERFACE", //
 		cfintf_write_word, //
 		NULL, //
 		NULL, //
-		NULL };
+		NULL, //
+		NULL //
+};
