@@ -32,6 +32,9 @@ static module_callback callback = { //
 				timercard_lowerinterrupt //
 		};
 
+#define TIMERFORMAT "timer_%d"
+#define BIGTIMERFORMAT "bigtimer_%d"
+
 static cardaddressspace* timercard_setupaddressspace() {
 	cardaddressspace* as = malloc(sizeof(cardaddressspace));
 	// allocate enough unit pointers for the interrupt status registe ,
@@ -45,11 +48,19 @@ static cardaddressspace* timercard_setupaddressspace() {
 	int index = 0;
 	for (; index < TIMERCARD_NUMBEROFTIMERS; index++) {
 		void* context = timermodule.init(&callback, index);
-		*(currentunit++) = registerplanner_createperipheral(&timerperipheral, &timermodule, context);
+
+		int namelen = snprintf(NULL, 0, TIMERFORMAT, index);
+		char* name = malloc(namelen + 1);
+		sprintf(name, TIMERFORMAT, index);
+
+		*(currentunit++) = registerplanner_createperipheral(&timerperipheral, name, &timermodule, context);
 	}
 	for (; index < (TIMERCARD_NUMBEROFTIMERS * 2); index++) {
 		void* context = bigtimermodule.init(&callback, index);
-		*(currentunit++) = registerplanner_createperipheral(&bigtimerperipheral, &bigtimermodule, context);
+		int namelen = snprintf(NULL, 0, BIGTIMERFORMAT, (index - TIMERCARD_NUMBEROFTIMERS));
+		char* name = malloc(namelen + 1);
+		sprintf(name, BIGTIMERFORMAT, (index - TIMERCARD_NUMBEROFTIMERS));
+		*(currentunit++) = registerplanner_createperipheral(&bigtimerperipheral, name, &bigtimermodule, context);
 	}
 
 	//void* rtccontext = rtcmodule.init(&callback, index);

@@ -293,11 +293,11 @@ static registergroup bigtimerrg0 =
 static registergroup bigtimerrg1 =
 	{ .registerwidth = 4, .numberofregisters = 5, .registernames = bigtimerregisternames1 };
 static registergroup* bigtimergroups[] = { &bigtimerrg0, &bigtimerrg1, NULL };
-const peripheral bigtimerperipheral = { .registergroups = bigtimergroups };
+const peripheral bigtimerperipheral = { .name = NULL, .registergroups = bigtimergroups };
 #else
 static const char* timerregisternames[] = {"flags", "config", "prescaler", "prescalercounter", "counter", "matcha", "matchb", NULL};
 static registergroup timerrg0 = {.registerwidth = 2, .numberofregisters = 7, .registernames = timerregisternames};
 static registergroup* timergroups[] = {&timerrg0, NULL};
-const peripheral timerperipheral = {.registergroups = timergroups};
+const peripheral timerperipheral = {.name = NULL, .registergroups = timergroups};
 #endif
 

@@ -13,13 +13,31 @@
 #include "registerplanner.h"
 #include "../utils.h"
 
-static int registerplanner_plangroup(registergroup* reggroup, int offset) {
+static int registerplanner_widthtostride(int width) {
 	int stride = 1;
 
-	if (reggroup->registerwidth == 1)
+	if (width == 1)
 		stride = 2;
 	else
-		stride = reggroup->registerwidth;
+		stride = width;
+
+	return stride;
+}
+
+static int registerplanner_widthtosize(int width) {
+	int w = 0;
+
+	if (w == -1)
+		w = 1;
+	else
+		w = width;
+
+	return w;
+}
+
+static int registerplanner_plangroup(registergroup* reggroup, int offset) {
+
+	int stride = registerplanner_widthtostride(reggroup->registerwidth);
 
 	int alignment = offset % stride;
 	reggroup->bytes = alignment + (stride * reggroup->numberofregisters);
@@ -123,11 +141,15 @@ void registerplanner_plan(cardaddressspace* card) {
 	}
 }
 
-unit* registerplanner_createperipheral(const peripheral* template, const module* module, void* context) {
+unit* registerplanner_createperipheral(const peripheral* template, char* name, const module* module, void* context) {
 	int unitsize = sizeof(unit);
 	unit* unit = malloc(unitsize);
 	memcpy(unit, template, sizeof(peripheral));
 	unit->type = PERIPHERAL;
+
+	if (name != NULL )
+		unit->either.name = name;
+
 	unit->peripheral.module = module;
 	unit->peripheral.context = context;
 	return unit;
@@ -190,12 +212,29 @@ void registerplanner_write_long(cardaddressspace* card, uint32_t address, uint32
 
 }
 
-void registerplanner_iterate_registers(unit* unit, void (*function)(uint32_t address, char* name)) {
+void registerplanner_iterate_registers(unit* unit,
+		void (*function)(uint32_t address, int width, const char* name, void* data), void* data) {
 
+	if (unit->type == PERIPHERAL) {
+		for (registergroup** rg = unit->peripheral.registergroups; *rg != NULL ; rg++) {
+			for (int r = 0; r < (*rg)->numberofregisters; r++) {
+				uint32_t address = unit->either.start + (*rg)->groupstart
+						+ (registerplanner_widthtostride((*rg)->registerwidth) * r);
+
+				int size = registerplanner_widthtosize((*rg)->registerwidth);
+				const char* name = (*rg)->registernames[r];
+
+				function(address, size, name, data);
+			}
+		}
+	}
 }
 
-void registerplanner_iterate(cardaddressspace* card, void (*function)(unit* unit, void* data)) {
-
+void registerplanner_iterate(cardaddressspace* card, void (*function)(unit*)) {
+	unit** unit = card->units;
+	for (; *unit != NULL ; unit++) {
+		function(*unit);
+	}
 }
 
 void registerplanner_tickmodules(cardaddressspace* card, int cyclesexecuted) {

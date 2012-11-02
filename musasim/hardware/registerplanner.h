@@ -25,6 +25,7 @@ struct either {
 	int bytes;
 	uint32_t start;
 	uint32_t end;
+	char* name;
 };
 
 struct peripheral {
@@ -32,6 +33,7 @@ struct peripheral {
 	int bytes;
 	uint32_t peripheralstart;
 	uint32_t peripheralend;
+	char* name;
 	//
 	int numberofregistergroups;
 	registergroup** registergroups;
@@ -44,6 +46,7 @@ struct block {
 	int bytes;
 	uint32_t blockstart;
 	uint32_t blockend;
+	char* name;
 	//
 	void* block;
 };
@@ -73,7 +76,7 @@ struct registergroup {
 
 void registerplanner_plan(cardaddressspace* card);
 void registerplanner_print(cardaddressspace* card);
-unit* registerplanner_createperipheral(const peripheral* template, const module* module, void* context);
+unit* registerplanner_createperipheral(const peripheral* template, char* name, const module* module, void* context);
 unit* registerplanner_createblock(int bytes, void* backingarray);
 
 uint8_t registerplanner_read_byte(cardaddressspace* card, uint32_t address);
@@ -83,7 +86,9 @@ void registerplanner_write_byte(cardaddressspace* card, uint32_t address, uint8_
 void registerplanner_write_word(cardaddressspace* card, uint32_t address, uint16_t value);
 void registerplanner_write_long(cardaddressspace* card, uint32_t address, uint32_t value);
 
-void registerplanner_iterate(cardaddressspace* card, void (*function)(unit* unit, void* data));
+void registerplanner_iterate(cardaddressspace* card, void (*function)(unit*));
+void registerplanner_iterate_registers(unit* unit,
+		void (*function)(uint32_t address, int width, const char* name, void* data), void* data);
 void registerplanner_tickmodules(cardaddressspace* card, int cyclesexecuted);
 
 #endif /* REGISTERPLANNER_H_ */

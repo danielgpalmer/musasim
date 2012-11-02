@@ -49,6 +49,9 @@ static void timers(void);
 #define TAG_UART "UARTREGISTERS"
 #define TAG_TIMERS "TIMERSREGISTERS"
 
+char* prefix = NULL;
+uint32_t offset = 0;
+
 static void fileheader(char* filename, char* brief) {
 	printf("/**\n");
 	printf(" *   \\file %s\n", filename);
@@ -273,31 +276,43 @@ static void input() {
 
 }
 
+static void timers_registerfunc(uint32_t address, int size, const char* name, void* data) {
+
+	char* unitname = (char*) data;
+	char* type;
+
+	switch (size) {
+		case 4:
+			type = "uint32_t";
+			break;
+		case 2:
+			type = "uint16_t";
+			break;
+		case 1:
+			type = "uint8_t";
+			break;
+	}
+
+	printf("#define %s_%s_%s (*(volatile %s*) 0x%x)\n", prefix, unitname, name, type, offset + address);
+}
+
+static void timers_func(unit* unit) {
+	printf("/* %s */\n", unit->either.name);
+	registerplanner_iterate_registers(unit, timers_registerfunc, (void*) unit->either.name);
+	printf("\n");
+}
+
 static void timers() {
 
-	timercard.setupaddressspace();
+	offset = SLOT_OFFSET(SLOT_TIMERCARD);
+	cardaddressspace* as = timercard.setupaddressspace();
 
-	uint32_t offset = SLOT_OFFSET(SLOT_TIMERCARD);
+	printf("/**\n");
+	registerplanner_print(as);
+	printf("**/\n");
+
 	printf("#define timers_timerinterrupts (*(volatile uint16_t*) 0x%x)\n", offset);
-	offset = SLOT_OFFSET(SLOT_TIMERCARD) + 0x20;
-	for (int i = 0; i < TIMERCARD_NUMBEROFTIMERS; i++) {
-		printf("#define timers_timer_%d_flags (*(volatile uint16_t*) 0x%x)\n", i, offset);
-		printf("#define timers_timer_%d_config (*(volatile uint16_t*) 0x%x)\n", i, offset + 2);
-		printf("#define timers_timer_%d_prescaler (*(volatile uint16_t*) 0x%x)\n", i, offset + 4);
-		printf("#define timers_timer_%d_prescalercounter (*(volatile uint16_t*) 0x%x)\n", i, offset + 6);
-		printf("#define timers_timer_%d_counter (*(volatile uint16_t*) 0x%x)\n", i, offset + 8);
-		printf("#define timers_timer_%d_matcha (*(volatile uint16_t*) 0x%x)\n", i, offset + 10);
-		printf("#define timers_timer_%d_matchb (*(volatile uint16_t*) 0x%x)\n", i, offset + 12);
-		//offset += utils_nextpow(TIMERWORDS << 1);
-	}
-	for (int i = 0; i < TIMERCARD_NUMBEROFTIMERS; i++) {
-		printf("#define timers_bigtimer_%d_flags (*(volatile uint16_t*) 0x%x)\n", i, offset);
-		printf("#define timers_bigtimer_%d_config (*(volatile uint16_t*) 0x%x)\n", i, offset + 2);
-		printf("#define timers_bigtimer_%d_prescaler (*(volatile uint32_t*) 0x%x)\n", i, offset + 4);
-		printf("#define timers_bigtimer_%d_prescalercounter (*(volatile uint32_t*) 0x%x)\n", i, offset + 8);
-		printf("#define timers_bigtimer_%d_counter (*(volatile uint32_t*) 0x%x)\n", i, offset + 12);
-		printf("#define timers_bigtimer_%d_matcha (*(volatile uint32_t*) 0x%x)\n", i, offset + 16);
-		printf("#define timers_bigtimer_%d_matchb (*(volatile uint32_t*) 0x%x)\n", i, offset + 20);
-		//offset += utils_nextpow(BIGTIMERWORDS << 1);
-	}
+	prefix = "timers";
+	registerplanner_iterate(as, timers_func);
+	printf("\n");
 }
