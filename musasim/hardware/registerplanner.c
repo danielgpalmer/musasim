@@ -247,3 +247,17 @@ void registerplanner_tickmodules(cardaddressspace* card, int cyclesexecuted) {
 		currentunit++;
 	}
 }
+
+int registerplanner_cyclesleft(cardaddressspace* card) {
+	int cycles = -1;
+	for (unit** currentunit = card->units; *currentunit != NULL ; currentunit++) {
+		unit* u = *currentunit;
+		if (u->either.type == PERIPHERAL) {
+			int c = u->peripheral.module->cyclesleft(u->peripheral.context);
+			if (c > cycles)
+				cycles = c;
+		}
+
+	}
+	return cycles;
+}

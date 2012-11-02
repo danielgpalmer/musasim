@@ -90,5 +90,6 @@ void registerplanner_iterate(cardaddressspace* card, void (*function)(unit*));
 void registerplanner_iterate_registers(unit* unit,
 		void (*function)(uint32_t address, int width, const char* name, void* data), void* data);
 void registerplanner_tickmodules(cardaddressspace* card, int cyclesexecuted);
+int registerplanner_cyclesleft(cardaddressspace* card);
 
 #endif /* REGISTERPLANNER_H_ */

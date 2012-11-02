@@ -9,5 +9,5 @@ ALLEXTLIBS = glib-2.0 argtable2 sdl SDL_ttf fontconfig
 LIBFLAGS=`pkg-config --libs $(ALLEXTLIBS)` -lrt
 SDL = sdl
 CFLAGS = $(WARNINGS) $(OPT) -c -g -I$(MUSASIM_DIR)/../libunagipai/include/ -lmcheck -flto
-LFLAGS = $(WARNINGS) $(OPT) $(LIBFLAGS) -lrt #-flto
+LFLAGS = $(WARNINGS) $(OPT) $(LIBFLAGS) -lrt -flto
 

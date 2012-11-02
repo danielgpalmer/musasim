@@ -124,16 +124,7 @@ static void timercard_irqack() {
 }
 
 static int timercard_cyclesleft() {
-
-//int cycles = -1;
-//for (int i = 0; i < SIZEOFARRAY(timers); i++) {
-//	int timercycles = timermodule.cyclesleft(timers[i]);
-//	if (timercycles > cycles)
-//		cycles = timercycles;
-//}
-
-//return cycles;
-	return 0;
+	return registerplanner_cyclesleft(addressspace);
 }
 
 static void timercard_reset() {
