@@ -50,6 +50,11 @@ static unsigned int audiobufferhead = 0;
 static unsigned int audiobuffertail = 0;
 //
 
+static cardaddressspace* soundcard_setupaddressspace() {
+	cardaddressspace* as = NULL;
+	return as;
+}
+
 static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 
 	for (int i = 0; i < len; i++) {
@@ -346,5 +351,5 @@ const card soundcard = { //
 				NULL, //
 				NULL, //
 				NULL, //
-				NULL //
+				soundcard_setupaddressspace //
 		};

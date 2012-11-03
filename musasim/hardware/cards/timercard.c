@@ -36,12 +36,9 @@ static module_callback callback = { //
 #define BIGTIMERFORMAT "bigtimer_%d"
 
 static cardaddressspace* timercard_setupaddressspace() {
-	cardaddressspace* as = malloc(sizeof(cardaddressspace));
-	// allocate enough unit pointers for the interrupt status registe ,
-	// a set of timers and a set of bigtimers an rtc module, and a NULL terminator
-	unit** units = malloc(sizeof(unit*) * ((TIMERCARD_NUMBEROFTIMERS * 2) + 1 + 1 + 1));
-	unit** currentunit = units;
+	cardaddressspace* as = registerplanner_createaddressspace((TIMERCARD_NUMBEROFTIMERS * 2) + 1 + 1 + 1);
 
+	unit** currentunit = as->units;
 	unit* interruptregister = registerplanner_createblock(2, &timerinterrupts);
 	*(currentunit++) = interruptregister;
 
@@ -65,7 +62,6 @@ static cardaddressspace* timercard_setupaddressspace() {
 
 	//void* rtccontext = rtcmodule.init(&callback, index);
 	*currentunit = NULL;
-	as->units = units;
 	registerplanner_plan(as);
 	//registerplanner_print(as);
 	return as;
@@ -77,16 +73,16 @@ static void timercard_init() {
 }
 
 static void timercard_raiseinterrupt(int index) {
-	if (index < TIMERCARD_NUMBEROFTIMERS) {
+	//if (index < TIMERCARD_NUMBEROFTIMERS) {
 		timerinterrupts |= (1 << index);
-	}
+	//}
 	board_raise_interrupt(&timercard);
 }
 
 static void timercard_lowerinterrupt(int index) {
-	if (index < TIMERCARD_NUMBEROFTIMERS) {
+	//if (index < TIMERCARD_NUMBEROFTIMERS) {
 		timerinterrupts &= ~(1 << index);
-	}
+	//}
 	board_lower_interrupt(&timercard);
 }
 

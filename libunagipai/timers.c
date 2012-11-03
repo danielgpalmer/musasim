@@ -19,9 +19,11 @@ void timers_setup() {
 }
 
 void timers_bigsetup() {
+	timers_bigtimer_0_flags = 0x00;
 	timers_bigtimer_0_config |= TIMERS_REGISTER_CONFIG_ENABLE | TIMERS_REGISTER_CONFIG_ENMATCHAINT
 			| TIMERS_REGISTER_CONFIG_ENMATCHBINT | TIMERS_REGISTER_CONFIG_RESETMATCHB;
-	timers_bigtimer_0_prescaler = 0xffff;
-	timers_bigtimer_0_matcha = 0x00ff;
-	timers_bigtimer_0_matchb = 0x01ff;
+	timers_bigtimer_0_prescaler = 0x000f;
+	timers_bigtimer_0_matcha = 0x000ff00;
+	timers_bigtimer_0_matchb = 0x001ff00;
 }
+

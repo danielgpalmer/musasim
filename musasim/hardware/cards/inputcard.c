@@ -32,7 +32,7 @@ static const char TAG[] = "input";
 
 static uint8_t ports[2];
 static uint8_t dips;
-static uint8_t debugleds;
+static uint8_t debugleds = 0;
 
 static void inputcard_init() {
 
@@ -58,7 +58,7 @@ static void inputcard_init() {
 static uint8_t inputcard_read_byte(uint32_t address) {
 	log_println(LEVEL_INSANE, TAG, "inputcard_read_byte()");
 
-	int reg = address & 0x3;
+	int reg = address & 0xf;
 
 	switch (reg) {
 		case INPUT_PORT0:
@@ -79,7 +79,9 @@ static uint8_t inputcard_read_byte(uint32_t address) {
 }
 
 static void inputcard_write_byte(uint32_t address, uint8_t value) {
-	debugleds = value;
+	int reg = address & 0xf;
+	if (reg == INPUT_DEBUGLEDS)
+		debugleds = value;
 }
 
 static void inputcard_decodekey(SDLKey key, bool up) {
@@ -184,9 +186,7 @@ static void inputcard_dispose() {
 }
 
 static void inputcard_reset() {
-
 	debugleds = 0;
-
 }
 
 void inputcard_setdips(uint8_t dipsvalue) {

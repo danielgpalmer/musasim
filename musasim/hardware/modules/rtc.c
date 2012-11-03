@@ -26,5 +26,6 @@ const module rtcmodule = { //
 				NULL, //
 				NULL, //
 				NULL, //
+				NULL, //
 				NULL //
 		};

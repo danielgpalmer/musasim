@@ -6,10 +6,7 @@ all: board.o boardgdb.o registerplanner.o
 
 registerplanner.o: registerplanner.c registerplanner.h
 	$(CC) $(CFLAGS) --std=gnu99 $< -o $@
-
-regplannertester: regplannertester.c registerplanner.o
-	$(CC) --std=gnu99 $^ ../utils.o -o $@ 
-
+	
 board.o: board.c board.h
 	$(CC) $(CFLAGS) -std=gnu99 $< -o $@
 

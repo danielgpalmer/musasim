@@ -155,6 +155,13 @@ unit* registerplanner_createperipheral(const peripheral* template, char* name, c
 	return unit;
 }
 
+cardaddressspace* registerplanner_createaddressspace(int numberofunits) {
+	cardaddressspace* as = malloc(sizeof(cardaddressspace));
+	unit** units = malloc(sizeof(unit*) * numberofunits);
+	as->units = units;
+	return as;
+}
+
 unit* registerplanner_createblock(int size, void* backingarray) {
 	int unitsize = sizeof(unit);
 	unit* unit = malloc(unitsize);
@@ -209,7 +216,17 @@ void registerplanner_write_word(cardaddressspace* card, uint32_t address, uint16
 	}
 }
 void registerplanner_write_long(cardaddressspace* card, uint32_t address, uint32_t value) {
-
+	unit* unit = registerplanner_whichunit(card, address);
+	if (unit != NULL ) {
+		uint32_t relativeaddress = address - unit->either.start;
+		switch (unit->either.type) {
+			case PERIPHERAL:
+				unit->peripheral.module->write_long(unit->peripheral.context, relativeaddress, value);
+				break;
+			case BLOCK:
+				break;
+		}
+	}
 }
 
 void registerplanner_iterate_registers(unit* unit,

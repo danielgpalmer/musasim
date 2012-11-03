@@ -76,6 +76,7 @@ struct registergroup {
 
 void registerplanner_plan(cardaddressspace* card);
 void registerplanner_print(cardaddressspace* card);
+cardaddressspace* registerplanner_createaddressspace(int numberofunits);
 unit* registerplanner_createperipheral(const peripheral* template, char* name, const module* module, void* context);
 unit* registerplanner_createblock(int bytes, void* backingarray);
 

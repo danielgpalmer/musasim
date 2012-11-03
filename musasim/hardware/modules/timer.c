@@ -241,6 +241,30 @@ else
 #ifdef TIMER_BIGTIMER
 static void timer_writelong(void* context, uint16_t address, uint32_t value) {
 
+log_println(LEVEL_INFO, TAG, "address 0x%"PRIx16"\n", address);
+
+context_t* c = (context_t*) context;
+
+switch (address) {
+	case 0x4:
+		c->prescaler = value;
+		break;
+	case 0x8:
+		c->prescalercounter = value;
+		break;
+	case 0xc:
+		c->counter = value;
+		break;
+	case 0x10:
+		c->matcha = value;
+		break;
+	case 0x14:
+		c->matchb = value;
+		break;
+}
+
+timer_dumpconfig((context_t*) context);
+
 }
 
 static uint32_t timer_readlong(void* context, uint16_t address) {
@@ -266,6 +290,7 @@ const module bigtimermodule = { //
 #endif
 	TAG, //
 			timer_init, //
+			NULL, //
 			NULL, //
 			timer_tick, //
 			NULL, //
