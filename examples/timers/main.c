@@ -52,8 +52,12 @@ void timerinterrupt() {
 
 int main() {
 
-	timers_setup();
-	timers_bigsetup();
+	timers_setup(0,
+			TIMERS_REGISTER_CONFIG_ENABLE | TIMERS_REGISTER_CONFIG_ENMATCHAINT | TIMERS_REGISTER_CONFIG_ENMATCHBINT
+					| TIMERS_REGISTER_CONFIG_RESETMATCHB, 0xffff, 0x00ff, 0x01ff);
+	timers_bigsetup(0,
+			TIMERS_REGISTER_CONFIG_ENABLE | TIMERS_REGISTER_CONFIG_ENMATCHAINT | TIMERS_REGISTER_CONFIG_ENMATCHBINT
+					| TIMERS_REGISTER_CONFIG_RESETMATCHB, 0xffff, 0xff0, 0x1ff0);
 
 	uint16_t sr = machine_getstatusregister();
 	machine_setstatusregister((sr & 0xf8ff));

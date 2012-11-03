@@ -5,25 +5,68 @@
  *      Author: daniel
  */
 
+#include <stdint.h>
+
 #include "include/timers.h"
 #include "include/timers_registers.h"
 #include "include/timers_registermasks.h"
 
-void timers_setup() {
+void timers_setup(int which, uint16_t config, uint16_t prescaler, uint16_t matcha, uint16_t matchb) {
 
-	timers_timer_0_config |= TIMERS_REGISTER_CONFIG_ENABLE | TIMERS_REGISTER_CONFIG_ENMATCHAINT
-			| TIMERS_REGISTER_CONFIG_ENMATCHBINT | TIMERS_REGISTER_CONFIG_RESETMATCHB;
-	timers_timer_0_prescaler = 0xffff;
-	timers_timer_0_matcha = 0x00ff;
-	timers_timer_0_matchb = 0x01ff;
+	switch (which) {
+		case 0:
+			timers_timer_0_config = config;
+			timers_timer_0_prescaler = prescaler;
+			timers_timer_0_matcha = matcha;
+			timers_timer_0_matchb = matchb;
+			break;
+		case 1:
+			timers_timer_1_config = config;
+			timers_timer_1_prescaler = prescaler;
+			timers_timer_1_matcha = matcha;
+			timers_timer_1_matchb = matchb;
+			break;
+		case 2:
+			timers_timer_2_config = config;
+			timers_timer_2_prescaler = prescaler;
+			timers_timer_2_matcha = matcha;
+			timers_timer_2_matchb = matchb;
+			break;
+		case 3:
+			timers_timer_3_config = config;
+			timers_timer_3_prescaler = prescaler;
+			timers_timer_3_matcha = matcha;
+			timers_timer_3_matchb = matchb;
+			break;
+	}
+
 }
 
-void timers_bigsetup() {
-	timers_bigtimer_0_flags = 0x00;
-	timers_bigtimer_0_config |= TIMERS_REGISTER_CONFIG_ENABLE | TIMERS_REGISTER_CONFIG_ENMATCHAINT
-			| TIMERS_REGISTER_CONFIG_ENMATCHBINT | TIMERS_REGISTER_CONFIG_RESETMATCHB;
-	timers_bigtimer_0_prescaler = 0x000f;
-	timers_bigtimer_0_matcha = 0x000ff00;
-	timers_bigtimer_0_matchb = 0x001ff00;
+void timers_bigsetup(int which, uint16_t config, uint32_t prescaler, uint32_t matcha, uint32_t matchb) {
+	switch (which) {
+		case 0:
+			timers_bigtimer_0_config = config;
+			timers_bigtimer_0_prescaler = prescaler;
+			timers_bigtimer_0_matcha = matcha;
+			timers_bigtimer_0_matchb = matchb;
+			break;
+		case 1:
+			timers_bigtimer_1_config = config;
+			timers_bigtimer_1_prescaler = prescaler;
+			timers_bigtimer_1_matcha = matcha;
+			timers_bigtimer_1_matchb = matchb;
+			break;
+		case 2:
+			timers_bigtimer_2_config = config;
+			timers_bigtimer_2_prescaler = prescaler;
+			timers_bigtimer_2_matcha = matcha;
+			timers_bigtimer_2_matchb = matchb;
+			break;
+		case 3:
+			timers_bigtimer_3_config = config;
+			timers_bigtimer_3_prescaler = prescaler;
+			timers_bigtimer_3_matcha = matcha;
+			timers_bigtimer_3_matchb = matchb;
+			break;
+	}
 }
-
