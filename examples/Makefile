@@ -5,6 +5,7 @@ all:
 	$(MAKE) -C serialpayload
 	$(MAKE) -C fpgatests
 	$(MAKE) -C timers
+	$(MAKE) -C sound
 
 clean:
 	$(MAKE) -C m68ktestapp clean
@@ -13,3 +14,4 @@ clean:
 	$(MAKE) -C serialpayload clean
 	$(MAKE) -C fpgatests clean
 	$(MAKE) -C timers clean
+	$(MAKE) -C sound clean

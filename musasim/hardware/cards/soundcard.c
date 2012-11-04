@@ -112,7 +112,7 @@ static void soundcard_init() {
 	fmt.freq = RATE;
 	fmt.format = AUDIO_S16SYS; // BE samples will get converted to the local format
 	fmt.channels = OUTPUTCHANNELS;
-	fmt.samples = 512;
+	fmt.samples = 1024;
 	fmt.callback = soundcard_sdlcallback;
 	fmt.userdata = NULL;
 
