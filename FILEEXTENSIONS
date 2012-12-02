@@ -1,6 +1,12 @@
+These are the standard file extensions that should be used for resources on a CF card.
+They are designed to be unique and not get fudged up by FAT 8.3 filename restriction.
+
 #audio
 
-as1 - audio, signed, 8 bit (1 byte)
-as2 - audio, signed, 16 bit (2 bytes)
+as1 - signed, 8 bit (1 byte)
+as2 - signed, 16 bit (2 bytes)
+
+az1 - signed, 8 bit (1 byte) compressed
+az2 - signed, 16 bit (2 bytes) compressed
 
 # graphics

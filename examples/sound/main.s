@@ -2,36 +2,35 @@
 	.file	"main.c"
 	.text
 .Ltext0:
-	.section	.gnu.lto_.jmpfuncs.bcd0ae2c445d6763,"",@progbits
+	.section	.gnu.lto_.jmpfuncs.1858ce00d9f42f6c,"",@progbits
 	.string	"x\234cb`d`g\300\016X\2404#\020\003"
 	.string	"\001\316"
 	.ascii	"\020"
 	.text
-	.section	.gnu.lto_.inline.bcd0ae2c445d6763,"",@progbits
-	.string	"x\234cb`d\340e\300\016\004\2414#\003\0033\023#\003\023\220\311\266@\036H\001"
-	.string	"\t3"
-	.ascii	"\362"
+	.section	.gnu.lto_.inline.1858ce00d9f42f6c,"",@progbits
+	.string	"x\234cb`d\340e\300\016\004\2404#\003\003\023\220`\0022Y@$"
+	.string	"\005\037"
+	.ascii	"-"
 	.text
-	.section	.gnu.lto_.pureconst.bcd0ae2c445d6763,"",@progbits
+	.section	.gnu.lto_.pureconst.1858ce00d9f42f6c,"",@progbits
 	.string	"x\234cb`d`f`"
-	.string	"c\020`d`"
+	.string	"c\020`d0"
 	.string	""
 	.string	""
-	.string	"\233"
-	.ascii	"\013"
+	.string	"\313"
+	.ascii	";"
 	.text
-	.section	.gnu.lto_main.bcd0ae2c445d6763,"",@progbits
-	.string	"x\234cb`\004BL \t\304q@,\n\304\214\314\f\214L\023\316104*012\202\030@-\365L\214\365\241\020\235\247f\024]1\334\317t\340\301\377z\006\006f\240"
-	.string	"+CKC\203"
-	.string	"C<\324\340@\020\r\322\026\304\310\004f0\237c`|\325\301\024\313\270\200\221\025hS*\222\003\002\031\031\301J\200\n\031\330s\0233\363\364\222\031\270m\222J3sJt3\363\354\030"
-	.ascii	"$\345\034\312"
+	.section	.gnu.lto_main.1858ce00d9f42f6c,"",@progbits
+	.string	"x\234cb`\004BL\240\003\304\001@\314\t\304\214\254\f\214L\023\316104*012\203\030\214\314\214,\020\001\026\210\200\"#C=\0233\013c}(\304\260S3\212\336\030\356g:\360\340\177=\003\330|V\206\226\206\006\001\206x\250]\201 \232\021H1\201\f\013ddf`\004\032\303\030\310\310\002c\300\034\305\236\233\230\231\247\227\314"
+	.string	""
+	.ascii	"\371?\030T"
 	.text
-	.section	.gnu.lto_.cgraph.bcd0ae2c445d6763,"",@progbits
+	.section	.gnu.lto_.cgraph.1858ce00d9f42f6c,"",@progbits
 	.string	"x\234cb`d`f``\340g\200\002&\206z\006\206\t\347\030\352\353\347\235`b"
 	.string	""
 	.ascii	"\035\375\004["
 	.text
-	.section	.gnu.lto_.vars.bcd0ae2c445d6763,"",@progbits
+	.section	.gnu.lto_.vars.1858ce00d9f42f6c,"",@progbits
 	.string	"x\234cb`d`f`"
 	.string	"\222P"
 	.string	""
@@ -39,29 +38,27 @@
 	.string	"r"
 	.ascii	"\b"
 	.text
-	.section	.gnu.lto_.refs.bcd0ae2c445d6763,"",@progbits
+	.section	.gnu.lto_.refs.1858ce00d9f42f6c,"",@progbits
 	.string	"x\234cb`d`f```b\200\001"
 	.string	""
 	.string	"\204"
 	.ascii	"\t"
 	.text
-	.section	.gnu.lto_.statics.bcd0ae2c445d6763,"",@progbits
+	.section	.gnu.lto_.statics.1858ce00d9f42f6c,"",@progbits
 	.string	"x\234cb`d`b\300\016@\342\214\020&"
 	.string	""
 	.string	"\375"
 	.ascii	"\t"
 	.text
-	.section	.gnu.lto_.decls.bcd0ae2c445d6763,"",@progbits
+	.section	.gnu.lto_.decls.1858ce00d9f42f6c,"",@progbits
 	.string	"x\234cb`d"
-	.string	"\201"
-	.string	" \376\017\004/\200\264"
-	.string	"\0203\001\261-\003\002\200T-`\300\004\013\240r,\004\324\3113\314k\330\360\340@C\203\310\217\377\377\331\305\030\2466"
-	.string	"\301\202\306\006\207\242XF\026N\006I\206XF>N\220\325 \026\017'\304\001\f\fD+\214e\\\304(\206\305^\210\\(\023\203\026\303J\220I\r\016\bw\202\275\371\254\3431\023L\241\032\303R\240\212\007\013\032E\300v\201t.`\224g\200[\252"
-	.string	"\267\224\005\305ld\300\346\356\027\252\340\314\300\236\233\230\231\247\227\314"
-	.string	""
-	.ascii	"\261\234/W"
+	.string	"\001\037 \376\017\004\257\201\264"
+	.string	"\0203\001\261-\003\002\200T-`\300\004\013\210P#\3170\257a\303\303\003\r\r\"?\376\377ooh`\021c\230\332"
+	.string	"\004\013\032\033\034\212b\031Y8\031$\031b\031\3718A6\203X<\234\020\373\031\030\210V\030\313\270\210Q\f\213\325\020\271P&\006-\206\225 \223\032\034\020N\005\373\362Y\307c&\230B5\206\245@\025\017\0264\212\200\355\002\351\\\300(\317"
+	.string	"\267T\001n)\013\212\331\310\200\315\335/T\301\231\201=713O/\231\001"
+	.ascii	"$\3460\326"
 	.text
-	.section	.gnu.lto_.symtab.bcd0ae2c445d6763,"",@progbits
+	.section	.gnu.lto_.symtab.1858ce00d9f42f6c,"",@progbits
 	.string	"main"
 	.string	""
 	.string	""
@@ -95,10 +92,8 @@ main:
 .LCFI0:
 	.cfi_offset 14, -8
 	.cfi_def_cfa 14, 8
-	.loc 1 10 0
-	moveq #0,%d0
-	unlk %fp
-	rts
+.L2:
+	jra .L2
 	.cfi_endproc
 .LFE0:
 	.size	main, .-main
