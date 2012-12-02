@@ -10,7 +10,7 @@ GDBONLYOBJECTS=gdbserver.o argsgdb.o profiler.o
 MUSASIMONLYOBJECTS=args.o
 REMOTEOBJECTS=./hardware/registerplanner.o ./hardware/board.o
 
-all: gdbserver musasim genheader dist
+all: checklibs gdbserver musasim genheader dist
 	
 gdbserver: musashi $(LOCALOBJECTS) $(GDBONLYOBJECTS) hardware musashi
 	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o $(LOCALOBJECTS) $(REMOTEOBJECTS) $(GDBONLYOBJECTS) $(LIBCARDSGDB) $(LIBMODULES) -o gdbserver -lelf
@@ -54,7 +54,7 @@ profiler.o: profiler.c profiler.h
 fontutils.o: fontutils.c
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
 
-.PHONY: docs genheader musashi hardware clean check
+.PHONY: docs genheader musashi hardware clean checkcode checklibs
 
 hardware:
 	$(MAKE) -C hardware
@@ -83,5 +83,8 @@ clean:
 	$(MAKE) -C genheader clean
 	$(MAKE) -C hardware clean
 
-check:
+checkcode:
 	cppcheck ./ --std=c99
+
+checklibs:
+	pkg-config --exists $(ALLEXTLIBS)

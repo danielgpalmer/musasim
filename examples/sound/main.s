@@ -2,17 +2,17 @@
 	.file	"main.c"
 	.text
 .Ltext0:
-	.section	.gnu.lto_.jmpfuncs.9ef0e1693845880a,"",@progbits
+	.section	.gnu.lto_.jmpfuncs.bcd0ae2c445d6763,"",@progbits
 	.string	"x\234cb`d`g\300\016X\2404#\020\003"
 	.string	"\001\316"
 	.ascii	"\020"
 	.text
-	.section	.gnu.lto_.inline.9ef0e1693845880a,"",@progbits
+	.section	.gnu.lto_.inline.bcd0ae2c445d6763,"",@progbits
 	.string	"x\234cb`d\340e\300\016\004\2414#\003\0033\023#\003\023\220\311\266@\036H\001"
 	.string	"\t3"
 	.ascii	"\362"
 	.text
-	.section	.gnu.lto_.pureconst.9ef0e1693845880a,"",@progbits
+	.section	.gnu.lto_.pureconst.bcd0ae2c445d6763,"",@progbits
 	.string	"x\234cb`d`f`"
 	.string	"c\020`d`"
 	.string	""
@@ -20,18 +20,18 @@
 	.string	"\233"
 	.ascii	"\013"
 	.text
-	.section	.gnu.lto_main.9ef0e1693845880a,"",@progbits
+	.section	.gnu.lto_main.bcd0ae2c445d6763,"",@progbits
 	.string	"x\234cb`\004BL \t\304q@,\n\304\214\314\f\214L\023\316104*012\202\030@-\365L\214\365\241\020\235\247f\024]1\334\317t\340\301\377z\006\006f\240"
 	.string	"+CKC\203"
 	.string	"C<\324\340@\020\r\322\026\304\310\004f0\237c`|\325\301\024\313\270\200\221\025hS*\222\003\002\031\031\301J\200\n\031\330s\0233\363\364\222\031\270m\222J3sJt3\363\354\030"
 	.ascii	"$\345\034\312"
 	.text
-	.section	.gnu.lto_.cgraph.9ef0e1693845880a,"",@progbits
+	.section	.gnu.lto_.cgraph.bcd0ae2c445d6763,"",@progbits
 	.string	"x\234cb`d`f``\340g\200\002&\206z\006\206\t\347\030\352\353\347\235`b"
 	.string	""
 	.ascii	"\035\375\004["
 	.text
-	.section	.gnu.lto_.vars.9ef0e1693845880a,"",@progbits
+	.section	.gnu.lto_.vars.bcd0ae2c445d6763,"",@progbits
 	.string	"x\234cb`d`f`"
 	.string	"\222P"
 	.string	""
@@ -39,19 +39,19 @@
 	.string	"r"
 	.ascii	"\b"
 	.text
-	.section	.gnu.lto_.refs.9ef0e1693845880a,"",@progbits
+	.section	.gnu.lto_.refs.bcd0ae2c445d6763,"",@progbits
 	.string	"x\234cb`d`f```b\200\001"
 	.string	""
 	.string	"\204"
 	.ascii	"\t"
 	.text
-	.section	.gnu.lto_.statics.9ef0e1693845880a,"",@progbits
+	.section	.gnu.lto_.statics.bcd0ae2c445d6763,"",@progbits
 	.string	"x\234cb`d`b\300\016@\342\214\020&"
 	.string	""
 	.string	"\375"
 	.ascii	"\t"
 	.text
-	.section	.gnu.lto_.decls.9ef0e1693845880a,"",@progbits
+	.section	.gnu.lto_.decls.bcd0ae2c445d6763,"",@progbits
 	.string	"x\234cb`d"
 	.string	"\201"
 	.string	" \376\017\004/\200\264"
@@ -61,7 +61,7 @@
 	.string	""
 	.ascii	"\261\234/W"
 	.text
-	.section	.gnu.lto_.symtab.9ef0e1693845880a,"",@progbits
+	.section	.gnu.lto_.symtab.bcd0ae2c445d6763,"",@progbits
 	.string	"main"
 	.string	""
 	.string	""
