@@ -31,10 +31,11 @@ clean:
 
 .PHONY: cfimage.bin
 
-cfimage.bin:
+cfimage.bin: cfimage/kick1.as2
 	dd if=/dev/zero of=cfimage.bin bs=1MB count=64
 	/sbin/mkfs.vfat cfimage.bin
-	#MTOOLSRC=./mtools.conf mcopy cfimagefiles/pai.bz m:/
+	MTOOLSRC=./mtools.conf mcopy cfimage/kick1.as2 m:/
+	MTOOLSRC=./mtools.conf mdir m:	
 
-cfimage/kick1.be16: samples/kick1.wav
+cfimage/kick1.as2: samples/kick1.wav
 	sox $< $(SOXBIGENDIANCONV) $@	

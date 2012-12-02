@@ -4,5 +4,5 @@ CC=$(TCPREFIX)/m68k-elf-gcc
 AS=$(TCPREFIX)/m68k-elf-as
 CP=$(TCPREFIX)/m68k-elf-objcopy
 
-SOXBIGENDIANCONV=-tu16 -c 1 --endian big
+SOXBIGENDIANCONV=-ts16 -r22050 -c 1 --endian big
 

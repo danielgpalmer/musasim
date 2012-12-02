@@ -1,0 +1,6 @@
+#audio
+
+as1 - audio, signed, 8 bit (1 byte)
+as2 - audio, signed, 16 bit (2 bytes)
+
+# graphics
