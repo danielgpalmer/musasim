@@ -16,6 +16,7 @@
 #include <libunagipai/image.h>
 #include <libunagipai/sprite.h>
 #include <libunagipai/math.h>
+#include <libunagipai/utils.h>
 
 #include "main.h"
 
@@ -142,40 +143,6 @@ void initvideo() {
 	//video_flip();
 }
 
-static void printffresult(FRESULT result) {
-	switch (result) {
-		case FR_OK:
-			printf("OK!\n");
-			break;
-		case FR_DISK_ERR:
-			printf("DISK ERROR!\n");
-			break;
-		case FR_NOT_READY:
-			printf("NOT READY!\n");
-			break;
-		case FR_NO_FILE:
-			printf("NO FILE!\n");
-			break;
-		case FR_NO_PATH:
-			printf("NO PATH\n"); // wtf does no path mean heh
-			break;
-		case FR_NOT_OPENED:
-			printf("FILE NOT OPENED\n");
-			break;
-		case FR_NOT_ENABLED:
-			printf("NOT ENABLED\n");
-			break;
-		case FR_NO_FILESYSTEM:
-			printf("NO FILESYSTEM\n");
-			break;
-	}
-}
-
-static void printfat(FATFS* fs) {
-	printf("fat base : 0x%08x\n", (unsigned) fs->fatbase);
-	printf("data base : 0x%08x\n", (unsigned) fs->database);
-}
-
 void fatimageloader DATALOADERARGS {
 	uint16_t len;
 	pf_read(buff, wanted, &len);
@@ -200,10 +167,10 @@ int main(void) {
 	FATFS fs;
 	FRESULT result;
 	result = pf_mount(&fs);
-	printffresult(result);
-	printfat(&fs);
+	util_printffresult(result);
+	util_printfat(&fs);
 	result = pf_open("test.txt");
-	printffresult(result);
+	util_printffresult(result);
 	char buf[64];
 	uint16_t len;
 	pf_read(buf, 63, &len);

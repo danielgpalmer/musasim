@@ -1,2 +1,2 @@
 #!/bin/bash
-../../musasim/musasim -e prog.elf -c cfimage.bin
+../../musasim/musasim -e prog.elf -c cfimage.bin --loguartchanone
