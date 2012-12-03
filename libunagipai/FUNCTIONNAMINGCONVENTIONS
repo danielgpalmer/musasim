@@ -1,0 +1,11 @@
+This is for my own failing memory
+
+?_begin	 -- must be called before anything else that must be called as part of a transaction, 
+	    usually calls dma_begin to open a DMA transaction
+
+?_?????	 -- functions that must be called after _begin and before _commit for them to work
+            correctly. Usually data uploads via DMA. The actual action of the method might
+	    not happen until _commit is called. There needs to be some documenta;tion to
+	    mark which functions are safe to call outside of a transaction and which aren't. 
+
+?_commit -- flush the current transaction, i.e. commit any DMA transfers.
