@@ -7,6 +7,7 @@
 
 #include <libunagipai/pff.h>
 #include <libunagipai/utils.h>
+#include <libunagipai/sound.h>
 
 #define SAMPLE_KICK1 "kick1.as2"
 
@@ -18,11 +19,11 @@ int main() {
 	util_printfat(&fs);
 	result = pf_open(SAMPLE_KICK1);
 	util_printffresult(result);
-	char buf[64];
+	uint8_t buf[64];
 	uint16_t len;
 	pf_read(buf, 63, &len);
 
-	printf("read from file: %s\n", buf);
+	sound_uploadsample(buf, 0, 0, len);
 
 	while (1) {
 	};

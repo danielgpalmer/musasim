@@ -295,6 +295,7 @@ static uint16_t soundcard_read_word(uint32_t address) {
 static void soundcard_write_word(uint32_t address, uint16_t value) {
 
 	if (address < channelregisterbase) {
+		log_println(LEVEL_INFO, TAG, "Write to sample ram @ 0x%"PRIx32" value: 0x%"PRIx16, address, value);
 		WRITE_WORD(sampleram, address, value);
 	}
 	else {

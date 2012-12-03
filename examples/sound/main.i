@@ -152,6 +152,12 @@ void util_hexblockprint(void* buffer, unsigned len);
 void util_printfat(FATFS* fs);
 void util_printffresult(FRESULT result);
 # 10 "main.c" 2
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.2/../../../../m68k-elf/include/libunagipai/sound.h" 1 3
+# 9 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/lib/gcc/m68k-elf/4.7.2/../../../../m68k-elf/include/libunagipai/sound.h" 3
+void sound_start();
+void sound_uploadsample(uint16_t* data, unsigned int bank, uint16_t bankoffset, uint16_t samplelen);
+void sound_commit();
+# 11 "main.c" 2
 
 
 
@@ -163,11 +169,11 @@ int main() {
  util_printfat(&fs);
  result = pf_open("kick1.as2");
  util_printffresult(result);
- char buf[64];
+ uint8_t buf[64];
  uint16_t len;
  pf_read(buf, 63, &len);
 
- printf("read from file: %s\n", buf);
+ sound_uploadsample(buf, 0, 0, len);
 
  while (1) {
  };
