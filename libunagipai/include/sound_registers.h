@@ -15,7 +15,7 @@
 #define sound_bank_2 ((volatile uint16_t*) 0x61fffe)
 #define sound_bank_3 ((volatile uint16_t*) 0x62fffd)
 #define sound_channel_master_config ((volatile uint16_t*) 0x640000)
-#define sound_channel_master_volume ((volailte uint16_t*) 0x640002)
+#define sound_channel_master_volume ((volatile uint16_t*) 0x640002)
 #define sound_channel_0_config ((volatile uint16_t*) 0x640010)
 #define sound_channel_0_volume ((volatile uint16_t*) 0x640012)
 #define sound_channel_0_samplepointer ((volatile uint16_t*) 0x640014)

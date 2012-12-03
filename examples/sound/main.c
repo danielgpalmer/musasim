@@ -9,6 +9,8 @@
 #include <libunagipai/utils.h>
 #include <libunagipai/sound.h>
 
+#include <stdlib.h>
+
 #define SAMPLE_KICK1 "kick1.as2"
 
 int main() {
@@ -19,9 +21,10 @@ int main() {
 	util_printfat(&fs);
 	result = pf_open(SAMPLE_KICK1);
 	util_printffresult(result);
-	uint8_t buf[64];
+
+	uint8_t* buf = malloc(9664);
 	uint16_t len;
-	pf_read(buf, 63, &len);
+	pf_read(buf, 9664, &len);
 
 	sound_uploadsample(buf, 0, 0, len);
 

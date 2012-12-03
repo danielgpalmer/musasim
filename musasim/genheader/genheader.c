@@ -224,7 +224,7 @@ static void sound() {
 		if (i == 0) {
 			printf("#define sound_channel_master_config ((volatile uint16_t*) 0x%x)\n",
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_CONFIG);
-			printf("#define sound_channel_master_volume ((volailte uint16_t*) 0x%x)\n",
+			printf("#define sound_channel_master_volume ((volatile uint16_t*) 0x%x)\n",
 					SLOT_OFFSET(SLOT_SOUNDCARD) + channelbases[i] + SOUND_REGISTER_VOLUME);
 		}
 		else {

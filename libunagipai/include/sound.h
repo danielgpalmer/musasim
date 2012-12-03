@@ -6,6 +6,6 @@
 
 #include <stdint.h>
 
-void sound_start();
-void sound_uploadsample(uint16_t* data, unsigned int bank, uint16_t bankoffset, uint16_t samplelen);
+void sound_begin();
+void sound_uploadsample(uint16_t* data, unsigned short bank, uint16_t bankoffset, uint16_t samplelen);
 void sound_commit();
