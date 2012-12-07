@@ -1,2 +1,4 @@
 #!/bin/bash
-../../musasim/musasim -e prog.elf -c cfimage.bin --loguartchanone
+make clean
+make
+../../musasim/musasim -e prog.elf -c cfimage.bin --loguartchanone --loglevel=2

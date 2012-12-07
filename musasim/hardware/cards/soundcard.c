@@ -110,7 +110,7 @@ static void soundcard_init() {
 
 }
 
-static void soundcard_dump_config(int channel) {
+static void soundcard_dump_config(int channel, bool latched) {
 
 	if (channel == 0) {
 		masterchannel* chan = &(channels[channel].master);
@@ -118,7 +118,7 @@ static void soundcard_dump_config(int channel) {
 				VOLLEFT(chan->volume), VOLRIGHT(chan->volume));
 	}
 	else {
-		audiochannel* chan = &(channels[channel].audio);
+		audiochannel* chan = latched ? &(channelslatched[channel].audio) : &(channels[channel].audio);
 		log_println(LEVEL_DEBUG, TAG,
 				"channel %d, config 0x%04x, pointer 0x%04x, len 0x%04x, pos 0x%04x, volume left %d right %d",
 				channel - 1, chan->config, chan->samplepointer, chan->samplelength, chan->samplepos,
@@ -150,86 +150,92 @@ static int16_t soundcard_mixsamples(int16_t sample1, int16_t sample2, uint8_t vo
 
 static void soundcard_tick(int cyclesexecuted) {
 
+	static int carry = 0;
+
 	static unsigned int bufferindex = 0;
-	static int scaler = 0;
 
-	if (!active) {
+	//if (!active) {
+	//	return;
+	//}
+	int total = cyclesexecuted + carry;
+	carry = total % TICKSPERSAMPLE;
+	int ticks = total - carry;
+	if (ticks == 0)
 		return;
-	}
 
-	if (scaler < TICKSPERSAMPLE) { // Fudge
-		scaler++;
-		return;
-	}
-	scaler = 0;
+	//log_println(LEVEL_INFO, TAG, "ticks %d", ticks);
 
-	masterchannel* master = &(channels[0].master);
+	for (int i = 0; i < (ticks / TICKSPERSAMPLE); i++) {
 
-	if (master->config && SOUND_CHANNEL_ENABLED) { // sound is enabled
+		masterchannel* master = &(channels[0].master);
 
-		SDL_LockAudio();
+		if (master->config && SOUND_CHANNEL_ENABLED) { // sound is enabled
 
-		audiobuffer[bufferindex] = 0;
-		audiobuffer[bufferindex + 1] = 0;
+			SDL_LockAudio();
 
-		for (int i = 1; i < TOTALCHANNELS; i++) {
-			if (channels[i].audio.config & SOUND_CHANNEL_ENABLED) {
+			audiobuffer[bufferindex] = 0;
+			audiobuffer[bufferindex + 1] = 0;
 
-				// channel ran out of samples.. so latch it again
-				audiochannel* chan = &(channelslatched[i].audio);
-				if (chan->samplepos == chan->samplelength) {
-					channelslatched[i] = channels[i];
-					chan = &(channelslatched[i].audio);
-				}
+			for (int i = 1; i < TOTALCHANNELS; i++) {
+				if (channels[i].audio.config & SOUND_CHANNEL_ENABLED) {
 
-				int page = (chan->config & SOUND_CHANNEL_PAGE) >> SOUND_CHANNEL_PAGE_SHIFT;
-				uint32_t pageoffset = SAMPLEPAGESIZE * page;
-				uint32_t sampleoffset = pageoffset + chan->samplepointer + (chan->samplepos * 2);
+					// channel ran out of samples.. so latch it again
+					audiochannel* chan = &(channelslatched[i].audio);
+					if (chan->samplepos == chan->samplelength) {
+						channelslatched[i] = channels[i];
+						chan = &(channelslatched[i].audio);
+					}
 
-				// LEFT
-				if (chan->config & SOUND_CHANNEL_LEFT) {
-					audiobuffer[bufferindex] = soundcard_mixsamples(audiobuffer[bufferindex],
-							READ_WORD(sampleram, sampleoffset), VOLLEFT(chan->volume));
-				}
+					int page = (chan->config & SOUND_CHANNEL_PAGE) >> SOUND_CHANNEL_PAGE_SHIFT;
+					uint32_t pageoffset = SAMPLEPAGESIZE * page;
+					uint32_t sampleoffset = pageoffset + chan->samplepointer + (chan->samplepos * 2);
 
-				// RIGHT
-				if (chan->config & SOUND_CHANNEL_RIGHT) {
-					audiobuffer[bufferindex + 1] = soundcard_mixsamples(audiobuffer[bufferindex + 1],
-							READ_WORD(sampleram, sampleoffset), VOLRIGHT(chan->volume));
-				}
+					// LEFT
+					if (chan->config & SOUND_CHANNEL_LEFT) {
+						audiobuffer[bufferindex] = soundcard_mixsamples(audiobuffer[bufferindex],
+								READ_WORD(sampleram, sampleoffset), VOLLEFT(chan->volume));
+					}
 
-				// chan is all out of samples..
-				chan->samplepos++;
-				if (chan->samplepos == chan->samplelength) {
-					if (chan->config & SOUND_CHANNEL_INTERRUPT) {
-						chan->config |= SOUND_CHANNEL_RELOAD;
-						board_raise_interrupt(&soundcard);
+					// RIGHT
+					if (chan->config & SOUND_CHANNEL_RIGHT) {
+						audiobuffer[bufferindex + 1] = soundcard_mixsamples(audiobuffer[bufferindex + 1],
+								READ_WORD(sampleram, sampleoffset), VOLRIGHT(chan->volume));
+					}
+
+					// chan is all out of samples..
+					chan->samplepos++;
+					if (chan->samplepos == chan->samplelength) {
+						if (chan->config & SOUND_CHANNEL_INTERRUPT) {
+							chan->config |= SOUND_CHANNEL_RELOAD;
+							board_raise_interrupt(&soundcard);
+						}
 					}
 				}
+
 			}
 
+			// Adjust the output to the master volume.
+			//audiobuffer[bufferindex] *= VOLLEFT(master->volume) / UINT8_MAX;
+			//audiobuffer[bufferindex + 1] *= VOLLEFT(master->volume) / UINT8_MAX;
+
+			bufferindex += OUTPUTCHANNELS;
+
+			// wraparound
+			if (bufferindex == BUFFER) {
+				bufferindex = 0;
+			}
+
+			audiobufferhead = bufferindex * SAMPLESIZE;
+
+			// we have caught up with the output
+			if (audiobufferhead == audiobuffertail) {
+				log_println(LEVEL_INFO, TAG, "audio buffer has overflown");
+			}
+
+			SDL_UnlockAudio();
 		}
-
-		// Adjust the output to the master volume.
-		audiobuffer[bufferindex] *= VOLLEFT(master->volume) / UINT8_MAX;
-		audiobuffer[bufferindex + 1] *= VOLLEFT(master->volume) / UINT8_MAX;
-
-		bufferindex += OUTPUTCHANNELS;
-
-		// wraparound
-		if (bufferindex == BUFFER) {
-			bufferindex = 0;
-		}
-
-		audiobufferhead = bufferindex * SAMPLESIZE;
-
-		// we have caught up with the output
-		if (audiobufferhead == audiobuffertail) {
-			log_println(LEVEL_INFO, TAG, "audio buffer has overflown");
-		}
-
-		SDL_UnlockAudio();
 	}
+	//soundcard_dump_config(1, true);
 }
 
 static uint16_t* soundcard_decodereg(uint32_t address) {
@@ -299,13 +305,16 @@ static void soundcard_write_word(uint32_t address, uint16_t value) {
 		WRITE_WORD(sampleram, address, value);
 	}
 	else {
+		log_println(LEVEL_INFO, TAG, "register write 0x%"PRIx32, address);
 		uint16_t* reg = soundcard_decodereg(address);
 		if (reg != NULL ) {
 			*reg = value;
-			for (int i = 0; i < NUMAUDIOCHANNELS; i++) {
-				soundcard_dump_config(i);
+			for (int i = 0; i <= NUMAUDIOCHANNELS; i++) {
+				soundcard_dump_config(i, false);
 			}
 		}
+		else
+			log_println(LEVEL_INFO, TAG, "bad address 0x%"PRIx32, address);
 	}
 
 }

@@ -10,6 +10,7 @@
 #include <libunagipai/sound.h>
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define SAMPLE_KICK1 "kick1.as2"
 
@@ -27,6 +28,11 @@ int main() {
 	pf_read(buf, 9664, &len);
 
 	sound_uploadsample(buf, 0, 0, len);
+	sound_setmastervolume(0xff);
+	sound_configurechannel(0, true, false, true);
+	sound_setchannellength(0, len / 2);
+	sound_setchannelvolume(0, 0xffff);
+	sound_configuremasterchannel(true);
 
 	while (1) {
 	};

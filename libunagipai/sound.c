@@ -6,9 +6,11 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "include/sound.h"
 #include "include/dma.h"
 #include "include/sound_registers.h"
+#include "include/sound_registermasks.h"
 
 #define MASKBANKBITS(a) (a & 0x3)
 #define MASKCHANBITS(a) (a & 0x7)
@@ -23,7 +25,7 @@ void sound_uploadsamplefromfile() {
 
 void sound_uploadsample(uint16_t* data, unsigned short bank, uint16_t bankoffset, uint16_t samplelen) {
 
-	uint16_t* realaddress;
+	volatile uint16_t* realaddress;
 	switch (MASKBANKBITS(bank)) {
 		case 0:
 			realaddress = sound_bank_0 + bankoffset;
@@ -45,69 +47,78 @@ void sound_uploadsample(uint16_t* data, unsigned short bank, uint16_t bankoffset
 
 }
 
-void sound_configurechannel(unsigned short channel) {
+void sound_configurechannel(unsigned short channel, bool enabled, bool left, bool right) {
 
-	uint16_t* configregister;
-	switch (MASKCHANBITS(channel)) {
-		case 0:
-			configregister = sound_channel_0_config;
-			break;
-		case 1:
-			configregister = sound_channel_1_config;
-			break;
-		case 2:
-			configregister = sound_channel_2_config;
-			break;
-		case 3:
-			configregister = sound_channel_3_config;
-			break;
-		case 4:
-			configregister = sound_channel_4_config;
-			break;
-		case 5:
-			configregister = sound_channel_5_config;
-			break;
-		case 6:
-			configregister = sound_channel_6_config;
-			break;
-		case 7:
-			configregister = sound_channel_7_config;
-			break;
-	}
+//	uint16_t* configregister;
+//	switch (MASKCHANBITS(channel)) {
+//		case 0:
+//			configregister = sound_channel_0_config;
+//			break;
+//		case 1:
+//			configregister = sound_channel_1_config;
+//			break;
+//		case 2:
+//			configregister = sound_channel_2_config;
+//			break;
+//		case 3:
+//			configregister = sound_channel_3_config;
+//			break;
+//		case 4:
+//			configregister = sound_channel_4_config;
+//			break;
+//		case 5:
+//			configregister = sound_channel_5_config;
+//			break;
+//		case 6:
+//			configregister = sound_channel_6_config;
+//			break;
+//		case 7:
+//			configregister = sound_channel_7_config;
+//			break;
+//	}
 
-	configregister = 0;
+	uint16_t config = 0;
+
+	if (left)
+		config |= SOUND_CHANNEL_LEFT;
+
+	if (right)
+		config |= SOUND_CHANNEL_RIGHT;
+
+	if (enabled)
+		config |= SOUND_CHANNEL_ENABLED;
+
+	sound_channel_0_config = config;
 }
 
 void sound_setchannelvolume(unsigned short channel, uint16_t channelvolume) {
-	uint16_t* volumeregister;
+
 	switch (MASKCHANBITS(channel)) {
 		case 0:
-			volumeregister = sound_channel_0_volume;
+			sound_channel_0_volume = channelvolume;
 			break;
 		case 1:
-			volumeregister = sound_channel_1_volume;
+			sound_channel_1_volume = channelvolume;
 			break;
 		case 2:
-			volumeregister = sound_channel_2_volume;
+			sound_channel_2_volume = channelvolume;
 			break;
 		case 3:
-			volumeregister = sound_channel_3_volume;
+			sound_channel_3_volume = channelvolume;
 			break;
 		case 4:
-			volumeregister = sound_channel_4_volume;
+			sound_channel_4_volume = channelvolume;
 			break;
 		case 5:
-			volumeregister = sound_channel_5_volume;
+			sound_channel_5_volume = channelvolume;
 			break;
 		case 6:
-			volumeregister = sound_channel_6_volume;
+			sound_channel_6_volume = channelvolume;
 			break;
 		case 7:
-			volumeregister = sound_channel_7_volume;
+			sound_channel_7_volume = channelvolume;
 			break;
 	}
-
-	volumeregister = channelvolume;
 }
 
 void sound_enable() {
@@ -119,6 +130,15 @@ void sound_disable() {
 }
 
 void sound_setmastervolume(uint16_t mastervolume) {
+	sound_channel_master_volume = mastervolume;
+}
+
+void sound_configuremasterchannel(bool enabled) {
+	sound_channel_master_config = SOUND_CHANNEL_ENABLED;
+}
+
+void sound_setchannellength(unsigned short channel, uint16_t length) {
+	sound_channel_0_samplelength = length;
 }
 
 void sound_commit() {
