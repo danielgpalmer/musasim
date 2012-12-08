@@ -12,6 +12,8 @@
 
 const card soundcard;
 
+int16_t* sound_getbuffer();
+
 #define RATE 22050
 #define TICKSPERSAMPLE (SIM_MAINCLOCK / RATE)
 

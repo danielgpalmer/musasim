@@ -5,7 +5,7 @@ LIBCARDSGDB=./hardware/cards/libcardsgdb.a
 LIBMODULES=./hardware/modules/libmodules.a
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
 
-LOCALOBJECTS=sim.o logging.o utils.o elfloader.o osd.o fontutils.o
+LOCALOBJECTS=sim.o logging.o utils.o elfloader.o osd.o fontutils.o sdlwrapper.o
 GDBONLYOBJECTS=gdbserver.o argsgdb.o profiler.o
 MUSASIMONLYOBJECTS=args.o
 REMOTEOBJECTS=./hardware/registerplanner.o ./hardware/board.o
@@ -37,6 +37,9 @@ utils.o: utils.c utils.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
 
 osd.o: osd.c osd.h
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
+
+sdlwrapper.o: sdlwrapper.c sdlwrapper.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
 
 args.o: args.h args.c

@@ -327,6 +327,10 @@ static bool soundcard_validaddress(uint32_t address) {
 	return true;
 }
 
+int16_t* sound_getbuffer() {
+	return audiobuffer;
+}
+
 const card soundcard = { //
 		"SOUND CARD", //
 				soundcard_init, //

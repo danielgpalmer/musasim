@@ -9,11 +9,13 @@
 #include <SDL_ttf.h>
 #include <stdbool.h>
 #include "osd.h"
+#include "sdlwrapper.h"
 #include "fontutils.h"
+#include "hardware/board.h"
 #include "hardware/cards/card.h"
 #include "hardware/cards/videocard.h"
 #include "hardware/cards/inputcard.h"
-#include "hardware/board.h"
+#include "hardware/cards/soundcard.h"
 
 #define LEDHEIGHT  10
 #define LEDWIDTH  15
@@ -26,9 +28,9 @@ static SDL_Surface* osd = NULL;
 static SDL_Surface* busactivitylabel;
 static SDL_Surface* dipswitcheslabel;
 static SDL_Surface* debuglabel;
-static SDL_Rect rect, ledlabel, rectled;
+static SDL_Rect rect, ledlabel, rectled, audiowindow;
 static SDL_Color labels = { .r = 0, .g = 0xff, .b = 0 };
-static Uint32 colourkey, active, inactive, ledon, ledoff;
+static Uint32 colourkey, active, inactive, ledon, ledoff, audiowindowbg;
 static bool osdvisible = false;
 
 static void osd_set() {
@@ -47,6 +49,25 @@ void osd_createlabels() {
 	TTF_Quit();
 }
 
+static void osd_updateaudiobuffer() {
+	SDL_FillRect(osd, &audiowindow, audiowindowbg);
+	int quarterheight = audiowindow.h / 4;
+	int middle = audiowindow.y + quarterheight * 2;
+	int leftbase = audiowindow.y + quarterheight;
+	int rightbase = audiowindow.y + (quarterheight * 3);
+
+	int windowright = audiowindow.x + audiowindow.w - 1;
+	sdlwrapper_drawline(osd, audiowindow.x, leftbase, windowright, leftbase, 0, 0xFF0000FF);
+	sdlwrapper_drawline(osd, audiowindow.x, rightbase, windowright, rightbase, 0, 0xFF0000FF);
+	sdlwrapper_drawline(osd, audiowindow.x, middle, windowright, middle, 0, 0x000000FF);
+
+	int amp = -10;
+	for (int i = 0; i < 20; i++) {
+		sdlwrapper_plot(osd, audiowindow.x + i, leftbase + amp + i, 0x00FF00FF);
+		sdlwrapper_plot(osd, audiowindow.x + i, rightbase + amp + i, 0x00FF00FF);
+	}
+}
+
 void osd_init() {
 
 	osd_createlabels();
@@ -57,6 +78,7 @@ void osd_init() {
 	inactive = SDL_MapRGB(osd->format, 184, 184, 184);
 	ledon = SDL_MapRGB(osd->format, 0, 255, 0);
 	ledoff = SDL_MapRGB(osd->format, 0, 100, 0);
+	audiowindowbg = SDL_MapRGB(osd->format, 0xff, 0xff, 0xff);
 	SDL_SetColorKey(osd, SDL_SRCCOLORKEY, colourkey);
 	SDL_FillRect(osd, NULL, colourkey);
 
@@ -69,6 +91,11 @@ void osd_init() {
 	rectled.w = LEDWIDTH;
 	rectled.x = 0;
 	rectled.y = VIDEO_HEIGHT - LEDHEIGHT - 10;
+
+	audiowindow.h = 50;
+	audiowindow.w = 100;
+	audiowindow.x = 100;
+	audiowindow.y = 20;
 
 	osd_set();
 
@@ -109,6 +136,8 @@ void osd_update() {
 	ledlabel.w = debuglabel->w;
 	ledlabel.h = debuglabel->h;
 	SDL_BlitSurface(debuglabel, NULL, osd, &ledlabel);
+
+	osd_updateaudiobuffer();
 }
 
 void osd_toggle() {
@@ -126,5 +155,4 @@ void osd_dispose() {
 	SDL_FreeSurface(busactivitylabel);
 	SDL_FreeSurface(dipswitcheslabel);
 	SDL_FreeSurface(osd);
-
 }
