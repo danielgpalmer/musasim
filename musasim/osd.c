@@ -8,14 +8,18 @@
 #include <SDL/SDL.h>
 #include <SDL_ttf.h>
 #include <stdbool.h>
+#include <glib.h>
 #include "osd.h"
 #include "sdlwrapper.h"
 #include "fontutils.h"
+#include "logging.h"
 #include "hardware/board.h"
 #include "hardware/cards/card.h"
 #include "hardware/cards/videocard.h"
 #include "hardware/cards/inputcard.h"
 #include "hardware/cards/soundcard.h"
+
+#define TAG "osd"
 
 #define LEDHEIGHT  10
 #define LEDWIDTH  15
@@ -61,10 +65,51 @@ static void osd_updateaudiobuffer() {
 	sdlwrapper_drawline(osd, audiowindow.x, rightbase, windowright, rightbase, 0, 0xFF0000FF);
 	sdlwrapper_drawline(osd, audiowindow.x, middle, windowright, middle, 0, 0x000000FF);
 
-	int amp = -10;
-	for (int i = 0; i < 20; i++) {
-		sdlwrapper_plot(osd, audiowindow.x + i, leftbase + amp + i, 0x00FF00FF);
-		sdlwrapper_plot(osd, audiowindow.x + i, rightbase + amp + i, 0x00FF00FF);
+	float scale = (float) quarterheight / (float) INT16_MAX;
+
+	// how many samples to average into a single pixel in the window
+	int samplestoaverage = 4;
+
+	unsigned int head;
+	unsigned int len;
+	int16_t* buffstart = sound_getbuffer(&head, &len);
+	int16_t* buffend = buffstart + len;
+
+	// calculate an offset so that the right edge of the window matches the
+	// head of the buffer
+	int offset = head - (audiowindow.w * samplestoaverage) * 2;
+	if (offset < 0)
+		offset = len + offset;
+	//log_println(LEVEL_INFO, TAG, "len %"PRId16" offset %"PRId16" buffer head %"PRId16, len, offset, head);
+
+	int16_t* buffer = buffstart + offset;
+
+	//g_assert(buffer < buffstart);
+
+	for (int i = 0; i < audiowindow.w; i++) {
+
+		int32_t left = 0;
+		int32_t right = 0;
+
+		// add up the samples
+		for (int s = 0; s < samplestoaverage; s++) {
+			left += *buffer++;
+			right += *buffer++;
+			// wrap around the buffer
+			if (buffer == buffend)
+				buffer = buffstart;
+		}
+
+		// average them
+		left /= samplestoaverage;
+		right /= samplestoaverage;
+
+		// scale them to fit the y axis
+		int16_t scaledleft = (left * scale);
+		int16_t scaledright = (right * scale);
+
+		sdlwrapper_plot(osd, audiowindow.x + i, leftbase + scaledleft, 0x00FF00FF);
+		sdlwrapper_plot(osd, audiowindow.x + i, rightbase + scaledright, 0x00FF00FF);
 	}
 }
 
@@ -92,8 +137,8 @@ void osd_init() {
 	rectled.x = 0;
 	rectled.y = VIDEO_HEIGHT - LEDHEIGHT - 10;
 
-	audiowindow.h = 50;
-	audiowindow.w = 100;
+	audiowindow.h = 150;
+	audiowindow.w = 200;
 	audiowindow.x = 100;
 	audiowindow.y = 20;
 

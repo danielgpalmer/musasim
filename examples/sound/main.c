@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define SAMPLE_SINE "sine.as2"
 #define SAMPLE_KICK1 "kick1.as2"
 
 int main() {
@@ -20,18 +21,18 @@ int main() {
 	result = pf_mount(&fs);
 	util_printffresult(result);
 	util_printfat(&fs);
-	result = pf_open(SAMPLE_KICK1);
+	result = pf_open(SAMPLE_SINE);
 	util_printffresult(result);
 
-	uint8_t* buf = malloc(9664);
+	uint8_t* buf = malloc(22050);
 	uint16_t len;
-	pf_read(buf, 9664, &len);
+	pf_read(buf, 22050, &len);
 
-	sound_uploadsample(buf, 0, 0, len);
-	sound_setmastervolume(0xff);
-	sound_configurechannel(0, true, false, true);
-	sound_setchannellength(0, len / 2);
-	sound_setchannelvolume(0, 0xffff);
+	//sound_uploadsample(buf, 0, 0, len);
+	sound_setmastervolume(0xffff);
+	//sound_configurechannel(0, true, true, true);
+	//sound_setchannellength(0, len / 2);
+	//sound_setchannelvolume(0, 0xffff);
 	sound_configuremasterchannel(true);
 
 	while (1) {

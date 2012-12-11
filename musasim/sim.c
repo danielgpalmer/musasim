@@ -96,6 +96,7 @@ static void sim_updatesdl() {
 					else {
 						log_println(LEVEL_INFO, TAG, "sim is now running");
 					}
+					board_pause(paused);
 					// drain all the events.. better way to fix this?
 					while (SDL_PollEvent(events))
 						;
@@ -195,55 +196,55 @@ void sim_tick() {
 		return;
 	}
 
-	if (paused) {
+	if (paused)
 		usleep(5000);
-		return;
-	}
-
-	int cyclestoexecute = board_maxcycles(board_bestcasecycles()) / SIM_CPUCLOCK_DIVIDER;
-	if (cyclestoexecute < 16)
-		cyclestoexecute = 16;
-
-	//log_println(LEVEL_INFO, TAG, "going to execute %d cpu cycles", cyclestoexecute);
-
-	int cpucyclesexecuted = 0;
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
-	if (!board_bus_locked()) {
-		//TODO what causes the emulator to run less cycles than we want?
-		cpucyclesexecuted = m68k_execute(cyclestoexecute);
-		//log_println(LEVEL_INFO, TAG, "executed %d cpu cycles", cpucyclesexecuted);
-		if (shouldexit) {
-			log_println(LEVEL_ALL, TAG, "oh noes!");
-			sim_quit();
-			return;
-		}
-	}
-	else
-		cpucyclesexecuted = cyclestoexecute;
-
-	board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER);
-	sim_updatesdl();
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
-
-	long int timetaken = timespecdiff(&start, &end)->tv_nsec;
-	long int target = SIM_CPUCLOCKDURATION * cpucyclesexecuted;
-
-	if (timetaken > 100000) {
-		//log_println(LEVEL_INFO, TAG, "CLAMP!");
-		timetaken = 100000;
-	}
-
-	long int diff = target - timetaken;
-	if (diff > 0) {
-		owed -= diff;
-		if (owed < 0) {
-			usleep(abs(owed) / 1000);
-			owed = 0;
-		}
-	}
 	else {
-		owed += labs(diff);
+
+		int cyclestoexecute = board_maxcycles(board_bestcasecycles()) / SIM_CPUCLOCK_DIVIDER;
+		if (cyclestoexecute < 16)
+			cyclestoexecute = 16;
+
+		//log_println(LEVEL_INFO, TAG, "going to execute %d cpu cycles", cyclestoexecute);
+
+		int cpucyclesexecuted = 0;
+		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+		if (!board_bus_locked()) {
+			//TODO what causes the emulator to run less cycles than we want?
+			cpucyclesexecuted = m68k_execute(cyclestoexecute);
+			//log_println(LEVEL_INFO, TAG, "executed %d cpu cycles", cpucyclesexecuted);
+			if (shouldexit) {
+				log_println(LEVEL_ALL, TAG, "oh noes!");
+				sim_quit();
+				return;
+			}
+		}
+		else
+			cpucyclesexecuted = cyclestoexecute;
+
+		board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER);
+		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
+
+		long int timetaken = timespecdiff(&start, &end)->tv_nsec;
+		long int target = SIM_CPUCLOCKDURATION * cpucyclesexecuted;
+
+		if (timetaken > 100000) {
+			//log_println(LEVEL_INFO, TAG, "CLAMP!");
+			timetaken = 100000;
+		}
+
+		long int diff = target - timetaken;
+		if (diff > 0) {
+			owed -= diff;
+			if (owed < 0) {
+				usleep(abs(owed) / 1000);
+				owed = 0;
+			}
+		}
+		else {
+			owed += labs(diff);
+		}
 	}
+	sim_updatesdl();
 
 	//log_println(LEVEL_INFO, TAG, "target %ld, actual %ld, owed %ld", target, timetaken, owed);
 

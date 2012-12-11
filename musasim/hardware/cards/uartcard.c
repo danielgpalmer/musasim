@@ -464,7 +464,9 @@ static bool uart_validaddress(uint32_t address) {
 const card uartcard = { "UART CARD", //
 		uart_init, //
 		uart_dispose, //
-		NULL, uart_tick, //
+		NULL, //
+		uart_tick, //
+		NULL, // pause
 		uart_irq_ack, //
 		NULL, //
 		NULL, //

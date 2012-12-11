@@ -69,6 +69,7 @@ const card basicvideocard = { "BASIC VIDEO CARD", //
 		video_dispose, //
 		NULL, //
 		video_tick, //
+		NULL, // pause
 		videocard_irqack, //
 		NULL, //
 		NULL, //

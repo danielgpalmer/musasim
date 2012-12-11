@@ -20,6 +20,7 @@ typedef struct {
 	void (*dispose)(); // Do anything you need to do before the program exits, i.e. free'ing stuff, here
 	void (*reset)(); // This is called when the m68k pulls the reset line down
 	void (*tick)(int cyclesexecuted); //
+	void (*pause)(bool paused);
 	void (*irqack)();
 	void (*busreqack)();
 	void (*setfc)();

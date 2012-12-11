@@ -314,6 +314,7 @@ const card videocard = { "VIDEO CARD", //
 		video_dispose, //
 		NULL, //
 		video_tick, //
+		NULL, // pause
 		videocard_irqack, //
 		NULL, //
 		NULL, //

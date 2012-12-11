@@ -203,6 +203,7 @@ const card inputcard = { //
 				inputcard_dispose, // dispose
 				inputcard_reset, // reset
 				inputcard_tick, //tick
+				NULL, // pause
 				NULL, // IRQ ack
 				NULL, // BUSRQ ack
 				NULL, //

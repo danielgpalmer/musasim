@@ -117,6 +117,7 @@ const card basicsoundcard = { "BASIC SOUND CARD", //
 		basicsound_dispose, // dispose
 		NULL, // reset
 		basicsound_tick, // tick
+		NULL, // pause
 		NULL, // irqack
 		NULL, // busreqack
 		NULL, // setfc

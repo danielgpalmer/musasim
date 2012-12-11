@@ -248,6 +248,7 @@ const card romcard = { "ROM CARD", //
 		romcard_dispose, //
 		romcard_reset, // reset
 		NULL, //
+		NULL, // pause
 		NULL, //
 		NULL, //
 		romcard_setfc, //

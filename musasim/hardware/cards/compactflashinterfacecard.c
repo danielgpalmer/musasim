@@ -316,6 +316,7 @@ const card compactflashinterfacecard = { "CF INTERFACE", //
 		cfint_dispose, //
 		NULL, //
 		cfint_tick, //
+		NULL, // pause
 		NULL, //
 		NULL, //
 		NULL, //

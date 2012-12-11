@@ -28,7 +28,7 @@ static uint32_t channelbases[TOTALCHANNELS];
 
 // This is a ring buffer for the computed audio
 #define OUTPUTCHANNELS 2
-#define BUFFER ((10 * RATE) * OUTPUTCHANNELS) // 10s
+#define BUFFER ((1 * RATE) * OUTPUTCHANNELS) // 1s
 #define SAMPLESIZE (sizeof(int16_t))
 #define BUFFERSIZE (BUFFER * SAMPLESIZE) // FUDGE
 static int16_t* audiobuffer;
@@ -61,18 +61,7 @@ static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
 
 static bool active = false;
 
-static void soundcard_init() {
-
-	sampleram = malloc(SAMPLETOTAL);
-	if (sampleram == NULL ) {
-		log_println(LEVEL_DEBUG, TAG, "sample ram malloc failed");
-	}
-
-	audiobuffer = malloc(BUFFERSIZE);
-	if (audiobuffer == NULL ) {
-		log_println(LEVEL_DEBUG, TAG, "audiobuffer malloc failed");
-	}
-
+static void soundcard_reset() {
 	for (int i = 0; i < TOTALCHANNELS; i++) {
 		if (i == 0) {
 			masterchannel* chan = &(channels[i].master);
@@ -83,6 +72,19 @@ static void soundcard_init() {
 			chan->samplepointer = 0;
 			chan->samplelength = 0;
 		}
+	}
+}
+
+static void soundcard_init() {
+
+	sampleram = malloc(SAMPLETOTAL);
+	if (sampleram == NULL ) {
+		log_println(LEVEL_DEBUG, TAG, "sample ram malloc failed");
+	}
+
+	audiobuffer = malloc(BUFFERSIZE);
+	if (audiobuffer == NULL ) {
+		log_println(LEVEL_DEBUG, TAG, "audiobuffer malloc failed");
 	}
 
 	channelregisterbase = utils_nextpow(SAMPLETOTAL);
@@ -192,8 +194,9 @@ static void soundcard_tick(int cyclesexecuted) {
 
 					// LEFT
 					if (chan->config & SOUND_CHANNEL_LEFT) {
-						audiobuffer[bufferindex] = soundcard_mixsamples(audiobuffer[bufferindex],
-								READ_WORD(sampleram, sampleoffset), VOLLEFT(chan->volume));
+						//audiobuffer[bufferindex] = soundcard_mixsamples(audiobuffer[bufferindex],
+						//		READ_WORD(sampleram, sampleoffset), VOLLEFT(chan->volume));
+						audiobuffer[bufferindex] = READ_WORD(sampleram, sampleoffset);
 					}
 
 					// RIGHT
@@ -327,16 +330,26 @@ static bool soundcard_validaddress(uint32_t address) {
 	return true;
 }
 
-int16_t* sound_getbuffer() {
+int16_t* sound_getbuffer(unsigned int* head, unsigned int* len) {
+	*head = audiobufferhead;
+	*len = BUFFERSIZE / SAMPLESIZE;
 	return audiobuffer;
+}
+
+static void soundcard_pause(bool paused) {
+	if (paused)
+		SDL_PauseAudio(1);
+	else
+		SDL_PauseAudio(0);
 }
 
 const card soundcard = { //
 		"SOUND CARD", //
 				soundcard_init, //
 				soundcard_dispose, //
-				NULL, //
+				soundcard_reset, //
 				soundcard_tick, //
+				soundcard_pause, // pause
 				soundcard_irqack, //
 				NULL, //
 				NULL, //

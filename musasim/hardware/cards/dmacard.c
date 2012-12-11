@@ -532,6 +532,7 @@ const card dmacard = { "DMA Controller", //
 		NULL, //
 		NULL, //
 		dmacard_tick, //
+		NULL, // pause
 		dmacard_irqack, //
 		dmacard_busgrant, //
 		NULL, //

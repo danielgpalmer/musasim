@@ -76,6 +76,16 @@ void board_poweroff() {
 	}
 }
 
+void board_pause(bool paused) {
+	for (int i = 0; i < NUM_SLOTS; i++) {
+		if (slots[i] != NULL ) {
+			if (slots[i]->pause != NULL ) {
+				(slots[i]->pause)(paused);
+			}
+		}
+	}
+}
+
 static uint8_t board_which_slot(const card* card) {
 
 	for (int i = 0; i < SIZEOFARRAY(slots); i++) {

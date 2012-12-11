@@ -11,6 +11,7 @@
 
 void board_add_device(uint8_t slot, const card* card);
 void board_tick(int cyclesexecuted);
+void board_pause(bool paused);
 void board_poweroff(void);
 
 unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, const card* busmater);

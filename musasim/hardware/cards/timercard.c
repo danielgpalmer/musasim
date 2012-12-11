@@ -132,6 +132,7 @@ const card timercard = { "timer card", //
 		timercard_dispose, //
 		timercard_reset, //
 		timercard_tick, //
+		NULL, // pause
 		timercard_irqack, //
 		NULL, //
 		NULL, //
