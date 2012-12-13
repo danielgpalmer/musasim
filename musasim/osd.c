@@ -68,21 +68,18 @@ static void osd_updateaudiobuffer() {
 	float scale = (float) quarterheight / (float) INT16_MAX;
 
 	// how many samples to average into a single pixel in the window
-	int samplestoaverage = 4;
+	//int samplestoaverage = 4;
 
-	unsigned int head;
-	unsigned int len;
-	int16_t* buffstart = sound_getbuffer(&head, &len);
-	int16_t* buffend = buffstart + len;
+	//ringbuffer* buffstart = sound_getbuffer();
 
 	// calculate an offset so that the right edge of the window matches the
 	// head of the buffer
-	int offset = head - (audiowindow.w * samplestoaverage) * 2;
-	if (offset < 0)
-		offset = len + offset;
+	//int offset = head - (audiowindow.w * samplestoaverage) * 2;
+	//if (offset < 0)
+	//	offset = len + offset;
 	//log_println(LEVEL_INFO, TAG, "len %"PRId16" offset %"PRId16" buffer head %"PRId16, len, offset, head);
 
-	int16_t* buffer = buffstart + offset;
+	//int16_t* buffer = buffstart + offset;
 
 	//g_assert(buffer < buffstart);
 
@@ -92,17 +89,17 @@ static void osd_updateaudiobuffer() {
 		int32_t right = 0;
 
 		// add up the samples
-		for (int s = 0; s < samplestoaverage; s++) {
-			left += *buffer++;
-			right += *buffer++;
-			// wrap around the buffer
-			if (buffer == buffend)
-				buffer = buffstart;
-		}
+		//for (int s = 0; s < samplestoaverage; s++) {
+		//	left += *buffer++;
+		//	right += *buffer++;
+		//	// wrap around the buffer
+		//	if (buffer == buffend)
+		//		buffer = buffstart;
+		//}
 
 		// average them
-		left /= samplestoaverage;
-		right /= samplestoaverage;
+		//left /= samplestoaverage;
+		//right /= samplestoaverage;
 
 		// scale them to fit the y axis
 		int16_t scaledleft = (left * scale);

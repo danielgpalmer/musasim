@@ -9,10 +9,11 @@
 #define SOUNDCARD_H_
 
 #include "card.h"
+#include "ringbuffer.h"
 
 const card soundcard;
 
-int16_t* sound_getbuffer(unsigned int* head, unsigned int* len);
+ringbuffer* sound_getbuffer();
 
 #define RATE 22050
 #define TICKSPERSAMPLE (SIM_MAINCLOCK / RATE)
@@ -61,13 +62,13 @@ typedef struct {
 typedef union {
 	masterchannel master;
 	audiochannel audio;
-} channel;
+} soundcardchannel;
 
 #ifdef WANTSOUNDFUNC
 #include "../../utils.h"
 #include <assert.h>
 static void soundcard_channelbases(uint32_t* channelbases, uint32_t channelregisterbase) {
-	int registerspaddedsize = utils_nextpow(sizeof(channel));
+	int registerspaddedsize = utils_nextpow(sizeof(soundcardchannel));
 	assert(registerspaddedsize != 0);
 	for (int i = 0; i < TOTALCHANNELS; i++) {
 		channelbases[i] = channelregisterbase + (registerspaddedsize * i);

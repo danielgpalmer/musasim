@@ -5,10 +5,10 @@ DEPS=card.h ../board.h
 
 all: libcards.a libcardsgdb.a
 
-libcardsgdb.a: romcardgdb.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o basicsound.o blip_buf.o timercard.o
+libcardsgdb.a: romcardgdb.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o basicsound.o blip_buf.o timercard.o ringbuffer.o
 	ar cr libcardsgdb.a $^
 
-libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o basicsound.o blip_buf.o timercard.o
+libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o basicsound.o blip_buf.o timercard.o ringbuffer.o
 	ar cr libcards.a $^
 
 romcard.o: romcard.c romcard.h $(DEPS)
@@ -23,7 +23,7 @@ uartcard.o: uartcard.c uartcard.h $(DEPS)
 videocard.o: videocard.c videocard.h $(DEPS) ../../sim.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c videocard.c -o videocard.o
 
-soundcard.o: soundcard.c soundcard.h $(DEPS)
+soundcard.o: soundcard.c soundcard.h ringbuffer.o $(DEPS)
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c soundcard.c -o soundcard.o
 
 compactflashinterfacecard.o: compactflashinterfacecard.c compactflashinterfacecard.h $(DEPS)
@@ -45,6 +45,9 @@ timercard.o: timercard.c timercard.h $(DEPS)
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@
 
 blip_buf.o: blipbuf/blip_buf.c blipbuf/blip_buf.h
+	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@
+
+ringbuffer.o: ringbuffer.c ringbuffer.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@
 
 .PHONY: clean

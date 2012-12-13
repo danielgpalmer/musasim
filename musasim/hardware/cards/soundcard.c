@@ -1,5 +1,6 @@
 #define WANTSOUNDFUNC
 #include <sound_registermasks.h>
+#include "ringbuffer.h"
 #include "soundcard.h"
 #include "../util.h"
 #include "../board.h"
@@ -20,8 +21,8 @@ static char TAG[] = "sound";
 
 // "Hardware"
 static uint8_t* sampleram;
-static channel channels[TOTALCHANNELS];
-static channel channelslatched[TOTALCHANNELS];
+static soundcardchannel channels[TOTALCHANNELS];
+static soundcardchannel channelslatched[TOTALCHANNELS];
 static uint32_t channelregisterbase;
 static uint32_t channelbases[TOTALCHANNELS];
 //
@@ -29,11 +30,7 @@ static uint32_t channelbases[TOTALCHANNELS];
 // This is a ring buffer for the computed audio
 #define OUTPUTCHANNELS 2
 #define BUFFER ((1 * RATE) * OUTPUTCHANNELS) // 1s
-#define SAMPLESIZE (sizeof(int16_t))
-#define BUFFERSIZE (BUFFER * SAMPLESIZE) // FUDGE
-static int16_t* audiobuffer;
-static unsigned int audiobufferhead = 0;
-static unsigned int audiobuffertail = 0;
+static ringbuffer* audiobuffer;
 //
 
 static cardaddressspace* soundcard_setupaddressspace() {
@@ -41,22 +38,21 @@ static cardaddressspace* soundcard_setupaddressspace() {
 	return as;
 }
 
-static void soundcard_sdlcallback(void* unused, uint8_t *stream, int len) {
-
-	for (int i = 0; i < len; i++) {
-
-		if (audiobuffertail == audiobufferhead) {
-			log_println(LEVEL_DEBUG, TAG, "audio underrun");
-			*stream++ = 0x00;
-		}
-
-		*stream++ = *((uint8_t*) audiobuffer + audiobuffertail);
-		audiobuffertail++;
-		if (audiobuffertail == BUFFERSIZE) {
-			audiobuffertail = 0;
-		}
+static void soundcard_sdlcallback(void* userdata, Uint8* stream, int len) {
+	ringbuffer* buff = (ringbuffer*) userdata;
+	if (ringbuffer_isempty(buff)) {
+		log_println(LEVEL_INFO, TAG, "audio buffer empty");
+		return;
 	}
 
+	unsigned int available = ringbuffer_samplesavailable(buff);
+	if (len > available)
+		len = available;
+	for (int i = 0; i < len; i++) {
+		int16_t value = ringbuffer_get(buff);
+		memcpy(stream, &value, sizeof(value));
+		stream += sizeof(value);
+	}
 }
 
 static bool active = false;
@@ -69,7 +65,10 @@ static void soundcard_reset() {
 		}
 		else {
 			audiochannel* chan = &(channels[i].audio);
+			chan->config = 0;
+			chan->volume = 0;
 			chan->samplepointer = 0;
+			chan->samplepos = 0;
 			chan->samplelength = 0;
 		}
 	}
@@ -82,10 +81,7 @@ static void soundcard_init() {
 		log_println(LEVEL_DEBUG, TAG, "sample ram malloc failed");
 	}
 
-	audiobuffer = malloc(BUFFERSIZE);
-	if (audiobuffer == NULL ) {
-		log_println(LEVEL_DEBUG, TAG, "audiobuffer malloc failed");
-	}
+	audiobuffer = ringbuffer_new(BUFFER);
 
 	channelregisterbase = utils_nextpow(SAMPLETOTAL);
 
@@ -95,14 +91,14 @@ static void soundcard_init() {
 		log_println(LEVEL_INFO, TAG, "Channel %d is at 0x%08x", i - 1, channelbases[i]);
 	}
 
-	//FIXME this is just pasted from the docs
+//FIXME this is just pasted from the docs
 	SDL_AudioSpec fmt;
 	fmt.freq = RATE;
 	fmt.format = AUDIO_S16SYS; // BE samples will get converted to the local format
 	fmt.channels = OUTPUTCHANNELS;
 	fmt.samples = 1024;
 	fmt.callback = soundcard_sdlcallback;
-	fmt.userdata = NULL;
+	fmt.userdata = audiobuffer;
 
 	if (SDL_OpenAudio(&fmt, NULL ) == 0) {
 		active = true;
@@ -113,7 +109,6 @@ static void soundcard_init() {
 }
 
 static void soundcard_dump_config(int channel, bool latched) {
-
 	if (channel == 0) {
 		masterchannel* chan = &(channels[channel].master);
 		log_println(LEVEL_DEBUG, TAG, "master channel, config 0x%04x, volume left %d right %d", chan->config,
@@ -130,53 +125,50 @@ static void soundcard_dump_config(int channel, bool latched) {
 static void soundcard_dispose() {
 	SDL_CloseAudio();
 	free(sampleram);
-	free(audiobuffer);
+	ringbuffer_free(audiobuffer);
 }
 
-static int16_t soundcard_mixsamples(int16_t sample1, int16_t sample2, uint8_t volume) {
-
-	float fvolume = volume / UINT8_MAX;
-
-	int32_t mixed = sample1 + (sample2 * fvolume);
-
-	// clamp
-	if (mixed > INT16_MAX) {
-		mixed = INT16_MAX;
-	}
-	else if (mixed < INT16_MIN) {
-		mixed = INT16_MIN;
-	}
-
-	return (int16_t) mixed;
-}
+//static int16_t soundcard_mixsamples(int16_t sample1, int16_t sample2, uint8_t volume) {
+//
+//	float fvolume = volume / UINT8_MAX;
+//
+//	int32_t mixed = sample1 + (sample2 * fvolume);
+//
+//// clamp
+//	if (mixed > INT16_MAX) {
+//		mixed = INT16_MAX;
+//	}
+//	else if (mixed < INT16_MIN) {
+//		mixed = INT16_MIN;
+//	}
+//
+//	return (int16_t) mixed;
+//}
 
 static void soundcard_tick(int cyclesexecuted) {
 
 	static int carry = 0;
 
-	static unsigned int bufferindex = 0;
-
-	//if (!active) {
-	//	return;
-	//}
+//if (!active) {
+//	return;
+//}
 	int total = cyclesexecuted + carry;
 	carry = total % TICKSPERSAMPLE;
 	int ticks = total - carry;
 	if (ticks == 0)
 		return;
 
-	//log_println(LEVEL_INFO, TAG, "ticks %d", ticks);
+//log_println(LEVEL_INFO, TAG, "ticks %d", ticks);
 
+	SDL_LockAudio();
 	for (int i = 0; i < (ticks / TICKSPERSAMPLE); i++) {
 
 		masterchannel* master = &(channels[0].master);
 
 		if (master->config && SOUND_CHANNEL_ENABLED) { // sound is enabled
 
-			SDL_LockAudio();
-
-			audiobuffer[bufferindex] = 0;
-			audiobuffer[bufferindex + 1] = 0;
+			int16_t leftSample = 0;
+			int16_t rightSample = 0;
 
 			for (int i = 1; i < TOTALCHANNELS; i++) {
 				if (channels[i].audio.config & SOUND_CHANNEL_ENABLED) {
@@ -196,13 +188,14 @@ static void soundcard_tick(int cyclesexecuted) {
 					if (chan->config & SOUND_CHANNEL_LEFT) {
 						//audiobuffer[bufferindex] = soundcard_mixsamples(audiobuffer[bufferindex],
 						//		READ_WORD(sampleram, sampleoffset), VOLLEFT(chan->volume));
-						audiobuffer[bufferindex] = READ_WORD(sampleram, sampleoffset);
+						leftSample = READ_WORD(sampleram, sampleoffset);
 					}
 
 					// RIGHT
 					if (chan->config & SOUND_CHANNEL_RIGHT) {
-						audiobuffer[bufferindex + 1] = soundcard_mixsamples(audiobuffer[bufferindex + 1],
-								READ_WORD(sampleram, sampleoffset), VOLRIGHT(chan->volume));
+						//rightSample = soundcard_mixsamples(rightSample, READ_WORD(sampleram, sampleoffset),
+						//		VOLRIGHT(chan->volume));
+						rightSample = READ_WORD(sampleram, sampleoffset);
 					}
 
 					// chan is all out of samples..
@@ -221,24 +214,19 @@ static void soundcard_tick(int cyclesexecuted) {
 			//audiobuffer[bufferindex] *= VOLLEFT(master->volume) / UINT8_MAX;
 			//audiobuffer[bufferindex + 1] *= VOLLEFT(master->volume) / UINT8_MAX;
 
-			bufferindex += OUTPUTCHANNELS;
-
-			// wraparound
-			if (bufferindex == BUFFER) {
-				bufferindex = 0;
-			}
-
-			audiobufferhead = bufferindex * SAMPLESIZE;
+			ringbuffer_put(audiobuffer, leftSample);
+			ringbuffer_put(audiobuffer, rightSample);
 
 			// we have caught up with the output
-			if (audiobufferhead == audiobuffertail) {
+			if (ringbuffer_isfull(audiobuffer)) {
 				log_println(LEVEL_INFO, TAG, "audio buffer has overflown");
+				break;
 			}
 
-			SDL_UnlockAudio();
 		}
 	}
-	//soundcard_dump_config(1, true);
+	SDL_UnlockAudio();
+//soundcard_dump_config(1, true);
 }
 
 static uint16_t* soundcard_decodereg(uint32_t address) {
@@ -287,7 +275,6 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 }
 
 static uint16_t soundcard_read_word(uint32_t address) {
-
 	if (address < channelregisterbase) {
 		return READ_WORD(sampleram, address);
 	}
@@ -302,7 +289,6 @@ static uint16_t soundcard_read_word(uint32_t address) {
 }
 
 static void soundcard_write_word(uint32_t address, uint16_t value) {
-
 	if (address < channelregisterbase) {
 		log_println(LEVEL_INFO, TAG, "Write to sample ram @ 0x%"PRIx32" value: 0x%"PRIx16, address, value);
 		WRITE_WORD(sampleram, address, value);
@@ -319,7 +305,6 @@ static void soundcard_write_word(uint32_t address, uint16_t value) {
 		else
 			log_println(LEVEL_INFO, TAG, "bad address 0x%"PRIx32, address);
 	}
-
 }
 
 static void soundcard_irqack() {
@@ -330,9 +315,7 @@ static bool soundcard_validaddress(uint32_t address) {
 	return true;
 }
 
-int16_t* sound_getbuffer(unsigned int* head, unsigned int* len) {
-	*head = audiobufferhead;
-	*len = BUFFERSIZE / SAMPLESIZE;
+ringbuffer* sound_getbuffer(unsigned int* head, unsigned int* len) {
 	return audiobuffer;
 }
 

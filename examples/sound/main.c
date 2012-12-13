@@ -21,18 +21,18 @@ int main() {
 	result = pf_mount(&fs);
 	util_printffresult(result);
 	util_printfat(&fs);
-	result = pf_open(SAMPLE_SINE);
+	result = pf_open(SAMPLE_KICK1);
 	util_printffresult(result);
 
-	uint8_t* buf = malloc(22050);
+	uint8_t* buf = malloc(9664);
 	uint16_t len;
-	pf_read(buf, 22050, &len);
+	pf_read(buf, 9664, &len);
 
-	//sound_uploadsample(buf, 0, 0, len);
+	sound_uploadsample(buf, 0, 0, len);
 	sound_setmastervolume(0xffff);
-	//sound_configurechannel(0, true, true, true);
-	//sound_setchannellength(0, len / 2);
-	//sound_setchannelvolume(0, 0xffff);
+	sound_configurechannel(0, true, true, true);
+	sound_setchannellength(0, len / 2);
+	sound_setchannelvolume(0, 0xffff);
 	sound_configuremasterchannel(true);
 
 	while (1) {
