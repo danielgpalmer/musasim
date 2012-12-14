@@ -42,7 +42,7 @@ void sound_uploadsample(uint16_t* data, unsigned short bank, uint16_t bankoffset
 	}
 
 	for (int i = 0; i < samplelen / 2; i++) {
-		*realaddress++ = data++;
+		*realaddress++ = *data++;
 	}
 
 }
