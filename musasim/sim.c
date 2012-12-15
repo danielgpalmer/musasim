@@ -192,6 +192,8 @@ void sim_tick() {
 	struct timespec start, end;
 	static long int owed = 0;
 
+	sim_updatesdl();
+
 	if (shouldexit) {
 		return;
 	}
@@ -244,7 +246,6 @@ void sim_tick() {
 			owed += labs(diff);
 		}
 	}
-	sim_updatesdl();
 
 	//log_println(LEVEL_INFO, TAG, "target %ld, actual %ld, owed %ld", target, timetaken, owed);
 

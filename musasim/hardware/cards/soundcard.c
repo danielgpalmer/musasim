@@ -29,7 +29,7 @@ static uint32_t channelbases[TOTALCHANNELS];
 
 // This is a ring buffer for the computed audio
 #define OUTPUTCHANNELS 2
-#define BUFFER ((1 * RATE) * OUTPUTCHANNELS) // 1s
+#define BUFFER ((4 * RATE) * OUTPUTCHANNELS) // 4s
 static ringbuffer* audiobuffer;
 //
 
@@ -45,12 +45,16 @@ static void soundcard_sdlcallback(void* userdata, Uint8* stream, int len) {
 		return;
 	}
 
+	len /= sizeof(int16_t);
 	unsigned int available = ringbuffer_samplesavailable(buff);
-	if (len > available)
+	if (len > available) {
+		log_println(LEVEL_INFO, TAG, "available buffer is smaller than what is needed, want %d have %u", len,
+				available);
 		len = available;
+	}
 	for (int i = 0; i < len; i++) {
 		int16_t value = ringbuffer_get(buff);
-		memcpy(stream, &value, sizeof(value));
+		*((int16_t*) stream) = value;
 		stream += sizeof(value);
 	}
 }
@@ -96,7 +100,7 @@ static void soundcard_init() {
 	fmt.freq = RATE;
 	fmt.format = AUDIO_S16SYS; // BE samples will get converted to the local format
 	fmt.channels = OUTPUTCHANNELS;
-	fmt.samples = 1024;
+	fmt.samples = 512;
 	fmt.callback = soundcard_sdlcallback;
 	fmt.userdata = audiobuffer;
 
@@ -160,7 +164,7 @@ static void soundcard_tick(int cyclesexecuted) {
 
 //log_println(LEVEL_INFO, TAG, "ticks %d", ticks);
 
-	SDL_LockAudio();
+	//SDL_LockAudio();
 	for (int i = 0; i < (ticks / TICKSPERSAMPLE); i++) {
 
 		masterchannel* master = &(channels[0].master);
@@ -225,7 +229,7 @@ static void soundcard_tick(int cyclesexecuted) {
 
 		}
 	}
-	SDL_UnlockAudio();
+	//SDL_UnlockAudio();
 //soundcard_dump_config(1, true);
 }
 

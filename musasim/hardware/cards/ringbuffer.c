@@ -6,7 +6,6 @@
  */
 
 #include "ringbuffer.h"
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -39,7 +38,6 @@ bool ringbuffer_isempty(ringbuffer* buff) {
 }
 
 void ringbuffer_put(ringbuffer* buff, int16_t value) {
-	printf("value %d\n", value);
 	*(buff->buffer + buff->head) = value;
 	buff->head = (buff->head + 1) % buff->len;
 }
