@@ -11,6 +11,7 @@
 #include "../gdbserver.h"
 #endif
 
+#define CHECKMASK 0xFFFF0000 //
 static char TAG[] = "board";
 static unsigned int currentfc;
 
@@ -34,22 +35,20 @@ static bool busrequestwaiting[NUM_SLOTS];
  */
 
 #define SLOTADDRESSMASK 0xE00000
+#define SLOTSHIFT 21
 
-static uint8_t board_decode_slot(uint32_t address) {
-	uint8_t slot = (address & SLOTADDRESSMASK) >> 21;
-
+static inline uint8_t board_decode_slot(uint32_t address) {
+	uint8_t slot = (address & SLOTADDRESSMASK) >> SLOTSHIFT;
 	if (slots[slot] == NULL ) {
 		log_println(LEVEL_DEBUG, TAG, "Address decoded to slot %d but there is no card in that slot, PC[0x%08x]", slot,
 				GETPC);
 		return NOCARD;
 	}
-
 	return slot;
 }
 
 void board_add_device(uint8_t slot, const card *card) {
 	log_println(LEVEL_DEBUG, TAG, "Inserting %s into slot %d", card->boardinfo, slot);
-
 	slots[slot] = card;
 	if (card->init != NULL ) {
 		(card->init)();
@@ -86,16 +85,13 @@ void board_pause(bool paused) {
 	}
 }
 
-static uint8_t board_which_slot(const card* card) {
-
+static inline uint8_t board_which_slot(const card* card) {
 	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
 		if (slots[i] == card) {
 			return i;
 		}
 	}
-
 	return NOCARD;
-
 }
 
 // Bus mastering stuff
@@ -138,7 +134,7 @@ bool board_bus_locked() {
 
 static int curslot = 0; // the slot that is driving atm
 
-static bool board_interrupt_sanitycheck(int slot) {
+static inline bool board_interrupt_sanitycheck(int slot) {
 	if (slot != NOCARD && slot != 0 && slot != 7) {
 		return true;
 	}
@@ -180,7 +176,6 @@ void board_raise_interrupt(const card* card) {
 	}
 	// Someone else is driving.. queue
 	else {
-		printf("queue %d\n", slot);
 		interruptswaiting[slot] = true;
 	}
 }
@@ -230,7 +225,10 @@ int board_ack_interrupt(int level) {
 // this will be for checking if an access to an address is valid in the current
 // mode etc.. not decided if this will just be for the gdb version or if this
 // will go in hardware too.
-static bool board_checkaccess(const card* card, uint32_t address, unsigned int fc, bool write) {
+static inline bool board_checkaccess(const card* card, uint32_t address, unsigned int fc, bool write) {
+
+	address &= CHECKMASK;
+
 	uint8_t memorytype = DEFAULTMEMORYTYPE;
 	bool failed = false;
 
@@ -267,7 +265,7 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 	return failed;
 }
 
-static unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, int width) {
+static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, int width) {
 
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
@@ -333,7 +331,8 @@ unsigned int board_read_long(unsigned int address) {
 	return board_read_long_internal(address, false, NULL );
 }
 
-static void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster, int width) {
+static inline void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster,
+		int width) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {

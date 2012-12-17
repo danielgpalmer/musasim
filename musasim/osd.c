@@ -54,7 +54,7 @@ void osd_createlabels() {
 }
 
 static void osd_updateaudiobuffer() {
-	SDL_FillRect(osd, &audiowindow, audiowindowbg);
+
 	int quarterheight = audiowindow.h / 4;
 	int middle = audiowindow.y + quarterheight * 2;
 	int leftbase = audiowindow.y + quarterheight;
@@ -124,6 +124,8 @@ void osd_init() {
 	SDL_SetColorKey(osd, SDL_SRCCOLORKEY, colourkey);
 	SDL_FillRect(osd, NULL, colourkey);
 
+	SDL_FillRect(osd, &audiowindow, audiowindowbg);
+
 	rect.h = 10;
 	rect.w = LEDWIDTH;
 	rect.x = 0;
@@ -144,6 +146,9 @@ void osd_init() {
 }
 
 void osd_update() {
+
+	if (!osdvisible)
+		return;
 
 	for (int i = 0; i < NUM_SLOTS; i++) {
 		rect.x = LEDSPACING + ((rect.w + LEDSPACING) * i);
