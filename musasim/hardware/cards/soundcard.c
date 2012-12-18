@@ -41,15 +41,15 @@ static cardaddressspace* soundcard_setupaddressspace() {
 static void soundcard_sdlcallback(void* userdata, Uint8* stream, int len) {
 	ringbuffer* buff = (ringbuffer*) userdata;
 	if (ringbuffer_isempty(buff)) {
-		log_println(LEVEL_INFO, TAG, "audio buffer empty");
+		//log_println(LEVEL_INFO, TAG, "audio buffer empty");
 		return;
 	}
 
 	len /= sizeof(int16_t);
 	unsigned int available = ringbuffer_samplesavailable(buff);
 	if (len > available) {
-		log_println(LEVEL_INFO, TAG, "available buffer is smaller than what is needed, want %d have %u", len,
-				available);
+		//log_println(LEVEL_INFO, TAG, "available buffer is smaller than what is needed, want %d have %u", len,
+		//		available);
 		len = available;
 	}
 	for (int i = 0; i < len; i++) {
@@ -158,7 +158,7 @@ static void soundcard_tick(int cyclesexecuted) {
 	carry = total % TICKSPERSAMPLE;
 	int ticks = total - carry;
 	int samples = ticks / TICKSPERSAMPLE;
-	log_println(LEVEL_INFO, TAG, "executed %d carry %d ticks %d samples %d", cyclesexecuted, carry, ticks, samples);
+	//log_println(LEVEL_INFO, TAG, "executed %d carry %d ticks %d samples %d", cyclesexecuted, carry, ticks, samples);
 	if (samples == 0)
 		return;
 

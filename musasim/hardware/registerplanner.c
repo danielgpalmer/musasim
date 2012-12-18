@@ -265,6 +265,17 @@ void registerplanner_tickmodules(cardaddressspace* card, int cyclesexecuted) {
 	}
 }
 
+void registerplanner_resetmodules(cardaddressspace* card) {
+	unit** currentunit = card->units;
+	while (*currentunit != NULL ) {
+		unit* u = *currentunit;
+		if (u->either.type == PERIPHERAL) {
+			u->peripheral.module->reset(u->peripheral.context);
+		}
+		currentunit++;
+	}
+}
+
 int registerplanner_cyclesleft(cardaddressspace* card) {
 	int cycles = -1;
 	for (unit** currentunit = card->units; *currentunit != NULL ; currentunit++) {

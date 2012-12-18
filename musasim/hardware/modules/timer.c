@@ -91,6 +91,13 @@ c->index = index;
 return c;
 }
 
+static void timer_reset(void* context) {
+context_t* c = (context_t*) context;
+c->config = 0;
+c->counter = 0;
+c->matcha = 0;
+}
+
 static void timer_tick(void* context, int cycles) {
 
 context_t* c = (context_t*) context;
@@ -291,7 +298,7 @@ const module bigtimermodule = { //
 	TAG, //
 			timer_init, //
 			NULL, //
-			NULL, //
+			timer_reset, //
 			timer_tick, //
 			NULL, //
 			timer_readword, //

@@ -74,14 +74,14 @@ static void timercard_init() {
 
 static void timercard_raiseinterrupt(int index) {
 	//if (index < TIMERCARD_NUMBEROFTIMERS) {
-		timerinterrupts |= (1 << index);
+	timerinterrupts |= (1 << index);
 	//}
 	board_raise_interrupt(&timercard);
 }
 
 static void timercard_lowerinterrupt(int index) {
 	//if (index < TIMERCARD_NUMBEROFTIMERS) {
-		timerinterrupts &= ~(1 << index);
+	timerinterrupts &= ~(1 << index);
 	//}
 	board_lower_interrupt(&timercard);
 }
@@ -124,6 +124,7 @@ static int timercard_cyclesleft() {
 }
 
 static void timercard_reset() {
+	registerplanner_resetmodules(addressspace);
 	timerinterrupts = 0;
 }
 

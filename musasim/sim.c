@@ -250,7 +250,7 @@ void sim_tick() {
 		else {
 			owed += labs(diff);
 		}
-		log_println(LEVEL_INFO, TAG, "target %ld, actual %ld, owed %ld", target, timetaken, owed);
+		//log_println(LEVEL_INFO, TAG, "target %ld, actual %ld, owed %ld", target, timetaken, owed);
 	}
 
 }

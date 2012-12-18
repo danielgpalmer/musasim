@@ -103,11 +103,9 @@ static void video_dispose() {
 }
 
 static bool video_validaddress(uint32_t address) {
-
-	//if (address >= registersstart && address < registersstart + sizeof(video_registers)) {
-	//	return true;
-	//}
-	return true;
+	if (address < VIDEO_COMPOSITINGBUFFER_START + VIDEO_COMPOSITINGBUFFER_SIZE)
+		return true;
+	return false;
 }
 
 static void video_tick(int cyclesexecuted) {
@@ -143,7 +141,7 @@ static void video_tick(int cyclesexecuted) {
 			// vblank handling
 			if (line == VIDEO_HEIGHT - 1) {
 				flags |= FLAG_VBLANK;
-				log_println(LEVEL_INFO, TAG, "v blank start");
+				//log_println(LEVEL_INFO, TAG, "v blank start");
 				if (VBLANKENABLED) {
 					board_raise_interrupt(&videocard);
 				}
@@ -239,16 +237,12 @@ static uint8_t video_read_byte(uint32_t address) {
 }
 
 static uint16_t video_read_word(uint32_t address) {
-
 	if (address < VIDEO_FRAMEBUFFER_START) {
 		uint8_t reg = GETVIDREG(address);
 		return *(video_registers[reg]);
 	}
-
 	printf("invalid read\n");
-
 	return 0;
-
 }
 
 static void videocard_irqack() {

@@ -11,7 +11,7 @@
 #include "../gdbserver.h"
 #endif
 
-#define CHECKMASK 0xFFFF0000 //
+#define CHECKMASK 0xFFFFFFFC //
 static char TAG[] = "board";
 static unsigned int currentfc;
 
@@ -225,7 +225,7 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 //static bool cachevalid[0xFFFF];
 //static bool cacheresult[0xFFFF];
 
-	address &= CHECKMASK;
+	//address &= CHECKMASK;
 //int cacheindex = address >> 16;
 
 //if (cachevalid[cacheindex])
@@ -304,7 +304,7 @@ static inline unsigned int board_read(unsigned int address, bool skipchecks, con
 				break;
 		}
 
-		log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d bit read, PC[0x%08x]", slot, width, GETPC);
+		log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d byte read, PC[0x%08x]", slot, width, GETPC);
 #ifdef GDBSERVER
 		gdb_break("unsupported read access");
 #endif
@@ -374,7 +374,7 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 				break;
 		}
 
-		log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d bit write", slot, width);
+		log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d byte write", slot, width);
 #ifdef GDBSERVER
 		gdb_break("unsupported memory write");
 #endif
