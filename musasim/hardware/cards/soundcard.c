@@ -95,7 +95,6 @@ static void soundcard_init() {
 		log_println(LEVEL_INFO, TAG, "Channel %d is at 0x%08x", i - 1, channelbases[i]);
 	}
 
-//FIXME this is just pasted from the docs
 	SDL_AudioSpec fmt;
 	fmt.freq = RATE;
 	fmt.format = AUDIO_S16SYS; // BE samples will get converted to the local format
@@ -105,11 +104,10 @@ static void soundcard_init() {
 	fmt.userdata = audiobuffer;
 
 	if (SDL_OpenAudio(&fmt, NULL ) == 0) {
-		active = true;
 		SDL_PauseAudio(0);
 		log_println(LEVEL_DEBUG, TAG, "SDL output is now active");
+		active = true;
 	}
-
 }
 
 static void soundcard_dump_config(int channel, bool latched) {
@@ -159,13 +157,13 @@ static void soundcard_tick(int cyclesexecuted) {
 	int total = cyclesexecuted + carry;
 	carry = total % TICKSPERSAMPLE;
 	int ticks = total - carry;
-	if (ticks == 0)
+	int samples = ticks / TICKSPERSAMPLE;
+	log_println(LEVEL_INFO, TAG, "executed %d carry %d ticks %d samples %d", cyclesexecuted, carry, ticks, samples);
+	if (samples == 0)
 		return;
 
-//log_println(LEVEL_INFO, TAG, "ticks %d", ticks);
-
 	//SDL_LockAudio();
-	for (int i = 0; i < (ticks / TICKSPERSAMPLE); i++) {
+	for (int i = 0; i < samples * 3; i++) {
 
 		masterchannel* master = &(channels[0].master);
 

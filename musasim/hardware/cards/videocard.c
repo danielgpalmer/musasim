@@ -12,6 +12,7 @@
 
 static const char TAG[] = "video";
 
+static bool frameskipping = false;
 static bool vramtouched = false;
 
 static uint16_t flags = 0;
@@ -142,7 +143,7 @@ static void video_tick(int cyclesexecuted) {
 			// vblank handling
 			if (line == VIDEO_HEIGHT - 1) {
 				flags |= FLAG_VBLANK;
-				//log_println(LEVEL_INFO, TAG, "v blank start");
+				log_println(LEVEL_INFO, TAG, "v blank start");
 				if (VBLANKENABLED) {
 					board_raise_interrupt(&videocard);
 				}
@@ -260,6 +261,9 @@ void videocard_setosd(SDL_Surface* s) {
 
 void videocard_refresh() {
 
+	if (frameskipping)
+		return;
+
 	// if the vram hasn't changed and the osd isn't visible we don't need to do anything
 	if (vramtouched || osd) {
 
@@ -279,13 +283,10 @@ void videocard_refresh() {
 		}
 		SDL_Flip(screen);
 	}
-
 }
 
-static int videocard_bestcasecycles() {
-
+static const int videocard_bestcasecycles() {
 	return ((VIDEO_WIDTH + VIDEO_HBLANKPERIOD) * VIDEO_VBLANKPERIOD) * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
-
 }
 
 static int videocard_cyclesleft() {

@@ -57,11 +57,9 @@ static void romcard_init() {
 }
 
 static void romcard_dispose() {
-
 	free(bootloaderrom);
 	free(rom);
 	free(ram);
-
 }
 
 bool romcard_loadrom(const char* path, bool elf) {
@@ -93,8 +91,7 @@ bool romcard_loadrom(const char* path, bool elf) {
 static bool disableromonreset = false;
 static bool romdisabled = false;
 
-static bool romcard_checkcommand(uint32_t address, uint16_t data) {
-
+static inline bool romcard_checkcommand(uint32_t address, uint16_t data) {
 	if (!registersenabled)
 		return false;
 
@@ -116,11 +113,9 @@ else {
 	disablecommandone = false;
 	return false;
 }
-
 }
 
-static void romcard_invalidwrite(uint32_t address) {
-
+static inline void romcard_invalidwrite(uint32_t address) {
 	log_println(LEVEL_INFO, TAG, "invalid write to 0x%08x, write to ROM? PC[0x%08x]", address,
 			m68k_get_reg(NULL, M68K_REG_PC));
 #ifdef GDBSERVER
@@ -137,7 +132,7 @@ typedef struct {
 
 static translatedaddress reg;
 
-static void romcard_translateaddress(translatedaddress* reg, uint32_t address) {
+static inline void romcard_translateaddress(translatedaddress* reg, uint32_t address) {
 
 	reg->writeable = true;
 	if (ISROMSPACE(address)) {

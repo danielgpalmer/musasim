@@ -15,7 +15,7 @@
 #include "../registerplanner.h"
 
 typedef struct {
-	char* boardinfo; // A simple description that can be displayed to aid debugging
+	const char* boardinfo; // A simple description that can be displayed to aid debugging
 	void (*init)(); // Do anything you need to do at program startup here
 	void (*dispose)(); // Do anything you need to do before the program exits, i.e. free'ing stuff, here
 	void (*reset)(); // This is called when the m68k pulls the reset line down
@@ -33,7 +33,7 @@ typedef struct {
 	void (*write_word)(uint32_t address, uint16_t value);
 	void (*write_long)(uint32_t address, uint32_t value);
 	bool (*active)(); // returns true when the card is doing something, for OSD
-	int (*bestcasecycles)(); // The maximum amount of cycles that could possibly run before needing cpu sync. -1 if we don't need sync
+	const int (*bestcasecycles)(); // The maximum amount of cycles that could possibly run before needing cpu sync. -1 if we don't need sync
 	int (*cyclesleft)(); // how many clock cycles can run before something is going to happen that needs cpu sync, -1 if we don't care
 
 	// used for genheaders

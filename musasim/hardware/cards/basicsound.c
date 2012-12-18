@@ -65,13 +65,10 @@ static void basicsound_init() {
 }
 
 static void basicsound_dispose() {
-
 	if (buf != NULL) {
 		blip_delete(buf);
 	}
-
 	SDL_CloseAudio();
-
 }
 
 static bool basicsound_validaddress(uint32_t address) {

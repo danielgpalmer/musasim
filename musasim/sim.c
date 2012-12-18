@@ -207,12 +207,13 @@ void sim_tick() {
 	else {
 
 		int cyclestoexecute = board_maxcycles(board_bestcasecycles()) / SIM_CPUCLOCK_DIVIDER;
+		// this avoids us getting stuck
 		if (cyclestoexecute < 16)
 			cyclestoexecute = 16;
 
 		//log_println(LEVEL_INFO, TAG, "going to execute %d cpu cycles", cyclestoexecute);
 
-		int cpucyclesexecuted = 0;
+		int cpucyclesexecuted;
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
 		if (!board_bus_locked()) {
 			//TODO what causes the emulator to run less cycles than we want?
@@ -242,16 +243,15 @@ void sim_tick() {
 		if (diff > 0) {
 			owed -= diff;
 			if (owed < 0) {
-				usleep(abs(owed) / 1000);
+				usleep(abs(owed) / (1000 + 100));
 				owed = 0;
 			}
 		}
 		else {
 			owed += labs(diff);
 		}
+		log_println(LEVEL_INFO, TAG, "target %ld, actual %ld, owed %ld", target, timetaken, owed);
 	}
-
-	//log_println(LEVEL_INFO, TAG, "target %ld, actual %ld, owed %ld", target, timetaken, owed);
 
 }
 

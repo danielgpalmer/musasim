@@ -13,34 +13,34 @@ musashigdb.o: m68kcpugdb.o m68kopsgdb.o m68kopacgdb.o m68kopdmgdb.o m68kopnzgdb.
 	ld -r $^ -o $@
 
 m68kcpu.o: ../sim.h m68kops.h m68k.h m68kconf.h
-	$(CC) $(LOCALCFLAGS) $(CFLAGS) m68kcpu.c -o m68kcpu.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) m68kcpu.c -o m68kcpu.o
 
 m68kcpugdb.o: ../sim.h m68kops.h m68k.h m68kconf.h
-	$(CC) $(LOCALCFLAGS) $(CFLAGS) $(GDBFLAGS) m68kcpu.c -o m68kcpugdb.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) $(GDBFLAGS) m68kcpu.c -o m68kcpugdb.o
 
 m68kops.o: m68kmake m68kops.h m68kops.c ../sim.h m68k.h m68kconf.h
-	$(CC) $(LOCALCFLAGS) $(CFLAGS) m68kops.c -o m68kops.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) m68kops.c -o m68kops.o
 
 m68kopsgdb.o: m68kmake m68kops.h m68kops.c ../sim.h m68k.h m68kconf.h
-	$(CC) $(LOCALCFLAGS) $(CFLAGS) $(GDBFLAGS) m68kops.c -o m68kopsgdb.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) $(GDBFLAGS) m68kops.c -o m68kopsgdb.o
 
 m68kopac.o: m68kmake m68kops.h m68kopac.c ../sim.h m68k.h m68kconf.h
-	$(CC) $(LOCALCFLAGS) $(CFLAGS) m68kopac.c -o m68kopac.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) m68kopac.c -o m68kopac.o
 
 m68kopacgdb.o: m68kmake m68kops.h m68kopac.c ../sim.h m68k.h m68kconf.h
-	$(CC) $(LOCALCFLAGS) $(CFLAGS) $(GDBFLAGS) m68kopac.c -o m68kopacgdb.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) $(GDBFLAGS) m68kopac.c -o m68kopacgdb.o
 
 m68kopdm.o: m68kmake m68kops.h m68kopdm.c ../sim.h m68k.h m68kconf.h
-	$(CC) $(LOCALCFLAGS) $(CFLAGS) m68kopdm.c -o m68kopdm.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) m68kopdm.c -o m68kopdm.o
 
 m68kopdmgdb.o: m68kmake m68kops.h m68kopdm.c ../sim.h m68k.h m68kconf.h
-	$(CC) $(LOCALCFLAGS) $(CFLAGS) $(GDBFLAGS) m68kopdm.c -o m68kopdmgdb.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) $(GDBFLAGS) m68kopdm.c -o m68kopdmgdb.o
 
 m68kopnz.o: m68kmake m68kops.h m68kopnz.c ../sim.h m68k.h m68kconf.h
-	$(CC) $(LOCALCFLAGS) $(CFLAGS) m68kopnz.c -o m68kopnz.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) m68kopnz.c -o m68kopnz.o
 
 m68kopnzgdb.o: m68kmake m68kops.h m68kopnz.c ../sim.h m68k.h m68kconf.h
-	$(CC) $(LOCALCFLAGS) $(CFLAGS) $(GDBFLAGS) m68kopnz.c -o m68kopnzgdb.o
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) $(GDBFLAGS) m68kopnz.c -o m68kopnzgdb.o
 
 m68kops.h: m68kmake
 	./m68kmake ./ m68k_in.c

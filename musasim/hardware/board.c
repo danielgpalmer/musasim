@@ -57,30 +57,24 @@ void board_add_device(uint8_t slot, const card *card) {
 
 void board_tick(int cyclesexecuted) {
 	for (int i = 0; i < NUM_SLOTS; i++) {
-		if (slots[i] != NULL ) {
-			if (slots[i]->tick != NULL ) {
-				(slots[i]->tick)(cyclesexecuted);
-			}
+		if (slots[i] != NULL && slots[i]->tick != NULL ) {
+			(slots[i]->tick)(cyclesexecuted);
 		}
 	}
 }
 
 void board_poweroff() {
 	for (int i = 0; i < NUM_SLOTS; i++) {
-		if (slots[i] != NULL ) {
-			if (slots[i]->dispose != NULL ) {
-				(slots[i]->dispose)();
-			}
+		if (slots[i] != NULL && slots[i]->dispose != NULL ) {
+			(slots[i]->dispose)();
 		}
 	}
 }
 
 void board_pause(bool paused) {
 	for (int i = 0; i < NUM_SLOTS; i++) {
-		if (slots[i] != NULL ) {
-			if (slots[i]->pause != NULL ) {
-				(slots[i]->pause)(paused);
-			}
+		if (slots[i] != NULL && slots[i]->pause != NULL ) {
+			(slots[i]->pause)(paused);
 		}
 	}
 }
@@ -99,11 +93,11 @@ static inline uint8_t board_which_slot(const card* card) {
 static bool buslocked = false;
 
 void board_lock_bus(const card* card) {
-	// The real board will have an arbiter that decides which bus request to forward to the CPU
-	// and route the result back to that card.
+// The real board will have an arbiter that decides which bus request to forward to the CPU
+// and route the result back to that card.
 
-	// TODO simulate a single bus req to the cpu
-	// TODO lock cpu off of the bus.. keep ticks happening but make sure the time the CPU cant touch the bus is simulated
+// TODO simulate a single bus req to the cpu
+// TODO lock cpu off of the bus.. keep ticks happening but make sure the time the CPU cant touch the bus is simulated
 
 	busrequestwaiting[board_which_slot(card)] = true;
 	buslocked = true;
@@ -150,14 +144,14 @@ void board_raise_interrupt(const card* card) {
 		return;
 	}
 
-	// The current driver is requesting interrupt again?
+// The current driver is requesting interrupt again?
 	if (curslot == slot) {
 		log_println(LEVEL_DEBUG, TAG,
 				"Slot %d tried to raise an interrupt while it's interrupt is apparently being serviced", slot);
 		return;
 	}
 
-	// The current driver is requesting interrupt again?
+// The current driver is requesting interrupt again?
 	if (interruptswaiting[slot] || curslot == slot) {
 		log_println(LEVEL_DEBUG, TAG,
 				"Slot %d tried to raise an interrupt while it is already scheduled to have it's interrupt serviced. %d is being serviced.",
@@ -165,7 +159,7 @@ void board_raise_interrupt(const card* card) {
 		return;
 	}
 
-	// no IRQ is happening.. do it!
+// no IRQ is happening.. do it!
 	if (curslot == 0) {
 		//printf("board_raise_interrupt(%d) SR - 0x%x\n", slot, m68k_get_reg(NULL, M68K_REG_SR));
 		curslot = board_which_slot(card);
@@ -174,7 +168,7 @@ void board_raise_interrupt(const card* card) {
 		gdbserver_enteringinterrupt(slot);
 #endif
 	}
-	// Someone else is driving.. queue
+// Someone else is driving.. queue
 	else {
 		interruptswaiting[slot] = true;
 	}
@@ -189,7 +183,7 @@ void board_lower_interrupt(const card* card) {
 
 	interruptswaiting[slot] = false; // make sure the card is no longer queue
 
-	// If this card is the current driver..
+// If this card is the current driver..
 	if (curslot == slot) {
 		//printf("board_lower_interrupt(%d)\n", slot);
 
@@ -225,9 +219,17 @@ int board_ack_interrupt(int level) {
 // this will be for checking if an access to an address is valid in the current
 // mode etc.. not decided if this will just be for the gdb version or if this
 // will go in hardware too.
-static inline bool board_checkaccess(const card* card, uint32_t address, unsigned int fc, bool write) {
+
+static bool board_checkaccess(const card* card, uint32_t address, unsigned int fc, bool write) {
+
+//static bool cachevalid[0xFFFF];
+//static bool cacheresult[0xFFFF];
 
 	address &= CHECKMASK;
+//int cacheindex = address >> 16;
+
+//if (cachevalid[cacheindex])
+//	return cacheresult[cacheindex];
 
 	uint8_t memorytype = DEFAULTMEMORYTYPE;
 	bool failed = false;
@@ -235,7 +237,7 @@ static inline bool board_checkaccess(const card* card, uint32_t address, unsigne
 	if (card->memorytype != NULL )
 		memorytype = card->memorytype(address);
 
-	// trying to execute from non-executable memory
+// trying to execute from non-executable memory
 	if (!write && (fc == 2 || fc == 6) && !(memorytype & CARDMEMORYTYPE_EXECUTABLE)) {
 		char buff[] = "this should be a disassembly";
 		//m68k_disassemble(buff, GETPC, M68K_CPU_TYPE_68000);
@@ -244,13 +246,13 @@ static inline bool board_checkaccess(const card* card, uint32_t address, unsigne
 		failed = true;
 	}
 
-	// access to supervisor memory as user!
+// access to supervisor memory as user!
 	if ((fc == 1 || fc == 2) && (memorytype & CARDMEMORYTYPE_SUPERVISOR)) {
 		log_println(LEVEL_INFO, TAG, "Accessing supervisor memory as user PC[0x%08x], PPC[0x%08x]", GETPC, GETPPC);
 		failed = true;
 	}
 
-	// address isn't writable and this is a write!!
+// address isn't writable and this is a write!!
 	if (write && !(memorytype & CARDMEMORYTYPE_WRITABLE)) {
 		log_println(LEVEL_INFO, TAG, "writing to readonly memory PC[0x%08x], PPC[0x%08x]", GETPC, GETPPC);
 		failed = true;
@@ -262,10 +264,15 @@ static inline bool board_checkaccess(const card* card, uint32_t address, unsigne
 #else
 	sim_sandboxvoilated();
 #endif
+
+//cachevalid[cacheindex] = true;
+//cacheresult[cacheindex] = failed;
+
 	return failed;
 }
 
-static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, int width) {
+static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) __attribute__((always_inline));
+static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) {
 
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
@@ -274,21 +281,21 @@ static inline unsigned int board_read(unsigned int address, bool skipchecks, con
 		if (!skipchecks)
 			board_checkaccess(card, slotaddress, currentfc, false);
 		switch (width) {
-			case 8:
+			case 1:
 				if (card->read_byte != NULL ) {
 					if (card->validaddress(slotaddress)) {
 						return (card->read_byte)(slotaddress);
 					}
 				}
 				break;
-			case 16:
+			case 2:
 				if (card->read_word != NULL ) {
 					if (card->validaddress(slotaddress)) {
 						return (card->read_word)(slotaddress);
 					}
 				}
 				break;
-			case 32:
+			case 4:
 				if (card->read_long != NULL ) {
 					if (card->validaddress(slotaddress)) {
 						return (card->read_long)(slotaddress);
@@ -308,7 +315,7 @@ static inline unsigned int board_read(unsigned int address, bool skipchecks, con
 }
 
 unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, const card* busmaster) {
-	return board_read(address, skipchecks, busmaster, 8);
+	return board_read(address, skipchecks, busmaster, 1);
 }
 
 unsigned int board_read_byte(unsigned int address) {
@@ -316,7 +323,7 @@ unsigned int board_read_byte(unsigned int address) {
 }
 
 unsigned int board_read_word_internal(unsigned int address, bool skipchecks, const card* busmaster) {
-	return board_read(address, skipchecks, busmaster, 16);
+	return board_read(address, skipchecks, busmaster, 2);
 }
 
 unsigned int board_read_word(unsigned int address) {
@@ -324,7 +331,7 @@ unsigned int board_read_word(unsigned int address) {
 }
 
 unsigned int board_read_long_internal(unsigned int address, bool skipchecks, const card* busmaster) {
-	return board_read(address, skipchecks, busmaster, 32);
+	return board_read(address, skipchecks, busmaster, 4);
 }
 
 unsigned int board_read_long(unsigned int address) {
@@ -332,14 +339,16 @@ unsigned int board_read_long(unsigned int address) {
 }
 
 static inline void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster,
-		int width) {
+		const int width) __attribute__((always_inline));
+static inline void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster,
+		const int width) {
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		const card* card = slots[slot];
 		board_checkaccess(card, slotaddress, currentfc, true);
 		switch (width) {
-			case 8:
+			case 1:
 				if (card->write_byte != NULL ) {
 					if (card->validaddress(slotaddress)) {
 						(card->write_byte)(slotaddress, value);
@@ -347,7 +356,7 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 					}
 				}
 				break;
-			case 16:
+			case 2:
 				if (card->write_word != NULL ) {
 					if (card->validaddress(slotaddress)) {
 						(card->write_word)(slotaddress, value);
@@ -355,7 +364,7 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 					}
 				}
 				break;
-			case 32:
+			case 4:
 				if (card->write_long != NULL ) {
 					if (card->validaddress(slotaddress)) {
 						(card->write_long)(slotaddress, value);
@@ -373,7 +382,7 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 }
 
 void board_write_byte_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
-	board_write(address, value, skipchecks, busmaster, 8);
+	board_write(address, value, skipchecks, busmaster, 1);
 }
 
 void board_write_byte(unsigned int address, unsigned int value) {
@@ -381,7 +390,7 @@ void board_write_byte(unsigned int address, unsigned int value) {
 }
 
 void board_write_word_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
-	board_write(address, value, skipchecks, busmaster, 16);
+	board_write(address, value, skipchecks, busmaster, 2);
 }
 
 void board_write_word(unsigned int address, unsigned int value) {
@@ -389,7 +398,7 @@ void board_write_word(unsigned int address, unsigned int value) {
 }
 
 void board_write_long_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
-	board_write(address, value, skipchecks, busmaster, 32);
+	board_write(address, value, skipchecks, busmaster, 4);
 }
 
 void board_write_long(unsigned int address, unsigned int value) {
@@ -413,7 +422,6 @@ int board_bestcasecycles() {
 
 int board_maxcycles(int numberofcyclesplanned) {
 	int cycles = numberofcyclesplanned;
-
 	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
 		const card* c = slots[i];
 		if (c != NULL ) {
@@ -424,13 +432,11 @@ int board_maxcycles(int numberofcyclesplanned) {
 			}
 		}
 	}
-
 	return cycles;
 }
 
 void board_setfc(unsigned int fc) {
 	currentfc = fc;
-
 	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
 		const card* c = slots[i];
 		if (c != NULL ) {
