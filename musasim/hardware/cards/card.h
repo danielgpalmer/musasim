@@ -42,5 +42,6 @@ typedef struct {
 
 #define CARDMEMORYTYPE_SUPERVISOR 0x1	// memory is only accessible in supervisor mode
 #define CARDMEMORYTYPE_EXECUTABLE 0x2	// memory is executable
-#define CARDMEMORYTYPE_WRITABLE 0x4		// memory is writable
+#define CARDMEMORYTYPE_READABLE 0x4		//
+#define CARDMEMORYTYPE_WRITABLE 0x5		// memory is writable
 #endif /* CARD_H_ */

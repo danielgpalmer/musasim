@@ -7,7 +7,7 @@
 
 #include "cards/card.h"
 
-#define DEFAULTMEMORYTYPE CARDMEMORYTYPE_WRITABLE
+#define DEFAULTMEMORYTYPE (CARDMEMORYTYPE_WRITABLE | CARDMEMORYTYPE_READABLE)
 
 void board_add_device(uint8_t slot, const card* card);
 void board_tick(int cyclesexecuted);
@@ -15,18 +15,24 @@ void board_pause(bool paused);
 void board_poweroff(void);
 
 unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, const card* busmater);
-unsigned int board_read_byte(unsigned int address);
+unsigned int board_read_byte_cpu(unsigned int address);
+unsigned int board_read_byte_busmaster(unsigned int address, const card* busmaster);
 unsigned int board_read_word_internal(unsigned int address, bool skipchecks, const card* busmaster);
-unsigned int board_read_word(unsigned int address);
+unsigned int board_read_word_cpu(unsigned int address);
+unsigned int board_read_word_busmaster(unsigned int address, const card* busmaster);
 unsigned int board_read_long_internal(unsigned int address, bool skipchecks, const card* busmaster);
-unsigned int board_read_long(unsigned int address);
+unsigned int board_read_long_cpu(unsigned int address);
+unsigned int board_read_long_busmaster(unsigned int address, const card* busmaster);
 
 void board_write_byte_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster);
-void board_write_byte(unsigned int address, unsigned int value);
+void board_write_byte_cpu(unsigned int address, unsigned int value);
+void board_write_byte_busmaster(unsigned int address, unsigned int value, const card* busmaster);
 void board_write_word_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster);
-void board_write_word(unsigned int address, unsigned int value);
+void board_write_word_cpu(unsigned int address, unsigned int value);
+void board_write_word_busmaster(unsigned int address, unsigned int value, const card* busmaster);
 void board_write_long_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster);
-void board_write_long(unsigned int address, unsigned int value);
+void board_write_long_cpu(unsigned int address, unsigned int value);
+void board_write_long_busmaster(unsigned int address, unsigned int value, const card* busmaster);
 
 void board_raise_interrupt(const card* card);
 void board_lower_interrupt(const card* card);

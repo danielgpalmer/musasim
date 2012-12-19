@@ -128,7 +128,7 @@ void cpu_pulse_stop(void) {
 
 	switch (sr) {
 		case 0x0003: {
-			uint32_t returnadd = board_read_long(ssp + 2);
+			uint32_t returnadd = board_read_long_cpu(ssp + 2); // FIXME should not use the cpu read function
 			log_println(LEVEL_INFO, TAG, "Stop came from Illegal instruction at [0x%08x]", returnadd);
 			char buff[1024];
 			m68k_disassemble(buff, returnadd, M68K_CPU_TYPE_68000);
@@ -257,7 +257,6 @@ void sim_tick() {
 
 void sim_sandboxvoilated() {
 	log_println(LEVEL_INFO, TAG, "sim_sandboxvoilated()");
-
 	m68k_end_timeslice();
 	shouldexit = true;
 }

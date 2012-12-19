@@ -57,6 +57,11 @@ static bool wordtransfer = false;
 static bool havebuslock = false;
 static uint32_t cyclesleft = 0;
 
+#define READBYTE(a) (board_read_byte_busmaster(a, &dmacard))
+#define READWORD(a) (board_read_word_busmaster(a, &dmacard))
+#define WRITEBYTE(a,v) (board_write_byte_busmaster(a, v, &dmacard))
+#define WRITEWORD(a,v) (board_write_word_busmaster(a, v, &dmacard))
+
 static void dmacard_init() {
 	memset(regwindows, 0, sizeof(regwindows));
 	curwindow = &(regwindows[curwindowindex]);
@@ -202,10 +207,10 @@ static void dmacard_tick(int cyclesexecuted) {
 						// read phase
 						if (state == 0) {
 							if (wordtransfer) {
-								holding = board_read_word(source);
+								holding = board_read_word_busmaster(source, &dmacard);
 							}
 							else {
-								holding = board_read_byte(source);
+								holding = READBYTE(source);
 							}
 							state = 1;
 						}
@@ -217,13 +222,12 @@ static void dmacard_tick(int cyclesexecuted) {
 							}
 
 							if (wordtransfer) {
-								board_write_word_internal(destination, dmacard_mutate(workingwindow, holding, data),
-										false, &dmacard);
+								board_write_word_busmaster(destination, dmacard_mutate(workingwindow, holding, data),
+										&dmacard);
 							}
 							else {
-								board_write_byte_internal(destination,
-										(uint8_t) (dmacard_mutate(workingwindow, holding, data) & 0xff), false,
-										&dmacard);
+								board_write_byte_busmaster(destination,
+										(uint8_t) (dmacard_mutate(workingwindow, holding, data) & 0xff), &dmacard);
 							}
 							state = 0;
 							unitcomplete = true;
@@ -250,20 +254,20 @@ static void dmacard_tick(int cyclesexecuted) {
 						switch (state) {
 							case 0:
 								if (wordtransfer) {
-									holding = board_read_word(source);
+									holding = READWORD(source);
 								}
 								else {
-									holding = board_read_byte(source);
+									holding = READBYTE(source);
 								}
 								state = 1;
 								break;
 							case 1:
 
 								if (wordtransfer) {
-									holding = dmacard_mutate(workingwindow, holding, board_read_word(data));
+									holding = dmacard_mutate(workingwindow, holding, READWORD(data));
 								}
 								else {
-									holding = dmacard_mutate(workingwindow, holding, board_read_byte(data));
+									holding = dmacard_mutate(workingwindow, holding, READBYTE(data));
 								}
 								state = 2;
 								break;
@@ -274,12 +278,11 @@ static void dmacard_tick(int cyclesexecuted) {
 											destination);
 								}
 
-								if (wordtransfer) {
-									board_write_word_internal(destination, holding, false, &dmacard);
-								}
-								else {
-									board_write_byte_internal(destination, holding, false, &dmacard);
-								}
+								if (wordtransfer)
+									WRITEWORD(destination, holding);
+								else
+									WRITEBYTE(destination, holding);
+
 								state = 0;
 								unitcomplete = true;
 								break;
@@ -292,9 +295,9 @@ static void dmacard_tick(int cyclesexecuted) {
 						switch (state) {
 							case 0: // load the src
 
-								if (wordtransfer) {
-									holding = board_read_word(source);
-								}
+								if (wordtransfer)
+									holding = READWORD(source);
+
 								dmacard_perform_act(workingwindow, 1); // update source pointer
 								if (shifts == 0) {
 									state = 1;
@@ -305,7 +308,7 @@ static void dmacard_tick(int cyclesexecuted) {
 								break;
 							case 1: // load the mask
 								if (wordtransfer) {
-									shifthold = board_read_word(data);
+									shifthold = READWORD(data);
 								}
 								state = 2;
 								dmacard_perform_act(workingwindow, 0); // update data pointer

@@ -170,7 +170,6 @@ static uint32_t romcard_read_long(uint32_t address) {
 }
 
 static void romcard_write_byte(uint32_t address, uint8_t value) {
-
 	if (!romcard_checkcommand(address, value)) {
 		romcard_translateaddress(&reg, address);
 		if (reg.writeable) {
@@ -180,11 +179,9 @@ static void romcard_write_byte(uint32_t address, uint8_t value) {
 			romcard_invalidwrite(address);
 		}
 	}
-
 }
 
 static void romcard_write_word(uint32_t address, uint16_t value) {
-
 	if (!romcard_checkcommand(address, value)) {
 		romcard_translateaddress(&reg, address);
 		if (reg.writeable) {
@@ -194,11 +191,9 @@ static void romcard_write_word(uint32_t address, uint16_t value) {
 			romcard_invalidwrite(address);
 		}
 	}
-
 }
 
 static void romcard_write_long(uint32_t address, uint32_t value) {
-
 	romcard_translateaddress(&reg, address);
 	if (reg.writeable) {
 		WRITE_LONG(reg.base, reg.relative_address, value);
@@ -206,7 +201,6 @@ static void romcard_write_long(uint32_t address, uint32_t value) {
 	else {
 		romcard_invalidwrite(address);
 	}
-
 }
 
 static const bool romcard_validaddress(uint32_t address) {
@@ -235,7 +229,12 @@ static void romcard_setfc(unsigned int fc) {
 }
 
 const static uint8_t romcard_memorytype(uint32_t address) {
-	return CARDMEMORYTYPE_EXECUTABLE | CARDMEMORYTYPE_WRITABLE;
+	if (ISRAMSPACE(address))
+		return CARDMEMORYTYPE_WRITABLE;
+	else if (ISROMSPACE(address))
+		return CARDMEMORYTYPE_EXECUTABLE | CARDMEMORYTYPE_READABLE;
+	else
+		return 0;
 }
 
 const card romcard = { "ROM CARD", //

@@ -194,23 +194,19 @@
 #endif
 
 #ifdef GDBSERVER
-
 #define m68k_read_memory_8(A) gdbserver_m68k_read_byte(A)
 #define m68k_read_memory_16(A) gdbserver_m68k_read_word(A)
 #define m68k_read_memory_32(A) gdbserver_m68k_read_long(A)
 #define m68k_write_memory_8(A, V) gdbserver_m68k_write_byte(A, V)
 #define m68k_write_memory_16(A, V) gdbserver_m68k_write_word(A, V)
 #define m68k_write_memory_32(A, V) gdbserver_m68k_write_long(A, V)
-
 #else
-
-#define m68k_read_memory_8(A) board_read_byte(A)
-#define m68k_read_memory_16(A) board_read_word(A)
-#define m68k_read_memory_32(A) board_read_long(A)
-#define m68k_write_memory_8(A, V) board_write_byte(A, V)
-#define m68k_write_memory_16(A, V) board_write_word(A, V)
-#define m68k_write_memory_32(A, V) board_write_long(A, V)
-
+#define m68k_read_memory_8(A) board_read_byte_cpu(A)
+#define m68k_read_memory_16(A) board_read_word_cpu(A)
+#define m68k_read_memory_32(A) board_read_long_cpu(A)
+#define m68k_write_memory_8(A, V) board_write_byte_cpu(A, V)
+#define m68k_write_memory_16(A, V) board_write_word_cpu(A, V)
+#define m68k_write_memory_32(A, V) board_write_long_cpu(A, V)
 #endif
 
 /* ======================================================================== */

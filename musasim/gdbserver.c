@@ -927,30 +927,30 @@ void gdb_break(const char* reason) {
 
 uint8_t gdbserver_m68k_read_byte(uint32_t address) {
 	gdbserver_check_watchpoints(address, 0, false, 1);
-	return board_read_byte(address);
+	return board_read_byte_cpu(address);
 }
 
 uint16_t gdbserver_m68k_read_word(uint32_t address) {
 	gdbserver_check_watchpoints(address, 0, false, 2);
-	return board_read_word(address);
+	return board_read_word_cpu(address);
 }
 
 uint32_t gdbserver_m68k_read_long(uint32_t address) {
 	gdbserver_check_watchpoints(address, 0, false, 4);
-	return board_read_long(address);
+	return board_read_long_cpu(address);
 }
 
 void gdbserver_m68k_write_byte(uint32_t address, uint8_t value) {
 	gdbserver_check_watchpoints(address, value, true, 1);
-	return board_write_byte(address, value);
+	return board_write_byte_cpu(address, value);
 }
 
 void gdbserver_m68k_write_word(uint32_t address, uint16_t value) {
 	gdbserver_check_watchpoints(address, value, true, 2);
-	return board_write_word(address, value);
+	return board_write_word_cpu(address, value);
 }
 
 void gdbserver_m68k_write_long(uint32_t address, uint32_t value) {
 	gdbserver_check_watchpoints(address, value, true, 4);
-	return board_write_long(address, value);
+	return board_write_long_cpu(address, value);
 }

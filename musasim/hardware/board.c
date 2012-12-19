@@ -81,6 +81,9 @@ void board_pause(bool paused) {
 }
 
 static inline uint8_t board_which_slot(const card* card) {
+	if (card == NULL )
+		return NOCARD;
+
 	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
 		if (slots[i] == card) {
 			return i;
@@ -220,6 +223,14 @@ int board_ack_interrupt(int level) {
 // this will be for checking if an access to an address is valid in the current
 // mode etc.. not decided if this will just be for the gdb version or if this
 // will go in hardware too.
+// returns TRUE if the access passes checks
+
+static void board_logaccessviolation(const char* voilationdescription, const card* card) {
+	if (card != NULL )
+		log_println(LEVEL_INFO, TAG, "%s by busmaster in slot %d", voilationdescription, board_which_slot(card));
+	else
+		log_println(LEVEL_INFO, TAG, "%s, PC[0x%08x], PPC[0x%08x]", voilationdescription, GETPC, GETPPC);
+}
 
 static bool board_checkaccess(const card* card, uint32_t address, unsigned int fc, bool write) {
 
@@ -233,33 +244,36 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 //	return cacheresult[cacheindex];
 
 	uint8_t memorytype = DEFAULTMEMORYTYPE;
-	bool failed = false;
+	bool passed = true;
 
 	if (card->memorytype != NULL )
 		memorytype = card->memorytype(address);
 
 // trying to execute from non-executable memory
 	if (!write && (fc == 2 || fc == 6) && !(memorytype & CARDMEMORYTYPE_EXECUTABLE)) {
-		char buff[] = "this should be a disassembly";
-		//m68k_disassemble(buff, GETPC, M68K_CPU_TYPE_68000);
-		log_println(LEVEL_INFO, TAG, "Executing non-executable memory, PC[0x%08x], PPC[0x%08x], %s", GETPC, GETPPC,
-				buff);
-		failed = true;
+		board_logaccessviolation("Executing non-executable memory", card);
+		passed = false;
 	}
 
 // access to supervisor memory as user!
 	if ((fc == 1 || fc == 2) && (memorytype & CARDMEMORYTYPE_SUPERVISOR)) {
-		log_println(LEVEL_INFO, TAG, "Accessing supervisor memory as user PC[0x%08x], PPC[0x%08x]", GETPC, GETPPC);
-		failed = true;
+		board_logaccessviolation("Accessing supervisor memory as user", card);
+		passed = false;
+	}
+
+	// address isn't writable and this is a write!!
+	if (!write && !(memorytype & CARDMEMORYTYPE_READABLE)) {
+		board_logaccessviolation("Reading from un-readable memory", card);
+		passed = false;
 	}
 
 // address isn't writable and this is a write!!
 	if (write && !(memorytype & CARDMEMORYTYPE_WRITABLE)) {
-		log_println(LEVEL_INFO, TAG, "writing to readonly memory PC[0x%08x], PPC[0x%08x]", GETPC, GETPPC);
-		failed = true;
+		board_logaccessviolation("Writing to un-writable memory", card);
+		passed = false;
 	}
 
-	if (failed)
+	if (!passed)
 #ifdef GDBSERVER
 		gdb_break("sandbox violation");
 #else
@@ -269,7 +283,7 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 //cachevalid[cacheindex] = true;
 //cacheresult[cacheindex] = failed;
 
-	return failed;
+	return passed;
 }
 
 static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) __attribute__((always_inline));
@@ -279,30 +293,30 @@ static inline unsigned int board_read(unsigned int address, bool skipchecks, con
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		const card* card = slots[slot];
-		if (!skipchecks)
-			board_checkaccess(card, slotaddress, currentfc, false);
-		switch (width) {
-			case 1:
-				if (card->read_byte != NULL ) {
-					if (card->validaddress(slotaddress)) {
-						return (card->read_byte)(slotaddress);
+		if (skipchecks || board_checkaccess(card, slotaddress, currentfc, false)) {
+			switch (width) {
+				case 1:
+					if (card->read_byte != NULL ) {
+						if (card->validaddress(slotaddress)) {
+							return (card->read_byte)(slotaddress);
+						}
 					}
-				}
-				break;
-			case 2:
-				if (card->read_word != NULL ) {
-					if (card->validaddress(slotaddress)) {
-						return (card->read_word)(slotaddress);
+					break;
+				case 2:
+					if (card->read_word != NULL ) {
+						if (card->validaddress(slotaddress)) {
+							return (card->read_word)(slotaddress);
+						}
 					}
-				}
-				break;
-			case 4:
-				if (card->read_long != NULL ) {
-					if (card->validaddress(slotaddress)) {
-						return (card->read_long)(slotaddress);
+					break;
+				case 4:
+					if (card->read_long != NULL ) {
+						if (card->validaddress(slotaddress)) {
+							return (card->read_long)(slotaddress);
+						}
 					}
-				}
-				break;
+					break;
+			}
 		}
 
 		log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d byte read, PC[0x%08x]", slot, width, GETPC);
@@ -319,24 +333,36 @@ unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, con
 	return board_read(address, skipchecks, busmaster, 1);
 }
 
-unsigned int board_read_byte(unsigned int address) {
+unsigned int board_read_byte_cpu(unsigned int address) {
 	return board_read_byte_internal(address, false, NULL );
+}
+
+unsigned int board_read_byte_busmaster(unsigned int address, const card* busmaster) {
+	return board_read_byte_internal(address, false, busmaster);
 }
 
 unsigned int board_read_word_internal(unsigned int address, bool skipchecks, const card* busmaster) {
 	return board_read(address, skipchecks, busmaster, 2);
 }
 
-unsigned int board_read_word(unsigned int address) {
+unsigned int board_read_word_cpu(unsigned int address) {
 	return board_read_word_internal(address, false, NULL );
+}
+
+unsigned int board_read_word_busmaster(unsigned int address, const card* busmaster) {
+	return board_read_word_internal(address, false, busmaster);
 }
 
 unsigned int board_read_long_internal(unsigned int address, bool skipchecks, const card* busmaster) {
 	return board_read(address, skipchecks, busmaster, 4);
 }
 
-unsigned int board_read_long(unsigned int address) {
+unsigned int board_read_long_cpu(unsigned int address) {
 	return board_read_long_internal(address, false, NULL );
+}
+
+unsigned int board_read_long_busmaster(unsigned int address, const card* busmaster) {
+	return board_read_long_internal(address, false, busmaster);
 }
 
 static inline void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster,
@@ -347,32 +373,33 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		const card* card = slots[slot];
-		board_checkaccess(card, slotaddress, currentfc, true);
-		switch (width) {
-			case 1:
-				if (card->write_byte != NULL ) {
-					if (card->validaddress(slotaddress)) {
-						(card->write_byte)(slotaddress, value);
-						return;
+		if (skipchecks || board_checkaccess(card, slotaddress, currentfc, true)) {
+			switch (width) {
+				case 1:
+					if (card->write_byte != NULL ) {
+						if (card->validaddress(slotaddress)) {
+							(card->write_byte)(slotaddress, value);
+							return;
+						}
 					}
-				}
-				break;
-			case 2:
-				if (card->write_word != NULL ) {
-					if (card->validaddress(slotaddress)) {
-						(card->write_word)(slotaddress, value);
-						return;
+					break;
+				case 2:
+					if (card->write_word != NULL ) {
+						if (card->validaddress(slotaddress)) {
+							(card->write_word)(slotaddress, value);
+							return;
+						}
 					}
-				}
-				break;
-			case 4:
-				if (card->write_long != NULL ) {
-					if (card->validaddress(slotaddress)) {
-						(card->write_long)(slotaddress, value);
-						return;
+					break;
+				case 4:
+					if (card->write_long != NULL ) {
+						if (card->validaddress(slotaddress)) {
+							(card->write_long)(slotaddress, value);
+							return;
+						}
 					}
-				}
-				break;
+					break;
+			}
 		}
 
 		log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d byte write", slot, width);
@@ -386,24 +413,36 @@ void board_write_byte_internal(unsigned int address, unsigned int value, bool sk
 	board_write(address, value, skipchecks, busmaster, 1);
 }
 
-void board_write_byte(unsigned int address, unsigned int value) {
+void board_write_byte_cpu(unsigned int address, unsigned int value) {
 	board_write_byte_internal(address, value, false, NULL );
+}
+
+void board_write_byte_busmaster(unsigned int address, unsigned int value, const card* busmaster) {
+	board_write_byte_internal(address, value, false, busmaster);
 }
 
 void board_write_word_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
 	board_write(address, value, skipchecks, busmaster, 2);
 }
 
-void board_write_word(unsigned int address, unsigned int value) {
+void board_write_word_cpu(unsigned int address, unsigned int value) {
 	board_write_word_internal(address, value, false, NULL );
+}
+
+void board_write_word_busmaster(unsigned int address, unsigned int value, const card* busmaster) {
+	board_write_word_internal(address, value, false, busmaster);
 }
 
 void board_write_long_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
 	board_write(address, value, skipchecks, busmaster, 4);
 }
 
-void board_write_long(unsigned int address, unsigned int value) {
+void board_write_long_cpu(unsigned int address, unsigned int value) {
 	board_write_long_internal(address, value, false, NULL );
+}
+
+void board_write_long_busmaster(unsigned int address, unsigned int value, const card* busmaster) {
+	board_write_long_internal(address, value, false, busmaster);
 }
 
 void board_reset() {
