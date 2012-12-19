@@ -12,7 +12,7 @@ void sim_init(void);
 void sim_quit(void);
 void sim_reset(void);
 void sim_tick(void);
-void sim_sandboxvoilated(void);
+void sim_sandboxviolated(void);
 bool sim_has_quit(void);
 
 // callbacks for musashi

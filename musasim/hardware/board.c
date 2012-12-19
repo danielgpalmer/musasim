@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <inttypes.h>
 #include <stdbool.h>
 
 #include "board.h"
@@ -225,11 +226,13 @@ int board_ack_interrupt(int level) {
 // will go in hardware too.
 // returns TRUE if the access passes checks
 
-static void board_logaccessviolation(const char* voilationdescription, const card* card) {
+static void board_logaccessviolation(uint32_t address, const char* violationdescription, const card* card) {
 	if (card != NULL )
-		log_println(LEVEL_INFO, TAG, "%s by busmaster in slot %d", voilationdescription, board_which_slot(card));
+		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s by busmaster in slot %d", address,
+				violationdescription, board_which_slot(card));
 	else
-		log_println(LEVEL_INFO, TAG, "%s, PC[0x%08x], PPC[0x%08x]", voilationdescription, GETPC, GETPPC);
+		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s, PC[0x%08x], PPC[0x%08x]", address,
+				violationdescription, GETPC, GETPPC);
 }
 
 static bool board_checkaccess(const card* card, uint32_t address, unsigned int fc, bool write) {
@@ -237,7 +240,7 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 //static bool cachevalid[0xFFFF];
 //static bool cacheresult[0xFFFF];
 
-	//address &= CHECKMASK;
+//address &= CHECKMASK;
 //int cacheindex = address >> 16;
 
 //if (cachevalid[cacheindex])
@@ -251,25 +254,25 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 
 // trying to execute from non-executable memory
 	if (!write && (fc == 2 || fc == 6) && !(memorytype & CARDMEMORYTYPE_EXECUTABLE)) {
-		board_logaccessviolation("Executing non-executable memory", card);
+		board_logaccessviolation(address, "Executing non-executable memory", card);
 		passed = false;
 	}
 
 // access to supervisor memory as user!
 	if ((fc == 1 || fc == 2) && (memorytype & CARDMEMORYTYPE_SUPERVISOR)) {
-		board_logaccessviolation("Accessing supervisor memory as user", card);
+		board_logaccessviolation(address, "Accessing supervisor memory as user", card);
 		passed = false;
 	}
 
-	// address isn't writable and this is a write!!
+// address isn't writable and this is a write!!
 	if (!write && !(memorytype & CARDMEMORYTYPE_READABLE)) {
-		board_logaccessviolation("Reading from un-readable memory", card);
+		board_logaccessviolation(address, "Reading from un-readable memory", card);
 		passed = false;
 	}
 
 // address isn't writable and this is a write!!
 	if (write && !(memorytype & CARDMEMORYTYPE_WRITABLE)) {
-		board_logaccessviolation("Writing to un-writable memory", card);
+		board_logaccessviolation(address, "Writing to un-writable memory", card);
 		passed = false;
 	}
 
@@ -277,7 +280,7 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 #ifdef GDBSERVER
 		gdb_break("sandbox violation");
 #else
-	sim_sandboxvoilated();
+	sim_sandboxviolated();
 #endif
 
 //cachevalid[cacheindex] = true;

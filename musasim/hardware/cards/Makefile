@@ -6,9 +6,11 @@ DEPS=card.h ../board.h
 all: libcards.a libcardsgdb.a
 
 libcardsgdb.a: romcardgdb.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o basicsound.o blip_buf.o timercard.o ringbuffer.o
+	- rm $@
 	ar cr libcardsgdb.a $^
 
 libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o basicsound.o blip_buf.o timercard.o ringbuffer.o
+	- rm $@
 	ar cr libcards.a $^
 
 romcard.o: romcard.c romcard.h $(DEPS)

@@ -255,8 +255,8 @@ void sim_tick() {
 
 }
 
-void sim_sandboxvoilated() {
-	log_println(LEVEL_INFO, TAG, "sim_sandboxvoilated()");
+void sim_sandboxviolated() {
+	log_println(LEVEL_INFO, TAG, "sim_sandboxviolated()");
 	m68k_end_timeslice();
 	shouldexit = true;
 }

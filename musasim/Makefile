@@ -6,20 +6,21 @@ LIBMODULES=./hardware/modules/libmodules.a
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
 
 LOCALOBJECTS=sim.o logging.o utils.o elfloader.o osd.o fontutils.o sdlwrapper.o
-GDBONLYOBJECTS=gdbserver.o argsgdb.o profiler.o ./hardware/boardgdb.o
-MUSASIMONLYOBJECTS=args.o ./hardware/board.o
+GDBONLYOBJECTS=gdbserver.o argsgdb.o profiler.o
+MUSASIMONLYOBJECTS=args.o
 REMOTEOBJECTS=./hardware/registerplanner.o
 
 all: checklibs gdbserver musasim genheader dist
 	
-gdbserver: musashi $(LOCALOBJECTS) hardware musashi
-	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o $(LOCALOBJECTS) $(REMOTEOBJECTS) $(GDBONLYOBJECTS) $(LIBCARDSGDB) $(LIBMODULES) -o gdbserver -lelf
+gdbserver: musashi $(GDBONLYOBJECTS) $(LOCALOBJECTS) gdbserver.o hardware musashi
+	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o $(LOCALOBJECTS) $(REMOTEOBJECTS) $(GDBONLYOBJECTS) $(LIBCARDSGDB) $(LIBMODULES) ./hardware/boardgdb.o -o gdbserver -lelf
 
-musasim: musashi $(LOCALOBJECTS) hardware musasim.o musashi libmusasim.a
-	$(CC) $(LFLAGS) musasim.o musashi/musashi.o $(MUSASIMONLYOBJECTS) $(LOCALOBJECTS) $(REMOTEOBJECTS) $(LIBCARDS) $(LIBMODULES) -o $@ -lelf
+musasim: libmusasim.a
+	$(CC) $(LFLAGS) libmusasim.a $(LIBCARDS) $(LIBMODULES) libmusasim.a -o $@ -lelf
 
-libmusasim.a: musashi $(LOCALOBJECTS) hardware musasim.o args.o musashi
-	ar cr libmusasim.a $(LOCALOBJECTS) musasim.o args.o $(REMOTEOBJECTS) musashi/musashi.o
+libmusasim.a: musashi $(LOCALOBJECTS) $(MUSASIMONLYOBJECTS) hardware musasim.o args.o musashi
+	- rm $@
+	ar cr $@ $(LOCALOBJECTS) musasim.o args.o $(REMOTEOBJECTS) ./musashi/musashi.o ./hardware/board.o 
 
 musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) musasim.c -o musasim.o
