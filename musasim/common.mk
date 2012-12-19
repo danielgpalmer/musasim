@@ -3,7 +3,7 @@
 
 MUSASIM_DIR = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 CC =     gcc
-WARNINGS = -Wall -Winline -Wstrict-aliasing #-Werror 
+WARNINGS = -Wall -Werror -Wstrict-aliasing # -Winline 
 OPT = -O3 -march=native
 ALLEXTLIBS = glib-2.0 argtable2 sdl SDL_ttf SDL_gfx fontconfig
 LIBFLAGS=`pkg-config --libs $(ALLEXTLIBS)` -lrt

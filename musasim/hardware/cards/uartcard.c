@@ -436,7 +436,7 @@ static void uart_irq_ack() {
 	board_lower_interrupt(&uartcard);
 }
 
-static bool uart_validaddress(uint32_t address) {
+static const bool uart_validaddress(uint32_t address) {
 
 	if (address & 0x1) {
 		// uart datalines are only attached to d15 - d8
@@ -459,6 +459,7 @@ static bool uart_validaddress(uint32_t address) {
 			return false;
 
 	}
+
 }
 
 const card uartcard = { "UART CARD", //

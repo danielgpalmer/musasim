@@ -18,14 +18,14 @@ typedef struct {
 	const char* boardinfo; // A simple description that can be displayed to aid debugging
 	void (*init)(); // Do anything you need to do at program startup here
 	void (*dispose)(); // Do anything you need to do before the program exits, i.e. free'ing stuff, here
-	void (*reset)(); // This is called when the m68k pulls the reset line down
-	void (*tick)(int cyclesexecuted); //
-	void (*pause)(bool paused);
+	void (*reset)(); // This is called when the card is first plugged in and when the m68k pulls the reset line down
+	void (*tick)(int cyclesexecuted); // this is called after the cpu is cranked.. cyclesexecuted is the amount of main clock cycles that ran
+	void (*pause)(bool paused); // called when the emulator is paused/unpaused.. if you have stuff that happens outside of your tick function you should pause it via this
 	void (*irqack)();
 	void (*busreqack)();
-	void (*setfc)();
-	bool (*validaddress)(uint32_t address); // This should return true if the address is valid within the card's address space
-	const uint8_t (*memorytype)(uint32_t address);
+	void (*setfc)(unsigned int fc); // called when the fc code changes
+	const bool (*validaddress)(uint32_t address); // This should return true if the address is valid within the card's address space, this is used to sanity check access to real memory!
+	const uint8_t (*memorytype)(uint32_t address); // this should return the type of memory for a block, the return should always be the same for an address
 	uint8_t (*read_byte)(uint32_t address); // Read a byte from the cards address space
 	uint16_t (*read_word)(uint32_t address); // ^ but for word (16bits)
 	uint32_t (*read_long)(uint32_t address); // ^ but for long word (32bits)

@@ -111,7 +111,7 @@ static void timercard_writelong(uint32_t address, uint32_t value) {
 	registerplanner_write_long(addressspace, address, value);
 }
 
-static bool timercard_isvalidaddress(uint32_t address) {
+static const bool timercard_isvalidaddress(uint32_t address) {
 	return true;
 }
 

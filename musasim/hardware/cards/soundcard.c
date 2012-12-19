@@ -313,7 +313,7 @@ static void soundcard_irqack() {
 	board_lower_interrupt(&soundcard);
 }
 
-static bool soundcard_validaddress(uint32_t address) {
+static const bool soundcard_validaddress(uint32_t address) {
 	return true;
 }
 

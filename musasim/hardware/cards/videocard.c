@@ -102,7 +102,7 @@ static void video_dispose() {
 	log_println(LEVEL_DEBUG, TAG, "video_dispose()");
 }
 
-static bool video_validaddress(uint32_t address) {
+static const bool video_validaddress(uint32_t address) {
 	// is the address inside the framebuffer or compositing buffer?
 	if (address >= VIDEO_FRAMEBUFFER_START && address < VIDEO_COMPOSITINGBUFFER_START + VIDEO_COMPOSITINGBUFFER_SIZE)
 		return true;

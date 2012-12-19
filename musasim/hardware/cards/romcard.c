@@ -209,7 +209,7 @@ static void romcard_write_long(uint32_t address, uint32_t value) {
 
 }
 
-static bool romcard_validaddress(uint32_t address) {
+static const bool romcard_validaddress(uint32_t address) {
 	if (ISROMSPACE(address) || ISRAMSPACE(address)) {
 		return true;
 	}

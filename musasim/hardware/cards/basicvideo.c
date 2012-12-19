@@ -31,7 +31,7 @@ static void video_init() {
 static void video_dispose() {
 }
 
-static bool video_validaddress(uint32_t address) {
+static const bool video_validaddress(uint32_t address) {
 	return address < BASIC_VIDEO_WIDTH * BASIC_VIDEO_HEIGHT;
 }
 

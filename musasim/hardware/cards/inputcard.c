@@ -167,7 +167,7 @@ static void inputcard_tick(int cyclesexecuted) {
 
 }
 
-static bool input_validaddress(uint32_t address) {
+static const bool input_validaddress(uint32_t address) {
 	int reg = address & 0x3;
 	switch (reg) {
 		case INPUT_PORT0:

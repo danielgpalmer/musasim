@@ -493,7 +493,7 @@ static void dmacard_write_word(uint32_t address, uint16_t value) {
 	}
 }
 
-static bool dmacard_validaddress(uint32_t address) {
+static const bool dmacard_validaddress(uint32_t address) {
 
 	int reg = (address & ADDRESSMASK);
 

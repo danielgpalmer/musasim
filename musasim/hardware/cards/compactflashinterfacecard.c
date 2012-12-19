@@ -307,7 +307,7 @@ static void cfint_tick(int cyclesexecuted) {
 	}
 }
 
-static bool cfint_validaddress(uint32_t address) {
+static const bool cfint_validaddress(uint32_t address) {
 	return true;
 }
 
