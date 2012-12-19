@@ -50,9 +50,10 @@ static inline uint8_t board_decode_slot(uint32_t address) {
 void board_add_device(uint8_t slot, const card *card) {
 	log_println(LEVEL_DEBUG, TAG, "Inserting %s into slot %d", card->boardinfo, slot);
 	slots[slot] = card;
-	if (card->init != NULL ) {
+	if (card->init != NULL )
 		(card->init)();
-	}
+	if (card->reset != NULL )
+		(card->reset)();
 }
 
 void board_tick(int cyclesexecuted) {

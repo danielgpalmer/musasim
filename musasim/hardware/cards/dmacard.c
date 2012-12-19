@@ -527,10 +527,17 @@ static int dmacard_cyclesleft() {
 		return cyclesleft;
 }
 
+static void dmacard_reset() {
+	for (int i = 0; i < NUMWINDOWS; i++) {
+		window* w = &regwindows[i];
+		memset(w, 0, sizeof(window));
+	}
+}
+
 const card dmacard = { "DMA Controller", //
-		dmacard_init, //
-		NULL, //
-		NULL, //
+		dmacard_init, // init
+		NULL, // dispose
+		dmacard_reset, // reset
 		dmacard_tick, //
 		NULL, // pause
 		dmacard_irqack, //

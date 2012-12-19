@@ -103,7 +103,11 @@ static void video_dispose() {
 }
 
 static bool video_validaddress(uint32_t address) {
-	if (address < VIDEO_COMPOSITINGBUFFER_START + VIDEO_COMPOSITINGBUFFER_SIZE)
+	// is the address inside the framebuffer or compositing buffer?
+	if (address >= VIDEO_FRAMEBUFFER_START && address < VIDEO_COMPOSITINGBUFFER_START + VIDEO_COMPOSITINGBUFFER_SIZE)
+		return true;
+	// is it inside the registers?
+	else if (address < 22) // FIXME!
 		return true;
 	return false;
 }
@@ -304,10 +308,24 @@ static int videocard_cyclesleft() {
 
 }
 
+static void videocard_reset() {
+	flags = 0;
+	config = 0;
+	pixel = 0;
+	line = 0;
+	frame = 0;
+	posx = 0;
+	posy = 0;
+	winx = 0;
+	winy = 0;
+	winwidth = VIDEO_WIDTH;
+	winheight = VIDEO_HEIGHT;
+}
+
 const card videocard = { "VIDEO CARD", //
 		video_init, //
 		video_dispose, //
-		NULL, //
+		videocard_reset, //
 		video_tick, //
 		NULL, // pause
 		videocard_irqack, //
