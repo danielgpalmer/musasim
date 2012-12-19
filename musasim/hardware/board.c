@@ -226,16 +226,17 @@ int board_ack_interrupt(int level) {
 // will go in hardware too.
 // returns TRUE if the access passes checks
 
-static void board_logaccessviolation(uint32_t address, const char* violationdescription, const card* card) {
-	if (card != NULL )
+static void board_logaccessviolation(uint32_t address, const char* violationdescription, const card* busmaster) {
+	if (busmaster != NULL )
 		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s by busmaster in slot %d", address,
-				violationdescription, board_which_slot(card));
+				violationdescription, board_which_slot(busmaster));
 	else
 		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s, PC[0x%08x], PPC[0x%08x]", address,
 				violationdescription, GETPC, GETPPC);
 }
 
-static bool board_checkaccess(const card* card, uint32_t address, unsigned int fc, bool write) {
+static bool board_checkaccess(const card* accessedcard, uint32_t address, unsigned int fc, bool write,
+		const card* busmaster) {
 
 //static bool cachevalid[0xFFFF];
 //static bool cacheresult[0xFFFF];
@@ -249,30 +250,30 @@ static bool board_checkaccess(const card* card, uint32_t address, unsigned int f
 	uint8_t memorytype = DEFAULTMEMORYTYPE;
 	bool passed = true;
 
-	if (card->memorytype != NULL )
-		memorytype = card->memorytype(address);
+	if (accessedcard->memorytype != NULL )
+		memorytype = accessedcard->memorytype(address);
 
 // trying to execute from non-executable memory
 	if (!write && (fc == 2 || fc == 6) && !(memorytype & CARDMEMORYTYPE_EXECUTABLE)) {
-		board_logaccessviolation(address, "Executing non-executable memory", card);
+		board_logaccessviolation(address, "Executing non-executable memory", busmaster);
 		passed = false;
 	}
 
 // access to supervisor memory as user!
 	if ((fc == 1 || fc == 2) && (memorytype & CARDMEMORYTYPE_SUPERVISOR)) {
-		board_logaccessviolation(address, "Accessing supervisor memory as user", card);
+		board_logaccessviolation(address, "Accessing supervisor memory as user", busmaster);
 		passed = false;
 	}
 
 // address isn't writable and this is a write!!
 	if (!write && !(memorytype & CARDMEMORYTYPE_READABLE)) {
-		board_logaccessviolation(address, "Reading from un-readable memory", card);
+		board_logaccessviolation(address, "Reading from un-readable memory", busmaster);
 		passed = false;
 	}
 
 // address isn't writable and this is a write!!
 	if (write && !(memorytype & CARDMEMORYTYPE_WRITABLE)) {
-		board_logaccessviolation(address, "Writing to un-writable memory", card);
+		board_logaccessviolation(address, "Writing to un-writable memory", busmaster);
 		passed = false;
 	}
 
@@ -296,7 +297,7 @@ static inline unsigned int board_read(unsigned int address, bool skipchecks, con
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		const card* card = slots[slot];
-		if (skipchecks || board_checkaccess(card, slotaddress, currentfc, false)) {
+		if (skipchecks || board_checkaccess(card, slotaddress, currentfc, false, busmaster)) {
 			switch (width) {
 				case 1:
 					if (card->read_byte != NULL ) {
@@ -376,7 +377,7 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		const card* card = slots[slot];
-		if (skipchecks || board_checkaccess(card, slotaddress, currentfc, true)) {
+		if (skipchecks || board_checkaccess(card, slotaddress, currentfc, true, busmaster)) {
 			switch (width) {
 				case 1:
 					if (card->write_byte != NULL ) {
