@@ -11,11 +11,11 @@
 #include <stdint.h>
 
 uint16_t machine_getstatusregister() {
-	volatile uint16_t temp; // stops this guy getting optimised out
+	uint16_t temp; // stops this guy getting optimised out
 	asm volatile (
 			"move.w %%sr, %0\n\t"
+			: "=g"(temp)
 			:
-			: "g"(temp)
 			: );
 	return temp;
 }

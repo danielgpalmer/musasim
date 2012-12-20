@@ -142,7 +142,7 @@ void cpu_pulse_stop(void) {
 
 /* Called when the CPU changes the function code pins */
 void cpu_set_fc(unsigned int fc) {
-	static unsigned int currentfc = 0;
+	static unsigned int currentfc = 0xFF; // the incoming fc will never be this value
 	if (currentfc != fc) {
 		board_setfc(fc);
 		currentfc = fc;

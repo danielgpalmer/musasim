@@ -30,6 +30,7 @@ static bool busrequestwaiting[NUM_SLOTS];
 
 #define GETPPC m68k_get_reg(NULL, M68K_REG_PPC)
 #define GETPC m68k_get_reg(NULL, M68K_REG_PC)
+#define GETSR m68k_get_reg(NULL, M68K_REG_SR)
 
 /**
  *
@@ -228,12 +229,18 @@ int board_ack_interrupt(int level) {
 
 static void board_logaccessviolation(uint32_t address, const char* violationdescription, const card* busmaster) {
 	if (busmaster != NULL )
-		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s by busmaster in slot %d", address,
-				violationdescription, board_which_slot(busmaster));
+		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s by busmaster in slot %d, SR[0x%04x]", address,
+				violationdescription, board_which_slot(busmaster), GETSR);
 	else
-		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s, PC[0x%08x], PPC[0x%08x]", address,
-				violationdescription, GETPC, GETPPC);
+		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s, PC[0x%08x], PPC[0x%08x], SR[0x%04x]", address,
+				violationdescription, GETPC, GETPPC, GETSR);
 }
+
+#define FCUSERDATA 0b001
+#define FCUSERPROGRAM 0b010
+#define FCSUPERVISORDATA 0b101
+#define FCSUPERVISORPROGRAM 0b110
+#define FCINTACK 0b111
 
 static bool board_checkaccess(const card* accessedcard, uint32_t address, unsigned int fc, bool write,
 		const card* busmaster) {
@@ -254,13 +261,13 @@ static bool board_checkaccess(const card* accessedcard, uint32_t address, unsign
 		memorytype = accessedcard->memorytype(address);
 
 // trying to execute from non-executable memory
-	if (!write && (fc == 2 || fc == 6) && !(memorytype & CARDMEMORYTYPE_EXECUTABLE)) {
+	if ((fc == FCUSERPROGRAM || fc == FCSUPERVISORPROGRAM) && !(memorytype & CARDMEMORYTYPE_EXECUTABLE)) {
 		board_logaccessviolation(address, "Executing non-executable memory", busmaster);
 		passed = false;
 	}
 
 // access to supervisor memory as user!
-	if ((fc == 1 || fc == 2) && (memorytype & CARDMEMORYTYPE_SUPERVISOR)) {
+	if ((fc == FCUSERDATA || fc == FCUSERPROGRAM) && (memorytype & CARDMEMORYTYPE_SUPERVISOR)) {
 		board_logaccessviolation(address, "Accessing supervisor memory as user", busmaster);
 		passed = false;
 	}
@@ -292,7 +299,6 @@ static bool board_checkaccess(const card* accessedcard, uint32_t address, unsign
 
 static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) __attribute__((always_inline));
 static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) {
-
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
@@ -321,16 +327,18 @@ static inline unsigned int board_read(unsigned int address, bool skipchecks, con
 					}
 					break;
 			}
-		}
-
-		log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d byte read, PC[0x%08x]", slot, width, GETPC);
+			log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d byte read, PC[0x%08x]", slot, width, GETPC);
 #ifdef GDBSERVER
-		gdb_break("unsupported read access");
+			gdb_break("unsupported read access");
 #endif
-
+		}
+	}
+	else {
+#ifdef GDBSERVER
+		gdb_break("read from empty slot");
+#endif
 	}
 	return 0;
-
 }
 
 unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, const card* busmaster) {
@@ -404,11 +412,15 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 					}
 					break;
 			}
-		}
-
-		log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d byte write", slot, width);
+			log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d byte write", slot, width);
 #ifdef GDBSERVER
-		gdb_break("unsupported memory write");
+			gdb_break("unsupported memory write");
+#endif
+		}
+	}
+	else {
+#ifdef GDBSERVER
+		gdb_break("write to empty slot");
 #endif
 	}
 }
