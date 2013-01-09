@@ -185,8 +185,7 @@ int main(void) {
 
 	initvideo();
 
-	uint16_t sr = machine_getstatusregister();
-	machine_setstatusregister((sr & 0xf8ff));
+	machine_setinterruptmask(0);
 
 	while (1) {
 

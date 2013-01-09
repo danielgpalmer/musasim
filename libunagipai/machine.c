@@ -10,8 +10,10 @@
 
 #include <stdint.h>
 
+#define MACHINE_SR_SUPERVISORBITMASK (1 << 13)
+
 uint16_t machine_getstatusregister() {
-	uint16_t temp; // stops this guy getting optimised out
+	uint16_t temp;
 	asm volatile (
 			"move.w %%sr, %0\n\t"
 			: "=g"(temp)
@@ -28,17 +30,14 @@ void machine_setstatusregister(uint16_t value) {
 			: );
 }
 
-void machine_enableinterrupts() {
-
-}
-
-void machine_disableinterrupts() {
-
+void machine_setinterruptmask(unsigned int mask) {
+	uint16_t sr = (machine_getstatusregister() & 0xf8ff) | ((mask & 0x7) << 8);
+	machine_setstatusregister(sr);
 }
 
 void machine_switchtousermode() {
 	uint16_t sr = machine_getstatusregister();
-	sr |= MACHINE_SR_MASK;
+	sr |= MACHINE_SR_SUPERVISORBITMASK;
 	machine_setstatusregister(sr);
 }
 

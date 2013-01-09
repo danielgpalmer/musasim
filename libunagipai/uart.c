@@ -3,30 +3,59 @@
 #include "uart_registermasks.h"
 #include "uart.h"
 
-char uart_getch() {
-	while (!(uart_chan0_linestatus & LINESTATUS_DATAREADY)) {
-
+char uart_getch(uint8_t channel) {
+	switch (channel) {
+		case 0:
+			while (!(uart_chan0_linestatus & LINESTATUS_DATAREADY)) {
+			}
+			return uart_chan0_rxtx ;
+		case 1:
+			while (!(uart_chan1_linestatus & LINESTATUS_DATAREADY)) {
+			}
+			return uart_chan1_rxtx ;
+		default:
+			return 0;
 	}
-
-	return uart_chan0_rxtx;
 }
 
-bool uart_getch_nonblock(char* ch) {
-	if (uart_chan0_linestatus & LINESTATUS_DATAREADY) {
-		*ch = uart_chan0_rxtx;
-		return true;
+bool uart_getch_nonblock(uint8_t channel, char* ch) {
+	switch (channel) {
+		case 0:
+			if (uart_chan0_linestatus & LINESTATUS_DATAREADY) {
+				*ch = uart_chan0_rxtx;
+				return true;
+			}
+			return false;
+		case 1:
+			if (uart_chan1_linestatus & LINESTATUS_DATAREADY) {
+				*ch = uart_chan1_rxtx;
+				return true;
+			}
+			return false;
+		default:
+			return false;
 	}
-	return false;
 }
 
-void uart_putch(char ch) {
-	uart_chan0_modemcontrol |= 0x04;
-	while ((uart_chan0_linestatus & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY)
-			!= LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) {
-		// nop
+void uart_putch(uint8_t channel, char ch) {
+	switch (channel) {
+		case 0:
+			uart_chan0_modemcontrol |= 0x04;
+			while ((uart_chan0_linestatus & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY)
+					!= LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) {
+				// nop
+			}
+			uart_chan0_rxtx = ch;
+			uart_chan0_modemcontrol &= ~0x04;
+			break;
+		case 1:
+			while ((uart_chan1_linestatus & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY)
+					!= LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) {
+				// nop
+			}
+			uart_chan1_rxtx = ch;
+			break;
 	}
-	uart_chan0_rxtx = ch;
-	uart_chan0_modemcontrol &= ~0x04;
 }
 
 void uart_configureinterrupts(uint8_t channel, bool datareceived, bool transmitterempty, bool linestatus,
@@ -45,28 +74,3 @@ void uart_configurefifos(uint8_t channel, bool enablefifos) {
 	}
 }
 
-char uart_getch1() {
-	while (!(uart_chan1_linestatus & LINESTATUS_DATAREADY)) {
-
-	}
-
-	return uart_chan1_rxtx;
-}
-
-bool uart_getch_nonblock1(char* ch) {
-	if (uart_chan1_linestatus & LINESTATUS_DATAREADY) {
-		*ch = uart_chan1_rxtx;
-		return true;
-	}
-	return false;
-}
-
-void uart_putch1(char ch) {
-
-	while ((uart_chan1_linestatus & LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY)
-			!= LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY) {
-		// nop
-	}
-	uart_chan1_rxtx = ch;
-
-}

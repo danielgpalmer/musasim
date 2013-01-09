@@ -13,7 +13,7 @@
 int _write(int file, char * ptr, int len) {
 	if (file == STDOUT_FILENO) {
 		for (int pos = 0; pos < len; pos++) {
-			uart_putch(*ptr++);
+			uart_putch(0, *ptr++);
 		}
 		return 0;
 	}

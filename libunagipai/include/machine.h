@@ -12,9 +12,6 @@
 
 #include <stdint.h>
 
-#define MACHINE_SR_MASK (1 << 13)
-
-
 /**
  * get the status register
  */
@@ -25,8 +22,28 @@ uint16_t machine_getstatusregister(void);
  */
 void machine_setstatusregister(uint16_t value);
 
+/**
+ * Disable the rom and go into ram only mode
+ */
+
 void machine_disablerom();
 
+/**
+ * reset the machine
+ */
+
 void machine_reset() __attribute__ ((section (".data")));
+
+/**
+ * set the interrupt mask in the status register
+ */
+
+void machine_setinterruptmask(unsigned int mask);
+
+/**
+ * switch the cpu into usermode
+ */
+
+void machine_switchtousermode();
 
 #endif /* MACHINE_H_ */

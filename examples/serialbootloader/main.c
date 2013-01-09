@@ -18,7 +18,7 @@ int _getchar(int timeout) {
 	uint8_t ch;
 	for (int i = 0; i < 256; i++) {
 		//for(int j = 0; j < 16; j++){
-		if (uart_getch_nonblock1(&ch)) {
+		if (uart_getch_nonblock(1,&ch)) {
 			return ch;
 		}
 		//printf("spinning\n");
@@ -29,7 +29,7 @@ int _getchar(int timeout) {
 void _sleep(unsigned long seconds) {
 }
 void _putchar(int c) {
-	uart_putch1((char) c);
+	uart_putch(1, (char) c);
 }
 
 int main(void) {
