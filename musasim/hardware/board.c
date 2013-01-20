@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <glib.h>
 
 #include "board.h"
 #include "../logging.h"
@@ -11,6 +12,9 @@
 #ifdef GDBSERVER
 #include "../gdbserver.h"
 #endif
+
+static GThreadPool* workers;
+static GStaticMutex busmutex = G_STATIC_MUTEX_INIT;
 
 #define CHECKMASK 0xFFFFFFFC //
 static char TAG[] = "board";
@@ -66,12 +70,22 @@ void board_tick(int cyclesexecuted) {
 	}
 }
 
+static void board_workerfunc(gpointer data, gpointer userdata) {
+
+}
+
+void board_poweron() {
+	workers = g_thread_pool_new(board_workerfunc, NULL, 2, true, NULL );
+}
+
 void board_poweroff() {
 	for (int i = 0; i < NUM_SLOTS; i++) {
 		if (slots[i] != NULL && slots[i]->dispose != NULL ) {
 			(slots[i]->dispose)();
 		}
 	}
+	g_thread_pool_free(workers, true, true);
+	workers = NULL;
 }
 
 void board_pause(bool paused) {
@@ -299,38 +313,45 @@ static bool board_checkaccess(const card* accessedcard, uint32_t address, unsign
 
 static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) __attribute__((always_inline));
 static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) {
+
+	g_static_mutex_lock(&busmutex);
+
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
+	unsigned int value = 0;
 	if (slot != NOCARD) {
 		const card* card = slots[slot];
 		if (skipchecks || board_checkaccess(card, slotaddress, currentfc, false, busmaster)) {
-			switch (width) {
-				case 1:
-					if (card->read_byte != NULL ) {
-						if (card->validaddress(slotaddress)) {
-							return (card->read_byte)(slotaddress);
+			if (card->validaddress(slotaddress)) {
+				switch (width) {
+					case 1:
+						if (card->read_byte != NULL ) {
+							value = (card->read_byte)(slotaddress);
+							break;
 						}
-					}
-					break;
-				case 2:
-					if (card->read_word != NULL ) {
-						if (card->validaddress(slotaddress)) {
-							return (card->read_word)(slotaddress);
+						goto READSIZENOTSUPPORTED;
+					case 2:
+						if (card->read_word != NULL ) {
+							value = (card->read_word)(slotaddress);
+							break;
 						}
-					}
-					break;
-				case 4:
-					if (card->read_long != NULL ) {
-						if (card->validaddress(slotaddress)) {
-							return (card->read_long)(slotaddress);
+						goto READSIZENOTSUPPORTED;
+					case 4:
+						if (card->read_long != NULL ) {
+							value = (card->read_long)(slotaddress);
+							break;
 						}
-					}
-					break;
-			}
-			log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d byte read, PC[0x%08x]", slot, width, GETPC);
+						READSIZENOTSUPPORTED: //
+						default:
+						log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d byte read, PC[0x%08x]", slot, width,
+								GETPC);
 #ifdef GDBSERVER
-			gdb_break("unsupported read access");
+						gdb_break("unsupported read access");
 #endif
+						break;
+
+				}
+			}
 		}
 	}
 	else {
@@ -338,7 +359,10 @@ static inline unsigned int board_read(unsigned int address, bool skipchecks, con
 		gdb_break("read from empty slot");
 #endif
 	}
-	return 0;
+
+	g_static_mutex_unlock(&busmutex);
+
+	return value;
 }
 
 unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, const card* busmaster) {
@@ -381,41 +405,42 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 		const int width) __attribute__((always_inline));
 static inline void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster,
 		const int width) {
+
+	g_static_mutex_lock(&busmutex);
+
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
 	if (slot != NOCARD) {
 		const card* card = slots[slot];
 		if (skipchecks || board_checkaccess(card, slotaddress, currentfc, true, busmaster)) {
-			switch (width) {
-				case 1:
-					if (card->write_byte != NULL ) {
-						if (card->validaddress(slotaddress)) {
+			if (card->validaddress(slotaddress)) {
+				switch (width) {
+					case 1:
+						if (card->write_byte != NULL ) {
 							(card->write_byte)(slotaddress, value);
-							return;
+							break;
 						}
-					}
-					break;
-				case 2:
-					if (card->write_word != NULL ) {
-						if (card->validaddress(slotaddress)) {
+						goto WRITESIZENOTSUPPORTED;
+					case 2:
+						if (card->write_word != NULL ) {
 							(card->write_word)(slotaddress, value);
-							return;
+							break;
 						}
-					}
-					break;
-				case 4:
-					if (card->write_long != NULL ) {
-						if (card->validaddress(slotaddress)) {
+						goto WRITESIZENOTSUPPORTED;
+					case 4:
+						if (card->write_long != NULL ) {
 							(card->write_long)(slotaddress, value);
-							return;
+							break;
 						}
-					}
-					break;
-			}
-			log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d byte write", slot, width);
+						WRITESIZENOTSUPPORTED: //
+						default:
+						log_println(LEVEL_INFO, TAG, "slot %d doesn't support %d byte write", slot, width);
 #ifdef GDBSERVER
-			gdb_break("unsupported memory write");
+						gdb_break("unsupported memory write");
 #endif
+						break;
+				}
+			}
 		}
 	}
 	else {
@@ -423,6 +448,8 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 		gdb_break("write to empty slot");
 #endif
 	}
+
+	g_static_mutex_unlock(&busmutex);
 }
 
 void board_write_byte_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {

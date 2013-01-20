@@ -1,6 +1,6 @@
 include ../../common.mk
 
-LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(SDL)` `pkg-config --cflags glib-2.0`
+LOCALCFLAGS=--std=gnu99
 DEPS=card.h ../board.h
 
 all: libcards.a libcardsgdb.a
@@ -19,17 +19,21 @@ romcard.o: romcard.c romcard.h $(DEPS)
 romcardgdb.o: romcard.c romcard.h $(DEPS) ../../gdbserver.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -DGDBSERVER -c $< -o $@
 
+#glib needed for datastructures
 uartcard.o: uartcard.c uartcard.h $(DEPS)
-	gcc $(CFLAGS) $(LOCALCFLAGS) -c uartcard.c -o uartcard.o	
+	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_GLIB) -c uartcard.c -o uartcard.o	
 
+#sdl needed for video
 videocard.o: videocard.c videocard.h $(DEPS) ../../sim.h
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c videocard.c -o videocard.o
 
+#sdl needed for sound
 soundcard.o: soundcard.c soundcard.h ringbuffer.o $(DEPS)
-	gcc $(CFLAGS) $(LOCALCFLAGS) -c soundcard.c -o soundcard.o
+	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_SDL) -c soundcard.c -o soundcard.o
 
+#glib needed for endian converion macro
 compactflashinterfacecard.o: compactflashinterfacecard.c compactflashinterfacecard.h $(DEPS)
-	gcc $(CFLAGS) $(LOCALCFLAGS) -c compactflashinterfacecard.c -o compactflashinterfacecard.o
+	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_GLIB) -c compactflashinterfacecard.c -o compactflashinterfacecard.o
 
 inputcard.o: inputcard.c inputcard.h $(DEPS)
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c inputcard.c -o inputcard.o
@@ -41,7 +45,7 @@ basicvideo.o: basicvideo.c basicvideo.h $(DEPS)
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@
 
 basicsound.o: basicsound.c basicsound.h $(DEPS)
-	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@
+	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_SDL) -c $< -o $@
 
 timercard.o: timercard.c timercard.h $(DEPS)
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@

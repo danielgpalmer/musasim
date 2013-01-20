@@ -30,6 +30,8 @@ void machine_setstatusregister(uint16_t value) {
 			: );
 }
 
+#define TRAP(a) asm volatile ( "trap %0\n\t" : : "i"(a) : );
+
 void machine_setinterruptmask(unsigned int mask) {
 	uint16_t sr = (machine_getstatusregister() & 0xf8ff) | ((mask & 0x7) << 8);
 	machine_setstatusregister(sr);

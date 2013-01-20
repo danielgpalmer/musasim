@@ -27,7 +27,7 @@ static const char YELLOW[] = "33";
 static const char RED[] = "31";
 
 static bool inited = false;
-static GMutex mutex;
+static GStaticMutex mutex = G_STATIC_MUTEX_INIT;
 
 static char* buffer;
 
@@ -59,7 +59,7 @@ void log_println(int level, const char* tag, char * fmt, ...) {
 		return;
 	}
 
-	g_mutex_lock(&mutex);
+	g_static_mutex_lock(&mutex);
 
 	switch (level) {
 		case LEVEL_WARNING:
@@ -82,7 +82,7 @@ void log_println(int level, const char* tag, char * fmt, ...) {
 	printf("%s\n", buffer);
 	va_end(argptr);
 
-	g_mutex_unlock(&mutex);
+	g_static_mutex_unlock(&mutex);
 
 }
 
@@ -95,7 +95,7 @@ void log_printhexblock(int level, const char* tag, void* data, size_t len) {
 
 	CHECKSTATE;
 
-	g_mutex_lock(&mutex);
+	g_static_mutex_lock(&mutex);
 
 	int byte = 0;
 	int row = 0;
@@ -128,5 +128,5 @@ void log_printhexblock(int level, const char* tag, void* data, size_t len) {
 		row++;
 	}
 
-	g_mutex_unlock(&mutex);
+	g_static_mutex_unlock(&mutex);
 }

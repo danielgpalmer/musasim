@@ -8,10 +8,10 @@ registerplanner.o: registerplanner.c registerplanner.h
 	$(CC) $(CFLAGS) --std=gnu99 $< -o $@
 	
 board.o: board.c board.h
-	$(CC) $(CFLAGS) -std=gnu99 $< -o $@
+	$(CC) $(CFLAGS) $(CFLAGS_GLIB) $(CFLAGS_GTHREAD) -std=gnu99 $< -o $@
 
 boardgdb.o: board.c board.h ../gdbserver.h
-	$(CC) $(CFLAGS) -DGDBSERVER -std=gnu99 $< -o $@
+	$(CC) $(CFLAGS) $(CFLAGS_GLIB) $(CFLAGS_GTHREAD) -DGDBSERVER -std=gnu99 $< -o $@
 
 
 clean:

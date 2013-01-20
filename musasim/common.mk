@@ -2,12 +2,22 @@
 .SUFFIXES:
 
 MUSASIM_DIR = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-CC =     gcc
+CC = gcc
 WARNINGS = -Wall -Werror -Wstrict-aliasing # -Winline 
 OPT = -O3 -march=native
-ALLEXTLIBS = glib-2.0 argtable2 sdl SDL_ttf SDL_gfx fontconfig
+
+PKGCONFIG_SDL = sdl
+PKGCONFIG_GLIB = glib-2.0 
+PKGCONFIG_GTHREAD = gthread-2.0
+
+ALLEXTLIBS = $(PKGCONFIG_GLIB) $(PKGCONFIG_GTHREAD) argtable2 $(PKGCONFIG_SDL) SDL_ttf SDL_gfx fontconfig
+
 LIBFLAGS=`pkg-config --libs $(ALLEXTLIBS)` -lrt
-SDL = sdl
+
+CFLAGS_GLIB = `pkg-config --cflags $(PKGCONFIG_GLIB)`
+CFLAGS_GTHREAD = `pkg-config --cflags $(PKGCONFIG_GTHREAD)`
+CFLAGS_SDL = `pkg-config --cflags $(PKGCONFIG_SDL)`
+
 INLININGOPTS= #--param inline-unit-growth=100 -finline-limit=1200 --param large-function-growth=5400
 CFLAGS = $(WARNINGS) $(OPT) -c -g -I$(MUSASIM_DIR)/../libunagipai/include/ -ftree-vectorizer-verbose=2 $(INLININGOPTS)
 LFLAGS = $(WARNINGS) $(OPT) $(LIBFLAGS) -lrt -flto $(INLININGOPTS)

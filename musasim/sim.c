@@ -166,6 +166,8 @@ void sim_init() {
 		return;
 	}
 
+	g_thread_init(NULL );
+
 	log_println(LEVEL_DEBUG, TAG, "sim_init()");
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE);
 	SDL_WM_SetCaption(WINDOWTITLE, WINDOWTITLE);
@@ -178,6 +180,8 @@ void sim_init() {
 	board_add_device(SLOT_DMACARD, &dmacard);
 	board_add_device(SLOT_TIMERCARD, &timercard);
 	board_add_device(SLOT_INPUTCARD, &inputcard);
+
+	board_poweron();
 
 	osd_init();
 	if (osdonstate)

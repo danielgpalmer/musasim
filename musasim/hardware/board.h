@@ -9,9 +9,17 @@
 
 #define DEFAULTMEMORYTYPE (CARDMEMORYTYPE_WRITABLE | CARDMEMORYTYPE_READABLE)
 
+/* plug a card into the board, must be called before powering on */
 void board_add_device(uint8_t slot, const card* card);
+/* plug the board in to the juice */
+void board_poweron(void);
+/* crank all of the cards plugged into the board */
 void board_tick(int cyclesexecuted);
+/* reset the board and all of the cards */
+void board_reset(void);
+/* tell the board and cards that the emulation is being paused */
 void board_pause(bool paused);
+/* power the board down, frees all of the cards */
 void board_poweroff(void);
 
 unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, const card* busmater);
@@ -43,8 +51,6 @@ void board_unlock_bus(const card* card);
 bool board_bus_locked();
 
 const card* board_getcardinslot(int slot);
-
-void board_reset(void);
 
 int board_bestcasecycles(void);
 
