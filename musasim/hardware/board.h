@@ -7,6 +7,12 @@
 
 #include "cards/card.h"
 
+#define FCUSERDATA 0b001
+#define FCUSERPROGRAM 0b010
+#define FCSUPERVISORDATA 0b101
+#define FCSUPERVISORPROGRAM 0b110
+#define FCINTACK 0b111
+
 #define DEFAULTMEMORYTYPE (CARDMEMORYTYPE_WRITABLE | CARDMEMORYTYPE_READABLE)
 
 /* plug a card into the board, must be called before powering on */
@@ -22,23 +28,17 @@ void board_pause(bool paused);
 /* power the board down, frees all of the cards */
 void board_poweroff(void);
 
-unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, const card* busmater);
 unsigned int board_read_byte_cpu(unsigned int address);
 unsigned int board_read_byte_busmaster(unsigned int address, const card* busmaster);
-unsigned int board_read_word_internal(unsigned int address, bool skipchecks, const card* busmaster);
 unsigned int board_read_word_cpu(unsigned int address);
 unsigned int board_read_word_busmaster(unsigned int address, const card* busmaster);
-unsigned int board_read_long_internal(unsigned int address, bool skipchecks, const card* busmaster);
 unsigned int board_read_long_cpu(unsigned int address);
 unsigned int board_read_long_busmaster(unsigned int address, const card* busmaster);
 
-void board_write_byte_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster);
 void board_write_byte_cpu(unsigned int address, unsigned int value);
 void board_write_byte_busmaster(unsigned int address, unsigned int value, const card* busmaster);
-void board_write_word_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster);
 void board_write_word_cpu(unsigned int address, unsigned int value);
 void board_write_word_busmaster(unsigned int address, unsigned int value, const card* busmaster);
-void board_write_long_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster);
 void board_write_long_cpu(unsigned int address, unsigned int value);
 void board_write_long_busmaster(unsigned int address, unsigned int value, const card* busmaster);
 

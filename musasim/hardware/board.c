@@ -4,6 +4,7 @@
 #include <glib.h>
 
 #include "board.h"
+#include "board_private.h"
 #include "../logging.h"
 #include "../musashi/m68kcpu.h"
 #include "../musashi/m68k.h"
@@ -15,6 +16,7 @@
 
 static GThreadPool* workers;
 static GStaticMutex busmutex = G_STATIC_MUTEX_INIT;
+//static GStaticMutex irqmutex = G_STATIC_MUTEX_INIT;
 
 #define CHECKMASK 0xFFFFFFFC //
 static char TAG[] = "board";
@@ -62,20 +64,32 @@ void board_add_device(uint8_t slot, const card *card) {
 		(card->reset)();
 }
 
+static int cycles;
+
+void board_tick(int cyclesexecuted) __attribute__((hot));
 void board_tick(int cyclesexecuted) {
+	cycles = cyclesexecuted;
 	for (int i = 0; i < NUM_SLOTS; i++) {
-		if (slots[i] != NULL && slots[i]->tick != NULL ) {
-			(slots[i]->tick)(cyclesexecuted);
-		}
+		g_thread_pool_push(workers, GINT_TO_POINTER(i + 1), NULL );
 	}
+
+	int unprocessed;
+	while ((unprocessed = g_thread_pool_unprocessed(workers)) != 0) {
+		//printf("waiting, %d\n", unprocessed);
+	}
+	//printf("--\n");
 }
 
 static void board_workerfunc(gpointer data, gpointer userdata) {
-
+	int slot = GPOINTER_TO_INT(data) - 1;
+	if (slots[slot] != NULL && slots[slot]->tick != NULL ) {
+		//printf("%s\n", slots[slot]->boardinfo);
+		slots[slot]->tick(cycles);
+	}
 }
 
 void board_poweron() {
-	workers = g_thread_pool_new(board_workerfunc, NULL, 2, true, NULL );
+	workers = g_thread_pool_new(board_workerfunc, NULL, 1, true, NULL );
 }
 
 void board_poweroff() {
@@ -113,6 +127,9 @@ static inline uint8_t board_which_slot(const card* card) {
 static bool buslocked = false;
 
 void board_lock_bus(const card* card) {
+	if (buslocked)
+		return;
+//g_static_mutex_lock(&busmutex);
 // The real board will have an arbiter that decides which bus request to forward to the CPU
 // and route the result back to that card.
 
@@ -123,11 +140,14 @@ void board_lock_bus(const card* card) {
 	buslocked = true;
 	m68k_end_timeslice();
 	(card->busreqack)();
+//g_static_mutex_unlock(&busmutex);
 }
 
 void board_unlock_bus(const card* card) {
+//g_static_mutex_lock(&busmutex);
 	busrequestwaiting[board_which_slot(card)] = false;
 	buslocked = false;
+//g_static_mutex_unlock(&busmutex);
 }
 
 bool board_bus_locked() {
@@ -149,78 +169,80 @@ bool board_bus_locked() {
 static int curslot = 0; // the slot that is driving atm
 
 static inline bool board_interrupt_sanitycheck(int slot) {
-	if (slot != NOCARD && slot != 0 && slot != 7) {
+	if (slot != NOCARD && slot != 0 && slot != 7)
 		return true;
-	}
-
-	printf("Interrupt from card not in slot, or card in zero or seven\n");
-	return false;
+	//printf("Interrupt from card not in slot, or card in zero or seven\n");
+	else
+		return false;
 }
 
 void board_raise_interrupt(const card* card) {
 
+	//g_static_mutex_lock(&irqmutex);
+
 	int slot = board_which_slot(card);
-	if (!board_interrupt_sanitycheck(slot)) {
-		return;
-	}
+	if (board_interrupt_sanitycheck(slot)) {
+// The current driver is requesting interrupt again?
+		if (curslot == slot) {
+			log_println(LEVEL_DEBUG, TAG,
+					"Slot %d tried to raise an interrupt while it's interrupt is apparently being serviced", slot);
+		}
 
 // The current driver is requesting interrupt again?
-	if (curslot == slot) {
-		log_println(LEVEL_DEBUG, TAG,
-				"Slot %d tried to raise an interrupt while it's interrupt is apparently being serviced", slot);
-		return;
-	}
-
-// The current driver is requesting interrupt again?
-	if (interruptswaiting[slot] || curslot == slot) {
-		log_println(LEVEL_DEBUG, TAG,
-				"Slot %d tried to raise an interrupt while it is already scheduled to have it's interrupt serviced. %d is being serviced.",
-				slot, curslot);
-		return;
-	}
+		else if (interruptswaiting[slot] || curslot == slot) {
+			log_println(LEVEL_DEBUG, TAG,
+					"Slot %d tried to raise an interrupt while it is already scheduled to have it's interrupt serviced. %d is being serviced.",
+					slot, curslot);
+		}
 
 // no IRQ is happening.. do it!
-	if (curslot == 0) {
-		//printf("board_raise_interrupt(%d) SR - 0x%x\n", slot, m68k_get_reg(NULL, M68K_REG_SR));
-		curslot = board_which_slot(card);
-		m68k_set_irq(slot);
+		else if (curslot == 0) {
+			//printf("board_raise_interrupt(%d) SR - 0x%x\n", slot, m68k_get_reg(NULL, M68K_REG_SR));
+			curslot = board_which_slot(card);
+			m68k_set_irq(slot);
 #ifdef GDBSERVER
-		gdbserver_enteringinterrupt(slot);
+			gdbserver_enteringinterrupt(slot);
 #endif
-	}
+		}
 // Someone else is driving.. queue
-	else {
-		interruptswaiting[slot] = true;
+		else {
+			interruptswaiting[slot] = true;
+		}
 	}
+
+	//g_static_mutex_unlock(&irqmutex);
+
 }
 
 void board_lower_interrupt(const card* card) {
 
-	int slot = board_which_slot(card);
-	if (!board_interrupt_sanitycheck(slot)) {
-		return;
-	}
+	//g_static_mutex_lock(&irqmutex);
 
-	interruptswaiting[slot] = false; // make sure the card is no longer queue
+	int slot = board_which_slot(card);
+	if (board_interrupt_sanitycheck(slot)) {
+		interruptswaiting[slot] = false; // make sure the card is no longer queue
 
 // If this card is the current driver..
-	if (curslot == slot) {
-		//printf("board_lower_interrupt(%d)\n", slot);
+		if (curslot == slot) {
+			//printf("board_lower_interrupt(%d)\n", slot);
 
-		// check the queue for a waiting card
-		int newslot = 0;
-		for (int i = 6; i < 0; i--) {
-			if (interruptswaiting[i] == true) {
-				interruptswaiting[i] = false;
-				newslot = i;
-				break;
+			// check the queue for a waiting card
+			int newslot = 0;
+			for (int i = 6; i < 0; i--) {
+				if (interruptswaiting[i] == true) {
+					interruptswaiting[i] = false;
+					newslot = i;
+					break;
+				}
 			}
-		}
 
-		// issue the new level if there was a card waiting, otherwise issue 0
-		m68k_set_irq(newslot);
-		curslot = newslot;
+			// issue the new level if there was a card waiting, otherwise issue 0 (no interrupt)
+			m68k_set_irq(newslot);
+			curslot = newslot;
+		}
 	}
+
+	//g_static_mutex_unlock(&irqmutex);
 }
 
 int board_ack_interrupt(int level) {
@@ -243,18 +265,12 @@ int board_ack_interrupt(int level) {
 
 static void board_logaccessviolation(uint32_t address, const char* violationdescription, const card* busmaster) {
 	if (busmaster != NULL )
-		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s by busmaster in slot %d, SR[0x%04x]", address,
-				violationdescription, board_which_slot(busmaster), GETSR);
+		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s by busmaster in slot %d (%s), SR[0x%04x]", address,
+				violationdescription, board_which_slot(busmaster), busmaster->boardinfo, GETSR);
 	else
 		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s, PC[0x%08x], PPC[0x%08x], SR[0x%04x]", address,
 				violationdescription, GETPC, GETPPC, GETSR);
 }
-
-#define FCUSERDATA 0b001
-#define FCUSERPROGRAM 0b010
-#define FCSUPERVISORDATA 0b101
-#define FCSUPERVISORPROGRAM 0b110
-#define FCINTACK 0b111
 
 static bool board_checkaccess(const card* accessedcard, uint32_t address, unsigned int fc, bool write,
 		const card* busmaster) {
@@ -370,6 +386,7 @@ unsigned int board_read_byte_internal(unsigned int address, bool skipchecks, con
 }
 
 unsigned int board_read_byte_cpu(unsigned int address) {
+	g_assert(!board_bus_locked());
 	return board_read_byte_internal(address, false, NULL );
 }
 
@@ -382,6 +399,7 @@ unsigned int board_read_word_internal(unsigned int address, bool skipchecks, con
 }
 
 unsigned int board_read_word_cpu(unsigned int address) {
+	g_assert(!board_bus_locked());
 	return board_read_word_internal(address, false, NULL );
 }
 
@@ -394,6 +412,7 @@ unsigned int board_read_long_internal(unsigned int address, bool skipchecks, con
 }
 
 unsigned int board_read_long_cpu(unsigned int address) {
+	g_assert(!board_bus_locked());
 	return board_read_long_internal(address, false, NULL );
 }
 
@@ -457,6 +476,7 @@ void board_write_byte_internal(unsigned int address, unsigned int value, bool sk
 }
 
 void board_write_byte_cpu(unsigned int address, unsigned int value) {
+	g_assert(!board_bus_locked());
 	board_write_byte_internal(address, value, false, NULL );
 }
 
@@ -469,6 +489,7 @@ void board_write_word_internal(unsigned int address, unsigned int value, bool sk
 }
 
 void board_write_word_cpu(unsigned int address, unsigned int value) {
+	g_assert(!board_bus_locked());
 	board_write_word_internal(address, value, false, NULL );
 }
 
@@ -481,6 +502,7 @@ void board_write_long_internal(unsigned int address, unsigned int value, bool sk
 }
 
 void board_write_long_cpu(unsigned int address, unsigned int value) {
+	g_assert(!board_bus_locked());
 	board_write_long_internal(address, value, false, NULL );
 }
 

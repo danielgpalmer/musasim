@@ -79,6 +79,7 @@ static void dmacard_buslock() {
 static void dmacard_busgrant() {
 	log_println(LEVEL_DEBUG, TAG, "dmacard_busgrant");
 	havebuslock = true;
+	board_setfc(FCSUPERVISORDATA);
 }
 
 static void dmacard_busrelease() {
@@ -241,10 +242,10 @@ static void dmacard_tick(int cyclesexecuted) {
 						}
 
 						if (wordtransfer) {
-							board_write_word_internal(destination, (uint16_t) (data & 0xffff), false, &dmacard);
+							board_write_word_busmaster(destination, (uint16_t) (data & 0xffff), &dmacard);
 						}
 						else {
-							board_write_byte_internal(destination, (uint8_t) (data & 0xff), false, &dmacard);
+							board_write_byte_busmaster(destination, (uint8_t) (data & 0xff), &dmacard);
 						}
 						unitcomplete = true;
 						break;
@@ -330,10 +331,10 @@ static void dmacard_tick(int cyclesexecuted) {
 								}
 
 								if (wordtransfer) {
-									board_write_word_internal(destination, holding, false, &dmacard);
+									board_write_word_busmaster(destination, holding, &dmacard);
 								}
 								else {
-									board_write_byte_internal(destination, holding, false, &dmacard);
+									board_write_byte_busmaster(destination, holding, &dmacard);
 								}
 								dmacard_perform_act(workingwindow, 2); // increment dest pointer
 								state = 0;

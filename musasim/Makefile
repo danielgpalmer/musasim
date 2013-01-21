@@ -25,7 +25,7 @@ libmusasim.a: musashi $(LOCALOBJECTS) $(MUSASIMONLYOBJECTS) hardware musasim.o a
 musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) musasim.c -o musasim.o
 
-gdbserver.o: gdbserver.c gdbserver.h sim.h musashi/m68k.h musashi/m68kconf.h 
+gdbserver.o: gdbserver.c gdbserver.h sim.h hardware/board.h musashi/m68k.h musashi/m68kconf.h 
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
 
 sim.o: sim.c sim.h musashi/m68k.h musashi/m68kconf.h

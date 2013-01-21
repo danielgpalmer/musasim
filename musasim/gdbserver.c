@@ -21,6 +21,8 @@
 #include "args.h"
 #include "utils.h"
 #include "hardware/cards/romcard.h"
+#include "hardware/board.h"
+#include "hardware/board_private.h"
 #include "logging.h"
 #include "gdbserver.h"
 #include "gdbserver_private.h"

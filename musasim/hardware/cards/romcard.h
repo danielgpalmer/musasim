@@ -8,8 +8,8 @@
 #ifndef ROMCARD_H_
 #define ROMCARD_H_
 
+#include <stdbool.h>
 #include "card.h"
-#include "stdbool.h"
 
 bool romcard_loadrom(const char* path, bool elf);
 
