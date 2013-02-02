@@ -10,9 +10,17 @@
 #include "../musashi/m68k.h"
 #include "../utils.h"
 
+#define LOTSOFDEBUGOUTPUT
+
 #ifdef GDBSERVER
 #include "../gdbserver.h"
 #endif
+
+//
+static int unprocessed = 0;
+static GCond* cond;
+static GMutex* mutex;
+//
 
 static GThreadPool* workers;
 static GStaticMutex busmutex = G_STATIC_MUTEX_INIT;
@@ -68,27 +76,47 @@ static int cycles;
 
 void board_tick(int cyclesexecuted) __attribute__((hot));
 void board_tick(int cyclesexecuted) {
+#ifdef LOTSOFDEBUGOUTPUT
+	printf("-- tick --\n");
+#endif
+
+	g_mutex_lock(mutex);
+
 	cycles = cyclesexecuted;
+	unprocessed = 0;
 	for (int i = 0; i < NUM_SLOTS; i++) {
 		g_thread_pool_push(workers, GINT_TO_POINTER(i + 1), NULL );
+		unprocessed++;
 	}
 
-	int unprocessed;
-	while ((unprocessed = g_thread_pool_unprocessed(workers)) != 0) {
-		//printf("waiting, %d\n", unprocessed);
-	}
-	//printf("--\n");
+	g_cond_wait(cond, mutex);
+	g_assert(unprocessed == 0);
+	g_mutex_unlock(mutex);
+
+#ifdef LOTSOFDEBUGOUTPUT
+	printf("-- end tick --\n");
+#endif
 }
 
 static void board_workerfunc(gpointer data, gpointer userdata) {
 	int slot = GPOINTER_TO_INT(data) - 1;
 	if (slots[slot] != NULL && slots[slot]->tick != NULL ) {
-		//printf("%s\n", slots[slot]->boardinfo);
+#ifdef LOTSOFDEBUGOUTPUT
+		printf("%s\n", slots[slot]->boardinfo);
+#endif
 		slots[slot]->tick(cycles);
 	}
+
+	g_mutex_lock(mutex);
+	unprocessed--;
+	if (unprocessed == 0)
+		g_cond_signal(cond);
+	g_mutex_unlock(mutex);
 }
 
 void board_poweron() {
+	cond = g_cond_new();
+	mutex = g_mutex_new();
 	workers = g_thread_pool_new(board_workerfunc, NULL, 2, true, NULL );
 }
 
@@ -129,7 +157,7 @@ static bool buslocked = false;
 void board_lock_bus(const card* card) {
 	if (buslocked)
 		return;
-//g_static_mutex_lock(&busmutex);
+//	g_static_mutex_lock(&busmutex);
 // The real board will have an arbiter that decides which bus request to forward to the CPU
 // and route the result back to that card.
 
@@ -140,7 +168,7 @@ void board_lock_bus(const card* card) {
 	buslocked = true;
 	m68k_end_timeslice();
 	(card->busreqack)();
-//g_static_mutex_unlock(&busmutex);
+//	g_static_mutex_unlock(&busmutex);
 }
 
 void board_unlock_bus(const card* card) {
@@ -265,11 +293,11 @@ int board_ack_interrupt(int level) {
 
 static void board_logaccessviolation(uint32_t address, const char* violationdescription, const card* busmaster) {
 	if (busmaster != NULL )
-		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s by busmaster in slot %d (%s), SR[0x%04x]", address,
-				violationdescription, board_which_slot(busmaster), busmaster->boardinfo, GETSR);
+		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s by busmaster in slot %d (%s), SR[0x%04x] FC[0x%04x]",
+				address, violationdescription, board_which_slot(busmaster), busmaster->boardinfo, GETSR, currentfc);
 	else
-		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s, PC[0x%08x], PPC[0x%08x], SR[0x%04x]", address,
-				violationdescription, GETPC, GETPPC, GETSR);
+		log_println(LEVEL_INFO, TAG, "violation @0x%"PRIx32"; %s, PC[0x%08x], PPC[0x%08x], SR[0x%04x] FC[0x%04x]",
+				address, violationdescription, GETPC, GETPPC, GETSR, currentfc);
 }
 
 static bool board_checkaccess(const card* accessedcard, uint32_t address, unsigned int fc, bool write,
@@ -393,6 +421,7 @@ unsigned int board_read_byte_cpu(unsigned int address) {
 }
 
 unsigned int board_read_byte_busmaster(unsigned int address, const card* busmaster) {
+	g_assert(board_bus_locked());
 	return board_read_byte_internal(address, false, busmaster);
 }
 
@@ -406,6 +435,7 @@ unsigned int board_read_word_cpu(unsigned int address) {
 }
 
 unsigned int board_read_word_busmaster(unsigned int address, const card* busmaster) {
+	g_assert(board_bus_locked());
 	return board_read_word_internal(address, false, busmaster);
 }
 
@@ -419,6 +449,7 @@ unsigned int board_read_long_cpu(unsigned int address) {
 }
 
 unsigned int board_read_long_busmaster(unsigned int address, const card* busmaster) {
+	g_assert(board_bus_locked());
 	return board_read_long_internal(address, false, busmaster);
 }
 
@@ -483,6 +514,7 @@ void board_write_byte_cpu(unsigned int address, unsigned int value) {
 }
 
 void board_write_byte_busmaster(unsigned int address, unsigned int value, const card* busmaster) {
+	g_assert(board_bus_locked());
 	board_write_byte_internal(address, value, false, busmaster);
 }
 
@@ -496,6 +528,7 @@ void board_write_word_cpu(unsigned int address, unsigned int value) {
 }
 
 void board_write_word_busmaster(unsigned int address, unsigned int value, const card* busmaster) {
+	g_assert(board_bus_locked());
 	board_write_word_internal(address, value, false, busmaster);
 }
 
@@ -509,6 +542,7 @@ void board_write_long_cpu(unsigned int address, unsigned int value) {
 }
 
 void board_write_long_busmaster(unsigned int address, unsigned int value, const card* busmaster) {
+	g_assert(board_bus_locked());
 	board_write_long_internal(address, value, false, busmaster);
 }
 
