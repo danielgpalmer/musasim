@@ -148,6 +148,7 @@ const card timercard = { "timer card", //
 		NULL, //
 		NULL, //
 		timercard_cyclesleft, //
+		NULL, //
 		timercard_setupaddressspace //
 		};
 

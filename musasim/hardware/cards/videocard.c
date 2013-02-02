@@ -322,6 +322,10 @@ static void videocard_reset() {
 	winheight = VIDEO_HEIGHT;
 }
 
+static void videocard_abort() {
+
+}
+
 const card videocard = { "VIDEO CARD", //
 		video_init, //
 		video_dispose, //
@@ -342,5 +346,6 @@ const card videocard = { "VIDEO CARD", //
 		NULL, //
 		videocard_bestcasecycles, //
 		videocard_cyclesleft, //
+		videocard_abort, //
 		NULL //
 };

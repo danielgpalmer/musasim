@@ -256,4 +256,5 @@ const card romcard = { "ROM CARD", //
 		romcard_write_long, //
 		NULL, //
 		NULL, //
+		NULL, //
 		NULL };

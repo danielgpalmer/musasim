@@ -156,6 +156,7 @@ static void dmacard_popwindow() {
 
 }
 
+static bool aborted = false;
 static bool transferinprogress = false;
 
 static void dmacard_tick(int cyclesexecuted) {
@@ -175,7 +176,7 @@ static void dmacard_tick(int cyclesexecuted) {
 
 	cyclesleft -= cyclesexecuted;
 
-	for (int i = 0; i < cyclesexecuted; i++) {
+	for (int i = 0; i < cyclesexecuted && !aborted; i++) {
 
 		bool unitcomplete = false;
 
@@ -538,6 +539,11 @@ static void dmacard_reset() {
 	}
 }
 
+static void dmacard_abort() {
+	log_println(LEVEL_INFO, TAG, "abort()");
+	aborted = true;
+}
+
 const card dmacard = { "DMA Controller", //
 		dmacard_init, // init
 		NULL, // dispose
@@ -558,6 +564,7 @@ const card dmacard = { "DMA Controller", //
 		dmacard_active, //
 		NULL, //
 		dmacard_cyclesleft, //
+		dmacard_abort, // Abort
 		NULL //
 };
 

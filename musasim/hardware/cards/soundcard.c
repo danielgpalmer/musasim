@@ -349,5 +349,6 @@ const card soundcard = { //
 				NULL, //
 				NULL, //
 				NULL, //
+				NULL, //
 				soundcard_setupaddressspace //
 		};

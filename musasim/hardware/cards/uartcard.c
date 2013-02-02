@@ -482,5 +482,6 @@ const card uartcard = { "UART CARD", //
 		NULL, //
 		NULL, //
 		NULL, //
+		NULL, //
 		NULL //
 };

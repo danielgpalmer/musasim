@@ -128,5 +128,6 @@ const card basicsoundcard = { "BASIC SOUND CARD", //
 		NULL, // write long
 		NULL, // active
 		NULL, // bestcasecycles
+		NULL, // abort
 		NULL // cyclesled
 };

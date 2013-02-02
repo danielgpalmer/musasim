@@ -89,7 +89,7 @@ static void board_workerfunc(gpointer data, gpointer userdata) {
 }
 
 void board_poweron() {
-	workers = g_thread_pool_new(board_workerfunc, NULL, 1, true, NULL );
+	workers = g_thread_pool_new(board_workerfunc, NULL, 2, true, NULL );
 }
 
 void board_poweroff() {
@@ -314,12 +314,14 @@ static bool board_checkaccess(const card* accessedcard, uint32_t address, unsign
 		passed = false;
 	}
 
-	if (!passed)
+	if (!passed) {
+		busmaster->abort();
 #ifdef GDBSERVER
 		gdb_break("sandbox violation");
 #else
-	sim_sandboxviolated();
+		sim_sandboxviolated();
 #endif
+	}
 
 //cachevalid[cacheindex] = true;
 //cacheresult[cacheindex] = failed;

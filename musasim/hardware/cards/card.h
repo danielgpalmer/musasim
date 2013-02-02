@@ -35,7 +35,7 @@ typedef struct {
 	bool (*active)(); // returns true when the card is doing something, for OSD
 	const int (*bestcasecycles)(); // The maximum amount of cycles that could possibly run before needing cpu sync. -1 if we don't need sync
 	int (*cyclesleft)(); // how many clock cycles can run before something is going to happen that needs cpu sync, -1 if we don't care
-
+	void (*abort)();
 	// used for genheaders
 	cardaddressspace* (*setupaddressspace)();
 } card;
