@@ -2,6 +2,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <glib.h>
+#include <sys/sysinfo.h>
 
 #include "board.h"
 #include "board_private.h"
@@ -23,8 +24,7 @@ static GMutex* mutex;
 //
 
 static GThreadPool* workers;
-static GStaticMutex busmutex = G_STATIC_MUTEX_INIT;
-//static GStaticMutex irqmutex = G_STATIC_MUTEX_INIT;
+static GStaticRecMutex busmutex = G_STATIC_REC_MUTEX_INIT;
 
 #define CHECKMASK 0xFFFFFFFC //
 static char TAG[] = "board";
@@ -76,10 +76,6 @@ static int cycles;
 
 void board_tick(int cyclesexecuted) __attribute__((hot));
 void board_tick(int cyclesexecuted) {
-#ifdef LOTSOFDEBUGOUTPUT
-	printf("-- tick --\n");
-#endif
-
 	g_mutex_lock(mutex);
 
 	cycles = cyclesexecuted;
@@ -92,21 +88,13 @@ void board_tick(int cyclesexecuted) {
 	g_cond_wait(cond, mutex);
 	g_assert(unprocessed == 0);
 	g_mutex_unlock(mutex);
-
-#ifdef LOTSOFDEBUGOUTPUT
-	printf("-- end tick --\n");
-#endif
 }
 
 static void board_workerfunc(gpointer data, gpointer userdata) {
 	int slot = GPOINTER_TO_INT(data) - 1;
 	if (slots[slot] != NULL && slots[slot]->tick != NULL ) {
-#ifdef LOTSOFDEBUGOUTPUT
-		printf("%s\n", slots[slot]->boardinfo);
-#endif
 		slots[slot]->tick(cycles);
 	}
-
 	g_mutex_lock(mutex);
 	unprocessed--;
 	if (unprocessed == 0)
@@ -117,7 +105,9 @@ static void board_workerfunc(gpointer data, gpointer userdata) {
 void board_poweron() {
 	cond = g_cond_new();
 	mutex = g_mutex_new();
-	workers = g_thread_pool_new(board_workerfunc, NULL, 2, true, NULL );
+	int processors = get_nprocs();
+	workers = g_thread_pool_new(board_workerfunc, NULL, processors, true, NULL );
+	log_println(LEVEL_INFO, TAG, "Started %d worker threads", processors);
 }
 
 void board_poweroff() {
@@ -155,9 +145,7 @@ static inline uint8_t board_which_slot(const card* card) {
 static bool buslocked = false;
 
 void board_lock_bus(const card* card) {
-	if (buslocked)
-		return;
-//	g_static_mutex_lock(&busmutex);
+	g_static_rec_mutex_lock(&busmutex);
 // The real board will have an arbiter that decides which bus request to forward to the CPU
 // and route the result back to that card.
 
@@ -168,14 +156,14 @@ void board_lock_bus(const card* card) {
 	buslocked = true;
 	m68k_end_timeslice();
 	(card->busreqack)();
-//	g_static_mutex_unlock(&busmutex);
+	g_static_rec_mutex_unlock(&busmutex);
 }
 
 void board_unlock_bus(const card* card) {
-//g_static_mutex_lock(&busmutex);
+	g_static_rec_mutex_lock(&busmutex);
 	busrequestwaiting[board_which_slot(card)] = false;
 	buslocked = false;
-//g_static_mutex_unlock(&busmutex);
+	g_static_rec_mutex_unlock(&busmutex);
 }
 
 bool board_bus_locked() {
@@ -360,7 +348,7 @@ static bool board_checkaccess(const card* accessedcard, uint32_t address, unsign
 static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) __attribute__((always_inline));
 static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) {
 
-	g_static_mutex_lock(&busmutex);
+	g_static_rec_mutex_lock(&busmutex);
 
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
@@ -406,7 +394,7 @@ static inline unsigned int board_read(unsigned int address, bool skipchecks, con
 #endif
 	}
 
-	g_static_mutex_unlock(&busmutex);
+	g_static_rec_mutex_unlock(&busmutex);
 
 	return value;
 }
@@ -458,7 +446,7 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 static inline void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster,
 		const int width) {
 
-	g_static_mutex_lock(&busmutex);
+	g_static_rec_mutex_lock(&busmutex);
 
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
@@ -501,7 +489,7 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 #endif
 	}
 
-	g_static_mutex_unlock(&busmutex);
+	g_static_rec_mutex_unlock(&busmutex);
 }
 
 void board_write_byte_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {
