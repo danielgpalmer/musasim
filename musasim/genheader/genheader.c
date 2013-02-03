@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <glib.h>
 
 #include "../sim.h"
 #include "../hardware/board.h"
@@ -173,7 +174,7 @@ static void ata() {
 			+ (SECTORNUMBER << 1), slotoffset + (CYLINDERLOW << 1), slotoffset + (CYLINDERHIGH << 1), slotoffset
 			+ (DRIVEHEAD << 1), slotoffset + (COMMANDSTATUS << 1), slotoffset + BLOCKMASK + (ALTSTATUSOFFSET << 1) };
 
-	for (int reg = 0; reg < SIZEOFARRAY(regnames); reg++) {
+	for (int reg = 0; reg < G_N_ELEMENTS(regnames); reg++) {
 		printf("#define ata_register_%s *((volatile uint8_t*) 0x%x)\n", regnames[reg], regoffsets[reg]);
 	}
 
@@ -193,7 +194,7 @@ static void video() {
 	uint32_t registeroffsets[] = { VIDEO_REG_FLAGS, VIDEO_REG_CONFIG, VIDEO_REG_PIXEL, VIDEO_REG_LINE, VIDEO_REG_FRAME,
 			VIDEO_REG_POSX, VIDEO_REG_POSY, VIDEO_REG_WINX, VIDEO_REG_WINY, VIDEO_REG_WINWIDTH, VIDEO_REG_WINHEIGHT };
 
-	for (int reg = 0; reg < SIZEOFARRAY(registernames); reg++) {
+	for (int reg = 0; reg < G_N_ELEMENTS(registernames); reg++) {
 		printf("#define video_%s (*(volatile uint16_t*) 0x%x)\n", registernames[reg],
 				SLOT_OFFSET(SLOT_VIDEOCARD) + registeroffsets[reg]);
 	}
@@ -236,7 +237,7 @@ static void sound() {
 							+ channelbases[i] + SOUND_REGISTER_SAMPLELENGTH, SLOT_OFFSET(SLOT_SOUNDCARD)
 							+ channelbases[i] + SOUND_REGISTER_SAMPLEPOS };
 
-			for (int reg = 0; reg < SIZEOFARRAY(registers); reg++) {
+			for (int reg = 0; reg < G_N_ELEMENTS(registers); reg++) {
 				printf("#define sound_channel_%d_%s (*(volatile uint16_t*) 0x%x)\n", i - 1, registers[reg],
 						offsets[reg]);
 			}
@@ -259,7 +260,7 @@ static void uart() {
 			+ UART_REGISTER_LINESTATUS, offset + UART_REGISTER_MODEMSTATUS, offset + UART_REGISTER_SCRATCH };
 
 	for (int chan = 0; chan < 2; chan++) {
-		for (int reg = 0; reg < SIZEOFARRAY(registernames); reg++) {
+		for (int reg = 0; reg < G_N_ELEMENTS(registernames); reg++) {
 			printf("#define uart_chan%d_%s (*(volatile uint8_t*) 0x%x)\n", chan, registernames[reg],
 					(chanlen * chan) + registeroffsets[reg]);
 		}

@@ -11,8 +11,6 @@
 #include <stdint.h>
 #include <time.h>
 
-#define SIZEOFARRAY(a) (sizeof(a) / sizeof(a[0]))
-
 uint32_t utils_nextpow(uint32_t value);
 struct timespec* timespecdiff(struct timespec *start, struct timespec *end);
 

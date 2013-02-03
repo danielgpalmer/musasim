@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <SDL/SDL.h>
 #include <video_registermasks.h>
+#include <glib.h>
 
 #include "../board.h"
 #include "videocard.h"
@@ -64,7 +65,7 @@ static void video_init() {
 
 	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, SDL_SWSURFACE);
 
-	for (int i = 0; i < SIZEOFARRAY(rendersurfaces); i++) {
+	for (int i = 0; i < G_N_ELEMENTS(rendersurfaces); i++) {
 
 		SDL_Surface* rendersurface = NULL;
 
@@ -93,7 +94,7 @@ static void video_init() {
 
 static void video_dispose() {
 
-	for (int i = 0; i < SIZEOFARRAY(rendersurfaces); i++) {
+	for (int i = 0; i < G_N_ELEMENTS(rendersurfaces); i++) {
 		SDL_FreeSurface(rendersurfaces[i]);
 	}
 

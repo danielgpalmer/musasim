@@ -132,7 +132,7 @@ static inline uint8_t board_which_slot(const card* card) {
 	if (card == NULL )
 		return NOCARD;
 
-	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
+	for (int i = 0; i < G_N_ELEMENTS(slots); i++) {
 		if (slots[i] == card) {
 			return i;
 		}
@@ -194,7 +194,7 @@ static inline bool board_interrupt_sanitycheck(int slot) {
 
 void board_raise_interrupt(const card* card) {
 
-	//g_static_mutex_lock(&irqmutex);
+	g_static_rec_mutex_lock(&busmutex);
 
 	int slot = board_which_slot(card);
 	if (board_interrupt_sanitycheck(slot)) {
@@ -226,13 +226,13 @@ void board_raise_interrupt(const card* card) {
 		}
 	}
 
-	//g_static_mutex_unlock(&irqmutex);
+	g_static_rec_mutex_unlock(&busmutex);
 
 }
 
 void board_lower_interrupt(const card* card) {
 
-	//g_static_mutex_lock(&irqmutex);
+	g_static_rec_mutex_lock(&busmutex);
 
 	int slot = board_which_slot(card);
 	if (board_interrupt_sanitycheck(slot)) {
@@ -258,7 +258,7 @@ void board_lower_interrupt(const card* card) {
 		}
 	}
 
-	//g_static_mutex_unlock(&irqmutex);
+	g_static_rec_mutex_unlock(&busmutex);
 }
 
 int board_ack_interrupt(int level) {
@@ -535,7 +535,7 @@ void board_write_long_busmaster(unsigned int address, unsigned int value, const 
 }
 
 void board_reset() {
-	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
+	for (int i = 0; i < G_N_ELEMENTS(slots); i++) {
 		const card* c = slots[i];
 		if (c != NULL ) {
 			if (c->reset != NULL ) {
@@ -551,7 +551,7 @@ int board_bestcasecycles() {
 
 int board_maxcycles(int numberofcyclesplanned) {
 	int cycles = numberofcyclesplanned;
-	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
+	for (int i = 0; i < G_N_ELEMENTS(slots); i++) {
 		const card* c = slots[i];
 		if (c != NULL ) {
 			if (c->cyclesleft != NULL ) {
@@ -566,7 +566,7 @@ int board_maxcycles(int numberofcyclesplanned) {
 
 void board_setfc(unsigned int fc) {
 	currentfc = fc;
-	for (int i = 0; i < SIZEOFARRAY(slots); i++) {
+	for (int i = 0; i < G_N_ELEMENTS(slots); i++) {
 		const card* c = slots[i];
 		if (c != NULL ) {
 			if (c->setfc != NULL ) {

@@ -34,7 +34,7 @@ timers_registers.h: genheader
 	gcc -x c -fsyntax-only $@
 
 genheader: genheader.c Makefile ../utils.c ../hardware/cards/dmacard.h
-	gcc -std=gnu99 genheader.c ../utils.c   ../hardware/cards/libcards.a ../hardware/modules/libmodules.a ../libmusasim.a $(LIBFLAGS) -lelf -o $@
+	gcc -std=gnu99 $(CFLAGS_GLIB) genheader.c ../utils.c   ../hardware/cards/libcards.a ../hardware/modules/libmodules.a ../libmusasim.a $(LIBFLAGS) -lelf -o $@
 
 .PHONY: install clean
 

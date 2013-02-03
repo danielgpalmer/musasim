@@ -24,8 +24,9 @@ uartcard.o: uartcard.c uartcard.h $(DEPS)
 	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_GLIB) -c uartcard.c -o uartcard.o	
 
 #sdl needed for video
+#glib needed for G_N_ELEMENTS
 videocard.o: videocard.c videocard.h $(DEPS) ../../sim.h
-	gcc $(CFLAGS) $(LOCALCFLAGS) -c videocard.c -o videocard.o
+	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_GLIB) -c videocard.c -o videocard.o
 
 #sdl needed for sound
 soundcard.o: soundcard.c soundcard.h ringbuffer.o $(DEPS)
