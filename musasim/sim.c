@@ -172,6 +172,8 @@ void sim_init() {
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE);
 	SDL_WM_SetCaption(WINDOWTITLE, WINDOWTITLE);
 
+	// todo this should be made static if possible as it stops
+	// gcc from optimising out a lot of stuff
 	board_add_device(SLOT_ROMCARD, &romcard);
 	board_add_device(SLOT_VIDEOCARD, basicvideo ? &basicvideocard : &videocard);
 	board_add_device(SLOT_UARTCARD, &uartcard);

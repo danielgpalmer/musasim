@@ -14,7 +14,7 @@ ALLEXTLIBS = $(PKGCONFIG_GLIB) $(PKGCONFIG_GTHREAD) argtable2 $(PKGCONFIG_SDL) S
 
 LIBFLAGS=`pkg-config --libs $(ALLEXTLIBS)` -lrt
 
-CFLAGS_GLIB = `pkg-config --cflags $(PKGCONFIG_GLIB)`
+CFLAGS_GLIB = `pkg-config --cflags $(PKGCONFIG_GLIB)` -DG_DISABLE_ASSERT
 CFLAGS_GTHREAD = `pkg-config --cflags $(PKGCONFIG_GTHREAD)`
 CFLAGS_SDL = `pkg-config --cflags $(PKGCONFIG_SDL)`
 

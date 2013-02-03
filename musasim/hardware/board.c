@@ -345,7 +345,7 @@ static bool board_checkaccess(const card* accessedcard, uint32_t address, unsign
 	return passed;
 }
 
-static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) __attribute__((always_inline));
+static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) __attribute__((always_inline)) __attribute__((hot));
 static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) {
 
 	g_static_rec_mutex_lock(&busmutex);
@@ -442,7 +442,7 @@ unsigned int board_read_long_busmaster(unsigned int address, const card* busmast
 }
 
 static inline void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster,
-		const int width) __attribute__((always_inline));
+		const int width) __attribute__((always_inline)) __attribute__((hot));
 static inline void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster,
 		const int width) {
 
