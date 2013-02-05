@@ -12,6 +12,7 @@
 #include "../utils.h"
 
 #define LOTSOFDEBUGOUTPUT
+#define TAG "board"
 
 #ifdef GDBSERVER
 #include "../gdbserver.h"
@@ -19,15 +20,14 @@
 
 //
 static int unprocessed = 0;
-static GCond* cond;
-static GMutex* mutex;
+static GCond cond;
+static GMutex mutex;
 //
 
 static GThreadPool* workers;
 static GStaticRecMutex busmutex = G_STATIC_REC_MUTEX_INIT;
 
 #define CHECKMASK 0xFFFFFFFC //
-static char TAG[] = "board";
 static unsigned int currentfc;
 
 /*
@@ -76,7 +76,7 @@ static int cycles;
 
 void board_tick(int cyclesexecuted) __attribute__((hot));
 void board_tick(int cyclesexecuted) {
-	g_mutex_lock(mutex);
+	g_mutex_lock(&mutex);
 
 	cycles = cyclesexecuted;
 	unprocessed = 0;
@@ -85,9 +85,9 @@ void board_tick(int cyclesexecuted) {
 		unprocessed++;
 	}
 
-	g_cond_wait(cond, mutex);
+	g_cond_wait(&cond, &mutex);
 	g_assert(unprocessed == 0);
-	g_mutex_unlock(mutex);
+	g_mutex_unlock(&mutex);
 }
 
 static void board_workerfunc(gpointer data, gpointer userdata) {
@@ -95,16 +95,14 @@ static void board_workerfunc(gpointer data, gpointer userdata) {
 	if (slots[slot] != NULL && slots[slot]->tick != NULL ) {
 		slots[slot]->tick(cycles);
 	}
-	g_mutex_lock(mutex);
+	g_mutex_lock(&mutex);
 	unprocessed--;
 	if (unprocessed == 0)
-		g_cond_signal(cond);
-	g_mutex_unlock(mutex);
+		g_cond_signal(&cond);
+	g_mutex_unlock(&mutex);
 }
 
 void board_poweron() {
-	cond = g_cond_new();
-	mutex = g_mutex_new();
 	int processors = get_nprocs();
 	workers = g_thread_pool_new(board_workerfunc, NULL, processors, true, NULL );
 	log_println(LEVEL_INFO, TAG, "Started %d worker threads", processors);
