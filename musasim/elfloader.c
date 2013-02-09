@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <inttypes.h>
 #include "logging.h"
 #include "elfloader.h"
 
@@ -33,12 +34,12 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 		goto exit;
 	}
 
-	if ((e = elf_begin(file->_fileno, ELF_C_READ, NULL)) == NULL) {
+	if ((e = elf_begin(file->_fileno, ELF_C_READ, NULL )) == NULL ) {
 		log_println(LEVEL_WARNING, TAG, "libelf failed to parse %s", path);
 		goto exit;
 	}
 
-	if (gelf_getehdr(e, &ehdr) == NULL) {
+	if (gelf_getehdr(e, &ehdr) == NULL ) {
 		log_println(LEVEL_WARNING, TAG, "Failed to get elf header!");
 		goto exit;
 	}
@@ -60,7 +61,8 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 		gelf_getphdr(e, header, &phdr);
 		if (phdr.p_type == 0x1) {
 
-			log_println(LEVEL_INFO, TAG, "Phy address 0x%08lx, Virt address 0x%08lx", phdr.p_paddr, phdr.p_vaddr);
+			log_println(LEVEL_INFO, TAG, "Phy address 0x%08"PRIx64", Virt address 0x%08"PRIx64, phdr.p_paddr,
+					phdr.p_vaddr);
 			if (phdr.p_paddr >= destaddr + maxlen) {
 				log_println(LEVEL_INFO, TAG, "Section is past the end of the area being loaded to, ignored");
 				continue;
@@ -80,10 +82,10 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 
 	exit:
 
-	if (file != NULL) {
+	if (file != NULL ) {
 		fclose(file);
 	}
-	if (e != NULL) {
+	if (e != NULL ) {
 		elf_end(e);
 	}
 
