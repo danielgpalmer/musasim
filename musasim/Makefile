@@ -82,8 +82,7 @@ dist:	musasim gdbserver
 	rm -r dist
 
 clean:
-	rm -f gdbserver musasim *.o
-	rm -f *.a
+	rm -f gdbserver musasim *.o *.a
 	$(MAKE) -C musashi clean
 	$(MAKE) -C genheader clean
 	$(MAKE) -C hardware clean
