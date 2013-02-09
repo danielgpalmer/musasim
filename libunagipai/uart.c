@@ -1,7 +1,7 @@
 #include <stdbool.h>
-#include "uart_registers.h"
-#include "uart_registermasks.h"
-#include "uart.h"
+#include "include/uart_registers.h"
+#include "include/uart_registermasks.h"
+#include "include/uart.h"
 
 char uart_getch(uint8_t channel) {
 	switch (channel) {
