@@ -6,7 +6,8 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-int pixelwidth, pixelheight;
+static int pixelwidth, pixelheight;
+static uint8_t* chardata;
 
 typedef enum {
 	ASCII, KANA
@@ -16,15 +17,14 @@ charset charst = ASCII;
 
 void renderbitmap(FT_GlyphSlot slot, FILE* output) {
 
-	uint8_t chardata[(pixelwidth / 8) * pixelheight];
-	memset(chardata, 0x00, sizeof(chardata));
+	memset(chardata, 0, (pixelwidth / 8) * pixelheight);
 
 	int x = slot->bitmap_left;
 	int y = (pixelheight - slot->bitmap_top) - 2;
 
 	printf("format is %d\n", slot->bitmap.pixel_mode);
 
-	if (slot->bitmap.buffer != NULL) {
+	if (slot->bitmap.buffer != NULL ) {
 
 		printf("Should render at %d:%d\n", x, y);
 
@@ -174,6 +174,7 @@ int main(int argc, char* argv[]) {
 	pixelwidth = *w->ival;
 	pixelheight = *h->ival;
 	FILE* output = fopen(*outputfile->filename, "w+");
+	chardata = malloc((pixelwidth / 8) * pixelheight);
 
 	FT_Library library;
 	FT_Face face; /* handle to face object */
@@ -192,7 +193,6 @@ int main(int argc, char* argv[]) {
 	else if (error) {
 		printf("file not found\n");
 		return 1;
-
 	}
 
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
