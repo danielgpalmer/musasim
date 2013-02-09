@@ -4,7 +4,9 @@
 MUSASIM_DIR = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 CC = gcc
 WARNINGS = -Wall -Werror -Wstrict-aliasing # -Winline 
-OPT = -O3 -march=native
+
+#you can override OPT to supply your own optimization flags
+OPT ?= -O3 -march=native
 
 PKGCONFIG_SDL = sdl
 PKGCONFIG_GLIB = glib-2.0 
