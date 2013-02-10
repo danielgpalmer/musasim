@@ -46,7 +46,7 @@ m68kops.h: m68kmake
 	./m68kmake ./ m68k_in.c
 
 m68kmake: m68kmake.c m68k_in.c
-	$(CC) $(WARNINGS) m68kmake.c -o m68kmake
+	$(CC) $(OPT) $(WARNINGS) m68kmake.c -o m68kmake
 
 m68kdasm.o: m68kdasm.c
 	$(CC) $(CFLAGS) m68kdasm.c -o m68kdasm.o
