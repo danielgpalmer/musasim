@@ -50,6 +50,7 @@ blip.be16: blip.wav
 	 sox blip.wav -t raw -b 16 --endian big blip.be16
 
 clean:
+	rm fontrom.c fontrom.h
 	rm -f *.o
 	rm -f *.bin
 	rm -f *.srec

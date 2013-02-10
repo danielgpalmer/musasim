@@ -8,6 +8,7 @@
 
 static int pixelwidth, pixelheight;
 static uint8_t* chardata;
+#define OUTPUTSIZE ((pixelwidth / 8) * pixelheight)
 
 typedef enum {
 	ASCII, KANA
@@ -17,7 +18,7 @@ charset charst = ASCII;
 
 void renderbitmap(FT_GlyphSlot slot, FILE* output) {
 
-	memset(chardata, 0, (pixelwidth / 8) * pixelheight);
+	memset(chardata, 0, OUTPUTSIZE);
 
 	int x = slot->bitmap_left;
 	int y = (pixelheight - slot->bitmap_top) - 2;
@@ -35,10 +36,6 @@ void renderbitmap(FT_GlyphSlot slot, FILE* output) {
 		int index;
 
 		for (int row = 0; row < slot->bitmap.rows; row++) {
-
-			//for (int i = 0; i < x; i++) {
-			//	printf(".");
-			//}
 
 			for (int col = 0; col < slot->bitmap.pitch; col++) {
 				char byte = *(slot->bitmap.buffer + col + ((row * slot->bitmap.pitch)));
@@ -72,7 +69,7 @@ void renderbitmap(FT_GlyphSlot slot, FILE* output) {
 
 	}
 
-	for (int byte = 0; byte < sizeof(chardata); byte++) {
+	for (int byte = 0; byte < OUTPUTSIZE; byte++) {
 		char data = chardata[byte];
 
 		for (int i = 7; i > -1; i--) {
@@ -91,7 +88,7 @@ void renderbitmap(FT_GlyphSlot slot, FILE* output) {
 
 	}
 
-	fwrite(chardata, 1, sizeof(chardata), output);
+	fwrite(chardata, 1, OUTPUTSIZE, output);
 }
 
 void renderchar(uint32_t ch, FT_Face face, FILE* output) {
@@ -174,7 +171,7 @@ int main(int argc, char* argv[]) {
 	pixelwidth = *w->ival;
 	pixelheight = *h->ival;
 	FILE* output = fopen(*outputfile->filename, "w+");
-	chardata = malloc((pixelwidth / 8) * pixelheight);
+	chardata = malloc(OUTPUTSIZE);
 
 	FT_Library library;
 	FT_Face face; /* handle to face object */
@@ -223,4 +220,5 @@ int main(int argc, char* argv[]) {
 	}
 
 	fclose(output);
+	free(chardata);
 }
