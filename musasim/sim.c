@@ -166,8 +166,6 @@ void sim_init() {
 		return;
 	}
 
-	g_thread_init(NULL );
-
 	log_println(LEVEL_DEBUG, TAG, "sim_init()");
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE);
 	SDL_WM_SetCaption(WINDOWTITLE, WINDOWTITLE);

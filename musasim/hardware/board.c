@@ -25,7 +25,7 @@ static GMutex mutex;
 //
 
 static GThreadPool* workers;
-static GStaticRecMutex busmutex = G_STATIC_REC_MUTEX_INIT;
+static GRecMutex busmutex;
 
 #define CHECKMASK 0xFFFFFFFC //
 static unsigned int currentfc;
@@ -143,7 +143,7 @@ static inline uint8_t board_which_slot(const card* card) {
 static bool buslocked = false;
 
 void board_lock_bus(const card* card) {
-	g_static_rec_mutex_lock(&busmutex);
+	g_rec_mutex_lock(&busmutex);
 // The real board will have an arbiter that decides which bus request to forward to the CPU
 // and route the result back to that card.
 
@@ -154,14 +154,14 @@ void board_lock_bus(const card* card) {
 	buslocked = true;
 	m68k_end_timeslice();
 	(card->busreqack)();
-	g_static_rec_mutex_unlock(&busmutex);
+	g_rec_mutex_unlock(&busmutex);
 }
 
 void board_unlock_bus(const card* card) {
-	g_static_rec_mutex_lock(&busmutex);
+	g_rec_mutex_lock(&busmutex);
 	busrequestwaiting[board_which_slot(card)] = false;
 	buslocked = false;
-	g_static_rec_mutex_unlock(&busmutex);
+	g_rec_mutex_unlock(&busmutex);
 }
 
 bool board_bus_locked() {
@@ -192,7 +192,7 @@ static inline bool board_interrupt_sanitycheck(int slot) {
 
 void board_raise_interrupt(const card* card) {
 
-	g_static_rec_mutex_lock(&busmutex);
+	g_rec_mutex_lock(&busmutex);
 
 	int slot = board_which_slot(card);
 	if (board_interrupt_sanitycheck(slot)) {
@@ -224,13 +224,13 @@ void board_raise_interrupt(const card* card) {
 		}
 	}
 
-	g_static_rec_mutex_unlock(&busmutex);
+	g_rec_mutex_unlock(&busmutex);
 
 }
 
 void board_lower_interrupt(const card* card) {
 
-	g_static_rec_mutex_lock(&busmutex);
+	g_rec_mutex_lock(&busmutex);
 
 	int slot = board_which_slot(card);
 	if (board_interrupt_sanitycheck(slot)) {
@@ -256,7 +256,7 @@ void board_lower_interrupt(const card* card) {
 		}
 	}
 
-	g_static_rec_mutex_unlock(&busmutex);
+	g_rec_mutex_unlock(&busmutex);
 }
 
 int board_ack_interrupt(int level) {
@@ -346,7 +346,7 @@ static bool board_checkaccess(const card* accessedcard, uint32_t address, unsign
 static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) __attribute__((always_inline)) __attribute__((hot));
 static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) {
 
-	g_static_rec_mutex_lock(&busmutex);
+	g_rec_mutex_lock(&busmutex);
 
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
@@ -392,7 +392,7 @@ static inline unsigned int board_read(unsigned int address, bool skipchecks, con
 #endif
 	}
 
-	g_static_rec_mutex_unlock(&busmutex);
+	g_rec_mutex_unlock(&busmutex);
 
 	return value;
 }
@@ -444,7 +444,7 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 static inline void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster,
 		const int width) {
 
-	g_static_rec_mutex_lock(&busmutex);
+	g_rec_mutex_lock(&busmutex);
 
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
@@ -487,7 +487,7 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 #endif
 	}
 
-	g_static_rec_mutex_unlock(&busmutex);
+	g_rec_mutex_unlock(&busmutex);
 }
 
 void board_write_byte_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {

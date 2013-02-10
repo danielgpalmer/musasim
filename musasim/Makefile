@@ -92,3 +92,4 @@ checkcode:
 
 checklibs:
 	pkg-config --exists $(ALLEXTLIBS)
+	pkg-config --atleast-version=$(PKGCONFIG_GLIB_MINVERSION) $(PKGCONFIG_GLIB)
