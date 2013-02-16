@@ -70,7 +70,8 @@ genheader:
 	$(MAKE) -C genheader
 
 docs:
-	rm -rf ../docs/html
+	rm -rf ./docs/
+	mkdir ./docs/
 	doxygen DoxyFile
 
 dist:	musasim gdbserver

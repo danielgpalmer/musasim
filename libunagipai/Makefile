@@ -61,8 +61,8 @@ sound.o: sound.c include/sound.h
 .PHONY: docs genheader install uninstall clean
 
 docs: 
-	rm -rf docs
-	mkdir docs
+	rm -rf ./docs/
+	mkdir ./docs/
 	doxygen DoxyFile
 
 genheader:

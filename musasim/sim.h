@@ -21,7 +21,7 @@ void cpu_pulse_stop(void);
 void cpu_set_fc(unsigned int fc);
 //
 
-#define SIM_MAINCLOCK			50000000 // 50mhz
+#define SIM_MAINCLOCK			64000000 // 50mhz
 #define SIM_CPUCLOCK_DIVIDER	4 // Divide the base clock by this to get the cpu clock
 #define SIM_CPUCLOCK 			(SIM_MAINCLOCK/SIM_CPUCLOCK_DIVIDER)
 #define SIM_ONENANOSECOND 1000000000
