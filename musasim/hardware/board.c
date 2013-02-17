@@ -39,6 +39,9 @@ static unsigned int currentfc;
 static const card* slots[NUM_SLOTS];
 static bool interruptswaiting[NUM_SLOTS];
 static bool busrequestwaiting[NUM_SLOTS];
+static bool buslocked = false;
+static int curbusmaster = -1;
+static int curslot = 0; // the slot that is driving atm
 
 #define NOCARD 0xFF
 
@@ -53,7 +56,7 @@ static bool busrequestwaiting[NUM_SLOTS];
 #define SLOTADDRESSMASK 0xE00000
 #define SLOTSHIFT 21
 
-static inline uint8_t board_decode_slot(uint32_t address) {
+static const inline uint8_t board_decode_slot(uint32_t address) {
 	uint8_t slot = (address & SLOTADDRESSMASK) >> SLOTSHIFT;
 	if (slots[slot] == NULL ) {
 		log_println(LEVEL_DEBUG, TAG, "Address decoded to slot %d but there is no card in that slot, PC[0x%08x]", slot,
@@ -140,27 +143,33 @@ static inline uint8_t board_which_slot(const card* card) {
 
 // Bus mastering stuff
 
-static bool buslocked = false;
+static void board_dobuslock(int slot) {
+	buslocked = true;
+	curbusmaster = slot;
+	m68k_end_timeslice();
+	(slots[slot]->busreqack)();
+}
 
 void board_lock_bus(const card* card) {
 	g_rec_mutex_lock(&busmutex);
-// The real board will have an arbiter that decides which bus request to forward to the CPU
-// and route the result back to that card.
-
-// TODO simulate a single bus req to the cpu
-// TODO lock cpu off of the bus.. keep ticks happening but make sure the time the CPU cant touch the bus is simulated
-
-	busrequestwaiting[board_which_slot(card)] = true;
-	buslocked = true;
-	m68k_end_timeslice();
-	(card->busreqack)();
+	int slot = board_which_slot(card);
+	if (buslocked) {
+		g_assert(curbusmaster != slot);
+		// cards should not be trying to lock the bus when they've already locked it
+		busrequestwaiting[slot] = true;
+	}
+	else
+		board_dobuslock(slot);
 	g_rec_mutex_unlock(&busmutex);
 }
 
 void board_unlock_bus(const card* card) {
 	g_rec_mutex_lock(&busmutex);
-	busrequestwaiting[board_which_slot(card)] = false;
 	buslocked = false;
+	curbusmaster = -1;
+	for (int i = 0; i < NUM_SLOTS; i++)
+		if (busrequestwaiting[i])
+			board_dobuslock(i);
 	g_rec_mutex_unlock(&busmutex);
 }
 
@@ -180,9 +189,7 @@ bool board_bus_locked() {
  servicing it's interrupt
  */
 
-static int curslot = 0; // the slot that is driving atm
-
-static inline bool board_interrupt_sanitycheck(int slot) {
+static inline const bool board_interrupt_sanitycheck(int slot) {
 	if (slot != NOCARD && slot != 0 && slot != 7)
 		return true;
 	//printf("Interrupt from card not in slot, or card in zero or seven\n");
@@ -238,8 +245,6 @@ void board_lower_interrupt(const card* card) {
 
 // If this card is the current driver..
 		if (curslot == slot) {
-			//printf("board_lower_interrupt(%d)\n", slot);
-
 			// check the queue for a waiting card
 			int newslot = 0;
 			for (int i = 6; i < 0; i--) {
