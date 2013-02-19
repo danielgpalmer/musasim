@@ -197,7 +197,7 @@ void sim_init() {
 
 void sim_tick() {
 
-	struct timespec start, end;
+	static struct timespec start, end;
 	static long int owed = 0;
 
 	sim_updatesdl();
@@ -220,7 +220,6 @@ void sim_tick() {
 		int cpucyclesexecuted;
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
 		if (!board_bus_locked()) {
-			//TODO what causes the emulator to run less cycles than we want?
 			cpucyclesexecuted = m68k_execute(cyclestoexecute);
 			//log_println(LEVEL_INFO, TAG, "executed %d cpu cycles", cpucyclesexecuted);
 			if (shouldexit) {

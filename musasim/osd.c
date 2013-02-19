@@ -21,6 +21,12 @@
 
 #define TAG "osd"
 
+#define LABELHEIGHT 15
+#define KEYLABELHEIGHT 13
+
+#define WINDOWPADDING 10
+#define INTERITEMPAD 5
+
 #define LEDHEIGHT  10
 #define LEDWIDTH  15
 #define LEDSPACING  5
@@ -32,7 +38,16 @@ static SDL_Surface* osd = NULL;
 static SDL_Surface* busactivitylabel;
 static SDL_Surface* dipswitcheslabel;
 static SDL_Surface* debuglabel;
-static SDL_Rect rect, ledlabel, rectled, audiowindow;
+
+static SDL_Surface* pausekeylabel;
+static SDL_Surface* resetkeylabel;
+static SDL_Surface* nmikeylabel;
+static SDL_Surface* mutekeylabel;
+static SDL_Surface* osdkeylabel;
+static SDL_Surface* throttlekeylabel;
+static SDL_Surface* exitkeylabel;
+
+static SDL_Rect busactivitylabelrect, dipslabelrect, ledlabelrect, ledrect, audiowindow;
 static SDL_Color labels = { .r = 0, .g = 0xff, .b = 0 };
 static Uint32 colourkey, active, inactive, ledon, ledoff, audiowindowbg;
 static bool osdvisible = false;
@@ -43,13 +58,25 @@ static void osd_set() {
 
 void osd_createlabels() {
 	TTF_Init();
-	font = TTF_OpenFont(fontutils_getmonospace(), 15);
+	font = TTF_OpenFont(fontutils_getmonospace(), LABELHEIGHT);
 	if (font != NULL ) {
 		busactivitylabel = TTF_RenderUTF8_Solid(font, "bus activity", labels);
 		dipswitcheslabel = TTF_RenderUTF8_Solid(font, "dip switches", labels);
 		debuglabel = TTF_RenderUTF8_Solid(font, "debug leds", labels);
 		TTF_CloseFont(font);
 	}
+	font = TTF_OpenFont(fontutils_getmonospace(), KEYLABELHEIGHT);
+	if (font != NULL ) {
+		pausekeylabel = TTF_RenderUTF8_Solid(font, "[pause:F1]", labels);
+		resetkeylabel = TTF_RenderUTF8_Solid(font, "[reset:F2]", labels);
+		nmikeylabel = TTF_RenderUTF8_Solid(font, "[NMI:F3]", labels);
+		mutekeylabel = TTF_RenderUTF8_Solid(font, "[mute:F4]", labels);
+		osdkeylabel = TTF_RenderUTF8_Solid(font, "[OSD:F5]", labels);
+		throttlekeylabel = TTF_RenderUTF8_Solid(font, "[throttle:F6]", labels);
+		exitkeylabel = TTF_RenderUTF8_Solid(font, "[exit:ESC]", labels);
+		TTF_CloseFont(font);
+	}
+
 	TTF_Quit();
 }
 
@@ -110,6 +137,70 @@ static void osd_updateaudiobuffer() {
 	}
 }
 
+static void osd_drawkeys() {
+
+	static SDL_Rect rect;
+	rect.y = VIDEO_HEIGHT - WINDOWPADDING - pausekeylabel->h;
+	rect.x = WINDOWPADDING;
+
+	SDL_BlitSurface(pausekeylabel, NULL, osd, &rect);
+	rect.x += pausekeylabel->w;
+	SDL_BlitSurface(resetkeylabel, NULL, osd, &rect);
+	rect.x += resetkeylabel->w;
+	SDL_BlitSurface(nmikeylabel, NULL, osd, &rect);
+	rect.x += nmikeylabel->w;
+	SDL_BlitSurface(mutekeylabel, NULL, osd, &rect);
+	rect.x += mutekeylabel->w;
+	SDL_BlitSurface(osdkeylabel, NULL, osd, &rect);
+	rect.x += osdkeylabel->w;
+	SDL_BlitSurface(throttlekeylabel, NULL, osd, &rect);
+	rect.x += throttlekeylabel->w;
+	SDL_BlitSurface(exitkeylabel, NULL, osd, &rect);
+}
+
+static void osd_drawleds() {
+	// bus activity
+	SDL_BlitSurface(busactivitylabel, NULL, osd, &busactivitylabelrect);
+	ledrect.y = busactivitylabelrect.y + busactivitylabel->h;
+
+	for (int i = 0; i < NUM_SLOTS; i++) {
+		ledrect.x = busactivitylabelrect.x + ((ledrect.w + LEDSPACING) * i);
+
+		Uint32 colour = inactive;
+		const card* c = board_getcardinslot(i);
+
+		if (c != NULL && c->active != NULL ) {
+			if (c->active()) {
+				colour = active;
+			}
+		}
+
+		SDL_FillRect(osd, &ledrect, colour);
+	}
+	//
+
+	// dip switches
+	SDL_BlitSurface(dipswitcheslabel, NULL, osd, &dipslabelrect);
+	ledrect.x = dipslabelrect.x;
+	ledrect.y = dipslabelrect.y + dipswitcheslabel->h;
+	for (int i = 0; i < LEDS; i++) {
+		SDL_FillRect(osd, &ledrect, ledoff);
+		ledrect.x += LEDSTRIDE;
+	}
+	//
+
+	// debug leds
+	SDL_BlitSurface(debuglabel, NULL, osd, &ledlabelrect);
+	uint8_t leds = inputcard_getleds();
+	ledrect.x = ledlabelrect.x;
+	ledrect.y = ledlabelrect.y + debuglabel->h;
+	for (int i = 0; i < LEDS; i++) {
+		SDL_FillRect(osd, &ledrect, ((leds >> i) & 1) ? ledon : ledoff);
+		ledrect.x += LEDSTRIDE;
+	}
+	//
+}
+
 void osd_init() {
 
 	osd_createlabels();
@@ -126,20 +217,22 @@ void osd_init() {
 
 	SDL_FillRect(osd, &audiowindow, audiowindowbg);
 
-	rect.h = 10;
-	rect.w = LEDWIDTH;
-	rect.x = 0;
-	rect.y = 10;
+	busactivitylabelrect.x = WINDOWPADDING;
+	busactivitylabelrect.y = WINDOWPADDING;
 
-	rectled.h = LEDHEIGHT;
-	rectled.w = LEDWIDTH;
-	rectled.x = 0;
-	rectled.y = VIDEO_HEIGHT - LEDHEIGHT - 10;
+	dipslabelrect.x = WINDOWPADDING;
+	dipslabelrect.y = busactivitylabelrect.y + busactivitylabel->h + LEDHEIGHT + INTERITEMPAD;
+
+	ledlabelrect.x = WINDOWPADDING;
+	ledlabelrect.y = dipslabelrect.y + dipswitcheslabel->h + LEDHEIGHT + INTERITEMPAD;
+
+	ledrect.h = LEDHEIGHT;
+	ledrect.w = LEDWIDTH;
 
 	audiowindow.h = 150;
 	audiowindow.w = 200;
-	audiowindow.x = 100;
-	audiowindow.y = 20;
+	audiowindow.x = VIDEO_WIDTH - WINDOWPADDING - audiowindow.w;
+	audiowindow.y = WINDOWPADDING;
 
 	osd_set();
 
@@ -149,42 +242,9 @@ void osd_update() {
 
 	if (!osdvisible)
 		return;
-
-	for (int i = 0; i < NUM_SLOTS; i++) {
-		rect.x = LEDSPACING + ((rect.w + LEDSPACING) * i);
-
-		Uint32 colour = inactive;
-		const card* c = board_getcardinslot(i);
-
-		if (c != NULL ) {
-			if (c->active != NULL ) {
-				if (c->active()) {
-					colour = active;
-				}
-			}
-		}
-
-		SDL_FillRect(osd, &rect, colour);
-
-	}
-
-	SDL_BlitSurface(busactivitylabel, NULL, osd, NULL );
-	SDL_BlitSurface(dipswitcheslabel, NULL, osd, NULL );
-
-	uint8_t leds = inputcard_getleds();
-	rectled.x = 10;
-	for (int i = 0; i < LEDS; i++) {
-		SDL_FillRect(osd, &rectled, ((leds >> i) & 1) ? ledon : ledoff);
-		rectled.x += LEDSTRIDE;
-	}
-
-	ledlabel.x = 10;
-	ledlabel.y = rectled.y - debuglabel->h - 5;
-	ledlabel.w = debuglabel->w;
-	ledlabel.h = debuglabel->h;
-	SDL_BlitSurface(debuglabel, NULL, osd, &ledlabel);
-
+	osd_drawleds();
 	osd_updateaudiobuffer();
+	osd_drawkeys();
 }
 
 void osd_toggle() {
