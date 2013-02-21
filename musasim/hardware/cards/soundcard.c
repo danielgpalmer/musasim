@@ -54,7 +54,7 @@ static void soundcard_sdlcallback(void* userdata, Uint8* stream, int len) {
 	}
 	for (int i = 0; i < len; i++) {
 		int16_t value = ringbuffer_get(buff);
-		*((int16_t*) stream) = value;
+		*((int16_t*) stream) = value & 0x00;
 		stream += sizeof(value);
 	}
 }

@@ -94,14 +94,16 @@ static void osd_updateaudiobuffer() {
 	int rightbase = audiowindow.y + (quarterheight * 3);
 
 	int windowright = audiowindow.x + audiowindow.w - 1;
+
+	SDL_FillRect(osd, &audiowindow, audiowindowbg);
 	sdlwrapper_drawline(osd, audiowindow.x, leftbase, windowright, leftbase, 0, 0xFF0000FF);
 	sdlwrapper_drawline(osd, audiowindow.x, rightbase, windowright, rightbase, 0, 0xFF0000FF);
-	sdlwrapper_drawline(osd, audiowindow.x, middle, windowright, middle, 0, 0x000000FF);
+	sdlwrapper_drawline(osd, audiowindow.x, middle, windowright, middle, 0, 0xdededeFF);
 
 	float scale = (float) quarterheight / (float) INT16_MAX;
 
-	int16_t left = 0;
-	int16_t right = 0;
+	static int16_t left = 0;
+	static int16_t right = 0;
 
 	SDL_BlitSurface(audiolabel, NULL, osd, &audiowindowtitle);
 
@@ -113,12 +115,11 @@ static void osd_updateaudiobuffer() {
 	SDL_BlitSurface(rightlabel, NULL, osd, &audiowindowlabels);
 
 	for (int i = 0; i < audiowindow.w; i++) {
-
 		left--;
 		right++;
 
-		int16_t scaledleft = (int16_t) ((float) left * scale);
-		int16_t scaledright = (int16_t) ((float) right * scale);
+		int16_t scaledleft = CLAMP((int16_t) ((float) left * scale), -quarterheight, quarterheight);
+		int16_t scaledright = CLAMP((int16_t) ((float) right * scale), -quarterheight, quarterheight);
 
 		sdlwrapper_plot(osd, audiowindow.x + i, leftbase + scaledleft, 0x00FF00FF);
 		sdlwrapper_plot(osd, audiowindow.x + i, rightbase + scaledright, 0x00FF00FF);
@@ -126,27 +127,38 @@ static void osd_updateaudiobuffer() {
 }
 
 static void osd_drawkeys() {
-	static SDL_Rect rect;
-	rect.y = VIDEO_HEIGHT - WINDOWPADDING - pausekeylabel->h;
-	rect.x = WINDOWPADDING;
 
-	SDL_BlitSurface(pausekeylabel, NULL, osd, &rect);
-	rect.x += pausekeylabel->w;
-	SDL_BlitSurface(resetkeylabel, NULL, osd, &rect);
-	rect.x += resetkeylabel->w;
-	SDL_BlitSurface(nmikeylabel, NULL, osd, &rect);
-	rect.x += nmikeylabel->w;
-	SDL_BlitSurface(mutekeylabel, NULL, osd, &rect);
-	rect.x += mutekeylabel->w;
-	SDL_BlitSurface(osdkeylabel, NULL, osd, &rect);
-	rect.x += osdkeylabel->w;
-	SDL_BlitSurface(throttlekeylabel, NULL, osd, &rect);
-	rect.x += throttlekeylabel->w;
-	SDL_BlitSurface(exitkeylabel, NULL, osd, &rect);
+	static SDL_Rect rect;
+	static bool dirty = true;
+
+	if (dirty) {
+		rect.y = VIDEO_HEIGHT - WINDOWPADDING - pausekeylabel->h;
+		rect.x = WINDOWPADDING;
+
+		SDL_BlitSurface(pausekeylabel, NULL, osd, &rect);
+		rect.x += pausekeylabel->w;
+		SDL_BlitSurface(resetkeylabel, NULL, osd, &rect);
+		rect.x += resetkeylabel->w;
+		SDL_BlitSurface(nmikeylabel, NULL, osd, &rect);
+		rect.x += nmikeylabel->w;
+		SDL_BlitSurface(mutekeylabel, NULL, osd, &rect);
+		rect.x += mutekeylabel->w;
+		SDL_BlitSurface(osdkeylabel, NULL, osd, &rect);
+		rect.x += osdkeylabel->w;
+		SDL_BlitSurface(throttlekeylabel, NULL, osd, &rect);
+		rect.x += throttlekeylabel->w;
+		SDL_BlitSurface(exitkeylabel, NULL, osd, &rect);
+		dirty = false;
+	}
 }
 
 static void osd_drawleds() {
-	// bus activity
+
+	static int lastleds = -1;
+	uint8_t leds = inputcard_getleds();
+	static bool dipschanged = true;
+
+// bus activity
 	SDL_BlitSurface(busactivitylabel, NULL, osd, &busactivitylabelrect);
 	ledrect.y = busactivitylabelrect.y + busactivitylabel->h;
 
@@ -164,28 +176,33 @@ static void osd_drawleds() {
 
 		SDL_FillRect(osd, &ledrect, colour);
 	}
-	//
+//
 
-	// dip switches
-	SDL_BlitSurface(dipswitcheslabel, NULL, osd, &dipslabelrect);
-	ledrect.x = dipslabelrect.x;
-	ledrect.y = dipslabelrect.y + dipswitcheslabel->h;
-	for (int i = 0; i < LEDS; i++) {
-		SDL_FillRect(osd, &ledrect, ledoff);
-		ledrect.x += LEDSTRIDE;
+// dip switches
+	if (dipschanged) {
+		SDL_BlitSurface(dipswitcheslabel, NULL, osd, &dipslabelrect);
+		ledrect.x = dipslabelrect.x;
+		ledrect.y = dipslabelrect.y + dipswitcheslabel->h;
+		for (int i = 0; i < LEDS; i++) {
+			SDL_FillRect(osd, &ledrect, ledoff);
+			ledrect.x += LEDSTRIDE;
+		}
+		dipschanged = false;
 	}
-	//
+//
 
-	// debug leds
-	SDL_BlitSurface(debuglabel, NULL, osd, &ledlabelrect);
-	uint8_t leds = inputcard_getleds();
-	ledrect.x = ledlabelrect.x;
-	ledrect.y = ledlabelrect.y + debuglabel->h;
-	for (int i = 0; i < LEDS; i++) {
-		SDL_FillRect(osd, &ledrect, ((leds >> i) & 1) ? ledon : ledoff);
-		ledrect.x += LEDSTRIDE;
+// debug leds
+	if (leds != lastleds) {
+		SDL_BlitSurface(debuglabel, NULL, osd, &ledlabelrect);
+		ledrect.x = ledlabelrect.x;
+		ledrect.y = ledlabelrect.y + debuglabel->h;
+		for (int i = 0; i < LEDS; i++) {
+			SDL_FillRect(osd, &ledrect, ((leds >> i) & 1) ? ledon : ledoff);
+			ledrect.x += LEDSTRIDE;
+		}
+		lastleds = leds;
 	}
-	//
+//
 }
 
 void osd_init() {
@@ -198,8 +215,6 @@ void osd_init() {
 	audiowindowbg = SDL_MapRGB(osd->format, 0xff, 0xff, 0xff);
 	SDL_SetColorKey(osd, SDL_SRCCOLORKEY, colourkey);
 	SDL_FillRect(osd, NULL, colourkey);
-
-	SDL_FillRect(osd, &audiowindow, audiowindowbg);
 
 	busactivitylabelrect.x = WINDOWPADDING;
 	busactivitylabelrect.y = WINDOWPADDING;

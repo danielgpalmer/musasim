@@ -120,7 +120,6 @@ void cpu_pulse_reset(void) {
 }
 
 void cpu_pulse_stop(void) {
-
 	uint16_t sr = (uint16_t) m68k_get_reg(NULL, M68K_REG_SR);
 	uint32_t ssp = m68k_get_reg(NULL, M68K_REG_ISP);
 

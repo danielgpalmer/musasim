@@ -255,6 +255,7 @@ static void videocard_irqack() {
 }
 
 void videocard_setosd(SDL_Surface* s) {
+	vramtouched = true; // hack
 	osd = s;
 }
 
