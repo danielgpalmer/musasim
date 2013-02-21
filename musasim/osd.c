@@ -22,7 +22,7 @@
 #define TAG "osd"
 
 #define LABELHEIGHT 15
-#define KEYLABELHEIGHT 13
+#define KEYLABELHEIGHT 12
 
 #define WINDOWPADDING 10
 #define INTERITEMPAD 5
@@ -49,7 +49,7 @@ static SDL_Surface* exitkeylabel;
 
 static SDL_Rect busactivitylabelrect, dipslabelrect, ledlabelrect, ledrect, audiowindow;
 static SDL_Color labels = { .r = 0, .g = 0xff, .b = 0 };
-static Uint32 colourkey, active, inactive, ledon, ledoff, audiowindowbg;
+static Uint32 colourkey, ledon, ledoff, audiowindowbg;
 static bool osdvisible = false;
 
 static void osd_set() {
@@ -138,7 +138,6 @@ static void osd_updateaudiobuffer() {
 }
 
 static void osd_drawkeys() {
-
 	static SDL_Rect rect;
 	rect.y = VIDEO_HEIGHT - WINDOWPADDING - pausekeylabel->h;
 	rect.x = WINDOWPADDING;
@@ -166,12 +165,12 @@ static void osd_drawleds() {
 	for (int i = 0; i < NUM_SLOTS; i++) {
 		ledrect.x = busactivitylabelrect.x + ((ledrect.w + LEDSPACING) * i);
 
-		Uint32 colour = inactive;
+		Uint32 colour = ledoff;
 		const card* c = board_getcardinslot(i);
 
 		if (c != NULL && c->active != NULL ) {
 			if (c->active()) {
-				colour = active;
+				colour = ledon;
 			}
 		}
 
@@ -202,13 +201,10 @@ static void osd_drawleds() {
 }
 
 void osd_init() {
-
 	osd_createlabels();
 
 	osd = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_ASYNCBLIT, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, 0, 0, 0, 0);
 	colourkey = SDL_MapRGB(osd->format, 0, 0, 0);
-	active = SDL_MapRGB(osd->format, 0xff, 0, 0);
-	inactive = SDL_MapRGB(osd->format, 184, 184, 184);
 	ledon = SDL_MapRGB(osd->format, 0, 255, 0);
 	ledoff = SDL_MapRGB(osd->format, 0, 100, 0);
 	audiowindowbg = SDL_MapRGB(osd->format, 0xff, 0xff, 0xff);
@@ -235,11 +231,9 @@ void osd_init() {
 	audiowindow.y = WINDOWPADDING;
 
 	osd_set();
-
 }
 
 void osd_update() {
-
 	if (!osdvisible)
 		return;
 	osd_drawleds();
@@ -261,5 +255,12 @@ void osd_dispose() {
 	SDL_FreeSurface(debuglabel);
 	SDL_FreeSurface(busactivitylabel);
 	SDL_FreeSurface(dipswitcheslabel);
+	SDL_FreeSurface(pausekeylabel);
+	SDL_FreeSurface(resetkeylabel);
+	SDL_FreeSurface(nmikeylabel);
+	SDL_FreeSurface(mutekeylabel);
+	SDL_FreeSurface(osdkeylabel);
+	SDL_FreeSurface(throttlekeylabel);
+	SDL_FreeSurface(exitkeylabel);
 	SDL_FreeSurface(osd);
 }

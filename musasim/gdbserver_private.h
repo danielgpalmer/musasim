@@ -37,7 +37,7 @@ static int gdbserver_calcchecksum(char *data);
 static char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7, int a0, int a1, int a2,
 		int a3, int a4, int a5, int fp, int sp, int ps, int pc);
 
-static void gbserver_set_breakpoint(uint32_t address);
+static void gdbserver_set_breakpoint(uint32_t address);
 static void gdbserver_clear_breakpoint(uint32_t address);
 static void gdbserver_set_watchpoint(uint32_t address, unsigned int length, bool read, bool write);
 static void gdbserver_clear_watchpoint(uint32_t address, unsigned int length, bool read, bool write);
@@ -67,7 +67,7 @@ static void registersighandler();
 #define GDB_COMMAND_QUERY			'q'
 #define GDB_COMMAND_DETACH			'D'
 #define GDB_COMMAND_KILL			'k'
-#define GDB_COMMAND_BREAKPOINTSET	'z'
-#define GDB_COMMAND_BREAKPOINTUNSET	'Z'
+#define GDB_COMMAND_BREAKPOINTSET	'Z'
+#define GDB_COMMAND_BREAKPOINTUNSET	'z'
 
 #endif /* GDBSERVER_PRIVATE_H_ */

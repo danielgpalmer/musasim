@@ -138,66 +138,47 @@ static void gdbserver_mainloop() {
 
 }
 
-static bool gdbserver_setbreakpoint(char* packet) {
-	const char tokens[] = "Z,#";
-	unsigned int type = strtoul(strtok(packet, tokens), NULL, 16);
-	uint32_t breakaddress = strtoul(strtok(NULL, tokens), NULL, 16);
-	unsigned int length = strtoul(strtok(NULL, tokens), NULL, 16); // length
+#define TOKENS(clear) (clear ? "z,#" : "Z,#")
 
-	log_println(LEVEL_INFO, TAG, "GDB is setting a type %d breakpoint at 0x%08x with length %d", type, breakaddress,
-			length);
+static bool gdbserver_setorclearbreakpoint(bool clear, char* packet) {
+	unsigned int type = strtoul(strtok(packet, TOKENS(clear)), NULL, 16);
+	uint32_t breakaddress = strtoul(strtok(NULL, TOKENS(clear)), NULL, 16);
+	unsigned int length = strtoul(strtok(NULL, TOKENS(clear)), NULL, 16); // length
+
+	log_println(LEVEL_INFO, TAG, "GDB is %s a type %d breakpoint at 0x%08x with length %d",
+			(clear ? "unsetting" : "setting"), type, breakaddress, length);
 
 	switch (type) {
 		case GDB_BREAKPOINTTYPE_SOFT:
-			gbserver_set_breakpoint(breakaddress);
+			if (clear)
+				gdbserver_clear_breakpoint(breakaddress);
+			else
+				gdbserver_set_breakpoint(breakaddress);
 			break;
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE:
-			gdbserver_set_watchpoint(breakaddress, length, false, true);
+			if (clear)
+				gdbserver_clear_watchpoint(breakaddress, length, false, true);
+			else
+				gdbserver_set_watchpoint(breakaddress, length, false, true);
 			break;
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_READ:
-			gdbserver_set_watchpoint(breakaddress, length, true, false);
+			if (clear)
+				gdbserver_clear_watchpoint(breakaddress, length, true, false);
+			else
+				gdbserver_set_watchpoint(breakaddress, length, true, false);
 			break;
 		case GDB_BREAKPOINTTYPE_WATCHPOINT_ACCESS:
-			gdbserver_set_watchpoint(breakaddress, length, true, true);
+			if (clear)
+				gdbserver_clear_watchpoint(breakaddress, length, true, true);
+			else
+				gdbserver_set_watchpoint(breakaddress, length, true, true);
 			break;
 		default:
-			printf("unsupported breakpoint type\n");
+			log_println(LEVEL_INFO, TAG, "unsupported breakpoint type");
 			return false;
 	}
 
 	return true;
-}
-
-static bool gdbserver_unsetbreakpoint(char* packet) {
-	const char tokens[] = "z,#";
-	unsigned int type = strtoul(strtok(packet, tokens), NULL, 16);
-	uint32_t breakaddress = strtoul(strtok(NULL, tokens), NULL, 16);
-	unsigned int length = strtoul(strtok(NULL, tokens), NULL, 16); // length
-
-	log_println(LEVEL_INFO, TAG, "GDB is unsetting a type %d breakpoint at 0x%08x with length %d", type, breakaddress,
-			length);
-
-	switch (type) {
-		case GDB_BREAKPOINTTYPE_SOFT:
-			gdbserver_clear_breakpoint(breakaddress);
-			break;
-		case GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE:
-			gdbserver_clear_watchpoint(breakaddress, length, false, true);
-			break;
-		case GDB_BREAKPOINTTYPE_WATCHPOINT_READ:
-			gdbserver_clear_watchpoint(breakaddress, length, true, false);
-			break;
-		case GDB_BREAKPOINTTYPE_WATCHPOINT_ACCESS:
-			gdbserver_clear_watchpoint(breakaddress, length, true, true);
-			break;
-		default:
-			printf("unsupported breakpoint type\n");
-			return false;
-
-	}
-
-	return true;
-
 }
 
 static void gdbserver_readcommand(int s) {
@@ -263,15 +244,16 @@ static void gdbserver_readcommand(int s) {
 				break;
 			case GDB_COMMAND_KILL:
 				log_println(LEVEL_INFO, TAG, "GDB killed us");
+				sim_reset();
 				newstate = LISTENING;
 				break;
 			case GDB_COMMAND_BREAKPOINTSET:
-				if (!gdbserver_unsetbreakpoint(inputbuffer)) {
+				if (!gdbserver_setorclearbreakpoint(false, inputbuffer)) {
 					data = "";
 				}
 				break;
 			case GDB_COMMAND_BREAKPOINTUNSET:
-				if (!gdbserver_setbreakpoint(inputbuffer)) {
+				if (!gdbserver_setorclearbreakpoint(true, inputbuffer)) {
 					data = "";
 				}
 				break;
@@ -307,23 +289,22 @@ static void gdbserver_readcommand(int s) {
 
 #define MAXSENDTRIES 10
 static bool gdbserver_sendpacket(int s, char* data) {
-
 	static char outputbuffer[MAXPACKETLENGTH];
 	memset(outputbuffer, 0, MAXPACKETLENGTH);
 	int triesleft = MAXSENDTRIES;
-	int outputlen = sprintf(outputbuffer, "$%s#", data);
-	outputlen += sprintf(outputbuffer + outputlen, "%02x", gdbserver_calcchecksum(data));
+	int checksum = gdbserver_calcchecksum(data);
+	int outputlen = snprintf(outputbuffer, sizeof(outputbuffer), "$%s#%02x", data, checksum);
 
 	char res = GDBNAK;
 	while (res != GDBACK) {
 		write(s, outputbuffer, outputlen);
 		int result = read(s, &res, 1);
 		if (result == 0) {
-			printf("EOF!\n");
+			log_println(LEVEL_WARNING, TAG, "EOF when reading from gdb");
 			return false;
 		}
 		else if (result < 0) {
-			printf("Error reading from socket!\n");
+			log_println(LEVEL_WARNING, TAG, "Error reading from socket!");
 			return false;
 		}
 
@@ -338,19 +319,19 @@ static bool gdbserver_sendpacket(int s, char* data) {
 
 static bool gdbserver_readpacket(int s, char *buffer) {
 
-	// FIXME I have no idea WTF I was thinking when I wrote this.. clean this shit up
+// FIXME I have no idea WTF I was thinking when I wrote this.. clean this shit up
 
-	// the state of the packet reader
+// the state of the packet reader
 	typedef enum ReadState {
 		WAITINGFORSTART, READINGPACKET, CHECKSUMDIGITONE, CHECKSUMDIGITTWO, DONE
 	} ReadState;
 
 	ReadState readstate = WAITINGFORSTART;
 	static char readbuffer[MAXPACKETLENGTH];
-	//static char checksum[3];
+//static char checksum[3];
 	int bytessofar = 0;
 	int bufferpos = 0;
-	//int check = 0;
+//int check = 0;
 
 	while (readstate != DONE) {
 
@@ -450,17 +431,17 @@ static int gdbserver_calcchecksum(char *data) {
 }
 
 static void gdbserver_cleanup() {
-	//shutdown(socketconnection, SHUT_RDWR);
-	//close(socketlistening);
-	//close(socketconnection);
+//shutdown(socketconnection, SHUT_RDWR);
+//close(socketlistening);
+//close(socketconnection);
 
-	//char xxx[1024];
-	//GSList* iterator;
-	//for (iterator = trace; iterator; iterator = iterator->next) {
-	//	uint32_t pc = GPOINTER_TO_UINT(iterator->data);
-	//	m68k_disassemble(xxx, pc, M68K_CPU_TYPE_68000);
-	//	log_println(LEVEL_INFO, TAG, "0x%08x; %s", pc, xxx);
-	//}
+//char xxx[1024];
+//GSList* iterator;
+//for (iterator = trace; iterator; iterator = iterator->next) {
+//	uint32_t pc = GPOINTER_TO_UINT(iterator->data);
+//	m68k_disassemble(xxx, pc, M68K_CPU_TYPE_68000);
+//	log_println(LEVEL_INFO, TAG, "0x%08x; %s", pc, xxx);
+//}
 
 	log_println(LEVEL_INFO, TAG, "Cleaning up");
 	sim_quit();
@@ -475,7 +456,6 @@ static void gdbserver_cleanup() {
 }
 
 static void termination_handler(int signum) {
-
 	log_println(LEVEL_INFO, TAG, "Caught interrupt");
 	shutdown(socketconnection, SHUT_RDWR);
 	shutdown(socketlistening, SHUT_RDWR);
@@ -553,7 +533,7 @@ static char* getmemorystring(unsigned int address, int len) {
 
 }
 
-static void gbserver_set_breakpoint(uint32_t address) {
+static void gdbserver_set_breakpoint(uint32_t address) {
 	breakpoints = g_slist_append(breakpoints, GUINT_TO_POINTER(address));
 }
 
@@ -565,12 +545,10 @@ static GSList* gdbserver_addwatchpoint(GSList* list, uint32_t address, unsigned 
 	watchpoint* wp = malloc(sizeof(wp));
 	wp->address = address;
 	wp->length = length;
-
 	return g_slist_append(list, wp);
 }
 
 static GSList* gdbserver_clearwatchpoint(GSList* list, uint32_t address, unsigned int length) {
-
 	GSList* iterator;
 	for (iterator = list; iterator; iterator = iterator->next) {
 		watchpoint* wp = iterator->data;
@@ -579,9 +557,7 @@ static GSList* gdbserver_clearwatchpoint(GSList* list, uint32_t address, unsigne
 			return g_slist_remove(list, wp);
 		}
 	}
-
 	return list;
-
 }
 
 static bool gdbserver_checkwatchpoints(GSList* list, uint32_t address, int size) {
@@ -768,7 +744,7 @@ static void gdbserver_writereg(char* commandbuffer) {
 	sscanf(&commandbuffer[1], "%"SCNx8"=%"SCNx32, &reg, &value);
 	log_println(LEVEL_INFO, TAG, "reg %"PRIx8" value 0x%"PRIx32, reg, value);
 
-	// todo make this smaller..
+// todo make this smaller..
 	switch (reg) {
 		case 0:
 			m68k_set_reg(M68K_REG_D0, value);
