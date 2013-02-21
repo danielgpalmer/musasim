@@ -1,0 +1,4 @@
+talktome - enable debugging output from the gdbserver
+stfu - disable debugging output from the gdbserver
+interruptbreakon - break on interrupts
+interruptbreakoff - don't break on interrupts

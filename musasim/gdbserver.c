@@ -90,7 +90,7 @@ static void gdbserver_mainloop() {
 
 			case INIT:
 				sim_init();
-				registersighandler();
+				gdbserver_registersighandler();
 				sim_reset();
 				state = LISTENING;
 				break;
@@ -455,32 +455,32 @@ static void gdbserver_cleanup() {
 
 }
 
-static void termination_handler(int signum) {
+static void gdbserver_termination_handler(int signum) {
 	log_println(LEVEL_INFO, TAG, "Caught interrupt");
 	shutdown(socketconnection, SHUT_RDWR);
 	shutdown(socketlistening, SHUT_RDWR);
 	state = EXIT;
 }
 
-static void io_handler(int signum) {
+static void gdbserver_io_handler(int signum) {
 	if (state == RUNNING) {
 		log_println(LEVEL_INFO, TAG, "IO has happened on the the socket, breaking");
 		state = BREAKING;
 	}
 }
 
-static void registersighandler() {
+static void gdbserver_registersighandler() {
 
 // stolen from; http://www.gnu.org/s/hello/manual/libc/Sigaction-Function-Example.html
 
 	struct sigaction new_action, old_action, io_action;
 
 	/* Set up the structure to specify the new action. */
-	new_action.sa_handler = termination_handler;
+	new_action.sa_handler = gdbserver_termination_handler;
 	sigemptyset(&new_action.sa_mask);
 	new_action.sa_flags = 0;
 
-	io_action.sa_handler = io_handler;
+	io_action.sa_handler = gdbserver_io_handler;
 	sigemptyset(&io_action.sa_mask);
 	io_action.sa_flags = 0;
 
@@ -533,22 +533,22 @@ static char* getmemorystring(unsigned int address, int len) {
 
 }
 
-static void gdbserver_set_breakpoint(uint32_t address) {
+static inline void gdbserver_set_breakpoint(uint32_t address) {
 	breakpoints = g_slist_append(breakpoints, GUINT_TO_POINTER(address));
 }
 
-static void gdbserver_clear_breakpoint(uint32_t address) {
+static inline void gdbserver_clear_breakpoint(uint32_t address) {
 	breakpoints = g_slist_remove(breakpoints, GUINT_TO_POINTER(address));
 }
 
-static GSList* gdbserver_addwatchpoint(GSList* list, uint32_t address, unsigned int length) {
+static inline GSList* gdbserver_addwatchpoint(GSList* list, uint32_t address, unsigned int length) {
 	watchpoint* wp = malloc(sizeof(wp));
 	wp->address = address;
 	wp->length = length;
 	return g_slist_append(list, wp);
 }
 
-static GSList* gdbserver_clearwatchpoint(GSList* list, uint32_t address, unsigned int length) {
+static inline GSList* gdbserver_clearwatchpoint(GSList* list, uint32_t address, unsigned int length) {
 	GSList* iterator;
 	for (iterator = list; iterator; iterator = iterator->next) {
 		watchpoint* wp = iterator->data;
@@ -561,7 +561,6 @@ static GSList* gdbserver_clearwatchpoint(GSList* list, uint32_t address, unsigne
 }
 
 static bool gdbserver_checkwatchpoints(GSList* list, uint32_t address, int size) {
-
 	GSList* iterator;
 	for (iterator = list; iterator; iterator = iterator->next) {
 		watchpoint* wp = iterator->data;
@@ -583,37 +582,25 @@ static bool gdbserver_checkwatchpoints(GSList* list, uint32_t address, int size)
 			return true;
 		}
 	}
-
 	return false;
-
 }
 
 static void gdbserver_set_watchpoint(uint32_t address, unsigned int length, bool read, bool write) {
-	if (read && write) {
+	if (read && write)
 		watchpoints_access = gdbserver_addwatchpoint(watchpoints_access, address, length);
-	}
-
-	else if (read) {
+	else if (read)
 		watchpoints_read = gdbserver_addwatchpoint(watchpoints_read, address, length);
-	}
-
-	else if (write) {
+	else if (write)
 		watchpoints_write = gdbserver_addwatchpoint(watchpoints_write, address, length);
-	}
 }
 
 static void gdbserver_clear_watchpoint(uint32_t address, unsigned int length, bool read, bool write) {
-	if (read && write) {
+	if (read && write)
 		watchpoints_access = gdbserver_clearwatchpoint(watchpoints_access, address, length);
-	}
-
-	else if (read) {
+	else if (read)
 		watchpoints_read = gdbserver_clearwatchpoint(watchpoints_read, address, length);
-	}
-
-	else if (write) {
+	else if (write)
 		watchpoints_write = gdbserver_clearwatchpoint(watchpoints_write, address, length);
-	}
 }
 
 static void gdbserver_check_watchpoints(uint32_t address, uint32_t value, bool write, int size) {
@@ -666,7 +653,6 @@ static char* gbdserver_munchhexstring(char* buffer, int* len) {
 }
 
 static char* gdbserver_query(char* commandbuffer) {
-
 	char* ret = "";
 	if (strncmp(commandbuffer, GDB_QUERY_MONITORCMD, 4) == 0) {
 
@@ -684,34 +670,34 @@ static char* gdbserver_query(char* commandbuffer) {
 		const char cmd_interruptbreak_off[] = "interruptbreakoff";
 
 		if (strncmp(monitorcommand, cmd_load, sizeof(cmd_load)) == 0) {
-			printf("User has requested that a new binary is loaded into ROM\n");
+			log_println(LEVEL_INFO, TAG, "User has requested that a new binary is loaded into ROM");
 			romcard_loadrom(monitorcommand + 5, false);
 			ret = OK;
 		}
 
 		else if (strncmp(monitorcommand, cmd_reset, sizeof(cmd_reset)) == 0) {
-			printf("User has requested the CPU is reset\n");
+			log_println(LEVEL_INFO, TAG, "User has requested the CPU is reset");
 			sim_reset();
 			ret = OK;
 		}
 
 		else if (strncmp(monitorcommand, cmd_stfu, sizeof(cmd_stfu)) == 0) {
-			printf("User has requested we keep quiet\n");
+			log_println(LEVEL_INFO, TAG, "User has requested we keep quiet");
 			ret = OK;
 		}
 
 		else if (strncmp(monitorcommand, cmd_talktome, sizeof(cmd_talktome)) == 0) {
-			printf("User wants to know whats going down\n");
+			log_println(LEVEL_INFO, TAG, "User wants to know what's going down");
 			ret = OK;
 		}
 
 		else if (strncmp(monitorcommand, cmd_interruptbreak_on, sizeof(cmd_interruptbreak_on)) == 0) {
-			printf("User wants break on interrupts\n");
+			log_println(LEVEL_INFO, TAG, "User wants break on interrupts");
 			interruptbreak = true;
 			ret = OK;
 		}
 		else if (strncmp(monitorcommand, cmd_interruptbreak_off, sizeof(cmd_interruptbreak_off)) == 0) {
-			printf("User doesn't want to break on interrutps\n");
+			log_println(LEVEL_INFO, TAG, "User doesn't want to break on interrupts");
 			interruptbreak = false;
 			ret = OK;
 		}
@@ -811,11 +797,8 @@ static char* gdbserver_parser_writemem(char* commandbuffer) {
 static char* gdbserver_readmem(char* commandbuffer) {
 	char *address = strtok(&commandbuffer[1], "m,#");
 	char *size = strtok(NULL, "m,#");
-
 	unsigned int ad = strtoul(address, NULL, 16);
 	int sz = strtol(size, NULL, 16);
-//printf("address %s, %d , size %s, %d", address, ad, size, sz);
-
 	return getmemorystring(ad, sz);
 }
 
@@ -854,9 +837,7 @@ void gdbserver_enteringinterrupt(int irq) {
 }
 
 void gdbserver_instruction_hook_callback() {
-
 	uint32_t pc = m68k_get_reg(NULL, M68K_REG_PC);
-
 	gdbserver_check_breakpoints(pc);
 	profiler_onpcchange(pc);
 }

@@ -46,8 +46,12 @@ static SDL_Surface* mutekeylabel;
 static SDL_Surface* osdkeylabel;
 static SDL_Surface* throttlekeylabel;
 static SDL_Surface* exitkeylabel;
+static SDL_Surface* audiolabel;
+static SDL_Surface* leftlabel;
+static SDL_Surface* rightlabel;
 
-static SDL_Rect busactivitylabelrect, dipslabelrect, ledlabelrect, ledrect, audiowindow;
+static SDL_Rect busactivitylabelrect, dipslabelrect, ledlabelrect, ledrect, audiowindow, audiowindowtitle,
+		audiowindowlabels;
 static SDL_Color labels = { .r = 0, .g = 0xff, .b = 0 };
 static Uint32 colourkey, ledon, ledoff, audiowindowbg;
 static bool osdvisible = false;
@@ -63,6 +67,9 @@ void osd_createlabels() {
 		busactivitylabel = TTF_RenderUTF8_Solid(font, "bus activity", labels);
 		dipswitcheslabel = TTF_RenderUTF8_Solid(font, "dip switches", labels);
 		debuglabel = TTF_RenderUTF8_Solid(font, "debug leds", labels);
+		audiolabel = TTF_RenderUTF8_Solid(font, "audiobuffer", labels);
+		leftlabel = TTF_RenderUTF8_Solid(font, "left", labels);
+		rightlabel = TTF_RenderUTF8_Solid(font, "right", labels);
 		TTF_CloseFont(font);
 	}
 	font = TTF_OpenFont(fontutils_getmonospace(), KEYLABELHEIGHT);
@@ -81,7 +88,6 @@ void osd_createlabels() {
 }
 
 static void osd_updateaudiobuffer() {
-
 	int quarterheight = audiowindow.h / 4;
 	int middle = audiowindow.y + quarterheight * 2;
 	int leftbase = audiowindow.y + quarterheight;
@@ -94,43 +100,25 @@ static void osd_updateaudiobuffer() {
 
 	float scale = (float) quarterheight / (float) INT16_MAX;
 
-	// how many samples to average into a single pixel in the window
-	//int samplestoaverage = 4;
+	int16_t left = 0;
+	int16_t right = 0;
 
-	//ringbuffer* buffstart = sound_getbuffer();
+	SDL_BlitSurface(audiolabel, NULL, osd, &audiowindowtitle);
 
-	// calculate an offset so that the right edge of the window matches the
-	// head of the buffer
-	//int offset = head - (audiowindow.w * samplestoaverage) * 2;
-	//if (offset < 0)
-	//	offset = len + offset;
-	//log_println(LEVEL_INFO, TAG, "len %"PRId16" offset %"PRId16" buffer head %"PRId16, len, offset, head);
-
-	//int16_t* buffer = buffstart + offset;
-
-	//g_assert(buffer < buffstart);
+	audiowindowlabels.x = audiowindow.x - leftlabel->w - INTERITEMPAD;
+	audiowindowlabels.y = leftbase - (leftlabel->h / 2);
+	SDL_BlitSurface(leftlabel, NULL, osd, &audiowindowlabels);
+	audiowindowlabels.x = audiowindow.x - rightlabel->w - INTERITEMPAD;
+	audiowindowlabels.y = rightbase - (rightlabel->h / 2);
+	SDL_BlitSurface(rightlabel, NULL, osd, &audiowindowlabels);
 
 	for (int i = 0; i < audiowindow.w; i++) {
 
-		int32_t left = 0;
-		int32_t right = 0;
+		left--;
+		right++;
 
-		// add up the samples
-		//for (int s = 0; s < samplestoaverage; s++) {
-		//	left += *buffer++;
-		//	right += *buffer++;
-		//	// wrap around the buffer
-		//	if (buffer == buffend)
-		//		buffer = buffstart;
-		//}
-
-		// average them
-		//left /= samplestoaverage;
-		//right /= samplestoaverage;
-
-		// scale them to fit the y axis
-		int16_t scaledleft = (left * scale);
-		int16_t scaledright = (right * scale);
+		int16_t scaledleft = (int16_t) ((float) left * scale);
+		int16_t scaledright = (int16_t) ((float) right * scale);
 
 		sdlwrapper_plot(osd, audiowindow.x + i, leftbase + scaledleft, 0x00FF00FF);
 		sdlwrapper_plot(osd, audiowindow.x + i, rightbase + scaledright, 0x00FF00FF);
@@ -225,10 +213,14 @@ void osd_init() {
 	ledrect.h = LEDHEIGHT;
 	ledrect.w = LEDWIDTH;
 
-	audiowindow.h = 150;
 	audiowindow.w = 200;
+	audiowindow.h = 150;
+
+	audiowindowtitle.y = WINDOWPADDING;
+	audiowindowtitle.x = (VIDEO_WIDTH - WINDOWPADDING - audiowindow.w) + ((audiowindow.w / 2) - (audiolabel->w / 2));
+
 	audiowindow.x = VIDEO_WIDTH - WINDOWPADDING - audiowindow.w;
-	audiowindow.y = WINDOWPADDING;
+	audiowindow.y = audiowindowtitle.y + audiolabel->h + INTERITEMPAD;
 
 	osd_set();
 }

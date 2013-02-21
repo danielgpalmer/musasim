@@ -50,8 +50,8 @@ static char* gdbserver_query(char* commandbuffer);
 
 static char* gdbserver_parser_writemem(char* commandbuffer);
 static void gdbserver_cleanup();
-static void termination_handler(int signum);
-static void registersighandler();
+static void gdbserver_termination_handler(int signum);
+static void gdbserver_registersighandler();
 
 // commands
 #define GDB_COMMAND_READREGISTERS	'g'
