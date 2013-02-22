@@ -48,6 +48,16 @@ int16_t ringbuffer_get(ringbuffer* buff) {
 	return value;
 }
 
+int16_t ringbuffer_peek(ringbuffer* buff, unsigned int offset) {
+	unsigned int faketail;
+	if (offset > buff->tail)
+		faketail = buff->len - ((offset - buff->tail) % buff->len);
+	else
+		faketail = buff->tail - offset;
+	int16_t value = *(buff->buffer + faketail);
+	return value;
+}
+
 // reset the buffer to empty
 void ringbuffer_reset(ringbuffer* buff) {
 	buff->head = 0;

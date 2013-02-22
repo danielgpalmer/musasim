@@ -22,7 +22,7 @@
 #define TAG "osd"
 
 #define LABELHEIGHT 15
-#define KEYLABELHEIGHT 12
+#define KEYLABELHEIGHT 10
 
 #define WINDOWPADDING 10
 #define INTERITEMPAD 5
@@ -114,9 +114,14 @@ static void osd_updateaudiobuffer() {
 	audiowindowlabels.y = rightbase - (rightlabel->h / 2);
 	SDL_BlitSurface(rightlabel, NULL, osd, &audiowindowlabels);
 
+	ringbuffer* buffer = sound_getbuffer();
+
 	for (int i = 0; i < audiowindow.w; i++) {
-		left--;
-		right++;
+
+		unsigned int offset = (audiowindow.w * 2) - (i * 2);
+
+		right = ringbuffer_peek(buffer, offset);
+		left = ringbuffer_peek(buffer, offset - 1);
 
 		int16_t scaledleft = CLAMP((int16_t) ((float) left * scale), -quarterheight, quarterheight);
 		int16_t scaledright = CLAMP((int16_t) ((float) right * scale), -quarterheight, quarterheight);

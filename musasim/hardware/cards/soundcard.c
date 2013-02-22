@@ -317,7 +317,7 @@ static const bool soundcard_validaddress(uint32_t address) {
 	return true;
 }
 
-ringbuffer* sound_getbuffer(unsigned int* head, unsigned int* len) {
+ringbuffer* sound_getbuffer() {
 	return audiobuffer;
 }
 

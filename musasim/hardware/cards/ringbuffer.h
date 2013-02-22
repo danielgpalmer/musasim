@@ -22,6 +22,7 @@ unsigned int ringbuffer_samplesavailable(ringbuffer* buff);
 unsigned int ringbuffer_samplesfree(ringbuffer* buff);
 void ringbuffer_put(ringbuffer* buff, int16_t value);
 int16_t ringbuffer_get(ringbuffer* buff);
+int16_t ringbuffer_peek(ringbuffer* buff, unsigned int offset);
 bool ringbuffer_isfull(ringbuffer* buff);
 bool ringbuffer_isempty(ringbuffer* buff);
 ringbuffer* ringbuffer_new(unsigned int size);
