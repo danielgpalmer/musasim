@@ -92,5 +92,5 @@ checkcode:
 	cppcheck ./ --std=c99
 
 checklibs:
-	pkg-config --exists $(ALLEXTLIBS)
-	pkg-config --atleast-version=$(PKGCONFIG_GLIB_MINVERSION) $(PKGCONFIG_GLIB)
+	pkg-config --print-errors --exists $(ALLEXTLIBS)
+	pkg-config --print-errors --atleast-version=$(PKGCONFIG_GLIB_MINVERSION) $(PKGCONFIG_GLIB)
