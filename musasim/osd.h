@@ -11,7 +11,7 @@
 #include <stdbool.h>
 
 void osd_init(void);
-void osd_update(void);
+void osd_update(double speed);
 void osd_visible(bool visible);
 void osd_toggle(void);
 

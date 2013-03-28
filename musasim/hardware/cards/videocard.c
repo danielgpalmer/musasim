@@ -47,6 +47,8 @@ static void* compositingbuffer;
 #define HBLANKENABLED (config & VIDEO_CONFIG_ENHBINT)
 #define VBLANKENABLED (config & VIDEO_CONFIG_ENVBINT)
 
+static bool windowchanged = false;
+
 static void video_updaterects() {
 	region.x = posx + winx;
 	region.y = posy + winy;
@@ -57,13 +59,14 @@ static void video_updaterects() {
 	window.y = winy;
 	window.w = 0;
 	window.h = 0;
+	windowchanged = true;
 }
 
 static void video_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
-	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, 0, SDL_HWSURFACE);
 
 	for (int i = 0; i < G_N_ELEMENTS(rendersurfaces); i++) {
 
@@ -113,7 +116,7 @@ static const bool video_validaddress(uint32_t address) {
 	return false;
 }
 
-static void video_tick(int cyclesexecuted) {
+static void video_tick(int cyclesexecuted, bool behind) {
 
 	//int mode = config & VIDEO_CONFIG_MODE_MASK;
 
@@ -259,6 +262,9 @@ void videocard_setosd(SDL_Surface* s) {
 	osd = s;
 }
 
+#define WINDOWCOVERSSCREEN ((region.x == 0) && (region.y == 0) && (region.w == VIDEO_WIDTH) && (region.h == VIDEO_HEIGHT))
+
+
 void videocard_refresh() {
 
 	if (frameskipping)
@@ -270,16 +276,21 @@ void videocard_refresh() {
 		// if the vram has been touched draw everything.. this should care about registers too at some point
 		if (vramtouched) {
 			// if the current window covers the whole surface don't bother clearing it.
-			if (!((region.x == 0) && (region.y == 0) && (region.w == VIDEO_WIDTH) && (region.h == VIDEO_HEIGHT))) {
+			if (!WINDOWCOVERSSCREEN && windowchanged) {
 				SDL_FillRect(screen, NULL, 0x0);
+				windowchanged = false;
 			}
 
-			SDL_BlitSurface(BACKSURFACE, &region, screen, &window);
+			SDL_Surface* temp = SDL_DisplayFormat(BACKSURFACE);
+			SDL_BlitSurface(temp, &region, screen, &window);
+			SDL_FreeSurface(temp);
 			vramtouched = false;
 		}
 		// if the osd is visible draw it over the top
 		if (osd) {
-			SDL_BlitSurface(osd, NULL, screen, NULL );
+			SDL_Surface* temp = SDL_DisplayFormat(osd);
+			SDL_BlitSurface(temp, NULL, screen, NULL );
+			SDL_FreeSurface(temp);
 		}
 		SDL_Flip(screen);
 	}

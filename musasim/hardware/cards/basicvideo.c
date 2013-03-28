@@ -35,7 +35,7 @@ static const bool video_validaddress(uint32_t address) {
 	return address < BASIC_VIDEO_WIDTH * BASIC_VIDEO_HEIGHT;
 }
 
-static void video_tick(int cyclesexecuted) {
+static void video_tick(int cyclesexecuted, bool behind) {
 	if (dirty) {
 		SDL_Flip(screen);
 		dirty = false;

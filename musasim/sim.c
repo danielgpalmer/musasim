@@ -32,6 +32,8 @@
 #include "hardware/cards/dmacard.h"
 #include "hardware/cards/timercard.h"
 
+#define MINIMUMCPUCYCLESPERTICK 16
+
 // keys that the sim uses
 #define SIM_KEY_PAUSE			SDLK_F1
 #define SIM_KEY_RESET			SDLK_F2
@@ -57,9 +59,13 @@ static bool basicsound = false;
 static const char WINDOWTITLE[] = "musasim";
 static const char TAG[] = "sim";
 
+static long cycles = 0;
+static double speed = 0;
+static long count = 0;
+
 static void sim_updatesdl() {
 
-	osd_update();
+	osd_update(speed);
 
 	// Check some keys
 	SDL_PumpEvents();
@@ -199,7 +205,10 @@ void sim_tick() {
 	static struct timespec start, end;
 	static long int owed = 0;
 
-	sim_updatesdl();
+	if (cycles > SIM_MAINCLOCK / 30) {
+		sim_updatesdl();
+		cycles = 0;
+	}
 
 	if (shouldexit) {
 		return;
@@ -209,11 +218,10 @@ void sim_tick() {
 		usleep(5000);
 	else {
 
-		int cyclestoexecute = board_maxcycles(board_bestcasecycles()) / SIM_CPUCLOCK_DIVIDER;
-		// this avoids us getting stuck
-		if (cyclestoexecute < 16)
-			cyclestoexecute = 16;
-
+		// clamping the cycles to at least 16 avoids us getting stuck in a situation where there
+		// aren't to actually progress
+		int cyclestoexecute =
+				MAX(board_maxcycles(board_bestcasecycles()) / SIM_CPUCLOCK_DIVIDER, MINIMUMCPUCYCLESPERTICK);
 		//log_println(LEVEL_INFO, TAG, "going to execute %d cpu cycles", cyclestoexecute);
 
 		int cpucyclesexecuted;
@@ -230,11 +238,18 @@ void sim_tick() {
 		else
 			cpucyclesexecuted = cyclestoexecute;
 
+		cycles += cpucyclesexecuted;
+
 		board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER);
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
 
 		long int timetaken = timespecdiff(&start, &end)->tv_nsec;
 		long int target = SIM_CPUCLOCKDURATION * cpucyclesexecuted;
+
+		double currentspeed = (float) target / (float) timetaken;
+		count++;
+
+		speed = ((speed * (count - 1)) + currentspeed) / count;
 
 		if (timetaken > 100000) {
 			//log_println(LEVEL_INFO, TAG, "CLAMP!");

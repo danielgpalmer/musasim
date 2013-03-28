@@ -34,6 +34,8 @@
 #define LEDS 8
 
 static TTF_Font* font = NULL;
+static TTF_Font* smallfont = NULL;
+
 static SDL_Surface* osd = NULL;
 static SDL_Surface* busactivitylabel;
 static SDL_Surface* dipswitcheslabel;
@@ -49,9 +51,12 @@ static SDL_Surface* exitkeylabel;
 static SDL_Surface* audiolabel;
 static SDL_Surface* leftlabel;
 static SDL_Surface* rightlabel;
+static SDL_Surface* statslabel;
+static SDL_Surface* speedlabel;
+static SDL_Surface* speedvaluelabel = NULL;
 
 static SDL_Rect busactivitylabelrect, dipslabelrect, ledlabelrect, ledrect, audiowindow, audiowindowtitle,
-		audiowindowlabels;
+		audiowindowlabels, statsrect, speedrect, speedvaluerect;
 static SDL_Color labels = { .r = 0, .g = 0xff, .b = 0 };
 static Uint32 colourkey, ledon, ledoff, audiowindowbg;
 static bool osdvisible = false;
@@ -70,21 +75,21 @@ void osd_createlabels() {
 		audiolabel = TTF_RenderUTF8_Solid(font, "audiobuffer", labels);
 		leftlabel = TTF_RenderUTF8_Solid(font, "left", labels);
 		rightlabel = TTF_RenderUTF8_Solid(font, "right", labels);
-		TTF_CloseFont(font);
+		statslabel = TTF_RenderUTF8_Solid(font, "Statistics", labels);
+		speedlabel = TTF_RenderUTF8_Solid(font, "Speed: ", labels);
+		speedvaluelabel = TTF_RenderUTF8_Solid(font, "00.00%", labels);
 	}
-	font = TTF_OpenFont(fontutils_getmonospace(), KEYLABELHEIGHT);
-	if (font != NULL ) {
-		pausekeylabel = TTF_RenderUTF8_Solid(font, "[pause:F1]", labels);
-		resetkeylabel = TTF_RenderUTF8_Solid(font, "[reset:F2]", labels);
-		nmikeylabel = TTF_RenderUTF8_Solid(font, "[NMI:F3]", labels);
-		mutekeylabel = TTF_RenderUTF8_Solid(font, "[mute:F4]", labels);
-		osdkeylabel = TTF_RenderUTF8_Solid(font, "[OSD:F5]", labels);
-		throttlekeylabel = TTF_RenderUTF8_Solid(font, "[throttle:F6]", labels);
-		exitkeylabel = TTF_RenderUTF8_Solid(font, "[exit:ESC]", labels);
-		TTF_CloseFont(font);
+	smallfont = TTF_OpenFont(fontutils_getmonospace(), KEYLABELHEIGHT);
+	if (smallfont != NULL ) {
+		pausekeylabel = TTF_RenderUTF8_Solid(smallfont, "[pause:F1]", labels);
+		resetkeylabel = TTF_RenderUTF8_Solid(smallfont, "[reset:F2]", labels);
+		nmikeylabel = TTF_RenderUTF8_Solid(smallfont, "[NMI:F3]", labels);
+		mutekeylabel = TTF_RenderUTF8_Solid(smallfont, "[mute:F4]", labels);
+		osdkeylabel = TTF_RenderUTF8_Solid(smallfont, "[OSD:F5]", labels);
+		throttlekeylabel = TTF_RenderUTF8_Solid(smallfont, "[throttle:F6]", labels);
+		exitkeylabel = TTF_RenderUTF8_Solid(smallfont, "[exit:ESC]", labels);
 	}
 
-	TTF_Quit();
 }
 
 static void osd_updateaudiobuffer() {
@@ -210,6 +215,22 @@ static void osd_drawleds() {
 //
 }
 
+static void osd_drawstats(float speed) {
+	static float lastspeed = -1;
+	if (speed != lastspeed) {
+		SDL_BlitSurface(statslabel, NULL, osd, &statsrect);
+		SDL_BlitSurface(speedlabel, NULL, osd, &speedrect);
+
+		static char speedstr[10];
+		snprintf(speedstr, sizeof(speedstr), "%2.2f%%", speed * 100);
+		SDL_FreeSurface(speedvaluelabel);
+		speedvaluelabel = TTF_RenderUTF8_Solid(font, speedstr, labels);
+		SDL_FillRect(osd, &speedvaluerect, audiowindowbg);
+		SDL_BlitSurface(speedvaluelabel, NULL, osd, &speedvaluerect);
+		lastspeed = speed;
+	}
+}
+
 void osd_init() {
 	osd_createlabels();
 
@@ -230,6 +251,14 @@ void osd_init() {
 	ledlabelrect.x = WINDOWPADDING;
 	ledlabelrect.y = dipslabelrect.y + dipswitcheslabel->h + LEDHEIGHT + INTERITEMPAD;
 
+	statsrect.x = WINDOWPADDING;
+	statsrect.y = ledlabelrect.y + debuglabel->h + LEDHEIGHT + (INTERITEMPAD * 2);
+
+	speedrect.x = WINDOWPADDING;
+	speedrect.y = statsrect.y + statslabel->h + INTERITEMPAD;
+	speedvaluerect.x = speedrect.x + speedlabel->w + INTERITEMPAD;
+	speedvaluerect.y = speedrect.y;
+
 	ledrect.h = LEDHEIGHT;
 	ledrect.w = LEDWIDTH;
 
@@ -245,12 +274,13 @@ void osd_init() {
 	osd_set();
 }
 
-void osd_update() {
+void osd_update(double speed) {
 	if (!osdvisible)
 		return;
 	osd_drawleds();
 	osd_updateaudiobuffer();
 	osd_drawkeys();
+	osd_drawstats(speed);
 }
 
 void osd_toggle() {
@@ -275,4 +305,7 @@ void osd_dispose() {
 	SDL_FreeSurface(throttlekeylabel);
 	SDL_FreeSurface(exitkeylabel);
 	SDL_FreeSurface(osd);
+	TTF_CloseFont(font);
+	TTF_CloseFont(smallfont);
+	TTF_Quit();
 }

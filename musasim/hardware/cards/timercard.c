@@ -91,7 +91,7 @@ static void timercard_dispose() {
 //		free(timers[t]);
 }
 
-static void timercard_tick(int cyclesexecuted) {
+static void timercard_tick(int cyclesexecuted, bool behind) {
 	registerplanner_tickmodules(addressspace, cyclesexecuted);
 }
 

@@ -80,7 +80,7 @@ static int phase = +1; /* +1 or -1 */
 static int volume = 10000;
 static int amp; /* current amplitude in delta buffer */
 
-static void basicsound_tick(int cyclesexectuded) {
+static void basicsound_tick(int cyclesexectuded, bool behind) {
 
 	if (!inited)
 		return;

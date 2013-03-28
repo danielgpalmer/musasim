@@ -78,8 +78,8 @@ static void newball(ball* b, int x, int y, image* image) {
 	b->sprite->y = y;
 	b->xinc = 1;
 	b->yinc = 1;
-	b->speedx = (input_rng & 0x7);
-	b->speedy = (input_rng & 0x7);
+	b->speedx = CLAMP(1, VIDEO_WIDTH, (input_rng & 0x7));
+	b->speedy = CLAMP(1, VIDEO_HEIGHT, (input_rng & 0x7));
 }
 
 static void ballrelect(ball* b1, ball* b2, vector* vect) {

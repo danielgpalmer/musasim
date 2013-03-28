@@ -296,7 +296,7 @@ static void cfint_dispose() {
 static void cfint_init() {
 }
 
-static void cfint_tick(int cyclesexecuted) {
+static void cfint_tick(int cyclesexecuted, bool behind) {
 	if (busycounter > 0) {
 		busycounter--;
 		if (busycounter == 0) {

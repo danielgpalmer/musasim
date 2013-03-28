@@ -147,7 +147,7 @@ static void soundcard_dispose() {
 //	return (int16_t) mixed;
 //}
 
-static void soundcard_tick(int cyclesexecuted) {
+static void soundcard_tick(int cyclesexecuted, bool behind) {
 
 	static int carry = 0;
 
