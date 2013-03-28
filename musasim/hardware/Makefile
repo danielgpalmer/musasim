@@ -7,7 +7,7 @@ all: board.o boardgdb.o registerplanner.o
 registerplanner.o: registerplanner.c registerplanner.h
 	$(CC) $(CFLAGS) --std=gnu99 $< -o $@
 	
-board.o: board.c board.h
+board.o: board.c board.h cards/card.h
 	$(CC) $(CFLAGS) $(CFLAGS_GLIB) $(CFLAGS_GTHREAD) -std=gnu99 $< -o $@
 
 boardgdb.o: board.c board.h ../gdbserver.h

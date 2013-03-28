@@ -96,7 +96,7 @@ void board_tick(int cyclesexecuted) {
 static void board_workerfunc(gpointer data, gpointer userdata) {
 	int slot = GPOINTER_TO_INT(data) - 1;
 	if (slots[slot] != NULL && slots[slot]->tick != NULL ) {
-		slots[slot]->tick(cycles);
+		slots[slot]->tick(cycles, false);
 	}
 	g_mutex_lock(&mutex);
 	unprocessed--;
