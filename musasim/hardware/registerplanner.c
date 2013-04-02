@@ -10,10 +10,11 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <string.h>
+#include <glib.h>
 #include "registerplanner.h"
 #include "../utils.h"
 
-static int registerplanner_widthtostride(int width) {
+static const int registerplanner_widthtostride(int width) {
 	int stride = 1;
 
 	if (width == 1)
@@ -24,7 +25,7 @@ static int registerplanner_widthtostride(int width) {
 	return stride;
 }
 
-static int registerplanner_widthtosize(int width) {
+static const int registerplanner_widthtosize(int width) {
 	int w = 0;
 
 	if (w == -1)
@@ -282,8 +283,7 @@ int registerplanner_cyclesleft(cardaddressspace* card) {
 		unit* u = *currentunit;
 		if (u->either.type == PERIPHERAL) {
 			int c = u->peripheral.module->cyclesleft(u->peripheral.context);
-			if (c > cycles)
-				cycles = c;
+			cycles = MAX(cycles, c);
 		}
 
 	}

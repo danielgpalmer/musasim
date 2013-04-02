@@ -15,9 +15,9 @@
 #include "../../gdbserver.h"
 #endif
 
-#include "../../musashi/m68k.h"
 #include "romcard.h"
 #include "../util.h"
+#include "../../musashi/m68k.h"
 #include "../../logging.h"
 #include "../../elfloader.h"
 
@@ -25,6 +25,8 @@ static uint8_t* bootloaderrom = NULL; //BOOTLOADER ROM
 static uint8_t* rom = NULL; //ROM
 static uint8_t* ram = NULL; // RAM
 static bool registersenabled = false;
+static bool disableromonreset = false;
+static bool romdisabled = false;
 
 static const char TAG[] = "romcard";
 
@@ -32,7 +34,6 @@ static const char TAG[] = "romcard";
 #define ISRAMSPACE(address) (address >= OFFSET_RAM && address <= MAX_RAM)
 
 static void romcard_init() {
-
 	if (bootloaderrom == NULL ) {
 		bootloaderrom = malloc(SIZE_ROM);
 	}
@@ -53,7 +54,6 @@ static void romcard_init() {
 
 	log_println(LEVEL_INFO, TAG, "ROM section from 0x%08x to 0x%08x", ROMCARD_OFFSET_ROM, MAX_ROM);
 	log_println(LEVEL_INFO, TAG, "RAM section from 0x%08x to 0x%08x", OFFSET_RAM, MAX_RAM);
-
 }
 
 static void romcard_dispose() {
@@ -63,7 +63,6 @@ static void romcard_dispose() {
 }
 
 bool romcard_loadrom(const char* path, bool elf) {
-
 	romcard_init(); // FIXME hack
 
 	memset(rom, 0x00, SIZE_ROM);
@@ -88,31 +87,29 @@ bool romcard_loadrom(const char* path, bool elf) {
 	}
 }
 
-static bool disableromonreset = false;
-static bool romdisabled = false;
-
+static inline bool romcard_checkcommand(uint32_t address, uint16_t data) __attribute__((always_inline));
 static inline bool romcard_checkcommand(uint32_t address, uint16_t data) {
+	static bool disablecommandone = false;
+
 	if (!registersenabled)
 		return false;
 
-	static bool disablecommandone = false;
+	if (address == ROMDISABLE_ADDRESS_0 && data == ROMDISABLE_DATA_0) {
+		log_println(LEVEL_WARNING, TAG, "ROM disable armed");
+		disablecommandone = true;
+		return true;
+	}
 
-	if ((address == ROMDISABLE_ADDRESS_0)&& (data == ROMDISABLE_DATA_0)){
-	log_println(LEVEL_WARNING, TAG, "ROM disable armed");
-	disablecommandone = true;
-	return true;
-}
+	else if (address == ROMDISABLE_ADDRESS_1 && data == ROMDISABLE_DATA_1 && disablecommandone) {
+		log_println(LEVEL_WARNING, TAG, "ROM disable fired, ROM will be disabled on reset");
+		disableromonreset = true;
+		return true;
+	}
 
-else if ((address == ROMDISABLE_ADDRESS_1) && (data == ROMDISABLE_DATA_1) && disablecommandone) {
-	log_println(LEVEL_WARNING, TAG, "ROM disable fired, ROM will be disabled on reset");
-	disableromonreset = true;
-	return true;
-}
-
-else {
-	disablecommandone = false;
-	return false;
-}
+	else {
+		disablecommandone = false;
+		return false;
+	}
 }
 
 static inline void romcard_invalidwrite(uint32_t address) {
@@ -130,50 +127,49 @@ typedef struct {
 	bool writeable;
 } translatedaddress;
 
-static translatedaddress reg;
-
-static inline void romcard_translateaddress(translatedaddress* reg, uint32_t address) {
-
-	reg->writeable = true;
+static inline translatedaddress* romcard_translateaddress(uint32_t address) __attribute__((always_inline));
+static inline translatedaddress* romcard_translateaddress(uint32_t address) {
+	static translatedaddress reg;
+	reg.writeable = true;
 	if (ISROMSPACE(address)) {
 		if (romdisabled) {
-			reg->base = ram;
-			reg->relative_address = address - ROMCARD_OFFSET_ROM;
+			reg.base = ram;
+			reg.relative_address = address - ROMCARD_OFFSET_ROM;
 		}
 		else {
-			reg->base = rom;
-			reg->relative_address = address - ROMCARD_OFFSET_ROM;
-			reg->writeable = false;
+			reg.base = rom;
+			reg.relative_address = address - ROMCARD_OFFSET_ROM;
+			reg.writeable = false;
 
 		}
 	}
 	else if (ISRAMSPACE(address)) {
-		reg->base = ram;
-		reg->relative_address = address - OFFSET_RAM;
+		reg.base = ram;
+		reg.relative_address = address - OFFSET_RAM;
 	}
-
+	return &reg;
 }
 
 static uint8_t romcard_read_byte(uint32_t address) {
-	romcard_translateaddress(&reg, address);
-	return READ_BYTE((reg.base), (reg.relative_address));
+	translatedaddress* translated = romcard_translateaddress(address);
+	return READ_BYTE((translated->base), (translated->relative_address));
 }
 
 static uint16_t romcard_read_word(uint32_t address) {
-	romcard_translateaddress(&reg, address);
-	return READ_WORD(reg.base, reg.relative_address);
+	translatedaddress* translated = romcard_translateaddress(address);
+	return READ_WORD(translated->base, translated->relative_address);
 }
 
 static uint32_t romcard_read_long(uint32_t address) {
-	romcard_translateaddress(&reg, address);
-	return READ_LONG(reg.base, reg.relative_address);
+	translatedaddress* translated = romcard_translateaddress(address);
+	return READ_LONG(translated->base, translated->relative_address);
 }
 
 static void romcard_write_byte(uint32_t address, uint8_t value) {
 	if (!romcard_checkcommand(address, value)) {
-		romcard_translateaddress(&reg, address);
-		if (reg.writeable) {
-			WRITE_BYTE(reg.base, reg.relative_address, value);
+		translatedaddress* translated = romcard_translateaddress(address);
+		if (translated->writeable) {
+			WRITE_BYTE(translated->base, translated->relative_address, value);
 		}
 		else {
 			romcard_invalidwrite(address);
@@ -183,9 +179,9 @@ static void romcard_write_byte(uint32_t address, uint8_t value) {
 
 static void romcard_write_word(uint32_t address, uint16_t value) {
 	if (!romcard_checkcommand(address, value)) {
-		romcard_translateaddress(&reg, address);
-		if (reg.writeable) {
-			WRITE_WORD(reg.base, reg.relative_address, value);
+		translatedaddress* translated = romcard_translateaddress(address);
+		if (translated->writeable) {
+			WRITE_WORD(translated->base, translated->relative_address, value);
 		}
 		else {
 			romcard_invalidwrite(address);
@@ -194,9 +190,9 @@ static void romcard_write_word(uint32_t address, uint16_t value) {
 }
 
 static void romcard_write_long(uint32_t address, uint32_t value) {
-	romcard_translateaddress(&reg, address);
-	if (reg.writeable) {
-		WRITE_LONG(reg.base, reg.relative_address, value);
+	translatedaddress* translated = romcard_translateaddress(address);
+	if (translated->writeable) {
+		WRITE_LONG(translated->base, translated->relative_address, value);
 	}
 	else {
 		romcard_invalidwrite(address);

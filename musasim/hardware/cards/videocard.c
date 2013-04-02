@@ -13,6 +13,8 @@
 
 static const char TAG[] = "video";
 
+#define WINDOWCOVERSSCREEN ((region.x == 0) && (region.y == 0) && (region.w == VIDEO_WIDTH) && (region.h == VIDEO_HEIGHT))
+
 static bool frameskipping = false;
 static bool vramtouched = false;
 
@@ -96,7 +98,6 @@ static void video_init() {
 }
 
 static void video_dispose() {
-
 	for (int i = 0; i < G_N_ELEMENTS(rendersurfaces); i++) {
 		SDL_FreeSurface(rendersurfaces[i]);
 	}
@@ -116,6 +117,7 @@ static const bool video_validaddress(uint32_t address) {
 	return false;
 }
 
+static void video_tick(int cyclesexecuted, bool behind) __attribute__((hot));
 static void video_tick(int cyclesexecuted, bool behind) {
 
 	//int mode = config & VIDEO_CONFIG_MODE_MASK;
@@ -129,8 +131,8 @@ static void video_tick(int cyclesexecuted, bool behind) {
 
 	for (int i = 0; i < pixelclocks; i++) {
 
-		if (pixel == 0 && line == 0) {
-			//log_println(LEVEL_INFO, TAG, "refresh");
+		if (pixel == 0 && line == 0) { //&& !behind
+		//log_println(LEVEL_INFO, TAG, "refresh");
 			videocard_refresh();
 		}
 
@@ -206,14 +208,14 @@ static void video_write_word(uint32_t address, uint16_t data) {
 		}
 
 		uint8_t reg = GETVIDREG(address);
-		if (reg == 1) {
-			if (*(video_registers[reg]) & VIDEO_CONFIG_FLIP) {
-				log_println(LEVEL_INFO, TAG, "surface 1");
-			}
-			else {
-				log_println(LEVEL_INFO, TAG, "surface 0");
-			}
-		}
+//		if (reg == 1) {
+//			if (*(video_registers[reg]) & VIDEO_CONFIG_FLIP) {
+//				log_println(LEVEL_INFO, TAG, "surface 1");
+//			}
+//			else {
+//				log_println(LEVEL_INFO, TAG, "surface 0");
+//			}
+//		}
 
 		*(video_registers[reg]) = data;
 
@@ -261,9 +263,6 @@ void videocard_setosd(SDL_Surface* s) {
 	vramtouched = true; // hack
 	osd = s;
 }
-
-#define WINDOWCOVERSSCREEN ((region.x == 0) && (region.y == 0) && (region.w == VIDEO_WIDTH) && (region.h == VIDEO_HEIGHT))
-
 
 void videocard_refresh() {
 

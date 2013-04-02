@@ -143,6 +143,7 @@ static void inputcard_decodekey(SDLKey key, bool up) {
 	}
 }
 
+static void inputcard_tick(int cyclesexecuted, bool behind) __attribute__((hot));
 static void inputcard_tick(int cyclesexecuted, bool behind) {
 	// "latch" stuff here
 

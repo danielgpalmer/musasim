@@ -159,6 +159,7 @@ static void dmacard_popwindow() {
 static bool aborted = false;
 static bool transferinprogress = false;
 
+static void dmacard_tick(int cyclesexecuted, bool behind) __attribute__((hot));
 static void dmacard_tick(int cyclesexecuted, bool behind) {
 
 	static int state = 0; // for transfer modes to track their current phase of the unit
@@ -350,7 +351,7 @@ static void dmacard_tick(int cyclesexecuted, bool behind) {
 	}
 }
 
-static uint16_t* dmacard_decodereg(uint32_t address) {
+static uint16_t* const dmacard_decodereg(uint32_t address) {
 	int reg = (address & ADDRESSMASK);
 
 	switch (reg) {
@@ -446,7 +447,7 @@ static void dmacard_start() {
 	for (int i = 0; i <= curwindowindex; i++) {
 		cyclesleft += dmacard_howmanycycles(&regwindows[i]);
 	}
-	log_println(LEVEL_INFO, TAG, "total cycles %d", cyclesleft);
+	//log_println(LEVEL_INFO, TAG, "total cycles %d", cyclesleft);
 }
 
 static void dmacard_write_word(uint32_t address, uint16_t value) {

@@ -20,7 +20,7 @@ void board_add_device(uint8_t slot, const card* card);
 /* plug the board in to the juice */
 void board_poweron(void);
 /* crank all of the cards plugged into the board */
-void board_tick(int cyclesexecuted);
+void board_tick(int cyclesexecuted, bool behind);
 /* reset the board and all of the cards */
 void board_reset(void);
 /* tell the board and cards that the emulation is being paused */

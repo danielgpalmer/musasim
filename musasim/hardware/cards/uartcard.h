@@ -11,6 +11,8 @@
 #include "card.h"
 const card uartcard;
 
+#define UART_MAINCLOCK_DIVIDER 4
+
 #define UART_REGISTER_RXTXBUFFER 		0
 #define UART_REGISTER_INTERRUPTENABLE	(1 << 1)
 #define UART_REGISTER_FIFOCONTROL 		(2 << 1)

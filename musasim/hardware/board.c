@@ -10,6 +10,7 @@
 #include "../musashi/m68kcpu.h"
 #include "../musashi/m68k.h"
 #include "../utils.h"
+#include "../config.h"
 
 #define LOTSOFDEBUGOUTPUT
 #define TAG "board"
@@ -18,14 +19,18 @@
 #include "../gdbserver.h"
 #endif
 
+#if USEMULTIPLETHREADS
 //
 static int unprocessed = 0;
 static GCond cond;
 static GMutex mutex;
 //
+#endif
 
+#if USEMULTIPLETHREADS
 static GThreadPool* workers;
 static GRecMutex busmutex;
+#endif
 
 #define CHECKMASK 0xFFFFFFFC //
 static unsigned int currentfc;
@@ -37,6 +42,7 @@ static unsigned int currentfc;
  */
 
 static const card* slots[NUM_SLOTS];
+static long executiontimes[NUM_SLOTS];
 static bool interruptswaiting[NUM_SLOTS];
 static bool busrequestwaiting[NUM_SLOTS];
 static bool buslocked = false;
@@ -76,12 +82,32 @@ void board_add_device(uint8_t slot, const card *card) {
 }
 
 static int cycles;
+static bool isbehind;
 
-void board_tick(int cyclesexecuted) __attribute__((hot));
-void board_tick(int cyclesexecuted) {
+static void board_workerfunc(gpointer data, gpointer userdata) {
+	struct timespec start, end;
+	int slot = GPOINTER_TO_INT(data) - 1;
+	if (slots[slot] != NULL && slots[slot]->tick != NULL ) {
+		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+		slots[slot]->tick(cycles, isbehind);
+		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
+		struct timespec* diff = timespecdiff(&start, &end);
+		executiontimes[slot] = (diff->tv_sec * SIM_ONENANOSECOND) + diff->tv_nsec;
+	}
+#if USEMULTIPLETHREADS
 	g_mutex_lock(&mutex);
-
+	unprocessed--;
+	if (unprocessed == 0)
+	g_cond_signal(&cond);
+	g_mutex_unlock(&mutex);
+#endif
+}
+void board_tick(int cyclesexecuted, bool behind) __attribute__((hot));
+void board_tick(int cyclesexecuted, bool behind) {
 	cycles = cyclesexecuted;
+	isbehind = behind;
+#if USEMULTIPLETHREADS
+	g_mutex_lock(&mutex);
 	unprocessed = 0;
 	for (int i = 0; i < NUM_SLOTS; i++) {
 		g_thread_pool_push(workers, GINT_TO_POINTER(i + 1), NULL );
@@ -91,24 +117,25 @@ void board_tick(int cyclesexecuted) {
 	g_cond_wait(&cond, &mutex);
 	g_assert(unprocessed == 0);
 	g_mutex_unlock(&mutex);
-}
-
-static void board_workerfunc(gpointer data, gpointer userdata) {
-	int slot = GPOINTER_TO_INT(data) - 1;
-	if (slots[slot] != NULL && slots[slot]->tick != NULL ) {
-		slots[slot]->tick(cycles, false);
+#else
+	for (int i = 0; i < NUM_SLOTS; i++) {
+		board_workerfunc(GINT_TO_POINTER(i + 1), NULL );
 	}
-	g_mutex_lock(&mutex);
-	unprocessed--;
-	if (unprocessed == 0)
-		g_cond_signal(&cond);
-	g_mutex_unlock(&mutex);
+#endif
+
+	//for (int i = 0; i < G_N_ELEMENTS(executiontimes); i++) {
+	//	log_println(LEVEL_INFO, TAG, "slot %d (%s) took %ld", i, slots[i]->boardinfo, executiontimes[i]);
+	//}
+
 }
 
 void board_poweron() {
-	int processors = get_nprocs();
+#if USEMULTIPLETHREADS
+	//int processors = get_nprocs();
+	int processors = 1;
 	workers = g_thread_pool_new(board_workerfunc, NULL, processors, true, NULL );
 	log_println(LEVEL_INFO, TAG, "Started %d worker threads", processors);
+#endif
 }
 
 void board_poweroff() {
@@ -117,8 +144,10 @@ void board_poweroff() {
 			(slots[i]->dispose)();
 		}
 	}
+#if USEMULTIPLETHREADS
 	g_thread_pool_free(workers, true, true);
 	workers = NULL;
+#endif
 }
 
 void board_pause(bool paused) {
@@ -151,7 +180,9 @@ static void board_dobuslock(int slot) {
 }
 
 void board_lock_bus(const card* card) {
+#if USEMULTIPLETHREADS
 	g_rec_mutex_lock(&busmutex);
+#endif
 	int slot = board_which_slot(card);
 	if (buslocked) {
 		g_assert(curbusmaster != slot);
@@ -160,17 +191,23 @@ void board_lock_bus(const card* card) {
 	}
 	else
 		board_dobuslock(slot);
+#if USEMULTIPLETHREADS
 	g_rec_mutex_unlock(&busmutex);
+#endif
 }
 
 void board_unlock_bus(const card* card) {
+#if USEMULTIPLETHREADS
 	g_rec_mutex_lock(&busmutex);
+#endif
 	buslocked = false;
 	curbusmaster = -1;
 	for (int i = 0; i < NUM_SLOTS; i++)
 		if (busrequestwaiting[i])
 			board_dobuslock(i);
+#if USEMULTIPLETHREADS
 	g_rec_mutex_unlock(&busmutex);
+#endif
 }
 
 bool board_bus_locked() {
@@ -192,14 +229,15 @@ bool board_bus_locked() {
 static inline const bool board_interrupt_sanitycheck(int slot) {
 	if (slot != NOCARD && slot != 0 && slot != 7)
 		return true;
-	//printf("Interrupt from card not in slot, or card in zero or seven\n");
+//printf("Interrupt from card not in slot, or card in zero or seven\n");
 	else
 		return false;
 }
 
 void board_raise_interrupt(const card* card) {
-
+#if USEMULTIPLETHREADS
 	g_rec_mutex_lock(&busmutex);
+#endif
 
 	int slot = board_which_slot(card);
 	if (board_interrupt_sanitycheck(slot)) {
@@ -230,14 +268,16 @@ void board_raise_interrupt(const card* card) {
 			interruptswaiting[slot] = true;
 		}
 	}
-
+#if USEMULTIPLETHREADS
 	g_rec_mutex_unlock(&busmutex);
+#endif
 
 }
 
 void board_lower_interrupt(const card* card) {
-
+#if USEMULTIPLETHREADS
 	g_rec_mutex_lock(&busmutex);
+#endif
 
 	int slot = board_which_slot(card);
 	if (board_interrupt_sanitycheck(slot)) {
@@ -260,8 +300,9 @@ void board_lower_interrupt(const card* card) {
 			curslot = newslot;
 		}
 	}
-
+#if USEMULTIPLETHREADS
 	g_rec_mutex_unlock(&busmutex);
+#endif
 }
 
 int board_ack_interrupt(int level) {
@@ -351,7 +392,9 @@ static bool board_checkaccess(const card* accessedcard, uint32_t address, unsign
 static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) __attribute__((always_inline)) __attribute__((hot));
 static inline unsigned int board_read(unsigned int address, bool skipchecks, const card* busmaster, const int width) {
 
+#if USEMULTIPLETHREADS
 	g_rec_mutex_lock(&busmutex);
+#endif
 
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
@@ -397,7 +440,9 @@ static inline unsigned int board_read(unsigned int address, bool skipchecks, con
 #endif
 	}
 
+#if USEMULTIPLETHREADS
 	g_rec_mutex_unlock(&busmutex);
+#endif
 
 	return value;
 }
@@ -448,8 +493,9 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 		const int width) __attribute__((always_inline)) __attribute__((hot));
 static inline void board_write(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster,
 		const int width) {
-
+#if USEMULTIPLETHREADS
 	g_rec_mutex_lock(&busmutex);
+#endif
 
 	uint8_t slot = board_decode_slot(address);
 	uint32_t slotaddress = address & SLOT_ADDRESS_MASK;
@@ -492,7 +538,9 @@ static inline void board_write(unsigned int address, unsigned int value, bool sk
 #endif
 	}
 
+#if USEMULTIPLETHREADS
 	g_rec_mutex_unlock(&busmutex);
+#endif
 }
 
 void board_write_byte_internal(unsigned int address, unsigned int value, bool skipchecks, const card* busmaster) {

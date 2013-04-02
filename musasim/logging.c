@@ -52,12 +52,11 @@ void log_shutdown() {
 
 void log_println(int level, const char* tag, char * fmt, ...) {
 
-	CHECKSTATE;
-
 	// level filtering
 	if (level > loglevel) {
 		return;
 	}
+	CHECKSTATE;
 
 	g_static_mutex_lock(&mutex);
 
@@ -93,6 +92,9 @@ void log_setlevel(int newlevel) {
 
 void log_printhexblock(int level, const char* tag, void* data, size_t len) {
 
+	if (level > loglevel) {
+		return;
+	}
 	CHECKSTATE;
 
 	g_static_mutex_lock(&mutex);

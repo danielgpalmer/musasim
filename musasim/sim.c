@@ -199,7 +199,7 @@ void sim_init() {
  * Cranks the cpu and then cranks everything else by the same amount of cycles that the
  * cpu rolled over.
  */
-
+void sim_tick() __attribute__((hot));
 void sim_tick() {
 
 	static struct timespec start, end;
@@ -240,11 +240,12 @@ void sim_tick() {
 
 		cycles += cpucyclesexecuted;
 
-		board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER);
+		board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER, owed > 0);
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
 
-		long int timetaken = timespecdiff(&start, &end)->tv_nsec;
-		long int target = SIM_CPUCLOCKDURATION * cpucyclesexecuted;
+		struct timespec* timediff = timespecdiff(&start, &end);
+		long timetaken = (timediff->tv_sec * SIM_ONENANOSECOND) + timediff->tv_nsec;
+		long target = SIM_CPUCLOCKDURATION * cpucyclesexecuted;
 
 		double currentspeed = (float) target / (float) timetaken;
 		count++;
@@ -252,7 +253,7 @@ void sim_tick() {
 		speed = ((speed * (count - 1)) + currentspeed) / count;
 
 		if (timetaken > 100000) {
-			//log_println(LEVEL_INFO, TAG, "CLAMP!");
+			//	//log_println(LEVEL_INFO, TAG, "CLAMP!");
 			timetaken = 100000;
 		}
 
