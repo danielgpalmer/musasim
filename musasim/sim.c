@@ -5,18 +5,15 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <time.h>
-#include <math.h>
-#include <glib.h>
 #include <unistd.h>
+#include <glib.h>
 #include <SDL.h>
-
-#include <sys/time.h>
 
 #include "utils.h"
 #include "sim.h"
 #include "osd.h"
 #include "logging.h"
+#include "throttler.h"
 #include "musashi/m68k.h"
 
 // all of the hardware headers
@@ -44,7 +41,6 @@
 #define SIM_KEY_QUIT			SDLK_ESCAPE
 
 // state
-static bool throttle = true;
 static bool shouldexit = false;
 static bool paused = false;
 static bool initialised = false;
@@ -60,12 +56,10 @@ static const char WINDOWTITLE[] = "musasim";
 static const char TAG[] = "sim";
 
 static long cycles = 0;
-static double speed = 0;
-static long count = 0;
 
 static void sim_updatesdl() {
 
-	osd_update(speed);
+	osd_update(throttler_speed());
 
 	// Check some keys
 	SDL_PumpEvents();
@@ -88,7 +82,7 @@ static void sim_updatesdl() {
 				case SIM_KEY_MUTE:
 					break;
 				case SIM_KEY_TOGGLETHROTTLE:
-					throttle = !throttle;
+					throttler_toggle();
 					break;
 				case SIM_KEY_TOGGLEOSD:
 					log_println(LEVEL_INFO, TAG, "toggling osd");
@@ -202,9 +196,6 @@ void sim_init() {
 void sim_tick() __attribute__((hot));
 void sim_tick() {
 
-	static struct timespec start, end;
-	static long int owed = 0;
-
 	if (cycles > SIM_MAINCLOCK / 30) {
 		sim_updatesdl();
 		cycles = 0;
@@ -225,7 +216,9 @@ void sim_tick() {
 		//log_println(LEVEL_INFO, TAG, "going to execute %d cpu cycles", cyclestoexecute);
 
 		int cpucyclesexecuted;
-		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+
+		throttler_starttick();
+
 		if (!board_bus_locked()) {
 			cpucyclesexecuted = m68k_execute(cyclestoexecute);
 			//log_println(LEVEL_INFO, TAG, "executed %d cpu cycles", cpucyclesexecuted);
@@ -240,34 +233,10 @@ void sim_tick() {
 
 		cycles += cpucyclesexecuted;
 
-		board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER, owed > 0);
-		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
+		board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER, throttler_behind());
 
-		struct timespec* timediff = timespecdiff(&start, &end);
-		long timetaken = (timediff->tv_sec * SIM_ONENANOSECOND) + timediff->tv_nsec;
-		long target = SIM_CPUCLOCKDURATION * cpucyclesexecuted;
+		throttler_endtick(cpucyclesexecuted);
 
-		double currentspeed = (float) target / (float) timetaken;
-		count++;
-
-		speed = ((speed * (count - 1)) + currentspeed) / count;
-
-		if (timetaken > 100000) {
-			//	//log_println(LEVEL_INFO, TAG, "CLAMP!");
-			timetaken = 100000;
-		}
-
-		long int diff = target - timetaken;
-		if (diff > 0) {
-			owed -= diff;
-			if (owed < 0) {
-				usleep(abs(owed) / (1000 + 100));
-				owed = 0;
-			}
-		}
-		else {
-			owed += labs(diff);
-		}
 		//log_println(LEVEL_INFO, TAG, "target %ld, actual %ld, owed %ld", target, timetaken, owed);
 	}
 

@@ -11,6 +11,7 @@
 #include "../musashi/m68k.h"
 #include "../utils.h"
 #include "../config.h"
+#include "../sim.h"
 
 #define LOTSOFDEBUGOUTPUT
 #define TAG "board"
@@ -42,7 +43,10 @@ static unsigned int currentfc;
  */
 
 static const card* slots[NUM_SLOTS];
+static long minexecutiontimes[NUM_SLOTS];
+static long maxexecutiontimes[NUM_SLOTS];
 static long executiontimes[NUM_SLOTS];
+static int count = 1;
 static bool interruptswaiting[NUM_SLOTS];
 static bool busrequestwaiting[NUM_SLOTS];
 static bool buslocked = false;
@@ -92,7 +96,10 @@ static void board_workerfunc(gpointer data, gpointer userdata) {
 		slots[slot]->tick(cycles, isbehind);
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
 		struct timespec* diff = timespecdiff(&start, &end);
-		executiontimes[slot] = (diff->tv_sec * SIM_ONENANOSECOND) + diff->tv_nsec;
+		long time = (diff->tv_sec * SIM_ONENANOSECOND) + diff->tv_nsec;
+		minexecutiontimes[slot] = MIN(minexecutiontimes[slot], time);
+		maxexecutiontimes[slot] = MAX(maxexecutiontimes[slot], time);
+		executiontimes[slot] = ((executiontimes[slot] * (count - 1)) + time) / count;
 	}
 #if USEMULTIPLETHREADS
 	g_mutex_lock(&mutex);
@@ -108,12 +115,10 @@ void board_tick(int cyclesexecuted, bool behind) {
 	isbehind = behind;
 #if USEMULTIPLETHREADS
 	g_mutex_lock(&mutex);
-	unprocessed = 0;
-	for (int i = 0; i < NUM_SLOTS; i++) {
-		g_thread_pool_push(workers, GINT_TO_POINTER(i + 1), NULL );
-		unprocessed++;
-	}
-
+	g_assert(unprocessed == 0);
+	unprocessed = NUM_SLOTS;
+	for (int i = 0; i < NUM_SLOTS; i++)
+	g_thread_pool_push(workers, GINT_TO_POINTER(i + 1), NULL );
 	g_cond_wait(&cond, &mutex);
 	g_assert(unprocessed == 0);
 	g_mutex_unlock(&mutex);
@@ -123,15 +128,17 @@ void board_tick(int cyclesexecuted, bool behind) {
 	}
 #endif
 
-	//for (int i = 0; i < G_N_ELEMENTS(executiontimes); i++) {
-	//	log_println(LEVEL_INFO, TAG, "slot %d (%s) took %ld", i, slots[i]->boardinfo, executiontimes[i]);
-	//}
+	for (int i = 0; i < G_N_ELEMENTS(executiontimes); i++) {
+		log_println(LEVEL_INFO, TAG, "slot %d (%s) min %ld max %ld avg %ld", i, slots[i]->boardinfo,
+				minexecutiontimes[i], maxexecutiontimes[i], executiontimes[i]);
+	}
+	count++;
 
 }
 
 void board_poweron() {
 #if USEMULTIPLETHREADS
-	//int processors = get_nprocs();
+//int processors = get_nprocs();
 	int processors = 1;
 	workers = g_thread_pool_new(board_workerfunc, NULL, processors, true, NULL );
 	log_println(LEVEL_INFO, TAG, "Started %d worker threads", processors);

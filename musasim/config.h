@@ -8,6 +8,6 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#define USEMULTIPLETHREADS 0
+#define USEMULTIPLETHREADS 1
 
 #endif /* CONFIG_H_ */

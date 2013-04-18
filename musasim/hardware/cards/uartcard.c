@@ -24,6 +24,7 @@
 #include "../board.h"
 #include "../../logging.h"
 #include "../../bitfiddling.h"
+#include "../../config.h"
 
 #define FIFOSIZE 16
 #define NUMOFCHANNELS 2
@@ -68,7 +69,10 @@ typedef struct {
 static channel channels[NUMOFCHANNELS];
 
 static bool alive = false;
+
+#if USEMULTIPLETHREADS
 static GThread* readerthread;
+
 static gpointer uart_readerthread_func(gpointer data) {
 
 	log_println(LEVEL_INFO, TAG, "Reader thread started");
@@ -82,6 +86,7 @@ static gpointer uart_readerthread_func(gpointer data) {
 	return NULL ;
 
 }
+#endif
 
 static void uart_clearbit(uint8_t mask, uint8_t* target) {
 	*target &= ~mask;
@@ -133,14 +138,18 @@ static void uart_init() {
 		uart_reset_channel(&(channels[i]));
 	}
 	alive = true;
-	readerthread = g_thread_new("uartreader", uart_readerthread_func, NULL );
 
+#if USEMULTIPLETHREADS
+	readerthread = g_thread_new("uartreader", uart_readerthread_func, NULL );
+#endif
 }
 
 static void uart_dispose() {
 
+#if USEMULTIPLETHREADS
 	alive = false;
 	g_thread_join(readerthread);
+#endif
 
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
 		close(channels[i].ptm);

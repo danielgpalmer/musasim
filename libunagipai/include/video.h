@@ -52,4 +52,8 @@ void video_clear(uint16_t clearcolour);
 void video_fillrect(int x, int y, int width, int height);
 void video_drawline(vector* v);
 
+void video_setconfig(bool vblankint, bool hblankint);
+void video_waitforvblank();
+
+
 #endif /* VIDEO_H_ */

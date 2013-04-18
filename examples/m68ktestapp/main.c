@@ -17,6 +17,7 @@
 #include <libunagipai/sprite.h>
 #include <libunagipai/math.h>
 #include <libunagipai/utils.h>
+#include <libunagipai/video.h>
 
 #include "main.h"
 
