@@ -16,7 +16,7 @@ const card soundcard;
 ringbuffer* sound_getbuffer();
 
 #define RATE 22050
-#define TICKSPERSAMPLE (SIM_MAINCLOCK / RATE)
+#define TICKSPERSAMPLE ((SIM_MAINCLOCK / RATE) - 200)
 
 #define NUMAUDIOCHANNELS 8
 #define TOTALCHANNELS (NUMAUDIOCHANNELS + 1)

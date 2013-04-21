@@ -54,7 +54,7 @@ static void soundcard_sdlcallback(void* userdata, Uint8* stream, int len) {
 	}
 	for (int i = 0; i < len; i++) {
 		int16_t value = ringbuffer_get(buff);
-		*((int16_t*) stream) = value & 0x00;
+		*((int16_t*) stream) = value;
 		stream += sizeof(value);
 	}
 }
@@ -108,6 +108,8 @@ static void soundcard_init() {
 		log_println(LEVEL_DEBUG, TAG, "SDL output is now active");
 		active = true;
 	}
+	else
+		log_println(LEVEL_INFO, TAG, "Failed to open sound");
 }
 
 static void soundcard_dump_config(int channel, bool latched) {
@@ -163,8 +165,8 @@ static void soundcard_tick(int cyclesexecuted, bool behind) {
 	if (samples == 0)
 		return;
 
-	//SDL_LockAudio();
-	for (int i = 0; i < samples * 3; i++) {
+	SDL_LockAudio();
+	for (int i = 0; i < samples; i++) {
 
 		masterchannel* master = &(channels[0].master);
 
@@ -228,7 +230,7 @@ static void soundcard_tick(int cyclesexecuted, bool behind) {
 
 		}
 	}
-	//SDL_UnlockAudio();
+	SDL_UnlockAudio();
 //soundcard_dump_config(1, true);
 }
 
@@ -293,7 +295,7 @@ static uint16_t soundcard_read_word(uint32_t address) {
 
 static void soundcard_write_word(uint32_t address, uint16_t value) {
 	if (address < channelregisterbase) {
-		log_println(LEVEL_INFO, TAG, "Write to sample ram @ 0x%"PRIx32" value: 0x%"PRIx16, address, value);
+		//log_println(LEVEL_INFO, TAG, "Write to sample ram @ 0x%"PRIx32" value: 0x%"PRIx16, address, value);
 		WRITE_WORD(sampleram, address, value);
 	}
 	else {

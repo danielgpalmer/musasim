@@ -38,11 +38,12 @@ typedef struct {
 	SDL_Rect rect;
 } label;
 
-#define RENDERLABEL(label, font, text, colour) (label.surface = TTF_RenderUTF8_Solid(font, text, colour))
+#define RENDERLABEL(label, font, text, colour) if(label.surface != NULL) SDL_FreeSurface(label.surface); label.surface = TTF_RenderUTF8_Solid(font, text, colour)
 #define FREELABEL(label) (SDL_FreeSurface(label.surface))
 #define BLITLABEL(label) (SDL_BlitSurface(label.surface, NULL, osd, &label.rect))
 #define ORIGINLEFT(label)(label.rect.x = WINDOWPADDING)
 #define ORIGINBOTTOM(label)(label.rect.y = VIDEO_HEIGHT - WINDOWPADDING - label.surface->h)
+#define ORIGINTOP(label) (label.rect.y = WINDOWPADDING)
 #define PUTUNDER(label, underlabel) (label.rect.y = underlabel.rect.y + underlabel.surface->h + INTERITEMPAD)
 #define PUTAFTER(label, afterlabel) (label.rect.x = afterlabel.rect.x + afterlabel.surface->w + INTERITEMPAD)
 #define ALIGNVERTICAL(label, alignlabel)(label.rect.y = alignlabel.rect.y);
@@ -51,18 +52,16 @@ static TTF_Font* font = NULL;
 static TTF_Font* smallfont = NULL;
 
 static SDL_Surface* osd = NULL;
-static SDL_Surface* busactivitylabel;
 static SDL_Surface* dipswitcheslabel;
 static SDL_Surface* debuglabel;
 static SDL_Surface* audiolabel;
-static SDL_Surface* leftlabel;
-static SDL_Surface* rightlabel;
 
+static label busactivitylabel;
 static label statslabel, speedlabel, speedvaluelabel, overheadlabel, overheadvaluelabel;
 static label pausekeylabel, resetkeylabel, nmikeylabel, mutekeylabel, osdkeylabel, throttlekeylabel, exitkeylabel;
+static label audioleftlabel, audiorightlabel;
 
-static SDL_Rect busactivitylabelrect, dipslabelrect, ledlabelrect, ledrect, audiowindow, audiowindowtitle,
-		audiowindowlabels;
+static SDL_Rect dipslabelrect, ledlabelrect, ledrect, audiowindow, audiowindowtitle;
 static SDL_Color labels = { .r = 0, .g = 0xff, .b = 0 };
 static Uint32 colourkey, ledon, ledoff, audiowindowbg;
 static bool osdvisible = false;
@@ -77,20 +76,20 @@ static void osd_set() {
 void osd_createlabels() {
 	TTF_Init();
 	font = TTF_OpenFont(fontutils_getmonospace(), LABELHEIGHT);
+	smallfont = TTF_OpenFont(fontutils_getmonospace(), KEYLABELHEIGHT);
 	if (font != NULL ) {
-		busactivitylabel = TTF_RenderUTF8_Solid(font, "bus activity", labels);
+		RENDERLABEL(busactivitylabel, font, "bus activity", labels);
 		dipswitcheslabel = TTF_RenderUTF8_Solid(font, "dip switches", labels);
 		debuglabel = TTF_RenderUTF8_Solid(font, "debug leds", labels);
 		audiolabel = TTF_RenderUTF8_Solid(font, "audiobuffer", labels);
-		leftlabel = TTF_RenderUTF8_Solid(font, "left", labels);
-		rightlabel = TTF_RenderUTF8_Solid(font, "right", labels);
+		RENDERLABEL(audioleftlabel, font, "left", labels);
+		RENDERLABEL(audiorightlabel, font, "right", labels);
 		RENDERLABEL(statslabel, font, "Statistics", labels);
 		RENDERLABEL(speedlabel, font, "Speed: ", labels);
 		RENDERLABEL(speedvaluelabel, font, "00.00%", labels);
 		RENDERLABEL(overheadlabel, font, "Overhead: ", labels);
 		RENDERLABEL(overheadvaluelabel, font, "00.00%", labels);
 	}
-	smallfont = TTF_OpenFont(fontutils_getmonospace(), KEYLABELHEIGHT);
 	if (smallfont != NULL ) {
 		RENDERLABEL(pausekeylabel, smallfont, "[pause:F1]", labels);
 		RENDERLABEL(resetkeylabel, smallfont, "[reset:F2]", labels);
@@ -103,13 +102,39 @@ void osd_createlabels() {
 
 }
 
-static void osd_updateaudiobuffer() {
-	int quarterheight = audiowindow.h / 4;
-	int middle = audiowindow.y + quarterheight * 2;
-	int leftbase = audiowindow.y + quarterheight;
-	int rightbase = audiowindow.y + (quarterheight * 3);
+static int quarterheight, middle, leftbase, rightbase, windowright;
 
-	int windowright = audiowindow.x + audiowindow.w - 1;
+static void osd_layoutaudiobuffer() {
+	audiowindow.w = 200;
+	audiowindow.h = 150;
+
+	audiowindowtitle.y = WINDOWPADDING;
+	audiowindowtitle.x = (VIDEO_WIDTH - WINDOWPADDING - audiowindow.w) + ((audiowindow.w / 2) - (audiolabel->w / 2));
+
+	audiowindow.x = VIDEO_WIDTH - WINDOWPADDING - audiowindow.w;
+	audiowindow.y = audiowindowtitle.y + audiolabel->h + INTERITEMPAD;
+
+	quarterheight = audiowindow.h / 4;
+	middle = audiowindow.y + quarterheight * 2;
+	leftbase = audiowindow.y + quarterheight;
+	rightbase = audiowindow.y + (quarterheight * 3);
+
+	windowright = audiowindow.x + audiowindow.w - 1;
+
+	audioleftlabel.rect.x = audiowindow.x - audioleftlabel.surface->w - INTERITEMPAD;
+	audioleftlabel.rect.y = leftbase - (audioleftlabel.surface->h / 2);
+
+	audiorightlabel.rect.x = audiowindow.x - audiorightlabel.surface->w - INTERITEMPAD;
+	audiorightlabel.rect.y = rightbase - (audiorightlabel.surface->h / 2);
+}
+
+static void osd_drawaudiobuffer() {
+
+	if (firstdraw) {
+		SDL_BlitSurface(audiolabel, NULL, osd, &audiowindowtitle);
+		BLITLABEL(audioleftlabel);
+		BLITLABEL(audiorightlabel);
+	}
 
 	SDL_FillRect(osd, &audiowindow, audiowindowbg);
 	sdlwrapper_drawline(osd, audiowindow.x, leftbase, windowright, leftbase, 0, 0xFF0000FF);
@@ -120,15 +145,6 @@ static void osd_updateaudiobuffer() {
 
 	static int16_t left = 0;
 	static int16_t right = 0;
-
-	SDL_BlitSurface(audiolabel, NULL, osd, &audiowindowtitle);
-
-	audiowindowlabels.x = audiowindow.x - leftlabel->w - INTERITEMPAD;
-	audiowindowlabels.y = leftbase - (leftlabel->h / 2);
-	SDL_BlitSurface(leftlabel, NULL, osd, &audiowindowlabels);
-	audiowindowlabels.x = audiowindow.x - rightlabel->w - INTERITEMPAD;
-	audiowindowlabels.y = rightbase - (rightlabel->h / 2);
-	SDL_BlitSurface(rightlabel, NULL, osd, &audiowindowlabels);
 
 	ringbuffer* buffer = sound_getbuffer();
 
@@ -178,18 +194,35 @@ static void osd_drawkeys() {
 	}
 }
 
+static void osd_layoutleds() {
+	ORIGINTOP(busactivitylabel);
+	ORIGINLEFT(busactivitylabel);
+	dipslabelrect.x = WINDOWPADDING;
+	dipslabelrect.y = busactivitylabel.rect.y + busactivitylabel.surface->h + LEDHEIGHT + INTERITEMPAD;
+
+	ledlabelrect.x = WINDOWPADDING;
+	ledlabelrect.y = dipslabelrect.y + dipswitcheslabel->h + LEDHEIGHT + INTERITEMPAD;
+}
+
 static void osd_drawleds() {
 
 	static int lastleds = -1;
 	uint8_t leds = inputcard_getleds();
 	static bool dipschanged = true;
 
-// bus activity
-	SDL_BlitSurface(busactivitylabel, NULL, osd, &busactivitylabelrect);
-	ledrect.y = busactivitylabelrect.y + busactivitylabel->h;
+	// draw the labels
+	if (firstdraw) {
+		BLITLABEL(busactivitylabel);
+		SDL_BlitSurface(dipswitcheslabel, NULL, osd, &dipslabelrect);
+		SDL_BlitSurface(debuglabel, NULL, osd, &ledlabelrect);
+	}
+
+	// bus activity
+
+	ledrect.y = busactivitylabel.rect.y + busactivitylabel.surface->h;
 
 	for (int i = 0; i < NUM_SLOTS; i++) {
-		ledrect.x = busactivitylabelrect.x + ((ledrect.w + LEDSPACING) * i);
+		ledrect.x = busactivitylabel.rect.x + ((ledrect.w + LEDSPACING) * i);
 
 		Uint32 colour = ledoff;
 		const card* c = board_getcardinslot(i);
@@ -205,8 +238,7 @@ static void osd_drawleds() {
 //
 
 // dip switches
-	if (dipschanged) {
-		SDL_BlitSurface(dipswitcheslabel, NULL, osd, &dipslabelrect);
+	if (firstdraw || dipschanged) {
 		ledrect.x = dipslabelrect.x;
 		ledrect.y = dipslabelrect.y + dipswitcheslabel->h;
 		for (int i = 0; i < LEDS; i++) {
@@ -218,8 +250,7 @@ static void osd_drawleds() {
 //
 
 // debug leds
-	if (leds != lastleds) {
-		SDL_BlitSurface(debuglabel, NULL, osd, &ledlabelrect);
+	if (firstdraw || (leds != lastleds)) {
 		ledrect.x = ledlabelrect.x;
 		ledrect.y = ledlabelrect.y + debuglabel->h;
 		for (int i = 0; i < LEDS; i++) {
@@ -248,6 +279,7 @@ static void osd_layoutstats() {
 static void osd_drawstats(double speed, double overhead) {
 	static double lastspeed = -1;
 	static double lastoverhead = -1;
+	static char speedstr[10];
 
 	if (firstdraw) {
 		BLITLABEL(statslabel);
@@ -256,19 +288,15 @@ static void osd_drawstats(double speed, double overhead) {
 	}
 
 	if (speed != lastspeed) {
-		static char speedstr[10];
 		snprintf(speedstr, sizeof(speedstr), "%2.2f%%", speed * 100);
-		SDL_FreeSurface(speedvaluelabel.surface);
-		speedvaluelabel.surface = TTF_RenderUTF8_Solid(font, speedstr, labels);
+		RENDERLABEL(speedvaluelabel, font, speedstr, labels);
 		CLEARLABEL(speedvaluelabel);
 		BLITLABEL(speedvaluelabel);
 		lastspeed = speed;
 	}
 	if (overhead != lastoverhead) {
-		static char speedstr[10];
 		snprintf(speedstr, sizeof(speedstr), "%2.2f%%", overhead * 100);
-		SDL_FreeSurface(overheadvaluelabel.surface);
-		overheadvaluelabel.surface = TTF_RenderUTF8_Solid(font, speedstr, labels);
+		RENDERLABEL(overheadvaluelabel, font, speedstr, labels);
 		CLEARLABEL(overheadvaluelabel);
 		BLITLABEL(overheadvaluelabel);
 		lastoverhead = overhead;
@@ -286,14 +314,7 @@ void osd_init() {
 	SDL_SetColorKey(osd, SDL_SRCCOLORKEY, colourkey);
 	SDL_FillRect(osd, NULL, colourkey);
 
-	busactivitylabelrect.x = WINDOWPADDING;
-	busactivitylabelrect.y = WINDOWPADDING;
-
-	dipslabelrect.x = WINDOWPADDING;
-	dipslabelrect.y = busactivitylabelrect.y + busactivitylabel->h + LEDHEIGHT + INTERITEMPAD;
-
-	ledlabelrect.x = WINDOWPADDING;
-	ledlabelrect.y = dipslabelrect.y + dipswitcheslabel->h + LEDHEIGHT + INTERITEMPAD;
+	osd_layoutleds();
 
 	statslabel.rect.x = WINDOWPADDING;
 	statslabel.rect.y = ledlabelrect.y + debuglabel->h + LEDHEIGHT + (INTERITEMPAD * 2);
@@ -303,16 +324,8 @@ void osd_init() {
 	ledrect.h = LEDHEIGHT;
 	ledrect.w = LEDWIDTH;
 
-	audiowindow.w = 200;
-	audiowindow.h = 150;
-
-	audiowindowtitle.y = WINDOWPADDING;
-	audiowindowtitle.x = (VIDEO_WIDTH - WINDOWPADDING - audiowindow.w) + ((audiowindow.w / 2) - (audiolabel->w / 2));
-
-	audiowindow.x = VIDEO_WIDTH - WINDOWPADDING - audiowindow.w;
-	audiowindow.y = audiowindowtitle.y + audiolabel->h + INTERITEMPAD;
-
 	osd_layoutkeys();
+	osd_layoutaudiobuffer();
 
 	osd_set();
 }
@@ -321,7 +334,7 @@ void osd_update(double speed, double overhead) {
 	if (!osdvisible)
 		return;
 	osd_drawleds();
-	osd_updateaudiobuffer();
+	osd_drawaudiobuffer();
 	osd_drawkeys();
 	osd_drawstats(speed, overhead);
 	firstdraw = false;
@@ -340,9 +353,12 @@ void osd_visible(bool visible) {
 }
 
 void osd_dispose() {
+	FREELABEL(busactivitylabel);
 	SDL_FreeSurface(debuglabel);
-	SDL_FreeSurface(busactivitylabel);
 	SDL_FreeSurface(dipswitcheslabel);
+
+	FREELABEL(audioleftlabel);
+	FREELABEL(audiorightlabel);
 
 	FREELABEL(pausekeylabel);
 	FREELABEL(resetkeylabel);
