@@ -207,8 +207,11 @@ void sim_tick() {
 		throttler_starttick();
 		if (cycles > SIM_MAINCLOCK / 30) {
 			sim_updatesdl();
+			if (shouldexit)
+				return;
 			cycles = 0;
 		}
+
 		// clamping the cycles to at least 16 avoids us getting stuck in a situation where there
 		// aren't enough cycles being run to actually progress
 		int cyclestoexecute =
