@@ -59,7 +59,7 @@ static long cycles = 0;
 
 static void sim_updatesdl() {
 
-	osd_update(throttler_speed());
+	osd_update(throttler_speed(), throttler_overhead());
 
 	// Check some keys
 	SDL_PumpEvents();
@@ -209,16 +209,16 @@ void sim_tick() {
 		usleep(5000);
 	else {
 
+		throttler_starttick();
 		// clamping the cycles to at least 16 avoids us getting stuck in a situation where there
-		// aren't to actually progress
+		// aren't enough cycles being run to actually progress
 		int cyclestoexecute =
 				MAX(board_maxcycles(board_bestcasecycles()) / SIM_CPUCLOCK_DIVIDER, MINIMUMCPUCYCLESPERTICK);
 		//log_println(LEVEL_INFO, TAG, "going to execute %d cpu cycles", cyclestoexecute);
 
 		int cpucyclesexecuted;
 
-		throttler_starttick();
-
+		throttler_startcputick();
 		if (!board_bus_locked()) {
 			cpucyclesexecuted = m68k_execute(cyclestoexecute);
 			//log_println(LEVEL_INFO, TAG, "executed %d cpu cycles", cpucyclesexecuted);
@@ -230,6 +230,7 @@ void sim_tick() {
 		}
 		else
 			cpucyclesexecuted = cyclestoexecute;
+		throttler_endcputick();
 
 		cycles += cpucyclesexecuted;
 

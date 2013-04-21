@@ -8,6 +8,7 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#define USEMULTIPLETHREADS 1
+#define USEMULTIPLETHREADS 0
+#define MAXWORKERS 1
 
 #endif /* CONFIG_H_ */

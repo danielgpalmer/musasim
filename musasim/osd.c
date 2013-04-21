@@ -54,12 +54,15 @@ static SDL_Surface* rightlabel;
 static SDL_Surface* statslabel;
 static SDL_Surface* speedlabel;
 static SDL_Surface* speedvaluelabel = NULL;
+static SDL_Surface* overheadlabel;
+static SDL_Surface* overheadvaluelabel = NULL;
 
 static SDL_Rect busactivitylabelrect, dipslabelrect, ledlabelrect, ledrect, audiowindow, audiowindowtitle,
-		audiowindowlabels, statsrect, speedrect, speedvaluerect;
+		audiowindowlabels, statsrect, speedrect, speedvaluerect, overheadrect, overheadvaluerect;
 static SDL_Color labels = { .r = 0, .g = 0xff, .b = 0 };
 static Uint32 colourkey, ledon, ledoff, audiowindowbg;
 static bool osdvisible = false;
+static bool firstdraw = true;
 
 static void osd_set() {
 	videocard_setosd(osdvisible ? osd : NULL );
@@ -78,6 +81,8 @@ void osd_createlabels() {
 		statslabel = TTF_RenderUTF8_Solid(font, "Statistics", labels);
 		speedlabel = TTF_RenderUTF8_Solid(font, "Speed: ", labels);
 		speedvaluelabel = TTF_RenderUTF8_Solid(font, "00.00%", labels);
+		overheadlabel = TTF_RenderUTF8_Solid(font, "Overhead: ", labels);
+		overheadvaluelabel = TTF_RenderUTF8_Solid(font, "00.00%", labels);
 	}
 	smallfont = TTF_OpenFont(fontutils_getmonospace(), KEYLABELHEIGHT);
 	if (smallfont != NULL ) {
@@ -215,12 +220,16 @@ static void osd_drawleds() {
 //
 }
 
-static void osd_drawstats(float speed) {
-	static float lastspeed = -1;
-	if (speed != lastspeed) {
-		SDL_BlitSurface(statslabel, NULL, osd, &statsrect);
-		SDL_BlitSurface(speedlabel, NULL, osd, &speedrect);
+static void osd_drawstats(double speed, double overhead) {
+	static double lastspeed = -1;
+	static double lastoverhead = -1;
 
+	if (firstdraw) {
+		SDL_BlitSurface(statslabel, NULL, osd, &statsrect);
+	}
+
+	if (speed != lastspeed) {
+		SDL_BlitSurface(speedlabel, NULL, osd, &speedrect);
 		static char speedstr[10];
 		snprintf(speedstr, sizeof(speedstr), "%2.2f%%", speed * 100);
 		SDL_FreeSurface(speedvaluelabel);
@@ -228,6 +237,16 @@ static void osd_drawstats(float speed) {
 		SDL_FillRect(osd, &speedvaluerect, audiowindowbg);
 		SDL_BlitSurface(speedvaluelabel, NULL, osd, &speedvaluerect);
 		lastspeed = speed;
+	}
+	if (overhead != lastoverhead) {
+		SDL_BlitSurface(overheadlabel, NULL, osd, &overheadrect);
+		static char speedstr[10];
+		snprintf(speedstr, sizeof(speedstr), "%2.2f%%", overhead * 100);
+		SDL_FreeSurface(overheadvaluelabel);
+		overheadvaluelabel = TTF_RenderUTF8_Solid(font, speedstr, labels);
+		SDL_FillRect(osd, &overheadvaluerect, audiowindowbg);
+		SDL_BlitSurface(overheadvaluelabel, NULL, osd, &overheadvaluerect);
+		lastoverhead = overhead;
 	}
 }
 
@@ -258,6 +277,10 @@ void osd_init() {
 	speedrect.y = statsrect.y + statslabel->h + INTERITEMPAD;
 	speedvaluerect.x = speedrect.x + speedlabel->w + INTERITEMPAD;
 	speedvaluerect.y = speedrect.y;
+	overheadrect.x = speedrect.x + INTERITEMPAD;
+	overheadrect.y = speedrect.y + speedlabel->h + INTERITEMPAD;
+	overheadvaluerect.x = overheadrect.x + overheadlabel->w + INTERITEMPAD;
+	overheadvaluerect.y = overheadrect.y;
 
 	ledrect.h = LEDHEIGHT;
 	ledrect.w = LEDWIDTH;
@@ -274,21 +297,24 @@ void osd_init() {
 	osd_set();
 }
 
-void osd_update(double speed) {
+void osd_update(double speed, double overhead) {
 	if (!osdvisible)
 		return;
 	osd_drawleds();
 	osd_updateaudiobuffer();
 	osd_drawkeys();
-	osd_drawstats(speed);
+	osd_drawstats(speed, overhead);
+	firstdraw = false;
 }
 
 void osd_toggle() {
-	osdvisible = !osdvisible;
-	osd_set();
+	osd_visible(!osdvisible);
 }
 
 void osd_visible(bool visible) {
+	if (!osdvisible && visible)
+		firstdraw = true;
+
 	osdvisible = visible;
 	osd_set();
 }

@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#define _POSIX_C_SOURCE 1993309
+//#define _POSIX_C_SOURCE 1993309
 
 #include "utils.h"
 #include <stdint.h>
@@ -37,5 +37,4 @@ struct timespec* timespecdiff(struct timespec *start, struct timespec *end) {
 	}
 	return &temp;
 }
-
 
