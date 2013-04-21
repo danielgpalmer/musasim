@@ -73,7 +73,7 @@ static void osd_set() {
 	videocard_setosd(osdvisible ? osd : NULL );
 }
 
-void osd_createlabels() {
+static void osd_createlabels() {
 	TTF_Init();
 	font = TTF_OpenFont(fontutils_getmonospace(), LABELHEIGHT);
 	smallfont = TTF_OpenFont(fontutils_getmonospace(), KEYLABELHEIGHT);
@@ -202,6 +202,8 @@ static void osd_layoutleds() {
 
 	ledlabelrect.x = WINDOWPADDING;
 	ledlabelrect.y = dipslabelrect.y + dipswitcheslabel->h + LEDHEIGHT + INTERITEMPAD;
+	ledrect.h = LEDHEIGHT;
+	ledrect.w = LEDWIDTH;
 }
 
 static void osd_drawleds() {
@@ -227,11 +229,8 @@ static void osd_drawleds() {
 		Uint32 colour = ledoff;
 		const card* c = board_getcardinslot(i);
 
-		if (c != NULL && c->active != NULL ) {
-			if (c->active()) {
-				colour = ledon;
-			}
-		}
+		if (c != NULL && c->active != NULL && c->active())
+			colour = ledon;
 
 		SDL_FillRect(osd, &ledrect, colour);
 	}
@@ -320,9 +319,6 @@ void osd_init() {
 	statslabel.rect.y = ledlabelrect.y + debuglabel->h + LEDHEIGHT + (INTERITEMPAD * 2);
 
 	osd_layoutstats();
-
-	ledrect.h = LEDHEIGHT;
-	ledrect.w = LEDWIDTH;
 
 	osd_layoutkeys();
 	osd_layoutaudiobuffer();

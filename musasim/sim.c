@@ -196,11 +196,6 @@ void sim_init() {
 void sim_tick() __attribute__((hot));
 void sim_tick() {
 
-	if (cycles > SIM_MAINCLOCK / 30) {
-		sim_updatesdl();
-		cycles = 0;
-	}
-
 	if (shouldexit) {
 		return;
 	}
@@ -210,6 +205,10 @@ void sim_tick() {
 	else {
 
 		throttler_starttick();
+		if (cycles > SIM_MAINCLOCK / 30) {
+			sim_updatesdl();
+			cycles = 0;
+		}
 		// clamping the cycles to at least 16 avoids us getting stuck in a situation where there
 		// aren't enough cycles being run to actually progress
 		int cyclestoexecute =
@@ -237,23 +236,21 @@ void sim_tick() {
 		board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER, throttler_behind());
 
 		throttler_endtick(cpucyclesexecuted);
-
-		//log_println(LEVEL_INFO, TAG, "target %ld, actual %ld, owed %ld", target, timetaken, owed);
 	}
 
 }
 
 void sim_sandboxviolated() {
 	log_println(LEVEL_INFO, TAG, "sim_sandboxviolated()");
-	m68k_end_timeslice();
 	shouldexit = true;
+	m68k_end_timeslice();
 }
 
 void sim_quit() {
 	log_println(LEVEL_DEBUG, TAG, "sim_quit()");
-	board_poweroff();
-	m68k_end_timeslice();
 	shouldexit = true;
+	m68k_end_timeslice();
+	board_poweroff();
 	log_shutdown();
 }
 
