@@ -69,10 +69,6 @@ static bool firstdraw = true;
 
 #define CLEARLABEL(label) (SDL_FillRect(osd, &label.rect, audiowindowbg))
 
-static void osd_set() {
-	videocard_setosd(osdvisible ? osd : NULL );
-}
-
 static void osd_createlabels() {
 	TTF_Init();
 	font = TTF_OpenFont(fontutils_getmonospace(), LABELHEIGHT);
@@ -322,8 +318,6 @@ void osd_init() {
 
 	osd_layoutkeys();
 	osd_layoutaudiobuffer();
-
-	osd_set();
 }
 
 void osd_update(double speed, double overhead) {
@@ -345,7 +339,12 @@ void osd_visible(bool visible) {
 		firstdraw = true;
 
 	osdvisible = visible;
-	osd_set();
+}
+
+void osd_render(SDL_Surface* screen) {
+	SDL_Surface* temp = SDL_DisplayFormat(osd);
+	SDL_BlitSurface(temp, NULL, screen, NULL );
+	SDL_FreeSurface(temp);
 }
 
 void osd_dispose() {

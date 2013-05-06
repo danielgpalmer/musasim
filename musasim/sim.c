@@ -14,6 +14,7 @@
 #include "osd.h"
 #include "logging.h"
 #include "throttler.h"
+#include "renderer.h"
 #include "musashi/m68k.h"
 
 // all of the hardware headers
@@ -52,7 +53,6 @@ static bool osdonstate = false;
 static bool basicvideo = false;
 static bool basicsound = false;
 
-static const char WINDOWTITLE[] = "musasim";
 static const char TAG[] = "sim";
 
 static long cycles = 0;
@@ -166,8 +166,7 @@ void sim_init() {
 	}
 
 	log_println(LEVEL_DEBUG, TAG, "sim_init()");
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE);
-	SDL_WM_SetCaption(WINDOWTITLE, WINDOWTITLE);
+	renderer_init();
 
 	// todo this should be made static if possible as it stops
 	// gcc from optimising out a lot of stuff
@@ -237,6 +236,7 @@ void sim_tick() {
 		cycles += cpucyclesexecuted;
 
 		board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER, throttler_behind());
+		renderer_render();
 
 		throttler_endtick(cpucyclesexecuted);
 	}

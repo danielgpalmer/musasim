@@ -14,5 +14,7 @@ void osd_init(void);
 void osd_update(double speed, double overhead);
 void osd_visible(bool visible);
 void osd_toggle(void);
+void osd_render(SDL_Surface* screen);
+void osd_dispose(void);
 
 #endif /* OSD_H_ */

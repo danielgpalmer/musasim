@@ -10,12 +10,12 @@
 #include "../../sim.h"
 #include "../../logging.h"
 #include "../../utils.h"
+#include "../../renderer.h"
 
 static const char TAG[] = "video";
 
 #define WINDOWCOVERSSCREEN ((region.x == 0) && (region.y == 0) && (region.w == VIDEO_WIDTH) && (region.h == VIDEO_HEIGHT))
 
-static bool frameskipping = false;
 static bool vramtouched = false;
 
 static uint16_t flags = 0;
@@ -33,9 +33,7 @@ static uint16_t winheight = VIDEO_HEIGHT;
 static uint16_t* video_registers[] = { &flags, &config, &pixel, &line, &frame, &posx, &posy, &winx, &winy, &winwidth,
 		&winheight };
 
-static SDL_Surface* screen = NULL;
 static SDL_Surface* rendersurfaces[2];
-static SDL_Surface* osd = NULL;
 static SDL_Rect region;
 static SDL_Rect window;
 static void* compositingbuffer;
@@ -68,8 +66,6 @@ static void video_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
-	screen = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, 0, SDL_HWSURFACE);
-
 	for (int i = 0; i < G_N_ELEMENTS(rendersurfaces); i++) {
 
 		SDL_Surface* rendersurface = NULL;
@@ -87,9 +83,6 @@ static void video_init() {
 
 	compositingbuffer = malloc(VIDEO_COMPOSITINGBUFFER_SIZE);
 
-	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
-			screen->format->BitsPerPixel);
-
 	log_println(LEVEL_DEBUG, TAG, "Active area is %d pixel, Total area  is %d pixels, refresh rate %d, pixelclock %d",
 			VIDEO_ACTIVEPIXELS, VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELCLOCK);
 
@@ -101,9 +94,7 @@ static void video_dispose() {
 	for (int i = 0; i < G_N_ELEMENTS(rendersurfaces); i++) {
 		SDL_FreeSurface(rendersurfaces[i]);
 	}
-
 	free(compositingbuffer);
-
 	log_println(LEVEL_DEBUG, TAG, "video_dispose()");
 }
 
@@ -115,6 +106,18 @@ static const bool video_validaddress(uint32_t address) {
 	else if (address < 22) // FIXME!
 		return true;
 	return false;
+}
+
+void videocard_render(SDL_Surface* screen) {
+	if (!WINDOWCOVERSSCREEN && windowchanged) {
+		SDL_FillRect(screen, NULL, 0x0);
+		windowchanged = false;
+	}
+
+	SDL_Surface* temp = SDL_DisplayFormat(BACKSURFACE);
+	SDL_BlitSurface(temp, &region, screen, &window);
+	SDL_FreeSurface(temp);
+	vramtouched = false;
 }
 
 static void video_tick(int cyclesexecuted, bool behind) __attribute__((hot));
@@ -131,9 +134,10 @@ static void video_tick(int cyclesexecuted, bool behind) {
 
 	for (int i = 0; i < pixelclocks; i++) {
 
-		if (pixel == 0 && line == 0) { //&& !behind
-		//log_println(LEVEL_INFO, TAG, "refresh");
-			videocard_refresh();
+		if (pixel == 0 && line == 0 && !behind) {
+			//log_println(LEVEL_INFO, TAG, "refresh");
+			if (!behind && vramtouched)
+				renderer_requestrender();
 		}
 
 		// hblank handling
@@ -257,42 +261,6 @@ static uint16_t video_read_word(uint32_t address) {
 
 static void videocard_irqack() {
 	board_lower_interrupt(&videocard);
-}
-
-void videocard_setosd(SDL_Surface* s) {
-	vramtouched = true; // hack
-	osd = s;
-}
-
-void videocard_refresh() {
-
-	if (frameskipping)
-		return;
-
-	// if the vram hasn't changed and the osd isn't visible we don't need to do anything
-	if (vramtouched || osd) {
-
-		// if the vram has been touched draw everything.. this should care about registers too at some point
-		if (vramtouched) {
-			// if the current window covers the whole surface don't bother clearing it.
-			if (!WINDOWCOVERSSCREEN && windowchanged) {
-				SDL_FillRect(screen, NULL, 0x0);
-				windowchanged = false;
-			}
-
-			SDL_Surface* temp = SDL_DisplayFormat(BACKSURFACE);
-			SDL_BlitSurface(temp, &region, screen, &window);
-			SDL_FreeSurface(temp);
-			vramtouched = false;
-		}
-		// if the osd is visible draw it over the top
-		if (osd) {
-			SDL_Surface* temp = SDL_DisplayFormat(osd);
-			SDL_BlitSurface(temp, NULL, screen, NULL );
-			SDL_FreeSurface(temp);
-		}
-		SDL_Flip(screen);
-	}
 }
 
 static const int videocard_bestcasecycles() {

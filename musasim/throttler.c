@@ -21,6 +21,7 @@
 
 // RT == realtime
 #define AHEADTHRESHOLD 500 // need to research how to get a good value for this,.. this needs to be big enough that we only introduce sleeps when we have actually built up lead against RT, but not too big that noticeable jumps happen. Systems might have a minimum sleep time too.
+#define BEHINDTHRESHOLD 10000000 // TODO - bleh
 static bool enabled = true;
 static struct timespec start, end, cpustart, cpuend, cardstart, cardend;
 
@@ -107,7 +108,7 @@ void throttler_toggle() {
 }
 
 bool throttler_behind() {
-	return owed > 0;
+	return owed > BEHINDTHRESHOLD;
 }
 
 double throttler_speed() {

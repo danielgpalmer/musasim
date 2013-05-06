@@ -5,7 +5,7 @@ LIBCARDSGDB=./hardware/cards/libcardsgdb.a
 LIBMODULES=./hardware/modules/libmodules.a
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
 
-LOCALOBJECTS=sim.o logging.o utils.o elfloader.o osd.o fontutils.o sdlwrapper.o throttler.o
+LOCALOBJECTS=sim.o logging.o utils.o elfloader.o osd.o fontutils.o sdlwrapper.o throttler.o renderer.o
 GDBONLYOBJECTS=gdbserver.o argsgdb.o profiler.o
 MUSASIMONLYOBJECTS=args.o
 REMOTEOBJECTS=./hardware/registerplanner.o
@@ -59,6 +59,9 @@ fontutils.o: fontutils.c
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
 
 throttler.o: throttler.c throttler.h
+	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
+
+renderer.o: renderer.c renderer.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
 
 .PHONY: docs genheader musashi hardware clean checkcode checklibs

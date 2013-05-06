@@ -98,7 +98,7 @@ static void board_workerfunc(gpointer data, gpointer userdata) {
 	g_mutex_lock(&mutex);
 	unprocessed--;
 	if (unprocessed == 0)
-		g_cond_signal(&cond);
+	g_cond_signal(&cond);
 	g_mutex_unlock(&mutex);
 #endif
 }
@@ -111,7 +111,7 @@ void board_tick(int cyclesexecuted, bool behind) {
 	g_assert(unprocessed == 0);
 	unprocessed = NUM_SLOTS;
 	for (int i = 0; i < NUM_SLOTS; i++)
-		g_thread_pool_push(workers, GINT_TO_POINTER(i + 1), NULL );
+	g_thread_pool_push(workers, GINT_TO_POINTER(i + 1), NULL );
 	g_cond_wait(&cond, &mutex);
 	g_assert(unprocessed == 0);
 	g_mutex_unlock(&mutex);
