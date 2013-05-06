@@ -15,6 +15,7 @@
 #include "logging.h"
 #include "throttler.h"
 #include "renderer.h"
+#include "input.h"
 #include "musashi/m68k.h"
 
 // all of the hardware headers
@@ -31,15 +32,6 @@
 #include "hardware/cards/timercard.h"
 
 #define MINIMUMCPUCYCLESPERTICK 16
-
-// keys that the sim uses
-#define SIM_KEY_PAUSE			SDLK_F1
-#define SIM_KEY_RESET			SDLK_F2
-#define SIM_KEY_NMI				SDLK_F3
-#define SIM_KEY_MUTE			SDLK_F4
-#define SIM_KEY_TOGGLEOSD		SDLK_F5
-#define SIM_KEY_TOGGLETHROTTLE	SDLK_F6
-#define SIM_KEY_QUIT			SDLK_ESCAPE
 
 // state
 static bool shouldexit = false;
@@ -58,60 +50,8 @@ static const char TAG[] = "sim";
 static long cycles = 0;
 
 static void sim_updatesdl() {
-
 	osd_update(throttler_speed(), throttler_overhead());
-
-	// Check some keys
-	SDL_PumpEvents();
-	static SDL_Event events[10];
-	if (SDL_PeepEvents(events, 1, SDL_GETEVENT, SDL_QUITMASK)) {
-		log_println(LEVEL_INFO, TAG, "Window was closed");
-		sim_quit();
-		return;
-	}
-
-	// pick out the events that the sim wants
-	for (int i = 0; i < SDL_PeepEvents(events, 10, SDL_PEEKEVENT, SDL_KEYDOWNMASK | SDL_KEYUPMASK); i++) {
-		if (events[i].type == SDL_KEYUP) {
-			switch (events[i].key.keysym.sym) {
-				case SIM_KEY_NMI:
-					m68k_set_irq(7);
-					break;
-				case SIM_KEY_RESET:
-					break;
-				case SIM_KEY_MUTE:
-					break;
-				case SIM_KEY_TOGGLETHROTTLE:
-					throttler_toggle();
-					break;
-				case SIM_KEY_TOGGLEOSD:
-					log_println(LEVEL_INFO, TAG, "toggling osd");
-					osd_toggle();
-					break;
-				case SIM_KEY_PAUSE:
-					paused = !paused;
-					if (paused) {
-						log_println(LEVEL_INFO, TAG, "sim is now paused");
-					}
-					else {
-						log_println(LEVEL_INFO, TAG, "sim is now running");
-					}
-					board_pause(paused);
-					// drain all the events.. better way to fix this?
-					while (SDL_PollEvent(events))
-						;
-
-					return;
-				case SIM_KEY_QUIT:
-					sim_quit();
-					return;
-				default:
-					break;
-			}
-			break;
-		}
-	}
-	//videocard_refresh();
+	input_update();
 }
 
 void cpu_pulse_reset(void) {
@@ -167,6 +107,7 @@ void sim_init() {
 
 	log_println(LEVEL_DEBUG, TAG, "sim_init()");
 	renderer_init();
+	input_init();
 
 	// todo this should be made static if possible as it stops
 	// gcc from optimising out a lot of stuff
@@ -260,6 +201,17 @@ void sim_quit() {
 void sim_reset() {
 	log_println(LEVEL_DEBUG, TAG, "sim_reset()");
 	m68k_pulse_reset();
+}
+
+void sim_togglepause() {
+	paused = !paused;
+	if (paused) {
+		log_println(LEVEL_INFO, TAG, "sim is now paused");
+	}
+	else {
+		log_println(LEVEL_INFO, TAG, "sim is now running");
+	}
+	board_pause(paused);
 }
 
 bool sim_has_quit() {

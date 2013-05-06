@@ -42,17 +42,6 @@ static void inputcard_init() {
 		ports[i] = 0xFF;
 	}
 
-	// Ignore all the events that aren't needed
-	SDL_EventState(SDL_ACTIVEEVENT, SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
-	SDL_EventState(SDL_JOYAXISMOTION, SDL_IGNORE);
-	SDL_EventState(SDL_JOYBALLMOTION, SDL_IGNORE);
-	SDL_EventState(SDL_JOYHATMOTION, SDL_IGNORE);
-	SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
-	SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
-
 }
 
 static uint8_t inputcard_read_byte(uint32_t address) {
@@ -145,27 +134,19 @@ static void inputcard_decodekey(SDLKey key, bool up) {
 
 static void inputcard_tick(int cyclesexecuted, bool behind) __attribute__((hot));
 static void inputcard_tick(int cyclesexecuted, bool behind) {
-	// "latch" stuff here
+}
 
-	static SDL_Event events[10];
-
-	for (int i = 0; i < SDL_PeepEvents(events, 10, SDL_GETEVENT, SDL_KEYDOWNMASK | SDL_KEYUPMASK); i++) {
-		switch (events[i].type) {
-			case SDL_KEYDOWN:
-				log_println(LEVEL_DEBUG, TAG, "key down");
-				inputcard_decodekey(events[i].key.keysym.sym, false);
-				break;
-			case SDL_KEYUP:
-				log_println(LEVEL_DEBUG, TAG, "key up");
-				inputcard_decodekey(events[i].key.keysym.sym, true);
-				break;
-		}
+void inputcard_onkeyevent(SDL_Event* event) {
+	switch (event->type) {
+		case SDL_KEYDOWN:
+			log_println(LEVEL_DEBUG, TAG, "key down");
+			inputcard_decodekey(event->key.keysym.sym, false);
+			break;
+		case SDL_KEYUP:
+			log_println(LEVEL_DEBUG, TAG, "key up");
+			inputcard_decodekey(event->key.keysym.sym, true);
+			break;
 	}
-
-	for (int i = 0; i < sizeof(ports); i++) {
-		// do port things here
-	}
-
 }
 
 static const bool input_validaddress(uint32_t address) {

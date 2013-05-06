@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <glib.h>
 #include "osd.h"
+#include "renderer.h"
 #include "sdlwrapper.h"
 #include "fontutils.h"
 #include "logging.h"
@@ -328,6 +329,7 @@ void osd_update(double speed, double overhead) {
 	osd_drawkeys();
 	osd_drawstats(speed, overhead);
 	firstdraw = false;
+	renderer_requestrender();
 }
 
 void osd_toggle() {
@@ -339,12 +341,15 @@ void osd_visible(bool visible) {
 		firstdraw = true;
 
 	osdvisible = visible;
+	renderer_requestrender();
 }
 
 void osd_render(SDL_Surface* screen) {
-	SDL_Surface* temp = SDL_DisplayFormat(osd);
-	SDL_BlitSurface(temp, NULL, screen, NULL );
-	SDL_FreeSurface(temp);
+	if (osdvisible) {
+		SDL_Surface* temp = SDL_DisplayFormat(osd);
+		SDL_BlitSurface(temp, NULL, screen, NULL );
+		SDL_FreeSurface(temp);
+	}
 }
 
 void osd_dispose() {

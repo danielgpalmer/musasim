@@ -19,6 +19,7 @@
 const card inputcard;
 
 void inputcard_setdips(uint8_t dipsvalue);
+void inputcard_onkeyevent(SDL_Event* event);
 uint8_t inputcard_getleds(void);
 
 #endif /* INPUTCARD_H_ */
