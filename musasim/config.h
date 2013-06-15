@@ -11,4 +11,6 @@
 #define USEMULTIPLETHREADS 0
 #define MAXWORKERS 1
 
+#define PROFILINGBUILD 0
+
 #endif /* CONFIG_H_ */

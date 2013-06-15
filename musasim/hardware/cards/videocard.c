@@ -11,6 +11,7 @@
 #include "../../logging.h"
 #include "../../utils.h"
 #include "../../renderer.h"
+#include "../../config.h"
 
 static const char TAG[] = "video";
 
@@ -135,8 +136,9 @@ static void video_tick(int cyclesexecuted, bool behind) {
 	for (int i = 0; i < pixelclocks; i++) {
 
 		if (pixel == 0 && line == 0 && !behind) {
-			//log_println(LEVEL_INFO, TAG, "refresh");
+#if !PROFILINGBUILD
 			if (!behind && vramtouched)
+#endif
 				renderer_requestrender();
 		}
 

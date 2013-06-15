@@ -27,7 +27,7 @@ static const char YELLOW[] = "33";
 static const char RED[] = "31";
 
 static bool inited = false;
-static GStaticMutex mutex = G_STATIC_MUTEX_INIT;
+static GMutex mutex;
 
 static char* buffer;
 
@@ -38,7 +38,7 @@ static bool checkstate() {
 	return inited;
 }
 
-#define CHECKSTATE if(!checkstate()){ return; }
+#define CHECKSTATE() if(!checkstate()){ return; }
 
 void log_init() {
 	buffer = malloc(BUFFERSIZE);
@@ -56,9 +56,9 @@ void log_println(int level, const char* tag, char * fmt, ...) {
 	if (level > loglevel) {
 		return;
 	}
-	CHECKSTATE;
+	CHECKSTATE();
 
-	g_static_mutex_lock(&mutex);
+	g_mutex_lock(&mutex);
 
 	switch (level) {
 		case LEVEL_WARNING:
@@ -81,12 +81,12 @@ void log_println(int level, const char* tag, char * fmt, ...) {
 	printf("%s\n", buffer);
 	va_end(argptr);
 
-	g_static_mutex_unlock(&mutex);
+	g_mutex_unlock(&mutex);
 
 }
 
 void log_setlevel(int newlevel) {
-	CHECKSTATE;
+	CHECKSTATE();
 	loglevel = newlevel;
 }
 
@@ -95,9 +95,9 @@ void log_printhexblock(int level, const char* tag, void* data, size_t len) {
 	if (level > loglevel) {
 		return;
 	}
-	CHECKSTATE;
+	CHECKSTATE();
 
-	g_static_mutex_lock(&mutex);
+	g_mutex_lock(&mutex);
 
 	int byte = 0;
 	int row = 0;
@@ -130,5 +130,5 @@ void log_printhexblock(int level, const char* tag, void* data, size_t len) {
 		row++;
 	}
 
-	g_static_mutex_unlock(&mutex);
+	g_mutex_unlock(&mutex);
 }

@@ -14,6 +14,8 @@
 #define VIDEO_HEIGHT 0x110
 #define VIDEO_PLAYFIELDWIDTH 0x200
 #define VIDEO_PLAYFIELDHEIGHT 0x200
+#define VIDEO_PIXELSIZE 0x2
+#define VIDEO_LINESIZE 0x400
 #define video_register_flags (*(volatile uint16_t*) 0x200000)
 #define video_register_config (*(volatile uint16_t*) 0x200002)
 #define video_register_pixel (*(volatile uint16_t*) 0x200004)

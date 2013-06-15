@@ -58,7 +58,7 @@ profiler.o: profiler.c profiler.h
 fontutils.o: fontutils.c
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
 
-throttler.o: throttler.c throttler.h
+throttler.o: throttler.c throttler.h config.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
 
 renderer.o: renderer.c renderer.h

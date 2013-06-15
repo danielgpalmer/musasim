@@ -15,11 +15,4 @@ typedef struct {
 	int y2;
 } vector;
 
-typedef struct {
-	int x;
-	int y;
-	unsigned width;
-	unsigned height;
-} rect;
-
 #endif /* MATH_H_ */

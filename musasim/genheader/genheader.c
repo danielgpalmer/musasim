@@ -186,6 +186,8 @@ static void video() {
 	printf("#define VIDEO_HEIGHT 0x%x\n", VIDEO_HEIGHT);
 	printf("#define VIDEO_PLAYFIELDWIDTH 0x%x\n", VIDEO_PLAYFIELDWIDTH);
 	printf("#define VIDEO_PLAYFIELDHEIGHT 0x%x\n", VIDEO_PLAYFIELDHEIGHT);
+	printf("#define VIDEO_PIXELSIZE 0x%x\n", 2);
+	printf("#define VIDEO_LINESIZE 0x%x\n", VIDEO_PLAYFIELDWIDTH * 2);
 
 	char* registernames[] = { "register_flags", "register_config", "register_pixel", "register_line", "register_frame",
 			"register_posx", "register_posy", "register_winx", "register_winy", "register_winwidth",

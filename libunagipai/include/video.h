@@ -8,6 +8,8 @@
 #ifndef LIBUNAGIPAI_VIDEO_H_
 #define LIBUNAGIPAI_VIDEO_H_
 
+#include <stdbool.h>
+#include <stdint.h>
 #include "math.h"
 
 #define DATALOADERARGS (void* data, uint16_t* buff, int wanted)
@@ -49,11 +51,10 @@ void video_gputs(char* string, uint8_t* font, int col, int row);
 
 void video_clear(uint16_t clearcolour);
 
-void video_fillrect(int x, int y, int width, int height);
+void video_fillrect(int x, int y, int width, int height, uint16_t colour);
 void video_drawline(vector* v);
 
 void video_setconfig(bool vblankint, bool hblankint);
 void video_waitforvblank();
-
 
 #endif /* VIDEO_H_ */

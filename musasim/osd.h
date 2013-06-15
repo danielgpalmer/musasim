@@ -9,7 +9,7 @@
 #define OSD_H_
 
 #include <stdbool.h>
-
+#include <SDL.h>
 void osd_init(void);
 void osd_update(double speed, double overhead);
 void osd_visible(bool visible);

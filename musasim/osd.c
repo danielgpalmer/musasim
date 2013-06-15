@@ -5,7 +5,6 @@
  *      Author: daniel
  */
 
-#include <SDL/SDL.h>
 #include <SDL_ttf.h>
 #include <stdbool.h>
 #include <glib.h>
@@ -19,6 +18,7 @@
 #include "hardware/cards/videocard.h"
 #include "hardware/cards/inputcard.h"
 #include "hardware/cards/soundcard.h"
+#include <SDL.h>
 
 #define TAG "osd"
 

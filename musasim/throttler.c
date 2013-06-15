@@ -16,6 +16,7 @@
 
 #include "hardware/board.h"
 #include "throttler.h"
+#include "config.h"
 #include "sim.h"
 #include "utils.h"
 
@@ -61,6 +62,9 @@ void throttler_endcardtick(int slot) {
 
 void throttler_endtick(int cpucyclesexecuted) {
 
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
+
+#if !PROFILINGBUILD
 	// if throttling is enabled and we're far enough ahead sleep for a little while to let realtime catch up
 	if (enabled && (owed < -AHEADTHRESHOLD)) {
 		static struct timespec nanosleepreq, r;
@@ -68,8 +72,8 @@ void throttler_endtick(int cpucyclesexecuted) {
 		nanosleep(&nanosleepreq, &r);
 		owed = -r.tv_nsec;
 	}
+#endif
 
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
 	struct timespec* timediff = timespecdiff(&start, &end);
 	long timetaken = (timediff->tv_sec * SIM_ONENANOSECOND) + timediff->tv_nsec;
 	long target = SIM_CPUCLOCKDURATION * cpucyclesexecuted;

@@ -7,7 +7,6 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <glib.h>
-#include <SDL.h>
 
 #include "utils.h"
 #include "sim.h"
@@ -195,6 +194,7 @@ void sim_quit() {
 	shouldexit = true;
 	m68k_end_timeslice();
 	board_poweroff();
+	osd_dispose();
 	log_shutdown();
 }
 

@@ -76,9 +76,14 @@ void video_clear(uint16_t clearcolour) {
 	dma_fillblock((uint32_t) video_framebuffer, clearcolour, count);
 }
 
-void video_fillrect(int x, int y, int width, int height) {
+void video_fillrect(int x, int y, int width, int height, uint16_t colour) {
 
-	//dma_fillblock_nonlinear();
+	uint32_t start = ((uint32_t) video_framebuffer) + (y * VIDEO_LINESIZE) + (x * VIDEO_PIXELSIZE);
+	uint32_t count = width * height;
+	uint16_t jumpafter = width;
+	uint16_t jumplength = VIDEO_PLAYFIELDWIDTH - width;
+	dma_fillblock_nonlinear(start, colour, count, jumpafter, jumplength);
+//dma_fillblock_nonlinear();
 
 }
 
