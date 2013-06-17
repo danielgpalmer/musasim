@@ -10,6 +10,7 @@
 
 #include "pff.h"
 
+#define SIZEOFARRAY(a) (sizeof(a)/sizeof(a[0]))
 #define MAX(a,b) ((a) > (b) ? a : b)
 #define MIN(a,b) ((a) < (b) ? a : b)
 #define CLAMP(min,max, value) (MAX(MIN(max,value), min))

@@ -157,23 +157,141 @@ typedef struct {
 
 void rect_drawrect(rect* r, uint16_t colour);
 # 7 "main.c" 2
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/m68k-elf/include/libunagipai/utils.h" 1 3
+# 11 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/m68k-elf/include/libunagipai/utils.h" 3
+# 1 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/m68k-elf/include/libunagipai/pff.h" 1 3
+# 69 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/m68k-elf/include/libunagipai/pff.h" 3
+typedef struct {
+ uint8_t fs_type;
+ uint8_t flag;
+ uint8_t csize;
+ uint8_t pad1;
+ uint16_t n_rootdir;
+ uint32_t n_fatent;
+ uint32_t fatbase;
+ uint32_t dirbase;
+ uint32_t database;
+ uint32_t fptr;
+ uint32_t fsize;
+ uint32_t org_clust;
+ uint32_t curr_clust;
+ uint32_t dsect;
+} FATFS;
 
-static rect p0up = { 10, 10, 50, 50 };
 
+
+typedef struct {
+ uint16_t index;
+ uint8_t* fn;
+ uint32_t sclust;
+ uint32_t clust;
+ uint32_t sect;
+} DIR;
+
+
+
+typedef struct {
+ uint32_t fsize;
+ uint16_t fdate;
+ uint16_t ftime;
+ uint8_t fattrib;
+ char fname[13];
+} FILINFO;
+
+
+
+typedef enum {
+ FR_OK = 0,
+ FR_DISK_ERR,
+ FR_NOT_READY,
+ FR_NO_FILE,
+ FR_NO_PATH,
+ FR_NOT_OPENED,
+ FR_NOT_ENABLED,
+ FR_NO_FILESYSTEM
+} FRESULT;
+
+
+
+
+FRESULT pf_mount(FATFS*);
+FRESULT pf_open(const char*);
+FRESULT pf_read(void*, uint16_t, uint16_t*);
+FRESULT pf_write(const void*, uint16_t, uint16_t*);
+FRESULT pf_lseek( uint32_t);
+FRESULT pf_opendir(DIR*, const char*);
+FRESULT pf_readdir(DIR*, FILINFO*);
+# 12 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/m68k-elf/include/libunagipai/utils.h" 2 3
+# 21 "/home/daniel/coding/musasim/toolchains/inst/m68k-elf/m68k-elf/include/libunagipai/utils.h" 3
+void util_hexblockprint(void* buffer, unsigned len);
+void util_printfat(FATFS* fs);
+void util_printffresult(FRESULT result);
+# 8 "main.c" 2
+
+
+
+
+
+
+static rect p0[] = { { 100, 100, 20, 20 },
+  { 65, 100, 20, 20 },
+  { 40, 100, 20, 20 },
+  { 50, 40, 20, 20 },
+  { 75, 40, 20, 20 },
+  { 90, 40, 20, 20 },
+  { 110, 40, 20, 20 },
+  { 135, 40, 20, 20 }
+};
+
+static rect p1[] = { { 10, 10, 50, 50 },
+  { 10, 10, 50, 50 },
+  { 10, 10, 50, 50 },
+  { 10, 10, 50, 50 },
+  { 10, 10, 50, 50 },
+  { 10, 10, 50, 50 },
+  { 10, 10, 50, 50 },
+  { 10, 10, 50, 50 }
+};
+
+static uint8_t port0 = 0xff;
+static uint8_t port1 = 0xff;
 
 static void update() {
  video_begin();
- rect_drawrect(&p0up, 0xffff);
+
+ for (int r = 0; r < (sizeof(p0)/sizeof(p0[0])); r++) {
+  rect_drawrect(&p0[r], (((port0 >> r) & 1) == 0) ? 0xf800 : 0xffff);
+ }
+
+ for (int r = 0; r < (sizeof(p1)/sizeof(p1[0])); r++) {
+  rect_drawrect(&p1[r], (((port1 >> r) & 1) == 0) ? 0xf800 : 0xffff);
+ }
+
  video_commit();
- video_waitforvblank();
- video_flip();
 }
 
-int main() {
+void main() {
+
+ printf("Starting input test\n");
  video_waitforvblank();
  video_setconfig(0, 0);
 
+ update();
+ video_waitforvblank();
+ video_flip();
+
  while (1) {
-  update();
+  uint8_t newport0 = (*(volatile uint8_t*) 0xe00000);
+  uint8_t newport1 = (*(volatile uint8_t*) 0xe00002);
+  if ((port0 != newport0) || (port1 != newport1)) {
+   port0 = newport0;
+   port1 = newport1;
+   update();
+   video_waitforvblank();
+   video_flip();
+  }
+  else {
+   video_waitforvblank();
+  }
  }
 }

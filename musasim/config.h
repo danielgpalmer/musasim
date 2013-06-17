@@ -13,4 +13,6 @@
 
 #define PROFILINGBUILD 0
 
+#define MAXFRAMESKIP 5
+
 #endif /* CONFIG_H_ */

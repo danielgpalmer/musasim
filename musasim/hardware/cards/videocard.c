@@ -13,11 +13,15 @@
 #include "../../renderer.h"
 #include "../../config.h"
 
+//#define IWANTLOTSOFDEBUGOUTPUT
+
 static const char TAG[] = "video";
 
 #define WINDOWCOVERSSCREEN ((region.x == 0) && (region.y == 0) && (region.w == VIDEO_WIDTH) && (region.h == VIDEO_HEIGHT))
 
 static bool vramtouched = false;
+static bool bufferflipped = false;
+static int framesskipped = 0;
 
 static uint16_t flags = 0;
 static uint16_t config = 0;
@@ -119,6 +123,26 @@ void videocard_render(SDL_Surface* screen) {
 	SDL_BlitSurface(temp, &region, screen, &window);
 	SDL_FreeSurface(temp);
 	vramtouched = false;
+	bufferflipped = false;
+}
+
+static void video_onendofframe(bool behind) {
+#if !PROFILINGBUILD
+#ifdef IWANTLOTSOFDEBUGOUTPUT
+	log_println(LEVEL_INFO, TAG, "behind %d, frameskipped %d, vramtouched %d, bufferflipped %d", behind, framesskipped,
+			vramtouched, bufferflipped);
+#endif
+	if (vramtouched || bufferflipped) {
+		if (!behind || framesskipped == MAXFRAMESKIP) {
+			renderer_requestrender();
+			framesskipped = 0;
+		}
+		else if (behind)
+			framesskipped++;
+	}
+#else
+	renderer_requestrender();
+#endif
 }
 
 static void video_tick(int cyclesexecuted, bool behind) __attribute__((hot));
@@ -135,11 +159,8 @@ static void video_tick(int cyclesexecuted, bool behind) {
 
 	for (int i = 0; i < pixelclocks; i++) {
 
-		if (pixel == 0 && line == 0 && !behind) {
-#if !PROFILINGBUILD
-			if (!behind && vramtouched)
-#endif
-				renderer_requestrender();
+		if (pixel == 0 && line == 0) {
+			video_onendofframe(behind);
 		}
 
 		// hblank handling
@@ -214,14 +235,15 @@ static void video_write_word(uint32_t address, uint16_t data) {
 		}
 
 		uint8_t reg = GETVIDREG(address);
-//		if (reg == 1) {
-//			if (*(video_registers[reg]) & VIDEO_CONFIG_FLIP) {
-//				log_println(LEVEL_INFO, TAG, "surface 1");
-//			}
-//			else {
-//				log_println(LEVEL_INFO, TAG, "surface 0");
-//			}
-//		}
+		if (reg == 1) {
+			bufferflipped = true;
+#ifdef IWANTLOTSOFDEBUGOUTPUT
+			if (*(video_registers[reg]) & VIDEO_CONFIG_FLIP)
+				log_println(LEVEL_INFO, TAG, "surface 0 is now active, surface 1 is writable");
+			else
+				log_println(LEVEL_INFO, TAG, "surface 1 is now active, surface 0 is writable");
+#endif
+		}
 
 		*(video_registers[reg]) = data;
 

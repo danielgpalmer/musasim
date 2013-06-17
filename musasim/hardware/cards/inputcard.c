@@ -130,6 +130,8 @@ static void inputcard_decodekey(SDLKey key, bool up) {
 	else {
 		ports[port] &= mask;
 	}
+
+	log_println(LEVEL_DEBUG, TAG, "port0 is now 0x%x and port1 is now 0x%x", ports[0], ports[1]);
 }
 
 static void inputcard_tick(int cyclesexecuted, bool behind) __attribute__((hot));
