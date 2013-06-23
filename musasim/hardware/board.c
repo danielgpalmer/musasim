@@ -174,6 +174,8 @@ static void board_dobuslock(int slot) {
 	(slots[slot]->busreqack)();
 }
 
+static int arbiterweight = 0;
+
 void board_lock_bus(const card* card) {
 #if USEMULTIPLETHREADS
 	g_rec_mutex_lock(&busmutex);
@@ -183,6 +185,7 @@ void board_lock_bus(const card* card) {
 		g_assert(curbusmaster != slot);
 		// cards should not be trying to lock the bus when they've already locked it
 		busrequestwaiting[slot] = true;
+		arbiterweight = (arbiterweight + 1) % NUM_SLOTS;
 	}
 	else
 		board_dobuslock(slot);
@@ -197,9 +200,11 @@ void board_unlock_bus(const card* card) {
 #endif
 	buslocked = false;
 	curbusmaster = -1;
-	for (int i = 0; i < NUM_SLOTS; i++)
-		if (busrequestwaiting[i])
-			board_dobuslock(i);
+	for (int i = 0; i < NUM_SLOTS; i++) {
+		int slot = (i + arbiterweight) % NUM_SLOTS;
+		if (busrequestwaiting[slot])
+			board_dobuslock(slot);
+	}
 #if USEMULTIPLETHREADS
 	g_rec_mutex_unlock(&busmutex);
 #endif

@@ -32,3 +32,4 @@ clean:
 	rm -f *.map
 	rm -f *.elf
 	rm -f *.lst
+	rm -f main.s main.i

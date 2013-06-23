@@ -61,18 +61,7 @@ void throttler_endcardtick(int slot) {
 }
 
 void throttler_endtick(int cpucyclesexecuted) {
-
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
-
-#if !PROFILINGBUILD
-	// if throttling is enabled and we're far enough ahead sleep for a little while to let realtime catch up
-	if (enabled && (owed < -AHEADTHRESHOLD)) {
-		static struct timespec nanosleepreq, r;
-		nanosleepreq.tv_nsec = labs(owed);
-		nanosleep(&nanosleepreq, &r);
-		owed = -r.tv_nsec;
-	}
-#endif
 
 	struct timespec* timediff = timespecdiff(&start, &end);
 	long timetaken = (timediff->tv_sec * SIM_ONENANOSECOND) + timediff->tv_nsec;
@@ -90,7 +79,7 @@ void throttler_endtick(int cpucyclesexecuted) {
 	speed = ((speed * (count - 1)) + currentspeed) / count;
 	overhead = ((overhead * (count - 1)) + currentoverhead) / count;
 
-	// This clamps the timetaken to a max of twice the
+	// This clamps the time taken to a max of twice the
 	// expected time so things don't get out of hand
 	// trying to catch up
 	long clamp = target * 2;
@@ -101,6 +90,16 @@ void throttler_endtick(int cpucyclesexecuted) {
 		owed -= diff; // we were ahead this tick, so take some off of our balance
 	else
 		owed += labs(diff); // we were behind this tick, so add to our balance;
+
+#if !PROFILINGBUILD
+	// if throttling is enabled and we're far enough ahead sleep for a little while to let realtime catch up
+	if (enabled && (owed < -AHEADTHRESHOLD)) {
+		static struct timespec nanosleepreq, r;
+		nanosleepreq.tv_nsec = labs(owed);
+		nanosleep(&nanosleepreq, &r);
+		owed = -r.tv_nsec;
+	}
+#endif
 }
 
 void throttler_enable(bool enable) {

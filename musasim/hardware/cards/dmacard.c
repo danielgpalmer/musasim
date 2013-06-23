@@ -5,6 +5,12 @@
  *      Author: daniel
  */
 
+/*
+ * Todo list;
+ * - Timing is basically complete non-sense
+ * - Timing should be configurable?
+ */
+
 #include <string.h>
 #include <dma_registermasks.h>
 

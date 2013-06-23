@@ -139,10 +139,11 @@ void sim_tick() {
 		return;
 	}
 
-	if (paused)
+	if (paused) {
 		usleep(5000);
+		sim_updatesdl();
+	}
 	else {
-
 		throttler_starttick();
 		if (cycles > SIM_MAINCLOCK / 30) {
 			sim_updatesdl();
