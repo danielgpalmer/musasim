@@ -79,7 +79,19 @@ void input_update() {
 			}
 		}
 		else if (event.type == SDL_KEYDOWN) {
-			inputcard_onkeyevent(&event);
+			switch (event.key.keysym.sym) {
+				case SIM_KEY_NMI:
+				case SIM_KEY_RESET:
+				case SIM_KEY_MUTE:
+				case SIM_KEY_TOGGLETHROTTLE:
+				case SIM_KEY_TOGGLEOSD:
+				case SIM_KEY_PAUSE:
+				case SIM_KEY_QUIT:
+					return;
+				default:
+					inputcard_onkeyevent(&event);
+					break;
+			}
 		}
 	}
 
