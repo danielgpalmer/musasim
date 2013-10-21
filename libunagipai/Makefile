@@ -7,7 +7,7 @@ INSTPATH="../toolchains/inst/m68k-elf/m68k-elf"
 
 all: libunagipai.a docs
 
-libunagipai.a: genheader ata.o dma.o uart.o machine.o video.o pff.o diskio.o utils.o lzfx.o image.o sprite.o math.o vt100.o syscalls.o timers.o sound.o rect.o
+libunagipai.a: genheader ata.o dma.o uart.o machine.o video.o pff.o diskio.o utils.o lzfx.o image.o sprite.o vectorsprite.o math.o vt100.o syscalls.o timers.o sound.o rect.o
 	ar cr libunagipai.a *.o
 
 uart.o: uart.c include/uart.h
@@ -41,6 +41,9 @@ rect.o: rect.c
 	$(CC) $(CFLAGS) -c $<
 
 sprite.o: sprite.c
+	$(CC) $(CFLAGS) -c $<
+	
+vectorsprite.o: vectorsprite.c
 	$(CC) $(CFLAGS) -c $<
 
 vt100.o: vt100.c include/vt100.h

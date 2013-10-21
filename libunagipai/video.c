@@ -13,6 +13,7 @@
 #include "include/video_registers.h"
 #include "include/video_registermasks.h"
 #include "include/math.h"
+#include "include/utils.h"
 
 static bool transactionopen = false;
 
@@ -88,26 +89,39 @@ void video_fillrect(int x, int y, int width, int height, uint16_t colour) {
 }
 
 void video_drawline(vector* v) {
+	video_drawline_withpoints(v->x1, v->y1, v->x2, v->y2);
+}
+
+void video_drawline_withpoints(int x1, int y1, int x2, int y2) {
+
+	x1 = MIN(x1, VIDEO_PLAYFIELDWIDTH);
+	x2 = MIN(x2, VIDEO_PLAYFIELDWIDTH);
+	y1 = MIN(y1, VIDEO_PLAYFIELDWIDTH);
+	y2 = MIN(y2, VIDEO_PLAYFIELDWIDTH);
 
 	dma_commit();
 
 	int dx, dy, err, sx, sy, e2;
-	dx = abs(v->x2 - v->x1);
-	dy = abs(v->y2 - v->y1);
-	sx = (v->x1 < v->x2) ? 1 : -1;
-	sy = (v->y1 < v->y2) ? 1 : -1;
+	dx = abs(x2 - x1);
+	dy = abs(y2 - y1);
+	sx = (x1 < x2) ? 1 : -1;
+	sy = (y1 < y2) ? 1 : -1;
 	err = dy - dx;
 
-	int x = v->x1;
-	int y = v->y1;
+	int x = x1;
+	int y = y1;
 
-	while (x != v->x2 && y != v->y2) {
+	while (x != x2 && y != y2) {
 		video_plot(x, y, 0xf000);
 
 		e2 = 2 * err;
 		if (e2 > -dy) {
 			err = err - dy;
 			x += sx;
+		}
+		if (x == x2 && y == y2) {
+			video_plot(x, y, 0xf000);
+			break;
 		}
 		if (e2 < dx) {
 			err = err + dx;
@@ -117,7 +131,6 @@ void video_drawline(vector* v) {
 	}
 
 	dma_begin();
-
 }
 
 void video_blitimage(int width, int height, int x, int y, void* data, dataloader loader) {

@@ -1,5 +1,5 @@
 /*
- * throttler.c
+ jjjl * throttler.c
  *
  *  Created on: 18 Apr 2013
  *      Author: daniel
@@ -36,8 +36,8 @@ static struct timespec start, end, cpustart, cpuend, cardstart, cardend;
 static long owed = 0; // this will be positive when the emulation is behind RT and negative with the emulation is ahead of RT
 static long count = 0;
 
-static double speed = 0; // the speed at which the emulation is currently running, < 1 == behind RT, 1 == RT, >1 == ahead of RT
-static double overhead = 0; // the amount of time per tick that wasn't rolling over the cpu or cards, stuff like updating the OSD etc
+static double speeds[1024]; // the speed at which the emulation is currently running, < 1 == behind RT, 1 == RT, >1 == ahead of RT
+static double overheads[1024]; // the amount of time per tick that wasn't rolling over the cpu or cards, stuff like updating the OSD etc
 
 static long cputime;
 static long executiontimes[NUM_SLOTS];
@@ -81,10 +81,9 @@ void throttler_endtick(int cpucyclesexecuted) {
 		emulationtime += executiontimes[i];
 	double currentoverhead = (float) 1 - ((float) emulationtime / (float) timetaken);
 
+	speeds[count % G_N_ELEMENTS(speeds)] = currentspeed;
+	overheads[count % G_N_ELEMENTS(speeds)] = currentoverhead;
 	count++;
-
-	speed = ((speed * (count - 1)) + currentspeed) / count;
-	overhead = ((overhead * (count - 1)) + currentoverhead) / count;
 
 	// This clamps the time taken to a max of twice the
 	// expected time so things don't get out of hand
@@ -126,9 +125,15 @@ bool throttler_behind() {
 }
 
 double throttler_speed() {
-	return speed;
+	double total = 0;
+	for (int i = 0; i < G_N_ELEMENTS(speeds); i++)
+		total += speeds[i];
+	return total / G_N_ELEMENTS(speeds);
 }
 
 double throttler_overhead() {
-	return overhead;
+	double total = 0;
+	for (int i = 0; i < G_N_ELEMENTS(overheads); i++)
+		total += overheads[i];
+	return total / G_N_ELEMENTS(overheads);
 }

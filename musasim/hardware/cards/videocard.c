@@ -10,11 +10,25 @@
 #include "../../sim.h"
 #include "../../logging.h"
 #include "../../utils.h"
-#include "../../renderer.h"
+#include "../../ui/renderer.h"
 #include "../../config.h"
 
-//#define IWANTLOTSOFDEBUGOUTPUT
+/*
+ * Planned Video Hardware/Features
+ *
+ * Logic, m68k bus interface, DVI interface - Spartan 6 LX9
+ * Framebuffer, Compositing buffer          - 2 x Cypress 100MHz (Running at 64MHz) 512Kx16 Sync
+ * 									          SRAMs connected in parallel (32 bit databus between
+ * 									          buffers and the logic). ~244MB/s peak data rate.
+ *
+ * Features
+ * Line drawing?
+ * Polygon filling?
+ * Fast buffer to buffer copies (more than enough throughput to do multiple full playfield copies per frame!)
+ *
+ */
 
+//#define IWANTLOTSOFDEBUGOUTPUT
 static const char TAG[] = "video";
 
 #define WINDOWCOVERSSCREEN ((region.x == 0) && (region.y == 0) && (region.w == VIDEO_WIDTH) && (region.h == VIDEO_HEIGHT))

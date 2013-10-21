@@ -10,11 +10,11 @@
 
 #include "utils.h"
 #include "sim.h"
-#include "osd.h"
 #include "logging.h"
 #include "throttler.h"
-#include "renderer.h"
-#include "input.h"
+#include "ui/osd.h"
+#include "ui/renderer.h"
+#include "ui/input.h"
 #include "musashi/m68k.h"
 
 // all of the hardware headers
@@ -154,8 +154,8 @@ void sim_tick() {
 
 		// clamping the cycles to at least 16 avoids us getting stuck in a situation where there
 		// aren't enough cycles being run to actually progress
-		int cyclestoexecute =
-				MAX(board_maxcycles(board_bestcasecycles()) / SIM_CPUCLOCK_DIVIDER, MINIMUMCPUCYCLESPERTICK);
+		int cyclestoexecute = MAX(board_maxcycles(board_bestcasecycles()) / SIM_CPUCLOCK_DIVIDER,
+				MINIMUMCPUCYCLESPERTICK);
 		//log_println(LEVEL_INFO, TAG, "going to execute %d cpu cycles", cyclestoexecute);
 
 		int cpucyclesexecuted;

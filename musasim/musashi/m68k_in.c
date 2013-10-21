@@ -3827,7 +3827,14 @@ M68KMAKE_OP(clr, 8, ., d)
 
 M68KMAKE_OP(clr, 8, ., .)
 {
-	m68ki_write_8(M68KMAKE_GET_EA_AY_8, 0);
+	uint32 ea = M68KMAKE_GET_EA_AY_8;
+
+	if(CPU_TYPE_IS_010_LESS(CPU_TYPE))
+		{
+			m68ki_read_8(ea);	/* the 68000 (and 010?) does a dummy read, the value is discarded */
+		}
+
+	m68ki_write_8(ea, 0);
 
 	FLAG_N = NFLAG_CLEAR;
 	FLAG_V = VFLAG_CLEAR;
@@ -3849,7 +3856,14 @@ M68KMAKE_OP(clr, 16, ., d)
 
 M68KMAKE_OP(clr, 16, ., .)
 {
-	m68ki_write_16(M68KMAKE_GET_EA_AY_16, 0);
+	uint32 ea = M68KMAKE_GET_EA_AY_16;
+
+	if(CPU_TYPE_IS_010_LESS(CPU_TYPE))
+	{
+			m68ki_read_16(ea);	/* the 68000 (and 010?) does a dummy read, the value is discarded */
+	}
+
+	m68ki_write_16(ea, 0);
 
 	FLAG_N = NFLAG_CLEAR;
 	FLAG_V = VFLAG_CLEAR;
@@ -3871,7 +3885,14 @@ M68KMAKE_OP(clr, 32, ., d)
 
 M68KMAKE_OP(clr, 32, ., .)
 {
-	m68ki_write_32(M68KMAKE_GET_EA_AY_32, 0);
+	uint32 ea = M68KMAKE_GET_EA_AY_32;
+
+	if(CPU_TYPE_IS_010_LESS(CPU_TYPE))
+	{
+			m68ki_read_32(ea);	/* the 68000 (and 010?) does a dummy read, the value is discarded */
+	}
+
+	m68ki_write_32(ea, 0);
 
 	FLAG_N = NFLAG_CLEAR;
 	FLAG_V = VFLAG_CLEAR;

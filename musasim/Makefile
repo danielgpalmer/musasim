@@ -1,24 +1,25 @@
 include common.mk
 
+LIBUI=./ui/libui.a
 LIBCARDS=./hardware/cards/libcards.a
 LIBCARDSGDB=./hardware/cards/libcardsgdb.a
 LIBMODULES=./hardware/modules/libmodules.a
 LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
 
-LOCALOBJECTS=sim.o logging.o utils.o elfloader.o osd.o fontutils.o sdlwrapper.o throttler.o renderer.o input.o
+LOCALOBJECTS=sim.o logging.o utils.o elfloader.o throttler.o
 GDBONLYOBJECTS=gdbserver.o argsgdb.o profiler.o
 MUSASIMONLYOBJECTS=args.o
 REMOTEOBJECTS=./hardware/registerplanner.o
 
 all: checklibs gdbserver musasim genheader dist
 	
-gdbserver: musashi $(GDBONLYOBJECTS) $(LOCALOBJECTS) gdbserver.o hardware musashi
-	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o $(LOCALOBJECTS) $(REMOTEOBJECTS) $(GDBONLYOBJECTS) $(LIBCARDSGDB) $(LIBMODULES) ./hardware/boardgdb.o -o gdbserver -lelf
+gdbserver: musashi $(GDBONLYOBJECTS) $(LOCALOBJECTS) gdbserver.o ui hardware musashi
+	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o $(LOCALOBJECTS) $(REMOTEOBJECTS) $(GDBONLYOBJECTS) $(LIBCARDSGDB) $(LIBMODULES)  $(LIBUI) ./hardware/boardgdb.o -o gdbserver -lelf
 
 musasim: libmusasim.a
-	$(CC) $(LFLAGS) libmusasim.a $(LIBCARDS) $(LIBMODULES) libmusasim.a -o $@ -lelf
+	$(CC) $(LFLAGS) libmusasim.a $(LIBCARDS) $(LIBMODULES) $(LIBUI) libmusasim.a -o $@ -lelf
 
-libmusasim.a: musashi $(LOCALOBJECTS) $(MUSASIMONLYOBJECTS) hardware musasim.o args.o musashi
+libmusasim.a: musashi $(LOCALOBJECTS) $(MUSASIMONLYOBJECTS) ui hardware musasim.o args.o musashi
 	- rm $@
 	ar cr $@ $(LOCALOBJECTS) musasim.o args.o $(REMOTEOBJECTS) ./musashi/musashi.o ./hardware/board.o 
 
@@ -37,12 +38,6 @@ logging.o: logging.c logging.h
 utils.o: utils.c utils.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
 
-osd.o: osd.c osd.h
-	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
-
-sdlwrapper.o: sdlwrapper.c sdlwrapper.h
-	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
-
 args.o: args.h args.c
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) args.c -o $@
 
@@ -55,19 +50,13 @@ elfloader.o: elfloader.c elfloader.h
 profiler.o: profiler.c profiler.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
 
-fontutils.o: fontutils.c
-	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
-
 throttler.o: throttler.c throttler.h config.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
 
-renderer.o: renderer.c renderer.h
-	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
+.PHONY: docs genheader musashi ui hardware clean checkcode checklibs
 
-input.o: input.c input.h
-	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
-
-.PHONY: docs genheader musashi hardware clean checkcode checklibs
+ui:
+	$(MAKE) -C ui
 
 hardware:
 	$(MAKE) -C hardware
@@ -96,7 +85,8 @@ clean:
 	$(MAKE) -C musashi clean
 	$(MAKE) -C genheader clean
 	$(MAKE) -C hardware clean
-
+	$(MAKE) -C ui clean
+	
 checkcode:
 	cppcheck ./ --std=c99
 

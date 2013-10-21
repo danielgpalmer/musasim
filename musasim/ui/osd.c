@@ -65,8 +65,10 @@ static label audioleftlabel, audiorightlabel;
 static SDL_Rect dipslabelrect, ledlabelrect, ledrect, audiowindow, audiowindowtitle;
 static SDL_Color labels = { .r = 0, .g = 0xff, .b = 0 };
 static Uint32 colourkey, ledon, ledoff, audiowindowbg;
+
 static bool osdvisible = false;
 static bool firstdraw = true;
+static bool audiobufferchanged = false;
 
 #define CLEARLABEL(label) (SDL_FillRect(osd, &label.rect, audiowindowbg))
 
@@ -74,7 +76,7 @@ static void osd_createlabels() {
 	TTF_Init();
 	font = TTF_OpenFont(fontutils_getmonospace(), LABELHEIGHT);
 	smallfont = TTF_OpenFont(fontutils_getmonospace(), KEYLABELHEIGHT);
-	if (font != NULL ) {
+	if (font != NULL) {
 		RENDERLABEL(busactivitylabel, font, "bus activity", labels);
 		dipswitcheslabel = TTF_RenderUTF8_Solid(font, "dip switches", labels);
 		debuglabel = TTF_RenderUTF8_Solid(font, "debug leds", labels);
@@ -87,7 +89,7 @@ static void osd_createlabels() {
 		RENDERLABEL(overheadlabel, font, "Overhead: ", labels);
 		RENDERLABEL(overheadvaluelabel, font, "00.00%", labels);
 	}
-	if (smallfont != NULL ) {
+	if (smallfont != NULL) {
 		RENDERLABEL(pausekeylabel, smallfont, "[pause:F1]", labels);
 		RENDERLABEL(resetkeylabel, smallfont, "[reset:F2]", labels);
 		RENDERLABEL(nmikeylabel, smallfont, "[NMI:F3]", labels);
@@ -133,30 +135,32 @@ static void osd_drawaudiobuffer() {
 		BLITLABEL(audiorightlabel);
 	}
 
-	SDL_FillRect(osd, &audiowindow, audiowindowbg);
-	sdlwrapper_drawline(osd, audiowindow.x, leftbase, windowright, leftbase, 0, 0xFF0000FF);
-	sdlwrapper_drawline(osd, audiowindow.x, rightbase, windowright, rightbase, 0, 0xFF0000FF);
-	sdlwrapper_drawline(osd, audiowindow.x, middle, windowright, middle, 0, 0xdededeFF);
+	if (firstdraw || audiobufferchanged) {
+		SDL_FillRect(osd, &audiowindow, audiowindowbg);
+		sdlwrapper_drawline(osd, audiowindow.x, leftbase, windowright, leftbase, 0, 0xFF0000FF);
+		sdlwrapper_drawline(osd, audiowindow.x, rightbase, windowright, rightbase, 0, 0xFF0000FF);
+		sdlwrapper_drawline(osd, audiowindow.x, middle, windowright, middle, 0, 0xdededeFF);
 
-	float scale = (float) quarterheight / (float) INT16_MAX;
+		float scale = (float) quarterheight / (float) INT16_MAX;
 
-	static int16_t left = 0;
-	static int16_t right = 0;
+		static int16_t left = 0;
+		static int16_t right = 0;
 
-	ringbuffer* buffer = sound_getbuffer();
+		ringbuffer* buffer = sound_getbuffer();
 
-	for (int i = 0; i < audiowindow.w; i++) {
+		for (int i = 0; i < audiowindow.w; i++) {
 
-		unsigned int offset = (audiowindow.w * 2) - (i * 2);
+			unsigned int offset = (audiowindow.w * 2) - (i * 2);
 
-		right = ringbuffer_peek(buffer, offset);
-		left = ringbuffer_peek(buffer, offset - 1);
+			right = ringbuffer_peek(buffer, offset);
+			left = ringbuffer_peek(buffer, offset - 1);
 
-		int16_t scaledleft = CLAMP((int16_t) ((float) left * scale), -quarterheight, quarterheight);
-		int16_t scaledright = CLAMP((int16_t) ((float) right * scale), -quarterheight, quarterheight);
+			int16_t scaledleft = CLAMP((int16_t) ((float) left * scale), -quarterheight, quarterheight);
+			int16_t scaledright = CLAMP((int16_t) ((float) right * scale), -quarterheight, quarterheight);
 
-		sdlwrapper_plot(osd, audiowindow.x + i, leftbase + scaledleft, 0x00FF00FF);
-		sdlwrapper_plot(osd, audiowindow.x + i, rightbase + scaledright, 0x00FF00FF);
+			sdlwrapper_plot(osd, audiowindow.x + i, leftbase + scaledleft, 0x00FF00FF);
+			sdlwrapper_plot(osd, audiowindow.x + i, rightbase + scaledright, 0x00FF00FF);
+		}
 	}
 }
 
@@ -205,6 +209,7 @@ static void osd_layoutleds() {
 
 static void osd_drawleds() {
 
+	static int lastbus = -1;
 	static int lastleds = -1;
 	uint8_t leds = inputcard_getleds();
 	static bool dipschanged = true;
@@ -220,16 +225,22 @@ static void osd_drawleds() {
 
 	ledrect.y = busactivitylabel.rect.y + busactivitylabel.surface->h;
 
+	int bus = 0;
 	for (int i = 0; i < NUM_SLOTS; i++) {
-		ledrect.x = busactivitylabel.rect.x + ((ledrect.w + LEDSPACING) * i);
-
-		Uint32 colour = ledoff;
 		const card* c = board_getcardinslot(i);
-
 		if (c != NULL && c->active != NULL && c->active())
-			colour = ledon;
+			bus |= (1 << i);
+	}
 
-		SDL_FillRect(osd, &ledrect, colour);
+	if (firstdraw || (bus != lastbus)) {
+		for (int i = 0; i < NUM_SLOTS; i++) {
+			ledrect.x = busactivitylabel.rect.x + ((ledrect.w + LEDSPACING) * i);
+			Uint32 colour = ledoff;
+			if (bus & (1 << i))
+				colour = ledon;
+			SDL_FillRect(osd, &ledrect, colour);
+		}
+		lastbus = bus;
 	}
 //
 
@@ -347,7 +358,7 @@ void osd_visible(bool visible) {
 void osd_render(SDL_Surface* screen) {
 	if (osdvisible) {
 		SDL_Surface* temp = SDL_DisplayFormat(osd);
-		SDL_BlitSurface(temp, NULL, screen, NULL );
+		SDL_BlitSurface(temp, NULL, screen, NULL);
 		SDL_FreeSurface(temp);
 	}
 }
