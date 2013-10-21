@@ -7,11 +7,11 @@ DEPS=card.h ../board.h
 all: libcards.a libcardsgdb.a
 
 libcardsgdb.a: romcardgdb.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o basicsound.o blip_buf.o timercard.o ringbuffer.o
-	- rm $@
+	rm -f $@
 	ar cr libcardsgdb.a $^
 
 libcards.a: romcard.o uartcard.o videocard.o soundcard.o compactflashinterfacecard.o inputcard.o dmacard.o basicvideo.o basicsound.o blip_buf.o timercard.o ringbuffer.o
-	- rm $@
+	rm -f $@
 	ar cr libcards.a $^
 
 romcard.o: romcard.c romcard.h $(DEPS)
@@ -38,7 +38,7 @@ compactflashinterfacecard.o: compactflashinterfacecard.c compactflashinterfaceca
 	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_GLIB) -c compactflashinterfacecard.c -o compactflashinterfacecard.o
 
 inputcard.o: inputcard.c inputcard.h $(DEPS)
-	gcc $(CFLAGS) $(LOCALCFLAGS) -c inputcard.c -o inputcard.o
+	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_SDL2) -c inputcard.c -o inputcard.o
 
 dmacard.o: dmacard.c dmacard.h card.h $(DEPS)
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c dmacard.c -o dmacard.o

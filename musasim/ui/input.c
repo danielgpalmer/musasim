@@ -27,27 +27,27 @@ static const char TAG[] = "input";
 
 void input_init() {
 	// Ignore all the events that aren't needed
-	//SDL_EventState(SDL_ACTIVEEVENT, SDL_IGNORE);
-	//SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
-	//SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
-	//SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
-	//SDL_EventState(SDL_JOYAXISMOTION, SDL_IGNORE);
-	//SDL_EventState(SDL_JOYBALLMOTION, SDL_IGNORE);
-	//SDL_EventState(SDL_JOYHATMOTION, SDL_IGNORE);
-	//SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
-	//SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
+	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+	SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
+	SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
+	SDL_EventState(SDL_JOYAXISMOTION, SDL_IGNORE);
+	SDL_EventState(SDL_JOYBALLMOTION, SDL_IGNORE);
+	SDL_EventState(SDL_JOYHATMOTION, SDL_IGNORE);
+	SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
+	SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
 }
 
 void input_update() {
 
 	// Check some keys
 	SDL_PumpEvents();
+	log_println(LEVEL_INFO, TAG, "pumped events");
 	static SDL_Event event;
-	//if (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_QUITMASK)) {
-	//	log_println(LEVEL_INFO, TAG, "Window was closed");
-	//	sim_quit();
-	//	return;
-	//}
+	if (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_QUIT, SDL_QUIT)) {
+		log_println(LEVEL_INFO, TAG, "Window was closed");
+		sim_quit();
+		return;
+	}
 
 	// pick out the events that the sim wants
 	while (SDL_PollEvent(&event)) {

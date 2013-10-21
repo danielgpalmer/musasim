@@ -128,11 +128,14 @@ static const bool video_validaddress(uint32_t address) {
 }
 
 void videocard_render(SDL_Surface* screen) {
+	log_println(LEVEL_WARNING, TAG, "render");
 	if (!WINDOWCOVERSSCREEN && windowchanged) {
 		SDL_FillRect(screen, NULL, 0);
 		windowchanged = false;
 	}
-	SDL_BlitSurface(BACKSURFACE, &region, screen, &window);
+	if (SDL_BlitSurface(BACKSURFACE, &region, screen, &window) != 0) {
+		log_println(LEVEL_WARNING, TAG, "blit failed");
+	}
 	vramtouched = false;
 	registerstouched = false;
 }

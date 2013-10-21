@@ -6,7 +6,7 @@
  */
 
 #include <stdio.h>
-#include <SDL/SDL.h>
+#include <SDL.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <input_registermasks.h>
@@ -73,7 +73,7 @@ static void inputcard_write_byte(uint32_t address, uint8_t value) {
 		debugleds = value;
 }
 
-static void inputcard_decodekey(SDLKey key, bool up) {
+static void inputcard_decodekey(SDL_Keycode key, bool up) {
 
 	int port = 0;
 	uint8_t mask;
