@@ -1,4 +1,5 @@
 include ../../common.mk
+include ../../sdl.mk
 
 LOCALCFLAGS=--std=gnu99
 DEPS=card.h ../board.h
@@ -26,11 +27,11 @@ uartcard.o: uartcard.c uartcard.h $(DEPS)
 #sdl needed for video
 #glib needed for G_N_ELEMENTS
 videocard.o: videocard.c videocard.h $(DEPS) ../../sim.h
-	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_GLIB) -c videocard.c -o videocard.o
+	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_GLIB) $(CFLAGS_SDL2) -c videocard.c -o videocard.o
 
 #sdl needed for sound
 soundcard.o: soundcard.c soundcard.h ringbuffer.o $(DEPS)
-	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_SDL) -c soundcard.c -o soundcard.o
+	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_SDL2) -c soundcard.c -o soundcard.o
 
 #glib needed for endian converion macro
 compactflashinterfacecard.o: compactflashinterfacecard.c compactflashinterfacecard.h $(DEPS)
@@ -46,7 +47,7 @@ basicvideo.o: basicvideo.c basicvideo.h $(DEPS)
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@
 
 basicsound.o: basicsound.c basicsound.h $(DEPS)
-	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_SDL) -c $< -o $@
+	gcc $(CFLAGS) $(LOCALCFLAGS) $(CFLAGS_SDL2) -c $< -o $@
 
 timercard.o: timercard.c timercard.h $(DEPS)
 	gcc $(CFLAGS) $(LOCALCFLAGS) -c $< -o $@

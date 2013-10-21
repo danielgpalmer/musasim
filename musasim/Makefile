@@ -4,7 +4,7 @@ LIBUI=./ui/libui.a
 LIBCARDS=./hardware/cards/libcards.a
 LIBCARDSGDB=./hardware/cards/libcardsgdb.a
 LIBMODULES=./hardware/modules/libmodules.a
-LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)`
+LOCALCFLAGS=--std=gnu99 `pkg-config --cflags $(ALLEXTLIBS)` -D_GNU_SOURCE=1
 
 LOCALOBJECTS=sim.o logging.o utils.o elfloader.o throttler.o
 GDBONLYOBJECTS=gdbserver.o argsgdb.o profiler.o

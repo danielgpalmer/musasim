@@ -155,8 +155,8 @@ static void osd_drawaudiobuffer() {
 			right = ringbuffer_peek(buffer, offset);
 			left = ringbuffer_peek(buffer, offset - 1);
 
-			int16_t scaledleft = CLAMP((int16_t) ((float) left * scale), -quarterheight, quarterheight);
-			int16_t scaledright = CLAMP((int16_t) ((float) right * scale), -quarterheight, quarterheight);
+			int16_t scaledleft = CLAMP((int16_t ) ((float ) left * scale), -quarterheight, quarterheight);
+			int16_t scaledright = CLAMP((int16_t ) ((float ) right * scale), -quarterheight, quarterheight);
 
 			sdlwrapper_plot(osd, audiowindow.x + i, leftbase + scaledleft, 0x00FF00FF);
 			sdlwrapper_plot(osd, audiowindow.x + i, rightbase + scaledright, 0x00FF00FF);
@@ -313,12 +313,12 @@ static void osd_drawstats(double speed, double overhead) {
 void osd_init() {
 	osd_createlabels();
 
-	osd = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_ASYNCBLIT, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, 0, 0, 0, 0);
+	osd = SDL_CreateRGBSurface(0, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PIXELFORMAT, 0, 0, 0, 0);
 	colourkey = SDL_MapRGB(osd->format, 0, 0, 0);
 	ledon = SDL_MapRGB(osd->format, 0, 255, 0);
 	ledoff = SDL_MapRGB(osd->format, 0, 100, 0);
 	audiowindowbg = SDL_MapRGB(osd->format, 0xff, 0xff, 0xff);
-	SDL_SetColorKey(osd, SDL_SRCCOLORKEY, colourkey);
+	//SDL_SetColorKey(osd, SDL_SRCCOLORKEY, colourkey);
 	SDL_FillRect(osd, NULL, colourkey);
 
 	osd_layoutleds();
@@ -357,9 +357,9 @@ void osd_visible(bool visible) {
 
 void osd_render(SDL_Surface* screen) {
 	if (osdvisible) {
-		SDL_Surface* temp = SDL_DisplayFormat(osd);
-		SDL_BlitSurface(temp, NULL, screen, NULL);
-		SDL_FreeSurface(temp);
+		//SDL_Surface* temp = SDL_DisplayFormat(osd);
+		//SDL_BlitSurface(temp, NULL, screen, NULL);
+		//SDL_FreeSurface(temp);
 	}
 }
 

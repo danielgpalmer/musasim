@@ -5,6 +5,13 @@
 
 // pixel format
 #define VIDEO_PIXELFORMAT 16
+//#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+//#else
+//#define VIDEO_rmask 0x0000001f
+//#define VIDEO_gmask 0x000007e0
+//#define VIDEO_bmask 0x0000f800
+//#define VIDEO_amask 0x00000000
+//#endif
 #define VIDEO_PIXELSIZE (VIDEO_PIXELFORMAT/8)
 
 // screen/playfield geometry

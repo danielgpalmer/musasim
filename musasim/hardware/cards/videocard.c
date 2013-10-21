@@ -89,10 +89,10 @@ static void video_init() {
 
 		SDL_Surface* rendersurface = NULL;
 
-		rendersurface = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_ASYNCBLIT, VIDEO_PLAYFIELDWIDTH, VIDEO_PLAYFIELDHEIGHT,
-				VIDEO_PIXELFORMAT, 0, 0, 0, 0);
+		rendersurface = SDL_CreateRGBSurface(0, VIDEO_PLAYFIELDWIDTH, VIDEO_PLAYFIELDHEIGHT,
+		VIDEO_PIXELFORMAT, 0, 0, 0, 0);
 
-		if (rendersurface != NULL ) {
+		if (rendersurface != NULL) {
 			SDL_FillRect(rendersurface, NULL, 0);
 			// FIXME exit here
 		}
@@ -103,7 +103,7 @@ static void video_init() {
 	compositingbuffer = malloc(VIDEO_COMPOSITINGBUFFER_SIZE);
 
 	log_println(LEVEL_DEBUG, TAG, "Active area is %d pixel, Total area  is %d pixels, refresh rate %d, pixelclock %d",
-			VIDEO_ACTIVEPIXELS, VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELCLOCK);
+	VIDEO_ACTIVEPIXELS, VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELCLOCK);
 
 	video_updaterects();
 
@@ -129,13 +129,10 @@ static const bool video_validaddress(uint32_t address) {
 
 void videocard_render(SDL_Surface* screen) {
 	if (!WINDOWCOVERSSCREEN && windowchanged) {
-		SDL_FillRect(screen, NULL, 0x0);
+		SDL_FillRect(screen, NULL, 0);
 		windowchanged = false;
 	}
-
-	SDL_Surface* temp = SDL_DisplayFormat(BACKSURFACE);
-	SDL_BlitSurface(temp, &region, screen, &window);
-	SDL_FreeSurface(temp);
+	SDL_BlitSurface(BACKSURFACE, &region, screen, &window);
 	vramtouched = false;
 	registerstouched = false;
 }
@@ -366,4 +363,4 @@ const card videocard = { "VIDEO CARD", //
 		videocard_cyclesleft, //
 		videocard_abort, //
 		NULL //
-};
+		};
