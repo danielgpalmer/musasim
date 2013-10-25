@@ -133,7 +133,8 @@ void videocard_render(SDL_Surface* screen) {
 		SDL_FillRect(screen, NULL, 0);
 		windowchanged = false;
 	}
-	if (SDL_BlitSurface(BACKSURFACE, &region, screen, &window) != 0) {
+
+	if (SDL_BlitSurface(BACKSURFACE, NULL, screen, &window) != 0) {
 		log_println(LEVEL_WARNING, TAG, "blit failed");
 	}
 	vramtouched = false;

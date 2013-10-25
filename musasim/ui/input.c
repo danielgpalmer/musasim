@@ -41,7 +41,6 @@ void input_update() {
 
 	// Check some keys
 	SDL_PumpEvents();
-	log_println(LEVEL_INFO, TAG, "pumped events");
 	static SDL_Event event;
 	if (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_QUIT, SDL_QUIT)) {
 		log_println(LEVEL_INFO, TAG, "Window was closed");
