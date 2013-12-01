@@ -49,7 +49,7 @@ static const char TAG[] = "sim";
 static long cycles = 0;
 
 static void sim_updatesdl() {
-	//osd_update(throttler_speed(), throttler_overhead());
+	osd_update(throttler_speed(), throttler_overhead());
 	input_update();
 }
 

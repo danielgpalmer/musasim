@@ -47,7 +47,7 @@ void renderer_requestrender() {
 void renderer_render() {
 	if (renderrequested) {
 		videocard_render(screen);
-		//osd_render(screen);
+		osd_render(screen);
 		SDL_UpdateTexture(sdlTexture, NULL, screen->pixels, screen->pitch);
 		SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x00, 255);
 		SDL_RenderClear(renderer);

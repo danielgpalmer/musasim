@@ -6,7 +6,7 @@ CC = gcc
 WARNINGS = -Wall -Werror -Wstrict-aliasing # -Winline 
 
 #you can override OPT to supply your own optimization flags
-OPT ?= -O0 -march=native
+OPT ?= -O3 -march=native
 
 PKGCONFIG_GLIB = glib-2.0 
 PKGCONFIG_GLIB_MINVERSION = 2.32.0

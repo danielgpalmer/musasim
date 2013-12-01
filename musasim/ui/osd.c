@@ -85,33 +85,46 @@ static void osd_renderlabel(label* l, TTF_Font* f, char* t, SDL_Color* c) {
 static bool osd_createlabels() {
 	if (TTF_Init() == 0) {
 		// open the fonts
-		font = TTF_OpenFont(fontutils_getmonospace(), LABELHEIGHT);
-		smallfont = TTF_OpenFont(fontutils_getmonospace(), KEYLABELHEIGHT);
 
-		if (font != NULL && smallfont != NULL) {
-			// big font labels
-			osd_renderlabel(&busactivitylabel, font, "bus activity", &labels);
-			osd_renderlabel(&dipswitcheslabel, font, "dip switches", &labels);
-			osd_renderlabel(&debuglabel, font, "debug leds", &labels);
-			osd_renderlabel(&audiolabel, font, "audiobuffer", &labels);
-			osd_renderlabel(&audioleftlabel, font, "left", &labels);
-			osd_renderlabel(&audiorightlabel, font, "right", &labels);
-			osd_renderlabel(&statslabel, font, "Statistics", &labels);
-			osd_renderlabel(&speedlabel, font, "Speed: ", &labels);
-			osd_renderlabel(&speedvaluelabel, font, "00.00%", &labels);
-			osd_renderlabel(&overheadlabel, font, "Overhead: ", &labels);
-			osd_renderlabel(&overheadvaluelabel, font, "00.00%", &labels);
+		char* fontpath = fontutils_getmonospace();
 
-			// small font labels
-			osd_renderlabel(&pausekeylabel, smallfont, "[pause:F1]", &labels);
-			osd_renderlabel(&resetkeylabel, smallfont, "[reset:F2]", &labels);
-			osd_renderlabel(&nmikeylabel, smallfont, "[NMI:F3]", &labels);
-			osd_renderlabel(&mutekeylabel, smallfont, "[mute:F4]", &labels);
-			osd_renderlabel(&osdkeylabel, smallfont, "[OSD:F5]", &labels);
-			osd_renderlabel(&throttlekeylabel, smallfont, "[throttle:F6]",
-					&labels);
-			osd_renderlabel(&exitkeylabel, smallfont, "[exit:ESC]", &labels);
-			return true;
+		if (fontpath != NULL) {
+			font = TTF_OpenFont(fontpath, LABELHEIGHT);
+			smallfont = TTF_OpenFont(fontpath, KEYLABELHEIGHT);
+
+			if (font != NULL && smallfont != NULL) {
+				// big font labels
+				osd_renderlabel(&busactivitylabel, font, "bus activity",
+						&labels);
+				osd_renderlabel(&dipswitcheslabel, font, "dip switches",
+						&labels);
+				osd_renderlabel(&debuglabel, font, "debug leds", &labels);
+				osd_renderlabel(&audiolabel, font, "audiobuffer", &labels);
+				osd_renderlabel(&audioleftlabel, font, "left", &labels);
+				osd_renderlabel(&audiorightlabel, font, "right", &labels);
+				osd_renderlabel(&statslabel, font, "Statistics", &labels);
+				osd_renderlabel(&speedlabel, font, "Speed: ", &labels);
+				osd_renderlabel(&speedvaluelabel, font, "00.00%", &labels);
+				osd_renderlabel(&overheadlabel, font, "Overhead: ", &labels);
+				osd_renderlabel(&overheadvaluelabel, font, "00.00%", &labels);
+
+				// small font labels
+				osd_renderlabel(&pausekeylabel, smallfont, "[pause:F1]",
+						&labels);
+				osd_renderlabel(&resetkeylabel, smallfont, "[reset:F2]",
+						&labels);
+				osd_renderlabel(&nmikeylabel, smallfont, "[NMI:F3]", &labels);
+				osd_renderlabel(&mutekeylabel, smallfont, "[mute:F4]", &labels);
+				osd_renderlabel(&osdkeylabel, smallfont, "[OSD:F5]", &labels);
+				osd_renderlabel(&throttlekeylabel, smallfont, "[throttle:F6]",
+						&labels);
+				osd_renderlabel(&exitkeylabel, smallfont, "[exit:ESC]",
+						&labels);
+
+				free(fontpath);
+
+				return true;
+			}
 		}
 	}
 	return false;
@@ -347,7 +360,7 @@ bool osd_init() {
 		ledon = SDL_MapRGB(osd->format, 0, 255, 0);
 		ledoff = SDL_MapRGB(osd->format, 0, 100, 0);
 		audiowindowbg = SDL_MapRGB(osd->format, 0xff, 0xff, 0xff);
-//SDL_SetColorKey(osd, SDL_SRCCOLORKEY, colourkey);
+		SDL_SetColorKey(osd, 1, colourkey);
 		SDL_FillRect(osd, NULL, colourkey);
 
 		osd_layoutleds();
@@ -389,11 +402,8 @@ void osd_visible(bool visible) {
 }
 
 void osd_render(SDL_Surface* screen) {
-	if (osdvisible) {
-		//SDL_Surface* temp = SDL_DisplayFormat(osd);
-		//SDL_BlitSurface(temp, NULL, screen, NULL);
-		//SDL_FreeSurface(temp);
-	}
+	if (osdvisible)
+		SDL_BlitSurface(osd, NULL, screen, NULL);
 }
 
 void osd_dispose() {
