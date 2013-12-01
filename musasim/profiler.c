@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <glib.h>
@@ -43,7 +44,8 @@ static uint32_t* pointertobeuint(uint32_t uint) {
 
 void profiler_init(const char* filepath) {
 
-	struct gmon_hdr hdr = { .cookie = GMON_MAGIC, .version = { 0, 0, 0, GMON_VERSION } };
+	struct gmon_hdr hdr = { .cookie = GMON_MAGIC, .version = { 0, 0, 0,
+	GMON_VERSION } };
 	memset(&hdr.spare, 0, sizeof(hdr.spare));
 
 	file = fopen(filepath, "w");
@@ -75,8 +77,7 @@ void profiler_onpcmodified(uint32_t a1, uint32_t a2) {
 		callarc->to = a2;
 		callarc->count = 1;
 		g_hash_table_insert(callarcs, key, callarc);
-	}
-	else {
+	} else {
 		callarc_t* callarc = g_hash_table_lookup(callarcs, key);
 		if (callarc->from != a1 && callarc->to != a2) {
 			printf("um...\n");
@@ -98,8 +99,7 @@ void profiler_onpcchange(uint32_t pc) {
 		blockcount->address = pc;
 		blockcount->count = 1;
 		g_hash_table_insert(blockcounts, key, blockcount);
-	}
-	else {
+	} else {
 		blockcount_t* blockcount = g_hash_table_lookup(blockcounts, key);
 		if (blockcount->address != pc) {
 			printf("um...\n");
@@ -121,7 +121,8 @@ void profiler_flush() {
 	g_hash_table_iter_init(&iter, callarcs);
 	while (g_hash_table_iter_next(&iter, &key, &value)) {
 		callarc_t* callarc = value;
-		printf("0x%08x -> 0x%08x, %d\n", callarc->from, callarc->to, callarc->count);
+		printf("0x%08x -> 0x%08x, %d\n", callarc->from, callarc->to,
+				callarc->count);
 		uint8_t tag = GMON_TAG_CG_ARC;
 		fwrite(&tag, 1, 1, file);
 		fwrite(pointertobeuint(callarc->from), 1, sizeof(uint32_t), file);

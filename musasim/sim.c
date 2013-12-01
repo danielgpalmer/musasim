@@ -62,17 +62,19 @@ void cpu_pulse_stop(void) {
 	uint16_t sr = (uint16_t) m68k_get_reg(NULL, M68K_REG_SR);
 	uint32_t ssp = m68k_get_reg(NULL, M68K_REG_ISP);
 
-	log_println(LEVEL_INFO, TAG, "CPU stopped SR:[0x%04x] SSP:[0x%08x]", sr, ssp);
+	log_println(LEVEL_INFO, TAG, "CPU stopped SR:[0x%04x] SSP:[0x%08x]", sr,
+			ssp);
 
 	switch (sr) {
-		case 0x0003: {
-			uint32_t returnadd = board_read_long_cpu(ssp + 2); // FIXME should not use the cpu read function
-			log_println(LEVEL_INFO, TAG, "Stop came from Illegal instruction at [0x%08x]", returnadd);
-			char buff[1024];
-			m68k_disassemble(buff, returnadd, M68K_CPU_TYPE_68000);
-			log_println(LEVEL_INFO, TAG, "dis -> %s", buff);
-		}
-			break;
+	case 0x0003: {
+		uint32_t returnadd = board_read_long_cpu(ssp + 2); // FIXME should not use the cpu read function
+		log_println(LEVEL_INFO, TAG,
+				"Stop came from Illegal instruction at [0x%08x]", returnadd);
+		char buff[1024];
+		m68k_disassemble(buff, returnadd, M68K_CPU_TYPE_68000);
+		log_println(LEVEL_INFO, TAG, "dis -> %s", buff);
+	}
+		break;
 	}
 
 	shouldexit = true;
@@ -89,7 +91,8 @@ void cpu_set_fc(unsigned int fc) {
 
 void sim_setoptions(bool usebasicvideo, bool usebasicsound, bool osd) {
 	if (initialised) {
-		log_println(LEVEL_WARNING, TAG, "setoptions can only be called before the sim starts running");
+		log_println(LEVEL_WARNING, TAG,
+				"setoptions can only be called before the sim starts running");
 		return;
 	}
 
@@ -98,10 +101,10 @@ void sim_setoptions(bool usebasicvideo, bool usebasicsound, bool osd) {
 	osdonstate = osd;
 }
 
-void sim_init() {
+bool sim_init() {
 	if (initialised) {
 		log_println(LEVEL_WARNING, TAG, "sim is apparently already running");
-		return;
+		return false;
 	}
 
 	log_println(LEVEL_DEBUG, TAG, "sim_init()");
@@ -121,11 +124,14 @@ void sim_init() {
 
 	board_poweron();
 
-	osd_init();
-	if (osdonstate)
-		osd_visible(true);
+	if (osd_init()) {
+		if (osdonstate)
+			osd_visible(true);
+	} else
+		return false;
 
 	initialised = true;
+	return true;
 }
 
 /*
@@ -142,8 +148,7 @@ void sim_tick() {
 	if (paused) {
 		usleep(5000);
 		sim_updatesdl();
-	}
-	else {
+	} else {
 		throttler_starttick();
 		if (cycles > SIM_MAINCLOCK / 30) {
 			sim_updatesdl();
@@ -154,7 +159,8 @@ void sim_tick() {
 
 		// clamping the cycles to at least 16 avoids us getting stuck in a situation where there
 		// aren't enough cycles being run to actually progress
-		int cyclestoexecute = MAX(board_maxcycles(board_bestcasecycles()) / SIM_CPUCLOCK_DIVIDER,
+		int cyclestoexecute = MAX(
+				board_maxcycles(board_bestcasecycles()) / SIM_CPUCLOCK_DIVIDER,
 				MINIMUMCPUCYCLESPERTICK);
 		//log_println(LEVEL_INFO, TAG, "going to execute %d cpu cycles", cyclestoexecute);
 
@@ -169,14 +175,14 @@ void sim_tick() {
 				sim_quit();
 				return;
 			}
-		}
-		else
+		} else
 			cpucyclesexecuted = cyclestoexecute;
 		throttler_endcputick();
 
 		cycles += cpucyclesexecuted;
 
-		board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER, throttler_behind());
+		board_tick(cpucyclesexecuted * SIM_CPUCLOCK_DIVIDER,
+				throttler_behind());
 		renderer_render();
 
 		throttler_endtick(cpucyclesexecuted);
@@ -208,8 +214,7 @@ void sim_togglepause() {
 	paused = !paused;
 	if (paused) {
 		log_println(LEVEL_INFO, TAG, "sim is now paused");
-	}
-	else {
+	} else {
 		log_println(LEVEL_INFO, TAG, "sim is now running");
 	}
 	board_pause(paused);
@@ -220,7 +225,8 @@ bool sim_has_quit() {
 }
 
 void utils_printregisters() {
-	printf("D0[0x%08x]\nD1[0x%08x]\nD2[0x%08x]\nD3[0x%08x]\nD4[0x%08x]\nD5[0x%08x]\nD6[0x%08x]\nD7[0x%08x]\n", //
+	printf(
+			"D0[0x%08x]\nD1[0x%08x]\nD2[0x%08x]\nD3[0x%08x]\nD4[0x%08x]\nD5[0x%08x]\nD6[0x%08x]\nD7[0x%08x]\n", //
 			m68k_get_reg(NULL, M68K_REG_D0), //
 			m68k_get_reg(NULL, M68K_REG_D1), //
 			m68k_get_reg(NULL, M68K_REG_D2), //
@@ -230,7 +236,8 @@ void utils_printregisters() {
 			m68k_get_reg(NULL, M68K_REG_D6), //
 			m68k_get_reg(NULL, M68K_REG_D7));
 
-	printf("A0[0x%08x]\nA1[0x%08x]\nA2[0x%08x]\nA3[0x%08x]\nA4[0x%08x]\nA5[0x%08x]\nA6[0x%08x]\nA7[0x%08x]\n", //
+	printf(
+			"A0[0x%08x]\nA1[0x%08x]\nA2[0x%08x]\nA3[0x%08x]\nA4[0x%08x]\nA5[0x%08x]\nA6[0x%08x]\nA7[0x%08x]\n", //
 			m68k_get_reg(NULL, M68K_REG_A0), //
 			m68k_get_reg(NULL, M68K_REG_A1), //
 			m68k_get_reg(NULL, M68K_REG_A2), //
@@ -240,5 +247,6 @@ void utils_printregisters() {
 			m68k_get_reg(NULL, M68K_REG_A6), //
 			m68k_get_reg(NULL, M68K_REG_A7));
 
-	printf("PC[0x%08x]\nPPC[0x%08x]\n", m68k_get_reg(NULL, M68K_REG_PC), m68k_get_reg(NULL, M68K_REG_PPC));
+	printf("PC[0x%08x]\nPPC[0x%08x]\n", m68k_get_reg(NULL, M68K_REG_PC),
+			m68k_get_reg(NULL, M68K_REG_PPC));
 }

@@ -6,13 +6,14 @@ CC = gcc
 WARNINGS = -Wall -Werror -Wstrict-aliasing # -Winline 
 
 #you can override OPT to supply your own optimization flags
-OPT ?= -O3 -march=native
+OPT ?= -O0 -march=native
 
 PKGCONFIG_GLIB = glib-2.0 
 PKGCONFIG_GLIB_MINVERSION = 2.32.0
 PKGCONFIG_GTHREAD = gthread-2.0
+PKGCONFIG_SDL2TTF = SDL2_ttf
 
-ALLEXTLIBS = $(PKGCONFIG_GLIB) $(PKGCONFIG_GTHREAD) argtable2 $(PKGCONFIG_SDL) SDL2_ttf fontconfig
+ALLEXTLIBS = $(PKGCONFIG_GLIB) $(PKGCONFIG_GTHREAD) argtable2 $(PKGCONFIG_SDL) $(PKGCONFIG_SDL2TTF) fontconfig
 
 LIBFLAGS=`pkg-config --libs $(ALLEXTLIBS)` -lrt
 

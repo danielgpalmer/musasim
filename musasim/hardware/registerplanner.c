@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <string.h>
+#include <stdlib.h>
 #include <glib.h>
 #include "registerplanner.h"
 #include "../utils.h"

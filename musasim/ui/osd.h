@@ -10,7 +10,7 @@
 
 #include <stdbool.h>
 #include <SDL.h>
-void osd_init(void);
+bool osd_init(void);
 void osd_update(double speed, double overhead);
 void osd_visible(bool visible);
 void osd_toggle(void);
