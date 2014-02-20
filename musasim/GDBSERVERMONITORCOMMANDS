@@ -1,4 +1,8 @@
-talktome - enable debugging output from the gdbserver
-stfu - disable debugging output from the gdbserver
-interruptbreakon - break on interrupts
-interruptbreakoff - don't break on interrupts
+talktome			- enable debugging output from the gdbserver
+stfu				- disable debugging output from the gdbserver
+
+
+interruptbreak on	- break on interrupts
+interruptbreak off	- don't break on interrupts
+throttle on			- limit the simulation to real speed
+throttle off			- don't limit the simulation to real speed
