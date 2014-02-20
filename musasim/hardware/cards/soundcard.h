@@ -14,6 +14,7 @@
 const card soundcard;
 
 ringbuffer* sound_getbuffer();
+void soundcard_disable(bool disablesound);
 
 #define RATE 22050
 #define TICKSPERSAMPLE ((SIM_MAINCLOCK / RATE) - 200)

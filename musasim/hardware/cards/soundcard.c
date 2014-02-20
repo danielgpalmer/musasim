@@ -14,6 +14,8 @@
 #include <stdbool.h>
 #include <SDL.h>
 
+static bool disabled = false;
+
 static char TAG[] = "sound";
 
 #define VOLLEFT(volreg) ((volreg & 0xFF00) >> 8)
@@ -66,8 +68,7 @@ static void soundcard_reset() {
 		if (i == 0) {
 			masterchannel* chan = &(channels[i].master);
 			chan->config = 0;
-		}
-		else {
+		} else {
 			audiochannel* chan = &(channels[i].audio);
 			chan->config = 0;
 			chan->volume = 0;
@@ -81,7 +82,7 @@ static void soundcard_reset() {
 static void soundcard_init() {
 
 	sampleram = malloc(SAMPLETOTAL);
-	if (sampleram == NULL ) {
+	if (sampleram == NULL) {
 		log_println(LEVEL_DEBUG, TAG, "sample ram malloc failed");
 	}
 
@@ -89,10 +90,12 @@ static void soundcard_init() {
 
 	channelregisterbase = utils_nextpow(SAMPLETOTAL);
 
-	log_println(LEVEL_DEBUG, TAG, "registers start at 0x%08x", channelregisterbase);
+	log_println(LEVEL_DEBUG, TAG, "registers start at 0x%08x",
+			channelregisterbase);
 	soundcard_channelbases(channelbases, channelregisterbase);
 	for (int i = 1; i < TOTALCHANNELS; i++) {
-		log_println(LEVEL_INFO, TAG, "Channel %d is at 0x%08x", i - 1, channelbases[i]);
+		log_println(LEVEL_INFO, TAG, "Channel %d is at 0x%08x", i - 1,
+				channelbases[i]);
 	}
 
 	SDL_AudioSpec fmt;
@@ -103,27 +106,32 @@ static void soundcard_init() {
 	fmt.callback = soundcard_sdlcallback;
 	fmt.userdata = audiobuffer;
 
-	if (SDL_OpenAudio(&fmt, NULL ) == 0) {
-		SDL_PauseAudio(0);
-		log_println(LEVEL_DEBUG, TAG, "SDL output is now active");
-		active = true;
-	}
-	else
+	if (SDL_OpenAudio(&fmt, NULL) == 0) {
+		if (!disabled) {
+			SDL_PauseAudio(0);
+			log_println(LEVEL_DEBUG, TAG, "SDL output is now active");
+			active = true;
+		}
+	} else
 		log_println(LEVEL_INFO, TAG, "Failed to open sound");
 }
 
 static void soundcard_dump_config(int channel, bool latched) {
 	if (channel == 0) {
 		masterchannel* chan = &(channels[channel].master);
-		log_println(LEVEL_DEBUG, TAG, "master channel, config 0x%04x, volume left %d right %d", chan->config,
-				VOLLEFT(chan->volume), VOLRIGHT(chan->volume));
-	}
-	else {
-		audiochannel* chan = latched ? &(channelslatched[channel].audio) : &(channels[channel].audio);
+		log_println(LEVEL_DEBUG, TAG,
+				"master channel, config 0x%04x, volume left %d right %d",
+				chan->config, VOLLEFT(chan->volume), VOLRIGHT(chan->volume));
+	} else {
+		audiochannel* chan =
+				latched ?
+						&(channelslatched[channel].audio) :
+						&(channels[channel].audio);
 		log_println(LEVEL_DEBUG, TAG,
 				"channel %d, config 0x%04x, pointer 0x%04x, len 0x%04x, pos 0x%04x, volume left %d right %d",
-				channel - 1, chan->config, chan->samplepointer, chan->samplelength, chan->samplepos,
-				VOLLEFT(chan->volume), VOLRIGHT(chan->volume));
+				channel - 1, chan->config, chan->samplepointer,
+				chan->samplelength, chan->samplepos, VOLLEFT(chan->volume),
+				VOLRIGHT(chan->volume));
 	}
 }
 static void soundcard_dispose() {
@@ -185,9 +193,11 @@ static void soundcard_tick(int cyclesexecuted, bool behind) {
 						chan = &(channelslatched[i].audio);
 					}
 
-					int page = (chan->config & SOUND_CHANNEL_PAGE) >> SOUND_CHANNEL_PAGE_SHIFT;
+					int page = (chan->config & SOUND_CHANNEL_PAGE)
+							>> SOUND_CHANNEL_PAGE_SHIFT;
 					uint32_t pageoffset = SAMPLEPAGESIZE * page;
-					uint32_t sampleoffset = pageoffset + chan->samplepointer + (chan->samplepos * 2);
+					uint32_t sampleoffset = pageoffset + chan->samplepointer
+							+ (chan->samplepos * 2);
 
 					// LEFT
 					if (chan->config & SOUND_CHANNEL_LEFT) {
@@ -249,31 +259,31 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 	if (channelnum == 0) {
 		masterchannel* chan = &(channels[channelnum].master);
 		switch (reg) {
-			case 0:
-				return &(chan->config);
-			case 1:
-				return &(chan->volume);
-			default:
-				return NULL ;
+		case 0:
+			return &(chan->config);
+		case 1:
+			return &(chan->volume);
+		default:
+			return NULL;
 		}
-	}
-	else {
+	} else {
 		audiochannel* chan = &(channels[channelnum].audio);
 		switch (reg) {
-			case 0:
-				return &(chan->config);
-			case 1:
-				return &(chan->volume);
-			case 2:
-				return &(chan->samplepointer);
-			case 3:
-				return &(chan->samplelength);
-			case 4:
-				return &(chan->samplepos);
-			default:
-				log_println(LEVEL_DEBUG, TAG, "invalid register %d, address was 0x%08x, chan is %d", reg, address,
-						channelnum - 1);
-				return NULL ;
+		case 0:
+			return &(chan->config);
+		case 1:
+			return &(chan->volume);
+		case 2:
+			return &(chan->samplepointer);
+		case 3:
+			return &(chan->samplelength);
+		case 4:
+			return &(chan->samplepos);
+		default:
+			log_println(LEVEL_DEBUG, TAG,
+					"invalid register %d, address was 0x%08x, chan is %d", reg,
+					address, channelnum - 1);
+			return NULL;
 		}
 
 	}
@@ -282,10 +292,9 @@ static uint16_t* soundcard_decodereg(uint32_t address) {
 static uint16_t soundcard_read_word(uint32_t address) {
 	if (address < channelregisterbase) {
 		return READ_WORD(sampleram, address);
-	}
-	else {
+	} else {
 		uint16_t* reg = soundcard_decodereg(address);
-		if (reg != NULL ) {
+		if (reg != NULL) {
 			return *reg;
 		}
 	}
@@ -297,17 +306,15 @@ static void soundcard_write_word(uint32_t address, uint16_t value) {
 	if (address < channelregisterbase) {
 		//log_println(LEVEL_INFO, TAG, "Write to sample ram @ 0x%"PRIx32" value: 0x%"PRIx16, address, value);
 		WRITE_WORD(sampleram, address, value);
-	}
-	else {
+	} else {
 		log_println(LEVEL_INFO, TAG, "register write 0x%"PRIx32, address);
 		uint16_t* reg = soundcard_decodereg(address);
-		if (reg != NULL ) {
+		if (reg != NULL) {
 			*reg = value;
 			for (int i = 0; i <= NUMAUDIOCHANNELS; i++) {
 				soundcard_dump_config(i, false);
 			}
-		}
-		else
+		} else
 			log_println(LEVEL_INFO, TAG, "bad address 0x%"PRIx32, address);
 	}
 }
@@ -325,10 +332,12 @@ ringbuffer* sound_getbuffer() {
 }
 
 static void soundcard_pause(bool paused) {
-	if (paused)
-		SDL_PauseAudio(1);
-	else
-		SDL_PauseAudio(0);
+	if (!disabled)
+		SDL_PauseAudio(paused ? 1 : 0);
+}
+
+void soundcard_disable(bool disablesound) {
+	disabled = disablesound;
 }
 
 const card soundcard = { //

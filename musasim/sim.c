@@ -89,7 +89,8 @@ void cpu_set_fc(unsigned int fc) {
 	}
 }
 
-void sim_setoptions(bool usebasicvideo, bool usebasicsound, bool osd) {
+void sim_setoptions(bool usebasicvideo, bool usebasicsound,
+bool osd) {
 	if (initialised) {
 		log_println(LEVEL_WARNING, TAG,
 				"setoptions can only be called before the sim starts running");
