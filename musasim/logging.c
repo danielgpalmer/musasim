@@ -73,7 +73,7 @@ void log_println(int level, const char* tag, char * fmt, ...) {
 	}
 
 	snprintf(buffer, BUFFERSIZE, "[%s]", tag);
-	printf("%-10s" "\033[0m", buffer);
+	printf("%-14s" "\033[0m", buffer);
 
 	va_list argptr;
 	va_start(argptr, fmt);

@@ -102,7 +102,7 @@ static void video_init() {
 
 	compositingbuffer = malloc(VIDEO_COMPOSITINGBUFFER_SIZE);
 
-	log_println(LEVEL_DEBUG, TAG, "Active area is %d pixel, Total area  is %d pixels, refresh rate %d, pixelclock %d",
+	log_println(LEVEL_DEBUG, TAG, "Active area is %d pixels, Total area  is %d pixels, refresh rate %d, pixelclock %d",
 	VIDEO_ACTIVEPIXELS, VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELCLOCK);
 
 	video_updaterects();

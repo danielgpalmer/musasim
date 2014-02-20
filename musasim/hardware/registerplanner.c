@@ -53,8 +53,9 @@ static int registerplanner_plangroup(registergroup* reggroup, int offset) {
 static int registerplanner_planperipheral(peripheral* peripheral) {
 	peripheral->bytes = 0;
 	registergroup** registergroups = peripheral->registergroups;
-	while (*registergroups != NULL ) {
-		peripheral->bytes = registerplanner_plangroup(*registergroups, peripheral->bytes);
+	while (*registergroups != NULL) {
+		peripheral->bytes = registerplanner_plangroup(*registergroups,
+				peripheral->bytes);
 		registergroups++;
 	}
 
@@ -64,12 +65,12 @@ static int registerplanner_planperipheral(peripheral* peripheral) {
 }
 
 static void registerplanner_printregistergroup(registergroup* group) {
-	printf("\\   0x%08"PRIx32" -> 0x%08"PRIx32" - register group,bytes %d\n", group->groupstart, group->groupend,
-			group->bytes);
+	printf("\\   0x%08"PRIx32" -> 0x%08"PRIx32" - register group,bytes %d\n",
+			group->groupstart, group->groupend, group->bytes);
 	const char** names = group->registernames;
-	if (names != NULL ) {
+	if (names != NULL) {
 		uint32_t registeraddress = group->groupstart;
-		while (*names != NULL ) {
+		while (*names != NULL) {
 			printf(" \\_ 0x%08"PRIx32" - %s\n", registeraddress, *names);
 			names++;
 			registeraddress += group->registerwidth;
@@ -78,10 +79,11 @@ static void registerplanner_printregistergroup(registergroup* group) {
 }
 
 static void registerplanner_printperipheral(peripheral* peripheral) {
-	printf("0x%08"PRIx32" -> 0x%08"PRIx32 " - peripheral, %d bytes\n", peripheral->peripheralstart,
-			peripheral->peripheralend, peripheral->bytes);
+	printf("0x%08"PRIx32" -> 0x%08"PRIx32 " - peripheral, %d bytes\n",
+			peripheral->peripheralstart, peripheral->peripheralend,
+			peripheral->bytes);
 	registergroup** registergroups = peripheral->registergroups;
-	while (*registergroups != NULL ) {
+	while (*registergroups != NULL) {
 		registerplanner_printregistergroup(*registergroups);
 		registergroups++;
 	}
@@ -94,19 +96,20 @@ static int registerplanner_planblock(block* block) {
 }
 
 static void registerplanner_printblock(block* block) {
-	printf("0x%08"PRIx32" -> 0x%08"PRIx32 " - block, %d bytes\n", block->blockstart, block->blockend, block->bytes);
+	printf("0x%08"PRIx32" -> 0x%08"PRIx32 " - block, %d bytes\n",
+			block->blockstart, block->blockend, block->bytes);
 }
 
 void registerplanner_print(cardaddressspace* card) {
 	unit** units = card->units;
-	while (*units != NULL ) {
+	while (*units != NULL) {
 		switch ((*units)->type) {
-			case BLOCK:
-				registerplanner_printblock(&(*units)->block);
-				break;
-			case PERIPHERAL:
-				registerplanner_printperipheral(&(*units)->peripheral);
-				break;
+		case BLOCK:
+			registerplanner_printblock(&(*units)->block);
+			break;
+		case PERIPHERAL:
+			registerplanner_printperipheral(&(*units)->peripheral);
+			break;
 		}
 		units++;
 	}
@@ -115,15 +118,15 @@ void registerplanner_print(cardaddressspace* card) {
 void registerplanner_plan(cardaddressspace* card) {
 	unit** units = card->units;
 	int biggestunit = 0;
-	while (*units != NULL ) {
+	while (*units != NULL) {
 		int unitsize = 0;
 		switch ((*units)->type) {
-			case BLOCK:
-				unitsize = registerplanner_planblock(&(*units)->block);
-				break;
-			case PERIPHERAL:
-				unitsize = registerplanner_planperipheral(&(*units)->peripheral);
-				break;
+		case BLOCK:
+			unitsize = registerplanner_planblock(&(*units)->block);
+			break;
+		case PERIPHERAL:
+			unitsize = registerplanner_planperipheral(&(*units)->peripheral);
+			break;
 		}
 
 		if (unitsize > biggestunit)
@@ -135,21 +138,23 @@ void registerplanner_plan(cardaddressspace* card) {
 	units = card->units;
 	int unitspacing = utils_nextpow(biggestunit);
 	uint32_t last = 0;
-	while (*units != NULL ) {
+	while (*units != NULL) {
 		((*units)->either).start = last;
-		((*units)->either).end = ((*units)->either).start + ((*units)->either).bytes - 1;
+		((*units)->either).end = ((*units)->either).start
+				+ ((*units)->either).bytes - 1;
 		last += unitspacing;
 		units++;
 	}
 }
 
-unit* registerplanner_createperipheral(const peripheral* template, char* name, const module* module, void* context) {
+unit* registerplanner_createperipheral(const peripheral* template, char* name,
+		const module* module, void* context) {
 	int unitsize = sizeof(unit);
 	unit* unit = malloc(unitsize);
 	memcpy(unit, template, sizeof(peripheral));
 	unit->type = PERIPHERAL;
 
-	if (name != NULL )
+	if (name != NULL)
 		unit->either.name = name;
 
 	unit->peripheral.module = module;
@@ -159,6 +164,7 @@ unit* registerplanner_createperipheral(const peripheral* template, char* name, c
 
 cardaddressspace* registerplanner_createaddressspace(int numberofunits) {
 	cardaddressspace* as = malloc(sizeof(cardaddressspace));
+	as->numberofunits = numberofunits;
 	unit** units = malloc(sizeof(unit*) * numberofunits);
 	as->units = units;
 	return as;
@@ -176,12 +182,12 @@ unit* registerplanner_createblock(int size, void* backingarray) {
 static unit* registerplanner_whichunit(cardaddressspace* card, uint32_t address) {
 	printf("Looking for unit for 0x%"PRIx32"\n", address);
 	unit** unit = card->units;
-	while (*unit != NULL ) {
+	while (*unit != NULL) {
 		if (address >= (*unit)->either.start && address <= (*unit)->either.end)
 			return *unit;
 		unit++;
 	}
-	return NULL ;
+	return NULL;
 }
 
 uint8_t registerplanner_read_byte(cardaddressspace* card, uint32_t address) {
@@ -189,12 +195,13 @@ uint8_t registerplanner_read_byte(cardaddressspace* card, uint32_t address) {
 }
 uint16_t registerplanner_read_word(cardaddressspace* card, uint32_t address) {
 	unit* unit = registerplanner_whichunit(card, address);
-	if (unit != NULL ) {
+	if (unit != NULL) {
 		switch (unit->either.type) {
-			case PERIPHERAL:
-				return unit->peripheral.module->read_word(unit->peripheral.context, address);
-			case BLOCK:
-				return *((uint16_t*) unit->block.block); // hack
+		case PERIPHERAL:
+			return unit->peripheral.module->read_word(unit->peripheral.context,
+					address);
+		case BLOCK:
+			return *((uint16_t*) unit->block.block); // hack
 		}
 	}
 	return 0;
@@ -202,43 +209,51 @@ uint16_t registerplanner_read_word(cardaddressspace* card, uint32_t address) {
 uint32_t registerplanner_read_long(cardaddressspace* card, uint32_t address) {
 	return 0;
 }
-void registerplanner_write_byte(cardaddressspace* card, uint32_t address, uint8_t value) {
+void registerplanner_write_byte(cardaddressspace* card, uint32_t address,
+		uint8_t value) {
 
 }
-void registerplanner_write_word(cardaddressspace* card, uint32_t address, uint16_t value) {
+void registerplanner_write_word(cardaddressspace* card, uint32_t address,
+		uint16_t value) {
 	unit* unit = registerplanner_whichunit(card, address);
-	if (unit != NULL ) {
+	if (unit != NULL) {
 		switch (unit->either.type) {
-			case PERIPHERAL:
-				unit->peripheral.module->write_word(unit->peripheral.context, address, value);
-				break;
-			case BLOCK:
-				break;
+		case PERIPHERAL:
+			unit->peripheral.module->write_word(unit->peripheral.context,
+					address, value);
+			break;
+		case BLOCK:
+			break;
 		}
 	}
 }
-void registerplanner_write_long(cardaddressspace* card, uint32_t address, uint32_t value) {
+void registerplanner_write_long(cardaddressspace* card, uint32_t address,
+		uint32_t value) {
 	unit* unit = registerplanner_whichunit(card, address);
-	if (unit != NULL ) {
+	if (unit != NULL) {
 		uint32_t relativeaddress = address - unit->either.start;
 		switch (unit->either.type) {
-			case PERIPHERAL:
-				unit->peripheral.module->write_long(unit->peripheral.context, relativeaddress, value);
-				break;
-			case BLOCK:
-				break;
+		case PERIPHERAL:
+			unit->peripheral.module->write_long(unit->peripheral.context,
+					relativeaddress, value);
+			break;
+		case BLOCK:
+			break;
 		}
 	}
 }
 
 void registerplanner_iterate_registers(unit* unit,
-		void (*function)(uint32_t address, int width, const char* name, void* data), void* data) {
+		void (*function)(uint32_t address, int width, const char* name,
+				void* data), void* data) {
 
 	if (unit->type == PERIPHERAL) {
-		for (registergroup** rg = unit->peripheral.registergroups; *rg != NULL ; rg++) {
+		for (registergroup** rg = unit->peripheral.registergroups; *rg != NULL;
+				rg++) {
 			for (int r = 0; r < (*rg)->numberofregisters; r++) {
 				uint32_t address = unit->either.start + (*rg)->groupstart
-						+ (registerplanner_widthtostride((*rg)->registerwidth) * r);
+						+ (registerplanner_widthtostride((*rg)->registerwidth)
+								* r);
 
 				int size = registerplanner_widthtosize((*rg)->registerwidth);
 				const char* name = (*rg)->registernames[r];
@@ -251,14 +266,14 @@ void registerplanner_iterate_registers(unit* unit,
 
 void registerplanner_iterate(cardaddressspace* card, void (*function)(unit*)) {
 	unit** unit = card->units;
-	for (; *unit != NULL ; unit++) {
+	for (; *unit != NULL; unit++) {
 		function(*unit);
 	}
 }
 
 void registerplanner_tickmodules(cardaddressspace* card, int cyclesexecuted) {
 	unit** currentunit = card->units;
-	while (*currentunit != NULL ) {
+	while (*currentunit != NULL) {
 		unit* u = *currentunit;
 		if (u->either.type == PERIPHERAL) {
 			u->peripheral.module->tick(u->peripheral.context, cyclesexecuted);
@@ -269,7 +284,7 @@ void registerplanner_tickmodules(cardaddressspace* card, int cyclesexecuted) {
 
 void registerplanner_resetmodules(cardaddressspace* card) {
 	unit** currentunit = card->units;
-	while (*currentunit != NULL ) {
+	while (*currentunit != NULL) {
 		unit* u = *currentunit;
 		if (u->either.type == PERIPHERAL) {
 			u->peripheral.module->reset(u->peripheral.context);
@@ -280,7 +295,8 @@ void registerplanner_resetmodules(cardaddressspace* card) {
 
 int registerplanner_cyclesleft(cardaddressspace* card) {
 	int cycles = -1;
-	for (unit** currentunit = card->units; *currentunit != NULL ; currentunit++) {
+	for (unit** currentunit = card->units; *currentunit != NULL;
+			currentunit++) {
 		unit* u = *currentunit;
 		if (u->either.type == PERIPHERAL) {
 			int c = u->peripheral.module->cyclesleft(u->peripheral.context);
