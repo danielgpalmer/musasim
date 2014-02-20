@@ -31,6 +31,8 @@
 #define GDB_RDP_BACKSTEP bs
 #define GDB_RDP_BACKCONTINUE bc
 
+static const char TAG[] = "gdbserver";
+
 // some constants for the GDB proto
 #define OK "OK"
 static char GDBACK = '+';

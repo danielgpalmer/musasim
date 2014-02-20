@@ -15,10 +15,8 @@ osd.o: osd.c osd.h
 sdlwrapper.o: sdlwrapper.c sdlwrapper.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) $< -o $@
 
-
 fontutils.o: fontutils.c
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<
-
 
 renderer.o: renderer.c renderer.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) -o $@ $<

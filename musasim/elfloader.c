@@ -34,12 +34,12 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 		goto exit;
 	}
 
-	if ((e = elf_begin(fileno(file), ELF_C_READ, NULL )) == NULL ) {
+	if ((e = elf_begin(fileno(file), ELF_C_READ, NULL)) == NULL) {
 		log_println(LEVEL_WARNING, TAG, "libelf failed to parse %s", path);
 		goto exit;
 	}
 
-	if (gelf_getehdr(e, &ehdr) == NULL ) {
+	if (gelf_getehdr(e, &ehdr) == NULL) {
 		log_println(LEVEL_WARNING, TAG, "Failed to get elf header!");
 		goto exit;
 	}
@@ -50,7 +50,8 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 	}
 
 	if (ehdr.e_phnum == 0) {
-		log_println(LEVEL_WARNING, TAG, "this elf file has no prog headers!! not an elf file?");
+		log_println(LEVEL_WARNING, TAG,
+				"this elf file has no prog headers!! not an elf file?");
 		goto exit;
 	}
 
@@ -61,19 +62,19 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 		gelf_getphdr(e, header, &phdr);
 		if (phdr.p_type == 0x1) {
 
-			log_println(LEVEL_INFO, TAG, "Phy address 0x%08"PRIx64", Virt address 0x%08"PRIx64, 
-					(unsigned long long)phdr.p_paddr,
-					(unsigned long long)phdr.p_vaddr);
+			log_println(LEVEL_INFO, TAG,
+					"Phy address 0x%08"PRIx64", Virt address 0x%08"PRIx64,
+					(uint64_t) phdr.p_paddr, (uint64_t) phdr.p_vaddr);
 			if (phdr.p_paddr >= destaddr + maxlen) {
-				log_println(LEVEL_INFO, TAG, "Section is past the end of the area being loaded to, ignored");
+				log_println(LEVEL_INFO, TAG,
+						"Section is past the end of the area being loaded to, ignored");
 				continue;
 			}
 
 			if (fseek(file, phdr.p_offset, SEEK_SET) != 0) {
 				log_println(LEVEL_WARNING, TAG, "Failed to seek in ELF\n");
 				break;
-			}
-			else {
+			} else {
 				fread(dest + (phdr.p_paddr - destaddr), 1, phdr.p_filesz, file);
 				ret = true;
 			}
@@ -83,10 +84,10 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 
 	exit:
 
-	if (file != NULL ) {
+	if (file != NULL) {
 		fclose(file);
 	}
-	if (e != NULL ) {
+	if (e != NULL) {
 		elf_end(e);
 	}
 
