@@ -1,6 +1,7 @@
 include ../common.mk
+include ../sdl.mk
 
-LOCALCFLAGS=--std=gnu99 -I../ `sdl2-config --cflags` $(CFLAGS_GLIB)
+LOCALCFLAGS=--std=gnu99 -I../ $(CFLAGS_SDL2) $(CFLAGS_GLIB)
 
 all: libui.a
 

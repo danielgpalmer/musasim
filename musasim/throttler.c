@@ -1,5 +1,5 @@
 /*
- jjjl * throttler.c
+ * throttler.c
  *
  *  Created on: 18 Apr 2013
  *      Author: daniel
@@ -79,7 +79,8 @@ void throttler_endtick(int cpucyclesexecuted) {
 	long emulationtime = cputime;
 	for (int i = 0; i < G_N_ELEMENTS(executiontimes); i++)
 		emulationtime += executiontimes[i];
-	double currentoverhead = (float) 1 - ((float) emulationtime / (float) timetaken);
+	double currentoverhead = (float) 1
+			- ((float) emulationtime / (float) timetaken);
 
 	speeds[count % G_N_ELEMENTS(speeds)] = currentspeed;
 	overheads[count % G_N_ELEMENTS(speeds)] = currentoverhead;

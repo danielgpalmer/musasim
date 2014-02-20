@@ -61,15 +61,15 @@ void log_println(int level, const char* tag, char * fmt, ...) {
 	g_mutex_lock(&mutex);
 
 	switch (level) {
-		case LEVEL_WARNING:
-			printf("\033[1;40;%sm", RED);
-			break;
-		case LEVEL_DEBUG:
-			printf("\033[1;40;%sm", YELLOW);
-			break;
-		default:
-			printf("\033[1m");
-			break;
+	case LEVEL_WARNING:
+		printf("\033[1;40;%sm", RED);
+		break;
+	case LEVEL_DEBUG:
+		printf("\033[1;40;%sm", YELLOW);
+		break;
+	default:
+		printf("\033[1m");
+		break;
 	}
 
 	snprintf(buffer, BUFFERSIZE, "[%s]", tag);
