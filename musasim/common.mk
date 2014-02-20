@@ -9,7 +9,7 @@ ifeq ($(shell uname -s),Darwin)
 CC = clang
 WARNINGS = -Wall -Wstrict-aliasing -D_DARWIN_C_SOURCE
 INLININGOPTS= #--param inline-unit-growth=100 -finline-limit=1200 --param large-function-growth=5400
-OPT ?= -O3 -march=native
+OPT ?= -O3
 OS_LIBS =
 OS_PKGCONFIG = libelf
 else

@@ -1,5 +1,5 @@
 include ../../common.mk
--include ../../sdl.mk
+include ../../sdl.mk
 
 LOCALCFLAGS=--std=gnu99
 DEPS=card.h ../board.h
