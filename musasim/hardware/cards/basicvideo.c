@@ -17,15 +17,14 @@ static const char TAG[] = "basicvideo";
 
 static SDL_Surface* screen = NULL;
 
-static void video_init() {
-
+static bool video_init() {
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
 
 	//screen = SDL_SetVideoMode(BASIC_VIDEO_WIDTH, BASIC_VIDEO_HEIGHT, BASIC_VIDEO_PIXELFORMAT, SDL_SWSURFACE);
 
-	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP", screen->w, screen->h,
-			screen->format->BitsPerPixel);
-
+	log_println(LEVEL_INFO, TAG, "Created surface; %d x %d pixels @ %dBPP",
+			screen->w, screen->h, screen->format->BitsPerPixel);
+	return true;
 }
 
 static void video_dispose() {
@@ -84,5 +83,5 @@ const card basicvideocard = { "BASIC VIDEO CARD", //
 		NULL, //
 		NULL, //
 		NULL //
-};
+		};
 

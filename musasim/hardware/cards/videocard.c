@@ -49,8 +49,8 @@ static uint16_t winy = 0;
 static uint16_t winwidth = VIDEO_WIDTH;
 static uint16_t winheight = VIDEO_HEIGHT;
 
-static uint16_t* video_registers[] = { &flags, &config, &pixel, &line, &frame, &posx, &posy, &winx, &winy, &winwidth,
-		&winheight };
+static uint16_t* video_registers[] = { &flags, &config, &pixel, &line, &frame,
+		&posx, &posy, &winx, &winy, &winwidth, &winheight };
 
 static SDL_Surface* rendersurfaces[2];
 static SDL_Rect region;
@@ -81,32 +81,33 @@ static void video_updaterects() {
 	windowchanged = true;
 }
 
-static void video_init() {
-
+static bool video_init() {
 	log_println(LEVEL_DEBUG, TAG, "video_init()");
-
 	for (int i = 0; i < G_N_ELEMENTS(rendersurfaces); i++) {
-
 		SDL_Surface* rendersurface = NULL;
 
-		rendersurface = SDL_CreateRGBSurface(0, VIDEO_PLAYFIELDWIDTH, VIDEO_PLAYFIELDHEIGHT,
+		rendersurface = SDL_CreateRGBSurface(0, VIDEO_PLAYFIELDWIDTH,
+		VIDEO_PLAYFIELDHEIGHT,
 		VIDEO_PIXELFORMAT, 0, 0, 0, 0);
 
-		if (rendersurface != NULL) {
-			SDL_FillRect(rendersurface, NULL, 0);
-			// FIXME exit here
-		}
-		rendersurfaces[i] = rendersurface;
+		if (rendersurface == NULL)
+			return false;
 
+		SDL_FillRect(rendersurface, NULL, 0);
+		rendersurfaces[i] = rendersurface;
 	}
 
 	compositingbuffer = malloc(VIDEO_COMPOSITINGBUFFER_SIZE);
+	if (compositingbuffer == NULL)
+		return false;
 
-	log_println(LEVEL_DEBUG, TAG, "Active area is %d pixels, Total area  is %d pixels, refresh rate %d, pixelclock %d",
-	VIDEO_ACTIVEPIXELS, VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE, VIDEO_PIXELCLOCK);
+	log_println(LEVEL_DEBUG, TAG,
+			"Active area is %d pixels, Total area  is %d pixels, refresh rate %d, pixelclock %d",
+			VIDEO_ACTIVEPIXELS, VIDEO_TOTALPIXELS, VIDEO_REFRESHRATE,
+			VIDEO_PIXELCLOCK);
 
 	video_updaterects();
-
+	return true;
 }
 
 static void video_dispose() {
@@ -119,7 +120,10 @@ static void video_dispose() {
 
 static const bool video_validaddress(uint32_t address) {
 	// is the address inside the framebuffer or compositing buffer?
-	if (address >= VIDEO_FRAMEBUFFER_START && address < VIDEO_COMPOSITINGBUFFER_START + VIDEO_COMPOSITINGBUFFER_SIZE)
+	if (address >= VIDEO_FRAMEBUFFER_START
+			&& address
+					< VIDEO_COMPOSITINGBUFFER_START
+							+ VIDEO_COMPOSITINGBUFFER_SIZE)
 		return true;
 	// is it inside the registers?
 	else if (address < 22) // FIXME!
@@ -151,8 +155,7 @@ static void video_onendofframe(bool behind) {
 		if (!behind || framesskipped == MAXFRAMESKIP) {
 			renderer_requestrender();
 			framesskipped = 0;
-		}
-		else if (behind)
+		} else if (behind)
 			framesskipped++;
 	}
 #else
@@ -230,13 +233,13 @@ static void video_write_byte(uint32_t address, uint8_t data) {
 		if (SDL_MUSTLOCK(FRONTSURFACE)) {
 			SDL_LockSurface(FRONTSURFACE);
 		}
-		*((uint8_t*) FRONTSURFACE->pixels + (address - VIDEO_FRAMEBUFFER_START)) = data;
+		*((uint8_t*) FRONTSURFACE->pixels + (address - VIDEO_FRAMEBUFFER_START)) =
+				data;
 		vramtouched = true;
 		if (SDL_MUSTLOCK(FRONTSURFACE)) {
 			SDL_UnlockSurface(FRONTSURFACE);
 		}
-	}
-	else {
+	} else {
 
 	}
 }
@@ -246,7 +249,8 @@ static void video_write_word(uint32_t address, uint16_t data) {
 	if (address < VIDEO_FRAMEBUFFER_START) {
 
 		if (ISACTIVE) {
-			log_println(LEVEL_INFO, TAG, "write to registers during active period");
+			log_println(LEVEL_INFO, TAG,
+					"write to registers during active period");
 		}
 
 		uint8_t reg = GETVIDREG(address);
@@ -262,7 +266,8 @@ static void video_write_word(uint32_t address, uint16_t data) {
 		*(video_registers[reg]) = data;
 
 		// update the window rects
-		if (reg == VIDEO_REG_POSX || reg == VIDEO_REG_POSY || reg == VIDEO_REG_WINHEIGHT || reg == VIDEO_REG_WINWIDTH
+		if (reg == VIDEO_REG_POSX || reg == VIDEO_REG_POSY
+				|| reg == VIDEO_REG_WINHEIGHT || reg == VIDEO_REG_WINWIDTH
 				|| reg == VIDEO_REG_WINX || reg == VIDEO_REG_WINY) {
 			video_updaterects();
 		}
@@ -273,13 +278,13 @@ static void video_write_word(uint32_t address, uint16_t data) {
 		if (SDL_MUSTLOCK(FRONTSURFACE)) {
 			SDL_LockSurface(FRONTSURFACE);
 		}
-		*((uint16_t*) FRONTSURFACE->pixels + ((address - VIDEO_FRAMEBUFFER_START) / 2)) = data;
+		*((uint16_t*) FRONTSURFACE->pixels
+				+ ((address - VIDEO_FRAMEBUFFER_START) / 2)) = data;
 		vramtouched = true;
 		if (SDL_MUSTLOCK(FRONTSURFACE)) {
 			SDL_UnlockSurface(FRONTSURFACE);
 		}
-	}
-	else {
+	} else {
 
 	}
 
@@ -303,7 +308,8 @@ static void videocard_irqack() {
 }
 
 static const int videocard_bestcasecycles() {
-	return ((VIDEO_WIDTH + VIDEO_HBLANKPERIOD) * VIDEO_VBLANKPERIOD) * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
+	return ((VIDEO_WIDTH + VIDEO_HBLANKPERIOD) * VIDEO_VBLANKPERIOD)
+			* VIDEO_MACHINECLOCKSPERPIXELCLOCK;
 }
 
 static int videocard_cyclesleft() {
@@ -313,9 +319,9 @@ static int videocard_cyclesleft() {
 			int pixelsuntilhblank = VIDEO_WIDTH - pixel;
 			//log_println(LEVEL_INFO, TAG, "pixels until hblank %d", pixelsuntilhblank);
 			return pixelsuntilhblank * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
-		}
-		else if (pixel >= VIDEO_WIDTH) {
-			int pixelsuntilexitinghblank = (VIDEO_WIDTH + VIDEO_HBLANKPERIOD) - pixel;
+		} else if (pixel >= VIDEO_WIDTH) {
+			int pixelsuntilexitinghblank = (VIDEO_WIDTH + VIDEO_HBLANKPERIOD)
+					- pixel;
 			//log_println(LEVEL_INFO, TAG, "pixels until exiting hblank %d", pixelsuntilexitinghblank);
 			return pixelsuntilexitinghblank * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
 		}
@@ -323,7 +329,8 @@ static int videocard_cyclesleft() {
 
 	int linesuntilexitingvblank = (VIDEO_HEIGHT + VIDEO_VBLANKPERIOD) - line;
 	//log_println(LEVEL_INFO, TAG, "lines until exiting vblank %d", linesuntilexitingvblank);
-	return (linesuntilexitingvblank * (VIDEO_WIDTH + VIDEO_HBLANKPERIOD)) * VIDEO_MACHINECLOCKSPERPIXELCLOCK;
+	return (linesuntilexitingvblank * (VIDEO_WIDTH + VIDEO_HBLANKPERIOD))
+			* VIDEO_MACHINECLOCKSPERPIXELCLOCK;
 
 }
 

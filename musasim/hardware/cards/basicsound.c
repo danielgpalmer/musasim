@@ -33,12 +33,12 @@ static void basicsound_sdlcallback(void* unused, uint8_t *stream, int len) {
 	}
 }
 
-static void basicsound_init() {
+static bool basicsound_init() {
 	log_println(LEVEL_DEBUG, TAG, "basicsound init");
 	buf = blip_new(SAMPLERATE / 5);
-	if (buf == NULL ) {
+	if (buf == NULL) {
 		log_println(LEVEL_WARNING, TAG, "failed to create buffer");
-		return;
+		return false;
 	}
 
 	blip_set_rates(buf, SIM_CPUCLOCK, SAMPLERATE);
@@ -51,21 +51,20 @@ static void basicsound_init() {
 	fmt.callback = basicsound_sdlcallback;
 	fmt.userdata = NULL;
 
-	if (SDL_OpenAudio(&fmt, NULL ) == 0) {
+	if (SDL_OpenAudio(&fmt, NULL) == 0) {
 		SDL_PauseAudio(0);
 		log_println(LEVEL_DEBUG, TAG, "SDL output is now active");
-	}
-	else {
+	} else {
 		blip_delete(buf);
-		return;
+		return false;
 	}
 
 	inited = true;
-
+	return true;
 }
 
 static void basicsound_dispose() {
-	if (buf != NULL ) {
+	if (buf != NULL) {
 		blip_delete(buf);
 	}
 	SDL_CloseAudio();
@@ -130,4 +129,4 @@ const card basicsoundcard = { "BASIC SOUND CARD", //
 		NULL, // bestcasecycles
 		NULL, // abort
 		NULL // cyclesled
-};
+		};

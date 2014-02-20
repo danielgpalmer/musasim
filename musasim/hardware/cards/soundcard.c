@@ -79,11 +79,12 @@ static void soundcard_reset() {
 	}
 }
 
-static void soundcard_init() {
+static bool soundcard_init() {
 
 	sampleram = malloc(SAMPLETOTAL);
 	if (sampleram == NULL) {
 		log_println(LEVEL_DEBUG, TAG, "sample ram malloc failed");
+		return false;
 	}
 
 	audiobuffer = ringbuffer_new(BUFFER);
@@ -114,6 +115,7 @@ static void soundcard_init() {
 		}
 	} else
 		log_println(LEVEL_INFO, TAG, "Failed to open sound");
+	return true;
 }
 
 static void soundcard_dump_config(int channel, bool latched) {

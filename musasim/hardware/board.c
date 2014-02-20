@@ -79,14 +79,16 @@ static const inline uint8_t board_decode_slot(uint32_t address) {
 	return slot;
 }
 
-void board_add_device(uint8_t slot, const card *card) {
+bool board_add_device(uint8_t slot, const card *card) {
 	log_println(LEVEL_DEBUG, TAG, "Inserting %s into slot %d", card->boardinfo,
 			slot);
 	slots[slot] = card;
-	if (card->init != NULL)
-		(card->init)();
-	if (card->reset != NULL)
-		(card->reset)();
+	if (card->init == NULL || (card->init)()) {
+		if (card->reset != NULL)
+			(card->reset)();
+		return true;
+	}
+	return false;
 }
 
 static int cycles;
@@ -516,9 +518,9 @@ unsigned int board_read_long_busmaster(unsigned int address,
 }
 
 static inline void board_write(unsigned int address, unsigned int value,
-		bool skipchecks, const card* busmaster, const int width) __attribute__((always_inline)) __attribute__((hot));
+bool skipchecks, const card* busmaster, const int width) __attribute__((always_inline)) __attribute__((hot));
 static inline void board_write(unsigned int address, unsigned int value,
-		bool skipchecks, const card* busmaster, const int width) {
+bool skipchecks, const card* busmaster, const int width) {
 #if USEMULTIPLETHREADS
 	g_rec_mutex_lock(&busmutex);
 #endif
@@ -573,7 +575,7 @@ static inline void board_write(unsigned int address, unsigned int value,
 }
 
 void board_write_byte_internal(unsigned int address, unsigned int value,
-		bool skipchecks, const card* busmaster) {
+bool skipchecks, const card* busmaster) {
 	board_write(address, value, skipchecks, busmaster, 1);
 }
 
@@ -589,7 +591,7 @@ void board_write_byte_busmaster(unsigned int address, unsigned int value,
 }
 
 void board_write_word_internal(unsigned int address, unsigned int value,
-		bool skipchecks, const card* busmaster) {
+bool skipchecks, const card* busmaster) {
 	board_write(address, value, skipchecks, busmaster, 2);
 }
 
@@ -605,7 +607,7 @@ void board_write_word_busmaster(unsigned int address, unsigned int value,
 }
 
 void board_write_long_internal(unsigned int address, unsigned int value,
-		bool skipchecks, const card* busmaster) {
+bool skipchecks, const card* busmaster) {
 	board_write(address, value, skipchecks, busmaster, 4);
 }
 

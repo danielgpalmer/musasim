@@ -83,7 +83,7 @@ static gpointer uart_readerthread_func(gpointer data) {
 
 	log_println(LEVEL_INFO, TAG, "Reader thread shutting down");
 
-	return NULL ;
+	return NULL;
 
 }
 #endif
@@ -107,7 +107,7 @@ static void uart_reset_channel(channel* chan) {
 	//g_queue_clear(chan->rxfifo);
 }
 
-static void uart_init() {
+static bool uart_init() {
 
 	int ptm;
 
@@ -118,11 +118,11 @@ static void uart_init() {
 		ptm = posix_openpt(O_RDWR | O_NOCTTY);
 		if (ptm == -1) {
 			log_println(LEVEL_INFO, TAG, "failed opening PTY!");
-		}
-		else {
+		} else {
 			grantpt(ptm);
 			unlockpt(ptm);
-			log_println(LEVEL_INFO, TAG, "Channel %d pts is %s", i, ptsname(ptm));
+			log_println(LEVEL_INFO, TAG, "Channel %d pts is %s", i,
+					ptsname(ptm));
 			channels[i].ptm = ptm;
 			int flags = fcntl(ptm, F_GETFL);
 			if (!(flags & O_NONBLOCK)) {
@@ -142,6 +142,8 @@ static void uart_init() {
 #if USEMULTIPLETHREADS
 	readerthread = g_thread_new("uartreader", uart_readerthread_func, NULL );
 #endif
+
+	return true;
 }
 
 static void uart_dispose() {
@@ -153,15 +155,15 @@ static void uart_dispose() {
 
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
 		close(channels[i].ptm);
-		if (channels[i].rxfifo != NULL ) {
+		if (channels[i].rxfifo != NULL) {
 			g_async_queue_unref(channels[i].rxfifo);
 		}
-		if (channels[i].txfifo != NULL ) {
+		if (channels[i].txfifo != NULL) {
 			g_async_queue_unref(channels[i].txfifo);
 		}
 	}
 
-	if (logbuffer != NULL ) {
+	if (logbuffer != NULL) {
 		free(logbuffer);
 	}
 
@@ -182,103 +184,108 @@ static uint8_t* uart_decode_register(uint32_t address, bool write) {
 	uint8_t reg = (address & REGISTERMASK);
 
 	switch (reg) {
-		case UART_REGISTER_RXTXBUFFER:
-			if (IS_BIT_SET(LINECONTROL_DLAB, regs->line_control)) {
-				return &(regs->divisor_latch_lsb);
-			}
-			else {
-				if (write) {
-					if (IS_BIT_SET(FIFOCONTROL_ENABLE, regs->fifo_control)) {
-						uint8_t* byte = malloc(1);
-						g_async_queue_push(chan->txfifo, byte);
-						uart_clearbit(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, &(regs->line_status)); // datasheet says this is cleared when at least one byte is in the xmit fifo
-						return byte;
+	case UART_REGISTER_RXTXBUFFER:
+		if (IS_BIT_SET(LINECONTROL_DLAB, regs->line_control)) {
+			return &(regs->divisor_latch_lsb);
+		} else {
+			if (write) {
+				if (IS_BIT_SET(FIFOCONTROL_ENABLE, regs->fifo_control)) {
+					uint8_t* byte = malloc(1);
+					g_async_queue_push(chan->txfifo, byte);
+					uart_clearbit(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY,
+							&(regs->line_status)); // datasheet says this is cleared when at least one byte is in the xmit fifo
+					return byte;
+				} else {
+					log_println(LEVEL_INSANE, TAG, "Host wrote a byte");
+					if (!IS_BIT_SET(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY,
+							regs->line_status)) {
+						log_println(LEVEL_DEBUG, TAG, "TX overrun!");
 					}
-					else {
-						log_println(LEVEL_INSANE, TAG, "Host wrote a byte");
-						if (!IS_BIT_SET(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, regs->line_status)) {
-							log_println(LEVEL_DEBUG, TAG, "TX overrun!");
-						}
 
-						uart_clearbit(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, &(regs->line_status));
-						return &(regs->txbyte);
+					uart_clearbit(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY,
+							&(regs->line_status));
+					return &(regs->txbyte);
+				}
+			} else {
+				if (IS_BIT_SET(FIFOCONTROL_ENABLE, regs->fifo_control)) {
+
+					uint8_t* byte = NULL;
+					if (g_async_queue_length(chan->rxfifo)) {
+						byte = g_async_queue_pop(chan->rxfifo);
+					} else {
+						log_println(LEVEL_DEBUG, TAG, "FIFO IS EMPTY!!!");
+						byte = malloc(1);
+						byte = 0;
 					}
-				}
-				else {
-					if (IS_BIT_SET(FIFOCONTROL_ENABLE, regs->fifo_control)) {
 
-						uint8_t* byte = NULL;
-						if (g_async_queue_length(chan->rxfifo)) {
-							byte = g_async_queue_pop(chan->rxfifo);
-						}
-						else {
-							log_println(LEVEL_DEBUG, TAG, "FIFO IS EMPTY!!!");
-							byte = malloc(1);
-							byte = 0;
-						}
-
-						if (g_async_queue_length(chan->rxfifo) == 0) {
-							//log_println(LEVEL_DEBUG, TAG, "fifo is dry");
-							uart_clearbit(LINESTATUS_DATAREADY, &(regs->line_status));
-						}
-
-						return byte;
+					if (g_async_queue_length(chan->rxfifo) == 0) {
+						//log_println(LEVEL_DEBUG, TAG, "fifo is dry");
+						uart_clearbit(LINESTATUS_DATAREADY,
+								&(regs->line_status));
 					}
-					else {
-						uart_clearbit(LINESTATUS_DATAREADY, &(regs->line_status));
-						return &(regs->rxbyte);
-					}
+
+					return byte;
+				} else {
+					uart_clearbit(LINESTATUS_DATAREADY, &(regs->line_status));
+					return &(regs->rxbyte);
 				}
 			}
-		case UART_REGISTER_INTERRUPTENABLE:
-			if (IS_BIT_SET(LINECONTROL_DLAB, regs->line_control)) {
-				return &(regs->divisor_latch_msb);
+		}
+	case UART_REGISTER_INTERRUPTENABLE:
+		if (IS_BIT_SET(LINECONTROL_DLAB, regs->line_control)) {
+			return &(regs->divisor_latch_msb);
+		} else {
+			return &(regs->interrupt_enable);
+		}
+	case UART_REGISTER_FIFOCONTROL:
+		if (write)
+			return &(regs->fifo_control);
+		else {
+
+			// clear the current id and pending bit
+			regs->interrupt_identification &= ~(INTERRUPTIDENTIFY_ID
+					| INTERRUPTIDENTIFY_PENDING);
+
+			if (chan->intpending_highest) {
+				regs->interrupt_identification |=
+						(INTERRUPTIDENTIFY_LEVEL_HIGHEST
+								| INTERRUPTIDENTIFY_PENDING);
+				chan->intpending_highest = false;
 			}
-			else {
-				return &(regs->interrupt_enable);
+
+			else if (chan->intpending_second) {
+				regs->interrupt_identification |=
+						(INTERRUPTIDENTIFY_LEVEL_SECOND
+								| INTERRUPTIDENTIFY_PENDING);
+				chan->intpending_second = false;
 			}
-		case UART_REGISTER_FIFOCONTROL:
-			if (write)
-				return &(regs->fifo_control);
-			else {
 
-				// clear the current id and pending bit
-				regs->interrupt_identification &= ~(INTERRUPTIDENTIFY_ID | INTERRUPTIDENTIFY_PENDING);
-
-				if (chan->intpending_highest) {
-					regs->interrupt_identification |= (INTERRUPTIDENTIFY_LEVEL_HIGHEST | INTERRUPTIDENTIFY_PENDING);
-					chan->intpending_highest = false;
-				}
-
-				else if (chan->intpending_second) {
-					regs->interrupt_identification |= (INTERRUPTIDENTIFY_LEVEL_SECOND | INTERRUPTIDENTIFY_PENDING);
-					chan->intpending_second = false;
-				}
-
-				else if (chan->intpending_third) {
-					regs->interrupt_identification |= (INTERRUPTIDENTIFY_LEVEL_THIRD | INTERRUPTIDENTIFY_PENDING);
-					chan->intpending_third = false;
-				}
-
-				else if (chan->intpending_forth) {
-					regs->interrupt_identification |= (INTERRUPTIDENTIFY_LEVEL_FORTH | INTERRUPTIDENTIFY_PENDING);
-					chan->intpending_forth = false;
-				}
-
-				return &(regs->interrupt_identification);
+			else if (chan->intpending_third) {
+				regs->interrupt_identification |= (INTERRUPTIDENTIFY_LEVEL_THIRD
+						| INTERRUPTIDENTIFY_PENDING);
+				chan->intpending_third = false;
 			}
-		case UART_REGISTER_LINECONTROL:
-			return &(regs->line_control);
-		case UART_REGISTER_MODEMCONTROL:
-			return &(regs->modem_control);
-		case UART_REGISTER_LINESTATUS:
-			return &(regs->line_status);
-		case UART_REGISTER_MODEMSTATUS:
-			return &(regs->modem_status);
-		case UART_REGISTER_SCRATCH:
-			return &(regs->scratch);
-		default:
-			return NULL ;
+
+			else if (chan->intpending_forth) {
+				regs->interrupt_identification |= (INTERRUPTIDENTIFY_LEVEL_FORTH
+						| INTERRUPTIDENTIFY_PENDING);
+				chan->intpending_forth = false;
+			}
+
+			return &(regs->interrupt_identification);
+		}
+	case UART_REGISTER_LINECONTROL:
+		return &(regs->line_control);
+	case UART_REGISTER_MODEMCONTROL:
+		return &(regs->modem_control);
+	case UART_REGISTER_LINESTATUS:
+		return &(regs->line_status);
+	case UART_REGISTER_MODEMSTATUS:
+		return &(regs->modem_status);
+	case UART_REGISTER_SCRATCH:
+		return &(regs->scratch);
+	default:
+		return NULL;
 	}
 
 }
@@ -300,8 +307,7 @@ static void uart_log_ch(uint8_t ch) {
 			logbuffer[bufferedchars] = 0;
 			log_println(LEVEL_INFO, TAG, "%s", logbuffer);
 			bufferedchars = 0;
-		}
-		else {
+		} else {
 			if (ch >= 0x20 && ch <= 0x7e) { // limit this to printable chars
 				logbuffer[bufferedchars++] = ch;
 			}
@@ -324,38 +330,47 @@ static void uart_tick(int cyclesexecuted, bool behind) {
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
 		channel* channel = &(channels[i]);
 		// fifo reset logic
-		if (IS_BIT_SET(FIFOCONTROL_RCVRFIFORESET, channel->registers.fifo_control)) {
+		if (IS_BIT_SET(FIFOCONTROL_RCVRFIFORESET,
+				channel->registers.fifo_control)) {
 			//g_queue_clear(channel->rxfifo);
-			uart_clearbit(LINESTATUS_DATAREADY, &(channel->registers.line_status));
-			uart_clearbit(FIFOCONTROL_RCVRFIFORESET, &(channel->registers.fifo_control));
+			uart_clearbit(LINESTATUS_DATAREADY,
+					&(channel->registers.line_status));
+			uart_clearbit(FIFOCONTROL_RCVRFIFORESET,
+					&(channel->registers.fifo_control));
 			log_println(LEVEL_DEBUG, TAG, "rx fifo cleared for channel %d", i);
 		}
 
-		if (IS_BIT_SET(FIFOCONTROL_XMITFIFORESET, channel->registers.fifo_control)) {
+		if (IS_BIT_SET(FIFOCONTROL_XMITFIFORESET,
+				channel->registers.fifo_control)) {
 			//g_queue_clear(channel->txfifo);
-			uart_clearbit(FIFOCONTROL_XMITFIFORESET, &(channel->registers.fifo_control));
+			uart_clearbit(FIFOCONTROL_XMITFIFORESET,
+					&(channel->registers.fifo_control));
 			log_println(LEVEL_DEBUG, TAG, "tx fifo cleared for channel %d", i);
 		}
 		//
 	}
 	//
 
-	for (int clock = 0; clock < (cyclesexecuted / UART_MAINCLOCK_DIVIDER); clock++) {
+	for (int clock = 0; clock < (cyclesexecuted / UART_MAINCLOCK_DIVIDER);
+			clock++) {
 		for (int i = 0; i < NUMOFCHANNELS; i++) {
 			clocks++;
 
 			channel* channel = &(channels[i]);
 
-			if (!IS_BIT_SET(LINECONTROL_DLAB, channel->registers.line_control)) {
+			if (!IS_BIT_SET(LINECONTROL_DLAB,
+					channel->registers.line_control)) {
 				channel->dlabwilllatch = true;
 			}
 
 			else {
 				if (channel->dlabwilllatch) {
-					channel->clockdivider = (channel->registers.divisor_latch_msb << 8)
-							+ channel->registers.divisor_latch_lsb;
-					log_println(LEVEL_DEBUG, TAG, "Clock divider changed to %d for channel %d", channel->clockdivider,
-							i);
+					channel->clockdivider =
+							(channel->registers.divisor_latch_msb << 8)
+									+ channel->registers.divisor_latch_lsb;
+					log_println(LEVEL_DEBUG, TAG,
+							"Clock divider changed to %d for channel %d",
+							channel->clockdivider, i);
 				}
 			}
 
@@ -367,9 +382,11 @@ static void uart_tick(int cyclesexecuted, bool behind) {
 			//log_println(LEVEL_DEBUG, TAG, "Updating channel %d - LS 0x%x", i, channel->registers.line_status);
 
 			// Are we transmitting?
-			if (!IS_BIT_SET(LINESTATUS_TRANSMITTEREMPTY, channel->registers.line_status)) {
+			if (!IS_BIT_SET(LINESTATUS_TRANSMITTEREMPTY,
+					channel->registers.line_status)) {
 
-				log_println(LEVEL_INSANE, TAG, "Transmitting .. clock %d", channel->txclock);
+				log_println(LEVEL_INSANE, TAG, "Transmitting .. clock %d",
+						channel->txclock);
 
 				channel->txclock++;
 				// end of byte
@@ -379,7 +396,8 @@ static void uart_tick(int cyclesexecuted, bool behind) {
 					log_println(LEVEL_INSANE, TAG, "Transmitter has finished");
 
 					// transmitter is now empty
-					uart_setbit(LINESTATUS_TRANSMITTEREMPTY, &(channel->registers.line_status));
+					uart_setbit(LINESTATUS_TRANSMITTEREMPTY,
+							&(channel->registers.line_status));
 				}
 			}
 
@@ -387,11 +405,14 @@ static void uart_tick(int cyclesexecuted, bool behind) {
 				//log_println(LEVEL_DEBUG, TAG, "Transmitter is empty!");
 
 				// Check if we have data that is ready to be shifted out
-				if (!IS_BIT_SET(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, channel->registers.line_status)) {
+				if (!IS_BIT_SET(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY,
+						channel->registers.line_status)) {
 
-					log_println(LEVEL_INSANE, TAG, "Holding register has something");
+					log_println(LEVEL_INSANE, TAG,
+							"Holding register has something");
 
-					if (IS_BIT_SET(FIFOCONTROL_ENABLE, channel->registers.fifo_control)) {
+					if (IS_BIT_SET(FIFOCONTROL_ENABLE,
+							channel->registers.fifo_control)) {
 						uint8_t* byte = g_async_queue_pop(channel->txfifo);
 						write(channel->ptm, byte, 1);
 						if (i == 0) {
@@ -400,11 +421,12 @@ static void uart_tick(int cyclesexecuted, bool behind) {
 
 						if (g_async_queue_length(channel->txfifo) == 0) {
 							// holding register is now empty
-							uart_setbit(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, &(channel->registers.line_status));
+							uart_setbit(
+							LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY,
+									&(channel->registers.line_status));
 						}
 
-					}
-					else {
+					} else {
 						// move data to transmitter .. which is really a cheat.. we just write it to the pty
 						write(channel->ptm, &(channel->registers.txbyte), 1);
 						if (i == 0) {
@@ -412,17 +434,20 @@ static void uart_tick(int cyclesexecuted, bool behind) {
 						}
 
 						// holding register is now empty
-						uart_setbit(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY, &(channel->registers.line_status));
+						uart_setbit(LINESTATUS_TRANSMITTERHOLDINGREGISTEREMPTY,
+								&(channel->registers.line_status));
 
 						// TX interrupt
 
-						if (IS_BIT_SET(INTERRUPTENALBE_ETBEI, channel->registers.interrupt_enable)) {
+						if (IS_BIT_SET(INTERRUPTENALBE_ETBEI,
+								channel->registers.interrupt_enable)) {
 							channel->intpending_third = true;
 							board_raise_interrupt(&uartcard);
 						}
 					}
 					// We're transmitting
-					uart_clearbit(LINESTATUS_TRANSMITTEREMPTY, &(channel->registers.line_status));
+					uart_clearbit(LINESTATUS_TRANSMITTEREMPTY,
+							&(channel->registers.line_status));
 
 				}
 			}
@@ -480,17 +505,17 @@ static const bool uart_validaddress(uint32_t address) {
 	uint8_t reg = (address & REGISTERMASK);
 
 	switch (reg) {
-		case UART_REGISTER_RXTXBUFFER:
-		case UART_REGISTER_INTERRUPTENABLE:
-		case UART_REGISTER_FIFOCONTROL:
-		case UART_REGISTER_LINECONTROL:
-		case UART_REGISTER_MODEMCONTROL:
-		case UART_REGISTER_LINESTATUS:
-		case UART_REGISTER_MODEMSTATUS:
-		case UART_REGISTER_SCRATCH:
-			return true;
-		default:
-			return false;
+	case UART_REGISTER_RXTXBUFFER:
+	case UART_REGISTER_INTERRUPTENABLE:
+	case UART_REGISTER_FIFOCONTROL:
+	case UART_REGISTER_LINECONTROL:
+	case UART_REGISTER_MODEMCONTROL:
+	case UART_REGISTER_LINESTATUS:
+	case UART_REGISTER_MODEMSTATUS:
+	case UART_REGISTER_SCRATCH:
+		return true;
+	default:
+		return false;
 
 	}
 
@@ -518,4 +543,4 @@ const card uartcard = { "UART CARD", //
 		NULL, //
 		NULL, //
 		NULL //
-};
+		};

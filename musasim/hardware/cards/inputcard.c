@@ -34,14 +34,13 @@ static uint8_t ports[2];
 static uint8_t dips;
 static uint8_t debugleds = 0;
 
-static void inputcard_init() {
-
+static bool inputcard_init() {
 	log_println(LEVEL_DEBUG, TAG, "inputcard_init()");
 
 	for (int i = 0; i < sizeof(ports); i++) {
 		ports[i] = 0xFF;
 	}
-
+	return true;
 }
 
 static uint8_t inputcard_read_byte(uint32_t address) {
@@ -50,17 +49,17 @@ static uint8_t inputcard_read_byte(uint32_t address) {
 	int reg = address & 0xf;
 
 	switch (reg) {
-		case INPUT_PORT0:
-			return ports[0];
-		case INPUT_PORT1:
-			return ports[1];
-		case INPUT_RNG:
-			//todo in GDBSERVER mode this should be deterministic.
-			return rand() & 0xff;
-		case INPUT_DIPS:
-			return dips;
-		case INPUT_DEBUGLEDS:
-			return debugleds;
+	case INPUT_PORT0:
+		return ports[0];
+	case INPUT_PORT1:
+		return ports[1];
+	case INPUT_RNG:
+		//todo in GDBSERVER mode this should be deterministic.
+		return rand() & 0xff;
+	case INPUT_DIPS:
+		return dips;
+	case INPUT_DEBUGLEDS:
+		return debugleds;
 	}
 
 	return 0;
@@ -79,59 +78,59 @@ static void inputcard_decodekey(SDL_Keycode key, bool up) {
 	uint8_t mask;
 
 	switch (key) {
-		case PORT0_UP:
-			log_println(LEVEL_DEBUG, TAG, "Button UP");
-			port = 0;
-			mask = BUTTON_UP;
-			break;
-		case PORT0_DOWN:
-			log_println(LEVEL_DEBUG, TAG, "Button DOWN");
-			port = 0;
-			mask = BUTTON_DOWN;
-			break;
-		case PORT0_LEFT:
-			log_println(LEVEL_DEBUG, TAG, "Button LEFT");
-			port = 0;
-			mask = BUTTON_LEFT;
-			break;
-		case PORT0_RIGHT:
-			log_println(LEVEL_DEBUG, TAG, "Button RIGHT");
-			port = 0;
-			mask = BUTTON_RIGHT;
-			break;
-		case PORT0_START:
-			log_println(LEVEL_DEBUG, TAG, "Button START");
-			port = 0;
-			mask = BUTTON_START;
-			break;
-		case PORT0_A:
-			log_println(LEVEL_DEBUG, TAG, "Button A");
-			port = 0;
-			mask = BUTTON_A;
-			break;
-		case PORT0_B:
-			log_println(LEVEL_DEBUG, TAG, "Button B");
-			port = 0;
-			mask = BUTTON_B;
-			break;
-		case PORT0_C:
-			log_println(LEVEL_DEBUG, TAG, "Button C");
-			port = 0;
-			mask = BUTTON_C;
-			break;
-		default:
-			log_println(LEVEL_DEBUG, TAG, "Unhandled key");
-			return;
+	case PORT0_UP:
+		log_println(LEVEL_DEBUG, TAG, "Button UP");
+		port = 0;
+		mask = BUTTON_UP;
+		break;
+	case PORT0_DOWN:
+		log_println(LEVEL_DEBUG, TAG, "Button DOWN");
+		port = 0;
+		mask = BUTTON_DOWN;
+		break;
+	case PORT0_LEFT:
+		log_println(LEVEL_DEBUG, TAG, "Button LEFT");
+		port = 0;
+		mask = BUTTON_LEFT;
+		break;
+	case PORT0_RIGHT:
+		log_println(LEVEL_DEBUG, TAG, "Button RIGHT");
+		port = 0;
+		mask = BUTTON_RIGHT;
+		break;
+	case PORT0_START:
+		log_println(LEVEL_DEBUG, TAG, "Button START");
+		port = 0;
+		mask = BUTTON_START;
+		break;
+	case PORT0_A:
+		log_println(LEVEL_DEBUG, TAG, "Button A");
+		port = 0;
+		mask = BUTTON_A;
+		break;
+	case PORT0_B:
+		log_println(LEVEL_DEBUG, TAG, "Button B");
+		port = 0;
+		mask = BUTTON_B;
+		break;
+	case PORT0_C:
+		log_println(LEVEL_DEBUG, TAG, "Button C");
+		port = 0;
+		mask = BUTTON_C;
+		break;
+	default:
+		log_println(LEVEL_DEBUG, TAG, "Unhandled key");
+		return;
 	}
 
 	if (up) {
 		ports[port] |= ~mask;
-	}
-	else {
+	} else {
 		ports[port] &= mask;
 	}
 
-	log_println(LEVEL_DEBUG, TAG, "port0 is now 0x%x and port1 is now 0x%x", ports[0], ports[1]);
+	log_println(LEVEL_DEBUG, TAG, "port0 is now 0x%x and port1 is now 0x%x",
+			ports[0], ports[1]);
 }
 
 static void inputcard_tick(int cyclesexecuted, bool behind) __attribute__((hot));
@@ -140,28 +139,28 @@ static void inputcard_tick(int cyclesexecuted, bool behind) {
 
 void inputcard_onkeyevent(SDL_Event* event) {
 	switch (event->type) {
-		case SDL_KEYDOWN:
-			log_println(LEVEL_DEBUG, TAG, "key down");
-			inputcard_decodekey(event->key.keysym.sym, false);
-			break;
-		case SDL_KEYUP:
-			log_println(LEVEL_DEBUG, TAG, "key up");
-			inputcard_decodekey(event->key.keysym.sym, true);
-			break;
+	case SDL_KEYDOWN:
+		log_println(LEVEL_DEBUG, TAG, "key down");
+		inputcard_decodekey(event->key.keysym.sym, false);
+		break;
+	case SDL_KEYUP:
+		log_println(LEVEL_DEBUG, TAG, "key up");
+		inputcard_decodekey(event->key.keysym.sym, true);
+		break;
 	}
 }
 
 static const bool input_validaddress(uint32_t address) {
 	int reg = address & 0x3;
 	switch (reg) {
-		case INPUT_PORT0:
-		case INPUT_PORT1:
-		case INPUT_RNG:
-		case INPUT_DIPS:
-		case INPUT_DEBUGLEDS:
-			return true;
-		default:
-			return false;
+	case INPUT_PORT0:
+	case INPUT_PORT1:
+	case INPUT_RNG:
+	case INPUT_DIPS:
+	case INPUT_DEBUGLEDS:
+		return true;
+	default:
+		return false;
 	}
 }
 

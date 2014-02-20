@@ -24,8 +24,9 @@
 #define NUMWINDOWS 16
 #define ADDRESSMASK 0x1f
 static const char TAG[] = "dmacard";
-static char* register_names[] = { "config", "data high", "data low", "count h", "count low", "source high",
-		"source low", "destination h", "destination low", "jump after", "jump length", "window" };
+static char* register_names[] = { "config", "data high", "data low", "count h",
+		"count low", "source high", "source low", "destination h",
+		"destination low", "jump after", "jump length", "window" };
 
 // Externally visible registers
 
@@ -68,9 +69,10 @@ static uint32_t cyclesleft = 0;
 #define WRITEBYTE(a,v) (board_write_byte_busmaster(a, v, &dmacard))
 #define WRITEWORD(a,v) (board_write_word_busmaster(a, v, &dmacard))
 
-static void dmacard_init() {
+static bool dmacard_init() {
 	memset(regwindows, 0, sizeof(regwindows));
 	curwindow = &(regwindows[curwindowindex]);
+	return true;
 }
 
 static void dmacard_irqack() {
@@ -97,14 +99,14 @@ static void dmacard_busrelease() {
 static uint16_t dmacard_mutate(window* window, uint16_t value1, uint16_t value2) {
 
 	switch (window->config & DMA_REGISTER_CONFIG_MUTATOR) {
-		case DMA_MUT_NOTHING:
-			return value1;
-		case DMA_MUT_AND:
-			return value1 & value2;
-		case DMA_MUT_OR:
-			return value1 | value2;
-		case DMA_MUT_XOR:
-			return value1 ^ value2;
+	case DMA_MUT_NOTHING:
+		return value1;
+	case DMA_MUT_AND:
+		return value1 & value2;
+	case DMA_MUT_OR:
+		return value1 | value2;
+	case DMA_MUT_XOR:
+		return value1 ^ value2;
 	}
 
 	// should never get here
@@ -114,31 +116,33 @@ static uint16_t dmacard_mutate(window* window, uint16_t value1, uint16_t value2)
 
 static void dmacard_perform_act(window* window, int index) {
 	static uint32_t* actregs[] = { &data, &source, &destination };
-	static int actshifts[] = { DMA_REGISTER_CONFIG_DATAACT_SHIFT, DMA_REGISTER_CONFIG_SRCACT_SHIFT,
+	static int actshifts[] = { DMA_REGISTER_CONFIG_DATAACT_SHIFT,
+			DMA_REGISTER_CONFIG_SRCACT_SHIFT,
 			DMA_REGISTER_CONFIG_DSTACT_SHIFT };
 
 	uint32_t* reg = actregs[index];
 
-	int act = (window->config & (DMA_REGISTER_CONFIG_ACT << actshifts[index])) >> actshifts[index];
+	int act = (window->config & (DMA_REGISTER_CONFIG_ACT << actshifts[index]))
+			>> actshifts[index];
 
 	switch (act) {
-		case DMA_ACT_NOTHING:
-			break;
-		case DMA_ACT_INC:
-			wordtransfer ? (*reg) += 2 : (*reg)++;
-			break;
-		case DMA_ACT_DEC:
-			wordtransfer ? (*reg) -= 2 : (*reg)--;
-			break;
-		case DMA_ACT_ROTLEFT:
-			(*reg) = ((*reg) << 1) & 0xffff;
-			break;
-		case DMA_ACT_ROTRIGHT:
-			(*reg) = ((*reg) >> 1) & 0xffff;
-			break;
-		case DMA_ACT_INVERSE:
-			(*reg) = ~(*reg);
-			break;
+	case DMA_ACT_NOTHING:
+		break;
+	case DMA_ACT_INC:
+		wordtransfer ? (*reg) += 2 : (*reg)++;
+		break;
+	case DMA_ACT_DEC:
+		wordtransfer ? (*reg) -= 2 : (*reg)--;
+		break;
+	case DMA_ACT_ROTLEFT:
+		(*reg) = ((*reg) << 1) & 0xffff;
+		break;
+	case DMA_ACT_ROTRIGHT:
+		(*reg) = ((*reg) >> 1) & 0xffff;
+		break;
+	case DMA_ACT_INVERSE:
+		(*reg) = ~(*reg);
+		break;
 	}
 }
 
@@ -212,125 +216,128 @@ static void dmacard_tick(int cyclesexecuted, bool behind) {
 				//log_println(LEVEL_DEBUG, TAG, "source[0%08x] dest[0x%08x]", source, destination);
 
 				switch (workingwindow->config & DMA_REGISTER_CONFIG_MODE) {
-					case DMA_REGISTER_CONFIG_MODE_BLOCK: // Takes two clocks, one for read, one for write
-						// read phase
-						if (state == 0) {
-							if (wordtransfer) {
-								holding = board_read_word_busmaster(source, &dmacard);
-							}
-							else {
-								holding = READBYTE(source);
-							}
-							state = 1;
+				case DMA_REGISTER_CONFIG_MODE_BLOCK: // Takes two clocks, one for read, one for write
+					// read phase
+					if (state == 0) {
+						if (wordtransfer) {
+							holding = board_read_word_busmaster(source,
+									&dmacard);
+						} else {
+							holding = READBYTE(source);
 						}
-						//write phase
-						else {
-
-							if (wordtransfer) {
-								board_write_word_busmaster(destination, dmacard_mutate(workingwindow, holding, data),
-										&dmacard);
-							}
-							else {
-								board_write_byte_busmaster(destination,
-										(uint8_t) (dmacard_mutate(workingwindow, holding, data) & 0xff), &dmacard);
-							}
-							state = 0;
-							unitcomplete = true;
-						}
-						break;
-
-					case DMA_REGISTER_CONFIG_MODE_FILL: // Takes one clock
+						state = 1;
+					}
+					//write phase
+					else {
 
 						if (wordtransfer) {
-							board_write_word_busmaster(destination, (uint16_t) (data & 0xffff), &dmacard);
+							board_write_word_busmaster(destination,
+									dmacard_mutate(workingwindow, holding,
+											data), &dmacard);
+						} else {
+							board_write_byte_busmaster(destination,
+									(uint8_t) (dmacard_mutate(workingwindow,
+											holding, data) & 0xff), &dmacard);
 						}
-						else {
-							board_write_byte_busmaster(destination, (uint8_t) (data & 0xff), &dmacard);
+						state = 0;
+						unitcomplete = true;
+					}
+					break;
+
+				case DMA_REGISTER_CONFIG_MODE_FILL: // Takes one clock
+
+					if (wordtransfer) {
+						board_write_word_busmaster(destination,
+								(uint16_t) (data & 0xffff), &dmacard);
+					} else {
+						board_write_byte_busmaster(destination,
+								(uint8_t) (data & 0xff), &dmacard);
+					}
+					unitcomplete = true;
+					break;
+
+				case DMA_REGISTER_CONFIG_MODE_MIX: // Takes three clocks?
+
+					switch (state) {
+					case 0:
+						if (wordtransfer) {
+							holding = READWORD(source);
+						} else {
+							holding = READBYTE(source);
 						}
+						state = 1;
+						break;
+					case 1:
+
+						if (wordtransfer) {
+							holding = dmacard_mutate(workingwindow, holding,
+									READWORD(data));
+						} else {
+							holding = dmacard_mutate(workingwindow, holding,
+									READBYTE(data));
+						}
+						state = 2;
+						break;
+					case 2:
+						if (wordtransfer)
+							WRITEWORD(destination, holding);
+						else
+							WRITEBYTE(destination, holding);
+
+						state = 0;
 						unitcomplete = true;
 						break;
-
-					case DMA_REGISTER_CONFIG_MODE_MIX: // Takes three clocks?
-
-						switch (state) {
-							case 0:
-								if (wordtransfer) {
-									holding = READWORD(source);
-								}
-								else {
-									holding = READBYTE(source);
-								}
-								state = 1;
-								break;
-							case 1:
-
-								if (wordtransfer) {
-									holding = dmacard_mutate(workingwindow, holding, READWORD(data));
-								}
-								else {
-									holding = dmacard_mutate(workingwindow, holding, READBYTE(data));
-								}
-								state = 2;
-								break;
-							case 2:
-								if (wordtransfer)
-									WRITEWORD(destination, holding);
-								else
-									WRITEBYTE(destination, holding);
-
-								state = 0;
-								unitcomplete = true;
-								break;
-						}
-
-						break;
-					case DMA_REGISTER_CONFIG_MODE_MIXCOMPACT: {
-						static int shifts = 0;
-						static uint16_t shifthold = 0;
-						switch (state) {
-							case 0: // load the src
-
-								if (wordtransfer)
-									holding = READWORD(source);
-
-								dmacard_perform_act(workingwindow, 1); // update source pointer
-								if (shifts == 0) {
-									state = 1;
-								}
-								else {
-									state = 2;
-								}
-								break;
-							case 1: // load the mask
-								if (wordtransfer) {
-									shifthold = READWORD(data);
-								}
-								state = 2;
-								dmacard_perform_act(workingwindow, 0); // update data pointer
-								break;
-							case 2:
-								holding = dmacard_mutate(workingwindow, holding, shifthold & 0x1 ? 0xFFFF : 0x0000); // if the lsb bit is set do the action with 0xffff
-								shifthold = (shifthold >> 1); // shift everything right
-								shifts++;
-
-								// next shift round
-								if ((wordtransfer && shifts == 16) || shifts == 8) {
-									shifts = 0;
-									counter--;
-								}
-
-								if (wordtransfer) {
-									board_write_word_busmaster(destination, holding, &dmacard);
-								}
-								else {
-									board_write_byte_busmaster(destination, holding, &dmacard);
-								}
-								dmacard_perform_act(workingwindow, 2); // increment dest pointer
-								state = 0;
-								break;
-						}
 					}
+
+					break;
+				case DMA_REGISTER_CONFIG_MODE_MIXCOMPACT: {
+					static int shifts = 0;
+					static uint16_t shifthold = 0;
+					switch (state) {
+					case 0: // load the src
+
+						if (wordtransfer)
+							holding = READWORD(source);
+
+						dmacard_perform_act(workingwindow, 1); // update source pointer
+						if (shifts == 0) {
+							state = 1;
+						} else {
+							state = 2;
+						}
 						break;
+					case 1: // load the mask
+						if (wordtransfer) {
+							shifthold = READWORD(data);
+						}
+						state = 2;
+						dmacard_perform_act(workingwindow, 0); // update data pointer
+						break;
+					case 2:
+						holding = dmacard_mutate(workingwindow, holding,
+								shifthold & 0x1 ? 0xFFFF : 0x0000); // if the lsb bit is set do the action with 0xffff
+						shifthold = (shifthold >> 1); // shift everything right
+						shifts++;
+
+						// next shift round
+						if ((wordtransfer && shifts == 16) || shifts == 8) {
+							shifts = 0;
+							counter--;
+						}
+
+						if (wordtransfer) {
+							board_write_word_busmaster(destination, holding,
+									&dmacard);
+						} else {
+							board_write_byte_busmaster(destination, holding,
+									&dmacard);
+						}
+						dmacard_perform_act(workingwindow, 2); // increment dest pointer
+						state = 0;
+						break;
+					}
+				}
+					break;
 
 				}
 
@@ -361,32 +368,32 @@ static uint16_t* const dmacard_decodereg(uint32_t address) {
 	int reg = (address & ADDRESSMASK);
 
 	switch (reg) {
-		case DMACARD_REGISTER_CONFIG:
-			return &(curwindow->config);
-		case DMACARD_REGISTER_DATAH:
-			return &(curwindow->datah);
-		case DMACARD_REGISTER_DATAL:
-			return &(curwindow->datal);
-		case DMACARD_REGISTER_COUNTH:
-			return &(curwindow->counth);
-		case DMACARD_REGISTER_COUNTL:
-			return &(curwindow->countl);
-		case DMACARD_REGISTER_SOURCEH:
-			return &(curwindow->sourceh);
-		case DMACARD_REGISTER_SOURCEL:
-			return &(curwindow->sourcel);
-		case DMACARD_REGISTER_DESTINATIONH:
-			return &(curwindow->destinationh);
-		case DMACARD_REGISTER_DESTINATIONL:
-			return &(curwindow->destinationl);
-		case DMACARD_REGISTER_JUMPAFTER:
-			return &(curwindow->jumpafter);
-		case DMACARD_REGISTER_JUMPLENGTH:
-			return &(curwindow->jumplength);
-		case DMACARD_REGISTER_WINDOW:
-			return &curwindowindex;
-		default:
-			return NULL ;
+	case DMACARD_REGISTER_CONFIG:
+		return &(curwindow->config);
+	case DMACARD_REGISTER_DATAH:
+		return &(curwindow->datah);
+	case DMACARD_REGISTER_DATAL:
+		return &(curwindow->datal);
+	case DMACARD_REGISTER_COUNTH:
+		return &(curwindow->counth);
+	case DMACARD_REGISTER_COUNTL:
+		return &(curwindow->countl);
+	case DMACARD_REGISTER_SOURCEH:
+		return &(curwindow->sourceh);
+	case DMACARD_REGISTER_SOURCEL:
+		return &(curwindow->sourcel);
+	case DMACARD_REGISTER_DESTINATIONH:
+		return &(curwindow->destinationh);
+	case DMACARD_REGISTER_DESTINATIONL:
+		return &(curwindow->destinationl);
+	case DMACARD_REGISTER_JUMPAFTER:
+		return &(curwindow->jumpafter);
+	case DMACARD_REGISTER_JUMPLENGTH:
+		return &(curwindow->jumplength);
+	case DMACARD_REGISTER_WINDOW:
+		return &curwindowindex;
+	default:
+		return NULL;
 	}
 
 }
@@ -394,10 +401,10 @@ static uint16_t* const dmacard_decodereg(uint32_t address) {
 static int dmacard_howmanycycles(window* window) {
 	uint16_t config = window->config;
 	switch (config & DMA_REGISTER_CONFIG_MODE) {
-		case DMA_REGISTER_CONFIG_MODE_FILL:
-			return FULLCOUNTER(window);
-		case DMA_REGISTER_CONFIG_MODE_BLOCK:
-			return FULLCOUNTER(window) * 2;
+	case DMA_REGISTER_CONFIG_MODE_FILL:
+		return FULLCOUNTER(window);
+	case DMA_REGISTER_CONFIG_MODE_BLOCK:
+		return FULLCOUNTER(window) * 2;
 	}
 	return 1;
 }
@@ -408,16 +415,19 @@ static void dmacard_dumpconfig(window* window) {
 	int cycles = dmacard_howmanycycles(window);
 
 	switch (config & DMA_REGISTER_CONFIG_MODE) {
-		case DMA_REGISTER_CONFIG_MODE_FILL:
-			log_println(LEVEL_DEBUG, TAG, "copying data [0x%04x] 0x%08x times as %s to 0x%08x, will take %d cycles",
-					data, counter, config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", FULLDESTINATION(window),
-					cycles);
-			break;
-		case DMA_REGISTER_CONFIG_MODE_BLOCK:
-			log_println(LEVEL_DEBUG, TAG, "transferring 0x%08x %s from 0x%08x to 0x%08x, will take %d cycles", counter,
-					config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes", FULLSOURCE(window), FULLDESTINATION(window),
-					cycles);
-			break;
+	case DMA_REGISTER_CONFIG_MODE_FILL:
+		log_println(LEVEL_DEBUG, TAG,
+				"copying data [0x%04x] 0x%08x times as %s to 0x%08x, will take %d cycles",
+				data, counter,
+				config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes",
+				FULLDESTINATION(window), cycles);
+		break;
+	case DMA_REGISTER_CONFIG_MODE_BLOCK:
+		log_println(LEVEL_DEBUG, TAG,
+				"transferring 0x%08x %s from 0x%08x to 0x%08x, will take %d cycles",
+				counter, config & DMA_REGISTER_CONFIG_SIZE ? "words" : "bytes",
+				FULLSOURCE(window), FULLDESTINATION(window), cycles);
+		break;
 	}
 
 	if (config & DMA_REGISTER_CONFIG_MUTATOR) {
@@ -460,7 +470,8 @@ static void dmacard_write_word(uint32_t address, uint16_t value) {
 
 // DMA transfer was started
 	if (started) {
-		log_println(LEVEL_INFO, TAG, "Someone tried to write registers while a transfer is in the progress!");
+		log_println(LEVEL_INFO, TAG,
+				"Someone tried to write registers while a transfer is in the progress!");
 		return;
 	}
 
@@ -491,21 +502,21 @@ static const bool dmacard_validaddress(uint32_t address) {
 	int reg = (address & ADDRESSMASK);
 
 	switch (reg) {
-		case DMACARD_REGISTER_CONFIG:
-		case DMACARD_REGISTER_DATAH:
-		case DMACARD_REGISTER_DATAL:
-		case DMACARD_REGISTER_COUNTH:
-		case DMACARD_REGISTER_COUNTL:
-		case DMACARD_REGISTER_SOURCEH:
-		case DMACARD_REGISTER_SOURCEL:
-		case DMACARD_REGISTER_DESTINATIONH:
-		case DMACARD_REGISTER_DESTINATIONL:
-		case DMACARD_REGISTER_JUMPAFTER:
-		case DMACARD_REGISTER_JUMPLENGTH:
-		case DMACARD_REGISTER_WINDOW:
-			return true;
-		default:
-			return false;
+	case DMACARD_REGISTER_CONFIG:
+	case DMACARD_REGISTER_DATAH:
+	case DMACARD_REGISTER_DATAL:
+	case DMACARD_REGISTER_COUNTH:
+	case DMACARD_REGISTER_COUNTL:
+	case DMACARD_REGISTER_SOURCEH:
+	case DMACARD_REGISTER_SOURCEL:
+	case DMACARD_REGISTER_DESTINATIONH:
+	case DMACARD_REGISTER_DESTINATIONL:
+	case DMACARD_REGISTER_JUMPAFTER:
+	case DMACARD_REGISTER_JUMPLENGTH:
+	case DMACARD_REGISTER_WINDOW:
+		return true;
+	default:
+		return false;
 	}
 }
 
@@ -554,5 +565,5 @@ const card dmacard = { "DMA Controller", //
 		dmacard_cyclesleft, //
 		dmacard_abort, // Abort
 		NULL //
-};
+		};
 

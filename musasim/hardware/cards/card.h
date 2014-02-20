@@ -16,7 +16,7 @@
 
 typedef struct {
 	const char* boardinfo; // A simple description that can be displayed to aid debugging
-	void (* const init)(); // Do anything you need to do at program startup here
+	bool (* const init)(); // Do anything you need to do at program startup here
 	void (* const dispose)(); // Do anything you need to do before the program exits, i.e. free'ing stuff, here
 	void (* const reset)(); // This is called when the card is first plugged in and when the m68k pulls the reset line down
 	void (* const tick)(int cyclesexecuted, bool behind); // this is called after the cpu is cranked.. cyclesexecuted is the amount of main clock cycles that ran and behind is if the emulation is currently behind simulated time

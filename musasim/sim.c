@@ -114,14 +114,19 @@ bool sim_init() {
 
 	// todo this should be made static if possible as it stops
 	// gcc from optimising out a lot of stuff
-	board_add_device(SLOT_ROMCARD, &romcard);
-	board_add_device(SLOT_VIDEOCARD, basicvideo ? &basicvideocard : &videocard);
-	board_add_device(SLOT_UARTCARD, &uartcard);
-	board_add_device(SLOT_SOUNDCARD, basicsound ? &basicsoundcard : &soundcard);
-	board_add_device(SLOT_CFCARD, &compactflashinterfacecard);
-	board_add_device(SLOT_DMACARD, &dmacard);
-	board_add_device(SLOT_TIMERCARD, &timercard);
-	board_add_device(SLOT_INPUTCARD, &inputcard);
+
+	int slots[] = {
+	SLOT_ROMCARD, SLOT_VIDEOCARD, SLOT_UARTCARD, SLOT_SOUNDCARD, SLOT_CFCARD,
+	SLOT_DMACARD, SLOT_TIMERCARD, SLOT_INPUTCARD };
+
+	const card* cards[] = { &romcard, basicvideo ? &basicvideocard : &videocard,
+			&uartcard, basicsound ? &basicsoundcard : &soundcard,
+			&compactflashinterfacecard, &dmacard, &timercard, &inputcard };
+
+	for (int i = 0; i < G_N_ELEMENTS(slots); i++) {
+		if (!board_add_device(slots[i], cards[i]))
+			return false;
+	}
 
 	board_poweron();
 

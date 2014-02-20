@@ -70,8 +70,10 @@ static uint8_t* cfint_createidblock() {
 	uint8_t* block = malloc(512);
 	memset(block, 0x00, 512);
 	memcpy(block + (ATA_ID_SERIAL * 2), IDSERIAL, (ATA_ID_SERIAL_LEN * 2));
-	memcpy(block + (ATA_ID_FIRMWAREVER * 2), IDFWVER, (ATA_ID_FIRMWAREVER_LEN * 2));
-	memcpy(block + (ATA_ID_MODELNUMBER * 2), IDMODEL, (ATA_ID_MODELNUMBER_LEN * 2));
+	memcpy(block + (ATA_ID_FIRMWAREVER * 2), IDFWVER,
+			(ATA_ID_FIRMWAREVER_LEN * 2));
+	memcpy(block + (ATA_ID_MODELNUMBER * 2), IDMODEL,
+			(ATA_ID_MODELNUMBER_LEN * 2));
 
 	//FIXME endian shit
 
@@ -101,7 +103,8 @@ bool cfintf_load(const char* filename) {
 
 	log_println(LEVEL_INFO, TAG, "Image is %d bytes", (int) size);
 
-	if ((image = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED ) {
+	if ((image = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0))
+			== MAP_FAILED) {
 		log_println(LEVEL_WARNING, TAG, "Failed to map image, %d", errno);
 		return false;
 	}
@@ -122,87 +125,85 @@ static bool commandregdirty = false;
 static void* cfintf_decodereg(uint32_t address, bool write, bool sixteenbit) {
 	if (!BLOCK(address)) { // Command block
 		switch (REG(address)) {
-			case 0x00:
+		case 0x00:
 
-				if (!sixteenbit) {
-					log_println(LEVEL_DEBUG, TAG, "reads/writes to the data reg should be 16bits");
-					return NULL ;
-				}
+			if (!sixteenbit) {
+				log_println(LEVEL_DEBUG, TAG,
+						"reads/writes to the data reg should be 16bits");
+				return NULL;
+			}
 
-				//log_println(LEVEL_DEBUG, TAG, "read from/write to data reg -- counter %d", transfercounter);
+			//log_println(LEVEL_DEBUG, TAG, "read from/write to data reg -- counter %d", transfercounter);
 
-				if (write) {
+			if (write) {
+			} else {
+				switch (tf.command) {
+				case ATA_IDENTIFYDRIVE:
+					tf.data = (idblock[(transfercounter * 2) + 1] << 8)
+							| idblock[(transfercounter * 2)];
+					break;
+				case ATA_READBUFFER: //TODO calculate the actual block that's being read
+					tf.data = GUINT16_FROM_BE(
+							image[(LBAADDRESS * 256) + transfercounter]);
+					break;
+				default:
+					log_println(LEVEL_DEBUG, TAG,
+							"unhandled command 0x%02"PRIx8, tf.command);
+					break;
 				}
-				else {
-					switch (tf.command) {
-						case ATA_IDENTIFYDRIVE:
-							tf.data = (idblock[(transfercounter * 2) + 1] << 8) | idblock[(transfercounter * 2)];
-							break;
-						case ATA_READBUFFER: //TODO calculate the actual block that's being read
-							tf.data = GUINT16_FROM_BE(image[(LBAADDRESS * 256) + transfercounter]);
-							break;
-						default:
-							log_println(LEVEL_DEBUG, TAG, "unhandled command 0x%02"PRIx8, tf.command);
-							break;
-					}
-				}
+			}
 
-				transfercounter++;
-				if (transfercounter == transfercount) {
-					tf.status &= ~ATA_STATUS_DRQ;
-				}
-				return &(tf.data);
-			case ERRORFEATURE:
-				if (write) {
-					return &(tf.feature);
-				}
-				else {
-					return &(tf.error);
-				}
-			case SECTORCOUNT:
-				return &(tf.sectorcount);
-			case SECTORNUMBER:
-				return &(tf.sectornumber);
-			case CYLINDERLOW:
-				return &(tf.cylinderlow);
-			case CYLINDERHIGH:
-				return &(tf.cylinderhigh);
-			case DRIVEHEAD:
-				return &(tf.drivehead);
-			case COMMANDSTATUS:
-				if (write) {
-					log_println(LEVEL_DEBUG, TAG, "Command reg written.");
-					commandregdirty = true;
-					return &(tf.command);
-				}
-				else {
-					return &(tf.status);
-				}
+			transfercounter++;
+			if (transfercounter == transfercount) {
+				tf.status &= ~ATA_STATUS_DRQ;
+			}
+			return &(tf.data);
+		case ERRORFEATURE:
+			if (write) {
+				return &(tf.feature);
+			} else {
+				return &(tf.error);
+			}
+		case SECTORCOUNT:
+			return &(tf.sectorcount);
+		case SECTORNUMBER:
+			return &(tf.sectornumber);
+		case CYLINDERLOW:
+			return &(tf.cylinderlow);
+		case CYLINDERHIGH:
+			return &(tf.cylinderhigh);
+		case DRIVEHEAD:
+			return &(tf.drivehead);
+		case COMMANDSTATUS:
+			if (write) {
+				log_println(LEVEL_DEBUG, TAG, "Command reg written.");
+				commandregdirty = true;
+				return &(tf.command);
+			} else {
+				return &(tf.status);
+			}
 
 		}
-	}
-	else { // controlblock
+	} else { // controlblock
 		switch (REG(address)) {
-			case ALTSTATUSOFFSET:
-				if (write) {
-					return &(c.devicecontrol);
-				}
-				else {
-					return &(tf.status);
-				}
-			case 0x07:
-				if (write) {
-					return NULL ;
-				}
-				else {
-					return &(c.driveaddress);
-				}
+		case ALTSTATUSOFFSET:
+			if (write) {
+				return &(c.devicecontrol);
+			} else {
+				return &(tf.status);
+			}
+		case 0x07:
+			if (write) {
+				return NULL;
+			} else {
+				return &(c.driveaddress);
+			}
 		}
 	}
 
 	// shouldnt get here
 
-	return NULL ;
+	return NULL;
 }
 
 static void cfint_decodecommand() {
@@ -210,20 +211,20 @@ static void cfint_decodecommand() {
 	if (commandregdirty) {
 		log_println(LEVEL_DEBUG, TAG, "decoding command");
 		switch (tf.command) {
-			case ATA_IDENTIFYDRIVE:
-				log_println(LEVEL_DEBUG, TAG, "identify!");
-				tf.status |= ATA_STATUS_BSY;
-				busycounter = 10;
-				transfercounter = 0;
-				transfercount = 256;
-				break;
-			case ATA_READBUFFER:
-				log_println(LEVEL_DEBUG, TAG, "read!");
-				tf.status |= ATA_STATUS_BSY;
-				busycounter = 10;
-				transfercounter = 0;
-				transfercount = 256;
-				break;
+		case ATA_IDENTIFYDRIVE:
+			log_println(LEVEL_DEBUG, TAG, "identify!");
+			tf.status |= ATA_STATUS_BSY;
+			busycounter = 10;
+			transfercounter = 0;
+			transfercount = 256;
+			break;
+		case ATA_READBUFFER:
+			log_println(LEVEL_DEBUG, TAG, "read!");
+			tf.status |= ATA_STATUS_BSY;
+			busycounter = 10;
+			transfercounter = 0;
+			transfercount = 256;
+			break;
 
 		}
 		commandregdirty = false;
@@ -238,7 +239,7 @@ static uint8_t cfintf_read_byte(uint32_t address) {
 
 	uint8_t* reg = ((uint8_t*) cfintf_decodereg(address, false, false));
 
-	if (reg == NULL ) {
+	if (reg == NULL) {
 		return 0;
 	}
 
@@ -253,7 +254,7 @@ static uint16_t cfintf_read_word(uint32_t address) {
 
 	uint16_t* reg = ((uint16_t*) cfintf_decodereg(address, false, true));
 
-	if (reg == NULL ) {
+	if (reg == NULL) {
 		return 0;
 	}
 
@@ -267,7 +268,7 @@ static void cfintf_write_byte(uint32_t address, uint8_t value) {
 	}
 
 	uint8_t* reg = cfintf_decodereg(address, true, false);
-	if (reg != NULL ) {
+	if (reg != NULL) {
 		*reg = value;
 		cfint_decodecommand(); // only a byte write has the potential to cause the command register to be dirty
 	}
@@ -279,7 +280,7 @@ static void cfintf_write_word(uint32_t address, uint16_t value) {
 	}
 
 	uint16_t* reg = (uint16_t*) cfintf_decodereg(address, true, true);
-	if (reg != NULL ) {
+	if (reg != NULL) {
 		*reg = value;
 	}
 }
@@ -287,13 +288,15 @@ static void cfintf_write_word(uint32_t address, uint16_t value) {
 static void cfint_dispose() {
 	loaded = false;
 	if (munmap(image, size) > 0) {
-		log_println(LEVEL_WARNING, TAG, "Failed to unmap image -- error %d", errno);
+		log_println(LEVEL_WARNING, TAG, "Failed to unmap image -- error %d",
+				errno);
 	}
 	close(fd);
 	free((void*) idblock);
 }
 
-static void cfint_init() {
+static bool cfint_init() {
+	return true;
 }
 
 static void cfint_tick(int cyclesexecuted, bool behind) {
@@ -331,4 +334,4 @@ const card compactflashinterfacecard = { "CF INTERFACE", //
 		NULL, //
 		NULL, //
 		NULL //
-};
+		};

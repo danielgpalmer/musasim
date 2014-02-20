@@ -33,27 +33,36 @@ static const char TAG[] = "romcard";
 #define ISROMSPACE(address) (address >= ROMCARD_OFFSET_ROM && address <= MAX_ROM)
 #define ISRAMSPACE(address) (address >= OFFSET_RAM && address <= MAX_RAM)
 
-static void romcard_init() {
-	if (bootloaderrom == NULL ) {
+static bool romcard_init() {
+	if (bootloaderrom == NULL) {
 		bootloaderrom = malloc(SIZE_ROM);
+		if (bootloaderrom == NULL)
+			return false;
 	}
 
-	if (rom == NULL ) {
+	if (rom == NULL) {
 		rom = malloc(SIZE_ROM);
-		if (rom == NULL )
+		if (rom == NULL) {
 			log_println(LEVEL_INFO, TAG, "Failed to malloc ram!");
+			return false;
+		}
 		memset(rom, 0, SIZE_ROM);
 	}
 
-	if (ram == NULL ) {
+	if (ram == NULL) {
 		ram = malloc(SIZE_RAM);
-		if (ram == NULL )
+		if (ram == NULL) {
 			log_println(LEVEL_INFO, TAG, "Failed to malloc ram!");
+			return false;
+		}
 		memset(ram, 0x00, SIZE_RAM);
 	}
 
-	log_println(LEVEL_INFO, TAG, "ROM section from 0x%08x to 0x%08x", ROMCARD_OFFSET_ROM, MAX_ROM);
-	log_println(LEVEL_INFO, TAG, "RAM section from 0x%08x to 0x%08x", OFFSET_RAM, MAX_RAM);
+	log_println(LEVEL_INFO, TAG, "ROM section from 0x%08x to 0x%08x",
+	ROMCARD_OFFSET_ROM, MAX_ROM);
+	log_println(LEVEL_INFO, TAG, "RAM section from 0x%08x to 0x%08x",
+	OFFSET_RAM, MAX_RAM);
+	return true;
 }
 
 static void romcard_dispose() {
@@ -69,10 +78,9 @@ bool romcard_loadrom(const char* path, bool elf) {
 
 	if (elf) {
 		return elf_load(path, rom, 0, SIZE_ROM);
-	}
-	else {
+	} else {
 		FILE* fhandle;
-		if ((fhandle = fopen(path, "rb")) == NULL ) {
+		if ((fhandle = fopen(path, "rb")) == NULL) {
 			log_println(LEVEL_WARNING, TAG, "Unable to open %s\n", path);
 			return false;
 		}
@@ -100,8 +108,10 @@ static inline bool romcard_checkcommand(uint32_t address, uint16_t data) {
 		return true;
 	}
 
-	else if (address == ROMDISABLE_ADDRESS_1 && data == ROMDISABLE_DATA_1 && disablecommandone) {
-		log_println(LEVEL_WARNING, TAG, "ROM disable fired, ROM will be disabled on reset");
+	else if (address == ROMDISABLE_ADDRESS_1 && data == ROMDISABLE_DATA_1
+			&& disablecommandone) {
+		log_println(LEVEL_WARNING, TAG,
+				"ROM disable fired, ROM will be disabled on reset");
 		disableromonreset = true;
 		return true;
 	}
@@ -113,7 +123,8 @@ static inline bool romcard_checkcommand(uint32_t address, uint16_t data) {
 }
 
 static inline void romcard_invalidwrite(uint32_t address) {
-	log_println(LEVEL_INFO, TAG, "invalid write to 0x%08x, write to ROM? PC[0x%08x]", address,
+	log_println(LEVEL_INFO, TAG,
+			"invalid write to 0x%08x, write to ROM? PC[0x%08x]", address,
 			m68k_get_reg(NULL, M68K_REG_PC));
 #ifdef GDBSERVER
 	gdb_break("write to rom");
@@ -135,15 +146,13 @@ static inline translatedaddress* romcard_translateaddress(uint32_t address) {
 		if (romdisabled) {
 			reg.base = ram;
 			reg.relative_address = address - ROMCARD_OFFSET_ROM;
-		}
-		else {
+		} else {
 			reg.base = rom;
 			reg.relative_address = address - ROMCARD_OFFSET_ROM;
 			reg.writeable = false;
 
 		}
-	}
-	else if (ISRAMSPACE(address)) {
+	} else if (ISRAMSPACE(address)) {
 		reg.base = ram;
 		reg.relative_address = address - OFFSET_RAM;
 	}
@@ -170,8 +179,7 @@ static void romcard_write_byte(uint32_t address, uint8_t value) {
 		translatedaddress* translated = romcard_translateaddress(address);
 		if (translated->writeable) {
 			WRITE_BYTE(translated->base, translated->relative_address, value);
-		}
-		else {
+		} else {
 			romcard_invalidwrite(address);
 		}
 	}
@@ -182,8 +190,7 @@ static void romcard_write_word(uint32_t address, uint16_t value) {
 		translatedaddress* translated = romcard_translateaddress(address);
 		if (translated->writeable) {
 			WRITE_WORD(translated->base, translated->relative_address, value);
-		}
-		else {
+		} else {
 			romcard_invalidwrite(address);
 		}
 	}
@@ -193,8 +200,7 @@ static void romcard_write_long(uint32_t address, uint32_t value) {
 	translatedaddress* translated = romcard_translateaddress(address);
 	if (translated->writeable) {
 		WRITE_LONG(translated->base, translated->relative_address, value);
-	}
-	else {
+	} else {
 		romcard_invalidwrite(address);
 	}
 }
@@ -211,8 +217,7 @@ static void romcard_reset() {
 		log_println(LEVEL_WARNING, TAG, "ROM is disabled");
 		disableromonreset = false;
 		romdisabled = true;
-	}
-	else {
+	} else {
 		romdisabled = false;
 	}
 }

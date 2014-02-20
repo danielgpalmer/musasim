@@ -36,7 +36,8 @@ static module_callback callback = { //
 #define BIGTIMERFORMAT "bigtimer_%d"
 
 static cardaddressspace* timercard_setupaddressspace() {
-	cardaddressspace* as = registerplanner_createaddressspace((TIMERCARD_NUMBEROFTIMERS * 2) + 1 + 1 + 1);
+	cardaddressspace* as = registerplanner_createaddressspace(
+			(TIMERCARD_NUMBEROFTIMERS * 2) + 1 + 1 + 1);
 
 	unit** currentunit = as->units;
 	unit* interruptregister = registerplanner_createblock(2, &timerinterrupts);
@@ -50,14 +51,17 @@ static cardaddressspace* timercard_setupaddressspace() {
 		char* name = malloc(namelen + 1);
 		sprintf(name, TIMERFORMAT, index);
 
-		*(currentunit++) = registerplanner_createperipheral(&timerperipheral, name, &timermodule, context);
+		*(currentunit++) = registerplanner_createperipheral(&timerperipheral,
+				name, &timermodule, context);
 	}
 	for (; index < (TIMERCARD_NUMBEROFTIMERS * 2); index++) {
 		void* context = bigtimermodule.init(&callback, index);
-		int namelen = snprintf(NULL, 0, BIGTIMERFORMAT, (index - TIMERCARD_NUMBEROFTIMERS));
+		int namelen = snprintf(NULL, 0, BIGTIMERFORMAT,
+				(index - TIMERCARD_NUMBEROFTIMERS));
 		char* name = malloc(namelen + 1);
 		sprintf(name, BIGTIMERFORMAT, (index - TIMERCARD_NUMBEROFTIMERS));
-		*(currentunit++) = registerplanner_createperipheral(&bigtimerperipheral, name, &bigtimermodule, context);
+		*(currentunit++) = registerplanner_createperipheral(&bigtimerperipheral,
+				name, &bigtimermodule, context);
 	}
 
 	//void* rtccontext = rtcmodule.init(&callback, index);
@@ -67,9 +71,10 @@ static cardaddressspace* timercard_setupaddressspace() {
 	return as;
 }
 
-static void timercard_init() {
+static bool timercard_init() {
 	log_println(LEVEL_INFO, TAG, "timercard_init()");
 	addressspace = timercard_setupaddressspace();
+	return true;
 }
 
 static void timercard_raiseinterrupt(int index) {
