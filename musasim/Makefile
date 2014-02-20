@@ -16,12 +16,12 @@ all: checklibs gdbserver musasim genheader dist
 gdbserver: musashi $(GDBONLYOBJECTS) $(LOCALOBJECTS) gdbserver.o ui hardware musashi
 	$(CC) $(LFLAGS) -D GDBSERVER musashi/musashigdb.o $(LOCALOBJECTS) $(REMOTEOBJECTS) $(GDBONLYOBJECTS) $(LIBCARDSGDB) $(LIBMODULES)  $(LIBUI) ./hardware/boardgdb.o -o gdbserver -lelf
 
-musasim: libmusasim.a
-	$(CC) $(LFLAGS) libmusasim.a $(LIBCARDS) $(LIBMODULES) $(LIBUI) libmusasim.a -o $@ -lelf
+musasim: libmusasim.a musasim.o
+	$(CC) $(LFLAGS) musasim.o libmusasim.a $(LIBCARDS) $(LIBMODULES) $(LIBUI) libmusasim.a -o $@ -lelf
 
-libmusasim.a: musashi $(LOCALOBJECTS) $(MUSASIMONLYOBJECTS) ui hardware musasim.o args.o musashi
+libmusasim.a: musashi $(LOCALOBJECTS) $(MUSASIMONLYOBJECTS) ui hardware args.o musashi
 	- rm $@
-	ar cr $@ $(LOCALOBJECTS) musasim.o args.o $(REMOTEOBJECTS) ./musashi/musashi.o ./hardware/board.o 
+	ar cr $@ $(LOCALOBJECTS) args.o $(REMOTEOBJECTS) ./musashi/musashi.o ./hardware/board.o 
 
 musasim.o: musasim.c sim.h musashi/m68k.h musashi/m68kconf.h
 	$(CC) $(CFLAGS) $(LOCALCFLAGS) musasim.c -o musasim.o

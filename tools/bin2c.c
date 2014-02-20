@@ -61,9 +61,9 @@ int main(int argc, char** argv)
 
 
   if ((c = fgetc(fi)) != EOF) {
-    fprintf(fh, "const uint8_t _binary_%s_start[%d];\n", argv[3], binstat.st_size);
-    fprintf(fc, "#include <stdint.h>\n", argv[3]);
-    fprintf(fc, "const uint8_t _binary_%s_start[%d] = {\n", argv[3], binstat.st_size);
+    fprintf(fh, "const uint8_t _binary_%s_start[%d];\n", argv[3], (int)binstat.st_size);
+    fprintf(fc, "#include <stdint.h>\n");
+    fprintf(fc, "const uint8_t _binary_%s_start[%d] = {\n", argv[3], (int)binstat.st_size);
     fprintf(fc, c<16 ? "  0x%x" : " 0x%x", (unsigned char)c);
   }
 

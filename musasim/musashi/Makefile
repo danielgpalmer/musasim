@@ -2,7 +2,9 @@ include ../common.mk
 
 all: musashi.o musashigdb.o
 
+ifeq ($(CC),gcc)
 LOCALCFLAGS=--param inline-unit-growth=300
+endif
 GDBFLAGS=-D GDBSERVER
 
 #single object files

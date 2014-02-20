@@ -61,6 +61,10 @@ static void fileheader(char* filename, char* brief) {
 	printf(" */\n");
 }
 
+#ifdef main
+# undef main
+#endif
+
 int main(int argc, char* argv[]) {
 
 	if (argc != 2) {

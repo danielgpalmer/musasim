@@ -5,6 +5,20 @@
  *      Author: daniel
  */
 
+#if defined(__APPLE__)
+#include <stdint.h>
+
+/* XXX needs porting to work with gmon.out defines on Darwin */
+void profiler_init(const char* filepath) {
+}
+void profiler_onpcmodified(uint32_t a1, uint32_t a2) {
+}
+void profiler_onpcchange(uint32_t pc) {
+}
+void profiler_flush() {
+}
+
+#else
 #include <sys/gmon_out.h>
 #include "profiler.h"
 #include <stdbool.h>
@@ -149,3 +163,5 @@ void profiler_flush() {
 
 	fclose(file);
 }
+
+#endif

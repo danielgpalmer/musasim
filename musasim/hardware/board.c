@@ -2,7 +2,9 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <glib.h>
-#include <sys/sysinfo.h>
+#if defined(linux)
+# include <sys/sysinfo.h>
+#endif
 
 #include "board.h"
 #include "board_private.h"

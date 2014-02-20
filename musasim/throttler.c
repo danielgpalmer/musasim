@@ -42,33 +42,57 @@ static double overheads[1024]; // the amount of time per tick that wasn't rollin
 static long cputime;
 static long executiontimes[NUM_SLOTS];
 
+#if defined(__APPLE__)
+#include <mach/mach_time.h>
+#include <mach/clock_types.h>
+
+static void get_nanotime(struct timespec *ts)
+{
+	static struct mach_timebase_info ti;
+
+	if (ti.numer == 0)
+		mach_timebase_info(&ti);
+
+	uint64_t abstime = mach_absolute_time();
+	uint64_t nanoseconds = (abstime * ti.numer) / ti.denom;
+
+	ts->tv_sec = nanoseconds / NSEC_PER_SEC;
+	ts->tv_nsec = nanoseconds % NSEC_PER_SEC;
+}
+#else
+static void get_nanotime(struct timespec *ts)
+{
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ts);
+}
+#endif
+
 void throttler_starttick() {
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+	get_nanotime(&start);
 }
 
 void throttler_startcputick() {
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &cpustart);
+	get_nanotime(&cpustart);
 }
 
 void throttler_endcputick() {
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &cpuend);
+	get_nanotime(&cpuend);
 	struct timespec* diff = timespecdiff(&cpustart, &cpuend);
 	cputime = (diff->tv_sec * SIM_ONENANOSECOND) + diff->tv_nsec;
 }
 
 void throttler_startcardtick(int slot) {
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &cardstart);
+	get_nanotime(&cardstart);
 }
 
 void throttler_endcardtick(int slot) {
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &cardend);
+	get_nanotime(&cardend);
 	struct timespec* diff = timespecdiff(&cardstart, &cardend);
 	long time = (diff->tv_sec * SIM_ONENANOSECOND) + diff->tv_nsec;
 	executiontimes[slot] = time;
 }
 
 void throttler_endtick(int cpucyclesexecuted) {
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
+	get_nanotime(&end);
 
 	struct timespec* timediff = timespecdiff(&start, &end);
 	long timetaken = (timediff->tv_sec * SIM_ONENANOSECOND) + timediff->tv_nsec;

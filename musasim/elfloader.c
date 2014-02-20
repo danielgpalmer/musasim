@@ -34,7 +34,7 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 		goto exit;
 	}
 
-	if ((e = elf_begin(file->_fileno, ELF_C_READ, NULL )) == NULL ) {
+	if ((e = elf_begin(fileno(file), ELF_C_READ, NULL )) == NULL ) {
 		log_println(LEVEL_WARNING, TAG, "libelf failed to parse %s", path);
 		goto exit;
 	}
@@ -61,8 +61,9 @@ bool elf_load(const char* path, uint8_t* dest, uint32_t destaddr, int maxlen) {
 		gelf_getphdr(e, header, &phdr);
 		if (phdr.p_type == 0x1) {
 
-			log_println(LEVEL_INFO, TAG, "Phy address 0x%08"PRIx64", Virt address 0x%08"PRIx64, phdr.p_paddr,
-					phdr.p_vaddr);
+			log_println(LEVEL_INFO, TAG, "Phy address 0x%08"PRIx64", Virt address 0x%08"PRIx64, 
+					(unsigned long long)phdr.p_paddr,
+					(unsigned long long)phdr.p_vaddr);
 			if (phdr.p_paddr >= destaddr + maxlen) {
 				log_println(LEVEL_INFO, TAG, "Section is past the end of the area being loaded to, ignored");
 				continue;
