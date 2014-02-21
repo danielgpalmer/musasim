@@ -212,11 +212,8 @@ static uint8_t* uart_decode_register(uint32_t address, bool write) {
 					uint8_t* byte = NULL;
 					if (g_async_queue_length(chan->rxfifo)) {
 						byte = g_async_queue_pop(chan->rxfifo);
-					} else {
+					} else
 						log_println(LEVEL_DEBUG, TAG, "FIFO IS EMPTY!!!");
-						byte = malloc(1);
-						byte = 0;
-					}
 
 					if (g_async_queue_length(chan->rxfifo) == 0) {
 						//log_println(LEVEL_DEBUG, TAG, "fifo is dry");
@@ -224,11 +221,15 @@ static uint8_t* uart_decode_register(uint32_t address, bool write) {
 								&(regs->line_status));
 					}
 
-					return byte;
+					if (byte != NULL) {
+						regs->rxbyte = *byte;
+						free(byte);
+					}
+
 				} else {
 					uart_clearbit(LINESTATUS_DATAREADY, &(regs->line_status));
-					return &(regs->rxbyte);
 				}
+				return &(regs->rxbyte);
 			}
 		}
 	case UART_REGISTER_INTERRUPTENABLE:
@@ -415,6 +416,7 @@ static void uart_tick(int cyclesexecuted, bool behind) {
 							channel->registers.fifo_control)) {
 						uint8_t* byte = g_async_queue_pop(channel->txfifo);
 						write(channel->ptm, byte, 1);
+						free(byte);
 						if (i == 0) {
 							uart_log_ch(*byte);
 						}
