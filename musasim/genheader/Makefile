@@ -7,27 +7,27 @@ machine_stuff.h: genheader
 	$(CC) -x c -fsyntax-only $@
 
 dma_registers.h: genheader
-	./genheader dma > dma_registers.h
-	$(CC) -x c -fsyntax-only dma_registers.h
+	./genheader dma > $@
+	$(CC) -x c -fsyntax-only $@
 
 ata_registers.h: genheader
-	./genheader ata > ata_registers.h
+	./genheader ata > $@
 
 video_registers.h: genheader
-	./genheader video > video_registers.h
-	$(CC) -x c -fsyntax-only video_registers.h
+	./genheader video > $@
+	$(CC) -x c -fsyntax-only $@
 
 sound_registers.h: genheader
-	./genheader sound > sound_registers.h
-	$(CC) -x c -fsyntax-only sound_registers.h
+	./genheader sound > $@
+	$(CC) -x c -fsyntax-only $@
 
 input_registers.h: genheader
-	./genheader input > input_registers.h
-	$(CC) -x c -fsyntax-only input_registers.h
+	./genheader input > $@
+	$(CC) -x c -fsyntax-only $@
 	
 uart_registers.h: genheader
-	./genheader uart > uart_registers.h
-	$(CC) -x c -fsyntax-only uart_registers.h
+	./genheader uart > $@
+	$(CC) -x c -fsyntax-only $@
 
 timers_registers.h: genheader
 	./genheader timers > $@

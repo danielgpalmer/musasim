@@ -8,6 +8,7 @@ all:
 	$(MAKE) -C sound
 	$(MAKE) -C input
 	$(MAKE) -C spaceeels
+	$(MAKE) -C uartecho
 
 clean:
 	$(MAKE) -C m68ktestapp clean
@@ -19,3 +20,4 @@ clean:
 	$(MAKE) -C sound clean
 	$(MAKE) -C input clean
 	$(MAKE) -C spaceeels clean
+	$(MAKE) -C uartecho

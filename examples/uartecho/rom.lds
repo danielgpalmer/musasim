@@ -1,0 +1,1 @@
+../skeleton/rom.lds
