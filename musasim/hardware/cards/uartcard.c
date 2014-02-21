@@ -454,37 +454,45 @@ static void uart_tick(int cyclesexecuted, bool behind) {
 
 			// receiver
 
-//			int bytes;
-//			uint8_t byte;
-//			if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
-//				if (bytes > 0) {
-//					//log_println(LEVEL_DEBUG, TAG, "Read byte 0x%02x[%c] from pty", byte, FILTERPRINTABLE(byte));
-//
-//					if (uart_bitset(FIFOCONTROL_ENABLE, channel->registers.fifo_control)) {
-//						uint8_t* b = malloc(1);
-//						*b = byte;
-//						g_queue_push_head(channel->rxfifo, b);
-//						//log_println(LEVEL_DEBUG, TAG, "byte into fifo on channel %d, have %u bytes", i,
-//						//		g_queue_get_length(channel->rxfifo));
-//
-//					}
-//					else {
-//						channel->registers.rxbyte = byte;
-//						if (uart_bitset(LINESTATUS_DATAREADY, channel->registers.line_status)) {
-//							log_println(LEVEL_INFO, TAG, "RX Overflow on channel %d", i);
-//							uart_setbit(LINESTATUS_OVERRUNERROR, &(channel->registers.line_status));
-//						}
-//					}
-//
-//					uart_setbit(LINESTATUS_DATAREADY, &(channel->registers.line_status));
-//
-//					// RX interrupt
-//					if (uart_bitset(INTERRUPTENABLE_ERBFI, channel->registers.interrupt_enable)) {
-//						channel->intpending_third = true;
-//						board_raise_interrupt(&uartcard);
-//					}
-//				}
-//			}
+			int bytes;
+			uint8_t byte;
+			if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
+				if (bytes > 0) {
+					log_println(LEVEL_DEBUG, TAG,
+							"Read byte 0x%02x[%c] from pty", byte,
+							FILTERPRINTABLE(byte));
+
+					if (IS_BIT_SET(FIFOCONTROL_ENABLE,
+							channel->registers.fifo_control)) {
+						uint8_t* b = malloc(1);
+						*b = byte;
+						g_async_queue_push(channel->rxfifo, b);
+						//log_println(LEVEL_DEBUG, TAG,
+						//		"byte into fifo on channel %d, have %u bytes",
+						//		i, g__queue_get_length(channel->rxfifo));
+
+					} else {
+						channel->registers.rxbyte = byte;
+						if (IS_BIT_SET(LINESTATUS_DATAREADY,
+								channel->registers.line_status)) {
+							log_println(LEVEL_INFO, TAG,
+									"RX Overflow on channel %d", i);
+							uart_setbit(LINESTATUS_OVERRUNERROR,
+									&(channel->registers.line_status));
+						}
+					}
+
+					uart_setbit(LINESTATUS_DATAREADY,
+							&(channel->registers.line_status));
+
+					// RX interrupt
+					if (IS_BIT_SET(INTERRUPTENABLE_ERBFI,
+							channel->registers.interrupt_enable)) {
+						channel->intpending_third = true;
+						board_raise_interrupt(&uartcard);
+					}
+				}
+			}
 		}
 	}
 
