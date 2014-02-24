@@ -118,9 +118,17 @@ static bool uart_init() {
 		ptm = posix_openpt(O_RDWR | O_NOCTTY);
 		if (ptm == -1) {
 			log_println(LEVEL_INFO, TAG, "failed opening PTY!");
+			return false;
 		} else {
-			grantpt(ptm);
-			unlockpt(ptm);
+			if (grantpt(ptm) < 0) {
+				log_println(LEVEL_INFO, TAG, "failed granting PTY!");
+				return false;
+			}
+			if (unlockpt(ptm) < 0) {
+				log_println(LEVEL_INFO, TAG, "failed unlocking PTY!");
+				return false;
+			}
+
 			log_println(LEVEL_INFO, TAG, "Channel %d pts is %s", i,
 					ptsname(ptm));
 			channels[i].ptm = ptm;
