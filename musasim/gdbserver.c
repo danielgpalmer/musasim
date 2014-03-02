@@ -311,7 +311,8 @@ static bool gdbserver_sendpacket(int s, char* data) {
 			log_println(LEVEL_WARNING, TAG, "EOF when reading from gdb");
 			return false;
 		} else if (result < 0) {
-			log_println(LEVEL_WARNING, TAG, "Error reading from socket!");
+			log_println(LEVEL_WARNING, TAG, "Error reading from socket! %d",
+					result);
 			return false;
 		}
 
