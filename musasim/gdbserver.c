@@ -305,8 +305,12 @@ static bool gdbserver_sendpacket(int s, char* data) {
 
 	char res = GDBNAK;
 	while (res != GDBACK) {
-		write(s, outputbuffer, outputlen);
-		int result = read(s, &res, 1);
+		int result = write(s, outputbuffer, outputlen);
+		if (result != outputlen)
+			log_println(LEVEL_WARNING, TAG,
+					"expected to get %d but got %d from write", outputlen,
+					result);
+		result = read(s, &res, 1);
 		if (result == 0) {
 			log_println(LEVEL_WARNING, TAG, "EOF when reading from gdb");
 			return false;
