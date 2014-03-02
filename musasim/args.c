@@ -50,7 +50,7 @@ bool args_parse(int argc, char* argv[]) {
 	struct arg_file *profile = arg_file0("m", "profileroutput", "",
 			"Trace program execution and write it to a gprof file");
 	void *argtable[] = {help, rompath, elfpath, cfpath, gdbport, profile, loguartchone, osd, loglevel, basicvideo,
-		basicsound, end};
+		basicsound, disablesound, end};
 #else
 	void *argtable[] = { help, rompath, elfpath, cfpath, loguartchone, osd,
 			basicvideo, loglevel, basicsound, disablesound, end };

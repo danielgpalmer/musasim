@@ -34,6 +34,8 @@
 
 static const char TAG[] = "gdbserver";
 
+static bool tracing = false;
+
 // some constants for the GDB proto
 #define OK "OK"
 static char GDBACK = '+';
@@ -693,6 +695,7 @@ static char* gbdserver_munchhexstring(char* buffer, int* len) {
 #define TALKTOME "talktome"
 #define INTERRUPTBREAK "interruptbreak"
 #define THROTTLE "throttle"
+#define TRACE "trace"
 #define ON "on"
 #define OFF "off"
 
@@ -710,8 +713,7 @@ static char* gdbserver_query(char* commandbuffer) {
 				"GDB is sending a monitor command; %s (%s)", offset,
 				monitorcommand);
 
-		if (strncmp(monitorcommand, LOAD, MIN(monitorcommandlen, sizeof(LOAD)))
-				== 0) {
+		if (strncmp(monitorcommand, LOAD, sizeof(LOAD)) == 0) {
 			log_println(LEVEL_INFO, TAG,
 					"User has requested that a new binary is loaded into ROM");
 			romcard_loadrom(monitorcommand + 5, false);
@@ -724,14 +726,12 @@ static char* gdbserver_query(char* commandbuffer) {
 			ret = OK;
 		}
 
-		else if (strncmp(monitorcommand, STFU,
-				MIN(monitorcommandlen, sizeof(STFU))) == 0) {
+		else if (strncmp(monitorcommand, STFU, sizeof(STFU)) == 0) {
 			log_println(LEVEL_INFO, TAG, "User has requested we keep quiet");
 			ret = OK;
 		}
 
-		else if (strncmp(monitorcommand, TALKTOME,
-				MIN(monitorcommandlen, sizeof(TALKTOME))) == 0) {
+		else if (strncmp(monitorcommand, TALKTOME, sizeof(TALKTOME)) == 0) {
 			log_println(LEVEL_INFO, TAG,
 					"User wants to know what's going down");
 			ret = OK;
@@ -764,6 +764,18 @@ static char* gdbserver_query(char* commandbuffer) {
 				ret = OK;
 			} else
 				log_println(LEVEL_INFO, TAG, "bad throttle mode \"%s\"", mode);
+		}
+
+		else if (strncmp(monitorcommand, TRACE, sizeof(TRACE) - 1) == 0) {
+			char* mode = monitorcommand + sizeof(TRACE);
+			if (strncmp(mode, ON, sizeof(ON)) == 0) {
+				tracing = true;
+				ret = OK;
+			} else if (strncmp(mode, OFF, sizeof(OFF)) == 0) {
+				tracing = false;
+				ret = OK;
+			} else
+				log_println(LEVEL_INFO, TAG, "bad trace mode \"%s\"", mode);
 		}
 	} else
 		log_println(LEVEL_INFO, TAG, "Unknown monitor command \"%s\"",
