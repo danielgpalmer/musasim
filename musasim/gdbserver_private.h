@@ -44,7 +44,7 @@ static void gdbserver_clear_watchpoint(uint32_t address, unsigned int length,
 		bool read, bool write);
 
 // stuff that talks to gdb
-static void gdbserver_readcommand(int s);
+static void gdbserver_parsepacket(int s);
 static bool gdbserver_readpacket(int s, char *buffer);
 static bool gdbserver_sendpacket(int s, char* data);
 static char* gdbserver_query(char* commandbuffer);

@@ -68,6 +68,10 @@ static State state = INIT;
 
 static bool interruptbreak = false;
 
+static bool packetwaiting = false;
+static char inputbuffer[MAXPACKETLENGTH];
+static bool usingsocket = false;
+
 int main(int argc, char* argv[]) {
 	log_init();
 	log_println(LEVEL_INFO, TAG,
@@ -111,20 +115,26 @@ static void gdbserver_mainloop() {
 
 				fcntl(socketconnection, F_SETOWN, getpid());
 				int flags = fcntl(socketconnection, F_GETFL, 0);
-				fcntl(socketconnection, F_SETFL, flags | FASYNC);
+				fcntl(socketconnection, F_SETFL, flags | FASYNC | FNONBLOCK);
 
 				//if (setsockopt(socketconnection, SOL_SOCKET, SO_RCVTIMEO, &tout_val, sizeof(tout_val)) != 0) {
 				//	log_println(LEVEL_WARNING, TAG, "Failed to set socket options");
 				//}
 				state = WAITING;
 			} else {
-				printf("YAR!\n");
+				log_println(LEVEL_INFO, TAG, "accept() failed %d",
+						socketconnection);
 				state = EXIT;
 			}
 			break;
 
 		case WAITING:
-			gdbserver_readcommand(socketconnection);
+
+			if (packetwaiting) {
+				log_println(LEVEL_INFO, TAG, "processing packet from GDB");
+				gdbserver_parsepacket(socketconnection);
+				packetwaiting = false;
+			}
 			break;
 
 		case RUNNING:
@@ -191,114 +201,108 @@ static bool gdbserver_setorclearbreakpoint(bool clear, char* packet) {
 	return true;
 }
 
-static void gdbserver_readcommand(int s) {
-
-	static char inputbuffer[MAXPACKETLENGTH];
-	memset(inputbuffer, 0, MAXPACKETLENGTH);
+static void gdbserver_parsepacket(int s) {
 
 	State newstate = WAITING;
 
-	if (gdbserver_readpacket(s, inputbuffer)) {
+	char* data = OK; // by default we send OK
 
-		char* data = OK; // by default we send OK
-
-		char command = inputbuffer[0];
-		log_println(LEVEL_INFO, TAG, "command buffer %s", inputbuffer);
-		switch (command) {
-		case GDB_COMMAND_READREGISTERS:
-			log_println(LEVEL_INFO, TAG, "GDB wants to read the registers");
-			data = gbdserver_readregs(inputbuffer);
-			break;
-		case GDB_COMMAND_WRITEREGISTERS:
-			log_println(LEVEL_INFO, TAG, "GDB wants to write the registers");
-			break;
-		case GDB_COMMAND_READREGISTER:
-			log_println(LEVEL_INSANE, TAG,
-					"GDB wants to read a single register");
-			data = "00000000";
-			break;
-		case GDB_COMMAND_WRITEREGISTER:
-			log_println(LEVEL_INSANE, TAG,
-					"GDB wants to write a single register");
-			gdbserver_writereg(inputbuffer);
-			break;
-		case GDB_COMMAND_READMEMORY:
-			log_println(LEVEL_INSANE, TAG, "GDB wants to read from memory");
-			data = gdbserver_readmem(inputbuffer);
-			break;
-		case GDB_COMMAND_WRITEMEMORY:
-			log_println(LEVEL_INFO, TAG, "GDB wants to write to memory");
-			gdbserver_parser_writemem(inputbuffer);
-			break;
-		case GDB_COMMAND_CONTINUE:
-			log_println(LEVEL_INFO, TAG, "GDB wants execution to continue");
-			newstate = RUNNING;
-			break;
-		case GDB_COMMAND_STEP:
-			log_println(LEVEL_INFO, TAG, "GDB wants execution to step");
-			newstate = STEPPING;
-			break;
-		case GDB_COMMAND_HALTREASON:
-			log_println(LEVEL_INFO, TAG, "GDB wants to know why we halted");
-			data = STOP_WEBROKE;
-			break;
-		case GDB_COMMAND_RESET:
-			log_println(LEVEL_INFO, TAG, "GDB wants the processor to reset");
-			sim_reset();
-			break;
-		case GDB_COMMAND_QUERY:
-			log_println(LEVEL_INFO, TAG, "GDB is querying something");
-			data = gdbserver_query(inputbuffer);
-			break;
-		case GDB_COMMAND_DETACH:
-			log_println(LEVEL_INFO, TAG, "GDB is detaching!");
-			newstate = LISTENING;
-			break;
-		case GDB_COMMAND_KILL:
-			log_println(LEVEL_INFO, TAG, "GDB killed us");
-			sim_reset();
-			newstate = LISTENING;
-			break;
-		case GDB_COMMAND_BREAKPOINTSET:
-			if (!gdbserver_setorclearbreakpoint(false, inputbuffer)) {
-				data = "";
-			}
-			break;
-		case GDB_COMMAND_BREAKPOINTUNSET:
-			if (!gdbserver_setorclearbreakpoint(true, inputbuffer)) {
-				data = "";
-			}
-			break;
-
-			/*
-			 case GDB_RDP_BACKCONTINUE:
-			 break;
-
-			 case GDB_RDP_BACKSTEP:
-			 break;
-			 */
-
-		default:
-			log_println(LEVEL_WARNING, TAG,
-					"Command %c is unknown, packet was %s", command,
-					inputbuffer);
+	char command = inputbuffer[0];
+	log_println(LEVEL_INFO, TAG, "command buffer %s", inputbuffer);
+	switch (command) {
+	case GDB_COMMAND_READREGISTERS:
+		log_println(LEVEL_INFO, TAG, "GDB wants to read the registers");
+		data = gbdserver_readregs(inputbuffer);
+		break;
+	case GDB_COMMAND_WRITEREGISTERS:
+		log_println(LEVEL_INFO, TAG, "GDB wants to write the registers");
+		break;
+	case GDB_COMMAND_READREGISTER:
+		log_println(LEVEL_INSANE, TAG, "GDB wants to read a single register");
+		data = "00000000";
+		break;
+	case GDB_COMMAND_WRITEREGISTER:
+		log_println(LEVEL_INSANE, TAG, "GDB wants to write a single register");
+		gdbserver_writereg(inputbuffer);
+		break;
+	case GDB_COMMAND_READMEMORY:
+		log_println(LEVEL_INSANE, TAG, "GDB wants to read from memory");
+		data = gdbserver_readmem(inputbuffer);
+		break;
+	case GDB_COMMAND_WRITEMEMORY:
+		log_println(LEVEL_INFO, TAG, "GDB wants to write to memory");
+		gdbserver_parser_writemem(inputbuffer);
+		break;
+	case GDB_COMMAND_CONTINUE:
+		log_println(LEVEL_INFO, TAG, "GDB wants execution to continue");
+		newstate = RUNNING;
+		break;
+	case GDB_COMMAND_STEP:
+		log_println(LEVEL_INFO, TAG, "GDB wants execution to step");
+		newstate = STEPPING;
+		break;
+	case GDB_COMMAND_HALTREASON:
+		log_println(LEVEL_INFO, TAG, "GDB wants to know why we halted");
+		data = STOP_WEBROKE;
+		break;
+	case GDB_COMMAND_RESET:
+		log_println(LEVEL_INFO, TAG, "GDB wants the processor to reset");
+		sim_reset();
+		break;
+	case GDB_COMMAND_QUERY:
+		log_println(LEVEL_INFO, TAG, "GDB is querying something");
+		data = gdbserver_query(inputbuffer);
+		break;
+	case GDB_COMMAND_DETACH:
+		log_println(LEVEL_INFO, TAG, "GDB is detaching!");
+		newstate = LISTENING;
+		break;
+	case GDB_COMMAND_KILL:
+		log_println(LEVEL_INFO, TAG, "GDB killed us");
+		sim_reset();
+		newstate = LISTENING;
+		break;
+	case GDB_COMMAND_BREAKPOINTSET:
+		if (!gdbserver_setorclearbreakpoint(false, inputbuffer)) {
 			data = "";
-			break;
 		}
+		break;
+	case GDB_COMMAND_BREAKPOINTUNSET:
+		if (!gdbserver_setorclearbreakpoint(true, inputbuffer)) {
+			data = "";
+		}
+		break;
 
-		if (gdbserver_sendpacket(s, data)) {
-			state = newstate;
-		} else {
-			close(s);
-			state = LISTENING;
-		}
-	} else
-		log_println(LEVEL_INFO, TAG, "no packet");
+		/*
+		 case GDB_RDP_BACKCONTINUE:
+		 break;
+
+		 case GDB_RDP_BACKSTEP:
+		 break;
+		 */
+
+	default:
+		log_println(LEVEL_WARNING, TAG, "Command %c is unknown, packet was %s",
+				command, inputbuffer);
+		data = "";
+		break;
+	}
+	write(s, &GDBACK, 1);
+	if (gdbserver_sendpacket(s, data)) {
+		state = newstate;
+	} else {
+		close(s);
+		state = LISTENING;
+	}
+
 }
 
 #define MAXSENDTRIES 10
 static bool gdbserver_sendpacket(int s, char* data) {
 	static char outputbuffer[MAXPACKETLENGTH];
+
+	usingsocket = true;
+
 	memset(outputbuffer, 0, MAXPACKETLENGTH);
 	int triesleft = MAXSENDTRIES;
 	int checksum = gdbserver_calcchecksum(data);
@@ -310,16 +314,23 @@ static bool gdbserver_sendpacket(int s, char* data) {
 		int result = write(s, outputbuffer, outputlen);
 		if (result != outputlen)
 			log_println(LEVEL_WARNING, TAG,
-					"expected to get %d but got %d from write", outputlen,
-					result);
+					"expected to get %d but got %d from write, errno %d",
+					outputlen, result, errno);
 		else {
-			result = read(s, &res, 1);
+			do {
+				result = read(s, &res, 1);
+			} while (result == -1 && errno == EAGAIN);
+
+			log_println(LEVEL_WARNING, TAG, "%d result %d errno %c", result,
+			errno, res);
+
 			if (result == 0) {
 				log_println(LEVEL_WARNING, TAG, "EOF when reading from gdb");
 				return false;
 			} else if (result < 0) {
-				log_println(LEVEL_WARNING, TAG, "Error reading from socket! %d",
-						result);
+				log_println(LEVEL_WARNING, TAG,
+						"Error reading from socket! result %d, errno %d",
+						result, errno);
 				return false;
 			}
 		}
@@ -328,9 +339,11 @@ static bool gdbserver_sendpacket(int s, char* data) {
 			log_println(LEVEL_WARNING, TAG,
 					"Sent packet [%s] %d times, giving up!", outputbuffer,
 					MAXSENDTRIES);
+			usingsocket = false;
 			return false;
 		}
 	}
+	usingsocket = false;
 	return true;
 }
 
@@ -355,8 +368,10 @@ static bool gdbserver_readpacket(int s, char *buffer) {
 		int res = read(s, readbuffer + bytessofar, MAXPACKETLENGTH);
 
 		if (res < 0) {
-			log_println(LEVEL_INFO, TAG, "failed to read from socket %d", res);
 			write(socketconnection, &GDBNAK, 1);
+			log_println(LEVEL_INFO, TAG,
+					"failed to read from socket result %d errno %d", res,
+					errno);
 			break;
 		}
 
@@ -426,7 +441,7 @@ static bool gdbserver_readpacket(int s, char *buffer) {
 			//checksum[2] = '\0';
 			//check = sscanf(checksum, "%02x", &check);
 			//log_println(LEVEL_DEBUG, TAG, "check sum is 0x%02x", check);
-			write(s, &GDBACK, 1);
+
 			return true;
 		}
 	}
@@ -484,11 +499,19 @@ static void gdbserver_termination_handler(int signum) {
 }
 
 static void gdbserver_io_handler(int signum) {
+	log_println(LEVEL_INFO, TAG, "IO has happened on the the socket");
+	if (usingsocket) {
+		log_println(LEVEL_INFO, TAG, "socket in use..");
+		return;
+	}
+
 	if (state == RUNNING) {
-		log_println(LEVEL_INFO, TAG,
-				"IO has happened on the the socket, breaking");
+		log_println(LEVEL_INFO, TAG, "IO while running, breaking");
 		state = BREAKING;
 	}
+	memset(inputbuffer, 0, MAXPACKETLENGTH);
+	packetwaiting = gdbserver_readpacket(socketconnection, inputbuffer);
+	log_println(LEVEL_INFO, TAG, "exiting IO handler");
 }
 
 static void gdbserver_registersighandler() {
