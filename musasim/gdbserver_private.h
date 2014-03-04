@@ -32,21 +32,21 @@ static void gdbserver_writereg(char* commandbuffer);
 static char* getmemorystring(unsigned int address, int len);
 static char* gbdserver_readregs(char* commandbuffer);
 static int gdbserver_calcchecksum(char *data);
-static char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5,
-		int d6, int d7, int a0, int a1, int a2, int a3, int a4, int a5, int fp,
-		int sp, int ps, int pc);
+static char* gdbserver_getregistersstring(int d0, int d1, int d2, int d3,
+		int d4, int d5, int d6, int d7, int a0, int a1, int a2, int a3, int a4,
+		int a5, int fp, int sp, int ps, int pc);
 
 static void gdbserver_set_breakpoint(uint32_t address);
 static void gdbserver_clear_breakpoint(uint32_t address);
 static void gdbserver_set_watchpoint(uint32_t address, unsigned int length,
-		bool read, bool write);
+bool read, bool write);
 static void gdbserver_clear_watchpoint(uint32_t address, unsigned int length,
-		bool read, bool write);
+bool read, bool write);
 
 // stuff that talks to gdb
-static void gdbserver_parsepacket(int s);
-static bool gdbserver_readpacket(int s, char *buffer);
-static bool gdbserver_sendpacket(int s, char* data);
+static void gdbserver_parsepacket(int s, char* inputbuffer);
+static bool gdbserver_readpacket(int s, char* buffer);
+static bool gdbserver_sendpacket(int s, char* data, bool ackincoming);
 static char* gdbserver_query(char* commandbuffer);
 
 static char* gdbserver_parser_writemem(char* commandbuffer);

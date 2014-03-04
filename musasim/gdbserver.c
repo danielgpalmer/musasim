@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <poll.h>
 #include <netinet/in.h>
 
 #include <glib.h>
@@ -68,10 +69,6 @@ static State state = INIT;
 
 static bool interruptbreak = false;
 
-static bool packetwaiting = false;
-static char inputbuffer[MAXPACKETLENGTH];
-static bool usingsocket = false;
-
 int main(int argc, char* argv[]) {
 	log_init();
 	log_println(LEVEL_INFO, TAG,
@@ -87,6 +84,16 @@ int main(int argc, char* argv[]) {
 		gdbserver_mainloop();
 	gdbserver_cleanup();
 	return 0;
+}
+
+static void gdbserver_enablesigioforfd(int fd) {
+	int flags = fcntl(socketconnection, F_GETFL, 0);
+	fcntl(socketconnection, F_SETFL, flags | FASYNC);
+}
+
+static void gdbserver_disablesigioforfd(int fd) {
+	int flags = fcntl(socketconnection, F_GETFL, 0);
+	fcntl(socketconnection, F_SETFL, flags & ~FASYNC);
 }
 
 static void gdbserver_mainloop() {
@@ -114,8 +121,6 @@ static void gdbserver_mainloop() {
 				log_println(LEVEL_INFO, TAG, "Got connection from GDB");
 
 				fcntl(socketconnection, F_SETOWN, getpid());
-				int flags = fcntl(socketconnection, F_GETFL, 0);
-				fcntl(socketconnection, F_SETFL, flags | FASYNC | FNONBLOCK);
 
 				//if (setsockopt(socketconnection, SOL_SOCKET, SO_RCVTIMEO, &tout_val, sizeof(tout_val)) != 0) {
 				//	log_println(LEVEL_WARNING, TAG, "Failed to set socket options");
@@ -128,13 +133,14 @@ static void gdbserver_mainloop() {
 			}
 			break;
 
-		case WAITING:
-
-			if (packetwaiting) {
+		case WAITING: {
+			static char inputbuffer[MAXPACKETLENGTH];
+			memset(inputbuffer, 0, MAXPACKETLENGTH);
+			if (gdbserver_readpacket(socketconnection, inputbuffer)) {
 				log_println(LEVEL_INFO, TAG, "processing packet from GDB");
-				gdbserver_parsepacket(socketconnection);
-				packetwaiting = false;
+				gdbserver_parsepacket(socketconnection, inputbuffer);
 			}
+		}
 			break;
 
 		case RUNNING:
@@ -145,7 +151,7 @@ static void gdbserver_mainloop() {
 			break;
 
 		case BREAKING:
-			gdbserver_sendpacket(socketconnection, STOP_WEBROKE); // alert GDB to the fact that execution has stopped
+			gdbserver_sendpacket(socketconnection, STOP_WEBROKE, false); // alert GDB to the fact that execution has stopped
 			state = WAITING;
 			break;
 
@@ -177,19 +183,22 @@ static bool gdbserver_setorclearbreakpoint(bool clear, char* packet) {
 		break;
 	case GDB_BREAKPOINTTYPE_WATCHPOINT_WRITE:
 		if (clear)
-			gdbserver_clear_watchpoint(breakaddress, length, false, true);
+			gdbserver_clear_watchpoint(breakaddress, length, false,
+			true);
 		else
 			gdbserver_set_watchpoint(breakaddress, length, false, true);
 		break;
 	case GDB_BREAKPOINTTYPE_WATCHPOINT_READ:
 		if (clear)
-			gdbserver_clear_watchpoint(breakaddress, length, true, false);
+			gdbserver_clear_watchpoint(breakaddress, length, true,
+			false);
 		else
 			gdbserver_set_watchpoint(breakaddress, length, true, false);
 		break;
 	case GDB_BREAKPOINTTYPE_WATCHPOINT_ACCESS:
 		if (clear)
-			gdbserver_clear_watchpoint(breakaddress, length, true, true);
+			gdbserver_clear_watchpoint(breakaddress, length, true,
+			true);
 		else
 			gdbserver_set_watchpoint(breakaddress, length, true, true);
 		break;
@@ -201,7 +210,7 @@ static bool gdbserver_setorclearbreakpoint(bool clear, char* packet) {
 	return true;
 }
 
-static void gdbserver_parsepacket(int s) {
+static void gdbserver_parsepacket(int s, char* inputbuffer) {
 
 	State newstate = WAITING;
 
@@ -235,6 +244,7 @@ static void gdbserver_parsepacket(int s) {
 		break;
 	case GDB_COMMAND_CONTINUE:
 		log_println(LEVEL_INFO, TAG, "GDB wants execution to continue");
+		gdbserver_enablesigioforfd(socketconnection);
 		newstate = RUNNING;
 		break;
 	case GDB_COMMAND_STEP:
@@ -287,8 +297,8 @@ static void gdbserver_parsepacket(int s) {
 		data = "";
 		break;
 	}
-	write(s, &GDBACK, 1);
-	if (gdbserver_sendpacket(s, data)) {
+
+	if (gdbserver_sendpacket(s, data, true)) {
 		state = newstate;
 	} else {
 		close(s);
@@ -298,18 +308,23 @@ static void gdbserver_parsepacket(int s) {
 }
 
 #define MAXSENDTRIES 10
-static bool gdbserver_sendpacket(int s, char* data) {
+static bool gdbserver_sendpacket(int s, char* data, bool ackincoming) {
+
 	static char outputbuffer[MAXPACKETLENGTH];
 
-	usingsocket = true;
-
-	memset(outputbuffer, 0, MAXPACKETLENGTH);
 	int triesleft = MAXSENDTRIES;
 	int checksum = gdbserver_calcchecksum(data);
+	bool ret = false;
+	char res = GDBNAK;
+
+	memset(outputbuffer, 0, MAXPACKETLENGTH);
+
 	int outputlen = snprintf(outputbuffer, sizeof(outputbuffer), "$%s#%02x",
 			data, checksum);
 
-	char res = GDBNAK;
+	if (ackincoming)
+		write(s, &GDBACK, 1);
+
 	while (res != GDBACK) {
 		int result = write(s, outputbuffer, outputlen);
 		if (result != outputlen)
@@ -317,21 +332,20 @@ static bool gdbserver_sendpacket(int s, char* data) {
 					"expected to get %d but got %d from write, errno %d",
 					outputlen, result, errno);
 		else {
-			do {
-				result = read(s, &res, 1);
-			} while (result == -1 && errno == EAGAIN);
+
+			result = read(s, &res, 1);
 
 			log_println(LEVEL_WARNING, TAG, "%d result %d errno %c", result,
 			errno, res);
 
 			if (result == 0) {
 				log_println(LEVEL_WARNING, TAG, "EOF when reading from gdb");
-				return false;
+				goto exit;
 			} else if (result < 0) {
 				log_println(LEVEL_WARNING, TAG,
 						"Error reading from socket! result %d, errno %d",
 						result, errno);
-				return false;
+				goto exit;
 			}
 		}
 		triesleft--;
@@ -339,12 +353,11 @@ static bool gdbserver_sendpacket(int s, char* data) {
 			log_println(LEVEL_WARNING, TAG,
 					"Sent packet [%s] %d times, giving up!", outputbuffer,
 					MAXSENDTRIES);
-			usingsocket = false;
-			return false;
+			goto exit;
 		}
 	}
-	usingsocket = false;
-	return true;
+	ret = true;
+	exit: return ret;
 }
 
 static bool gdbserver_readpacket(int s, char *buffer) {
@@ -362,13 +375,14 @@ static bool gdbserver_readpacket(int s, char *buffer) {
 	int bytessofar = 0;
 	int bufferpos = 0;
 //int check = 0;
+	bool ret = false;
 
 	while (readstate != DONE) {
 
 		int res = read(s, readbuffer + bytessofar, MAXPACKETLENGTH);
 
 		if (res < 0) {
-			write(socketconnection, &GDBNAK, 1);
+			//write(socketconnection, &GDBNAK, 1);
 			log_println(LEVEL_INFO, TAG,
 					"failed to read from socket result %d errno %d", res,
 					errno);
@@ -442,11 +456,11 @@ static bool gdbserver_readpacket(int s, char *buffer) {
 			//check = sscanf(checksum, "%02x", &check);
 			//log_println(LEVEL_DEBUG, TAG, "check sum is 0x%02x", check);
 
-			return true;
+			ret = true;
 		}
 	}
 
-	return false;
+	return ret;
 }
 
 static int gdbserver_calcchecksum(char *data) {
@@ -492,26 +506,19 @@ static void gdbserver_cleanup() {
 static void gdbserver_termination_handler(int signum) {
 	log_println(LEVEL_INFO, TAG, "Caught interrupt");
 	if (state == RUNNING)
-		gdbserver_sendpacket(socketconnection, STOP_EXIT);
+		gdbserver_sendpacket(socketconnection, STOP_EXIT, false);
 	shutdown(socketconnection, SHUT_RDWR);
 	shutdown(socketlistening, SHUT_RDWR);
 	state = EXIT;
 }
 
 static void gdbserver_io_handler(int signum) {
-	log_println(LEVEL_INFO, TAG, "IO has happened on the the socket");
-	if (usingsocket) {
-		log_println(LEVEL_INFO, TAG, "socket in use..");
-		return;
-	}
-
+	log_println(LEVEL_INFO, TAG, "IO has happened");
 	if (state == RUNNING) {
 		log_println(LEVEL_INFO, TAG, "IO while running, breaking");
 		state = BREAKING;
+		gdbserver_disablesigioforfd(socketconnection);
 	}
-	memset(inputbuffer, 0, MAXPACKETLENGTH);
-	packetwaiting = gdbserver_readpacket(socketconnection, inputbuffer);
-	log_println(LEVEL_INFO, TAG, "exiting IO handler");
 }
 
 static void gdbserver_registersighandler() {
@@ -549,9 +556,9 @@ static void gdbserver_registersighandler() {
 
 #define REGSTRINGLEN 168
 
-static char* getregistersstring(int d0, int d1, int d2, int d3, int d4, int d5,
-		int d6, int d7, int a0, int a1, int a2, int a3, int a4, int a5, int fp,
-		int sp, int ps, int pc) {
+static char* gdbserver_getregistersstring(int d0, int d1, int d2, int d3,
+		int d4, int d5, int d6, int d7, int a0, int a1, int a2, int a3, int a4,
+		int a5, int fp, int sp, int ps, int pc) {
 
 	static char registersstring[REGSTRINGLEN];
 	memset(registersstring, 0, REGSTRINGLEN);
@@ -672,7 +679,7 @@ bool write, int size) {
 		log_println(LEVEL_INFO, TAG, "Access at 0x%08x;", address);
 		state = WAITING;
 		sprintf(stopreply, "T05awatch:%08x;", address);
-		gdbserver_sendpacket(socketconnection, stopreply);
+		gdbserver_sendpacket(socketconnection, stopreply, false);
 	}
 
 	if (write) {
@@ -682,7 +689,7 @@ bool write, int size) {
 					value, address, m68k_get_reg(NULL, M68K_REG_PC));
 			state = WAITING;
 			sprintf(stopreply, "T05watch:%08x;", address);
-			gdbserver_sendpacket(socketconnection, stopreply);
+			gdbserver_sendpacket(socketconnection, stopreply, false);
 		}
 	}
 
@@ -692,7 +699,7 @@ bool write, int size) {
 			log_println(LEVEL_INFO, TAG, "Read at 0x%08x;", address);
 			state = WAITING;
 			sprintf(stopreply, "T05rwatch:%08x;", address);
-			gdbserver_sendpacket(socketconnection, stopreply);
+			gdbserver_sendpacket(socketconnection, stopreply, false);
 		}
 	}
 }
@@ -809,7 +816,7 @@ static char* gdbserver_query(char* commandbuffer) {
 }
 
 static char* gbdserver_readregs(char* commandbuffer) {
-	return getregistersstring(m68k_get_reg(NULL, M68K_REG_D0),
+	return gdbserver_getregistersstring(m68k_get_reg(NULL, M68K_REG_D0),
 			m68k_get_reg(NULL, M68K_REG_D1), m68k_get_reg(NULL, M68K_REG_D2),
 			m68k_get_reg(NULL, M68K_REG_D3), m68k_get_reg(NULL, M68K_REG_D4),
 			m68k_get_reg(NULL, M68K_REG_D5), m68k_get_reg(NULL, M68K_REG_D6),
@@ -922,7 +929,7 @@ static void gdbserver_check_breakpoints(uint32_t pc) {
 					disasmbuffer);
 			utils_printregisters();
 			state = WAITING;
-			gdbserver_sendpacket(socketconnection, STOP_WEBROKE);
+			gdbserver_sendpacket(socketconnection, STOP_WEBROKE, false);
 			break;
 		}
 	}
