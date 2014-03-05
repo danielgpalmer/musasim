@@ -5,16 +5,19 @@
  *      Author: daniel
  */
 
+#include <stdbool.h>
+#include <SDL.h>
+
 #include "input.h"
 #include "sim.h"
 #include "logging.h"
-#include <SDL.h>
 #include "musashi/m68k.h"
 #include "osd.h"
 #include "throttler.h"
 #include "hardware/cards/inputcard.h"
 
 static const char TAG[] = "input";
+static SDL_Event event;
 
 // keys that the sim uses
 #define SIM_KEY_PAUSE			SDLK_F1
@@ -37,59 +40,65 @@ void input_init() {
 	SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
 }
 
+bool input_pump_and_checkquit() {
+	SDL_PumpEvents();
+	if (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_QUIT, SDL_QUIT)) {
+		log_println(LEVEL_INFO, TAG, "Window was closed");
+		sim_quit();
+		return true;
+	} else
+		return false;
+}
+
 void input_update() {
 
 	// Check some keys
 	SDL_PumpEvents();
-	static SDL_Event event;
-	if (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_QUIT, SDL_QUIT)) {
-		log_println(LEVEL_INFO, TAG, "Window was closed");
-		sim_quit();
+
+	if (input_pump_and_checkquit())
 		return;
-	}
 
 	// pick out the events that the sim wants
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_KEYUP) {
 			switch (event.key.keysym.sym) {
-				case SIM_KEY_NMI:
-					m68k_set_irq(7);
-					break;
-				case SIM_KEY_RESET:
-					break;
-				case SIM_KEY_MUTE:
-					break;
-				case SIM_KEY_TOGGLETHROTTLE:
-					throttler_toggle();
-					break;
-				case SIM_KEY_TOGGLEOSD:
-					log_println(LEVEL_INFO, TAG, "toggling osd");
-					osd_toggle();
-					break;
-				case SIM_KEY_PAUSE:
-					sim_togglepause();
-					return;
-				case SIM_KEY_QUIT:
-					sim_quit();
-					return;
-				default:
-					inputcard_onkeyevent(&event);
-					break;
+			case SIM_KEY_NMI:
+				m68k_set_irq(7);
+				break;
+			case SIM_KEY_RESET:
+				break;
+			case SIM_KEY_MUTE:
+				break;
+			case SIM_KEY_TOGGLETHROTTLE:
+				throttler_toggle();
+				break;
+			case SIM_KEY_TOGGLEOSD:
+				log_println(LEVEL_INFO, TAG, "toggling osd");
+				osd_toggle();
+				break;
+			case SIM_KEY_PAUSE:
+				sim_togglepause();
+				return;
+			case SIM_KEY_QUIT:
+				sim_quit();
+				return;
+			default:
+				inputcard_onkeyevent(&event);
+				break;
 			}
-		}
-		else if (event.type == SDL_KEYDOWN) {
+		} else if (event.type == SDL_KEYDOWN) {
 			switch (event.key.keysym.sym) {
-				case SIM_KEY_NMI:
-				case SIM_KEY_RESET:
-				case SIM_KEY_MUTE:
-				case SIM_KEY_TOGGLETHROTTLE:
-				case SIM_KEY_TOGGLEOSD:
-				case SIM_KEY_PAUSE:
-				case SIM_KEY_QUIT:
-					return;
-				default:
-					inputcard_onkeyevent(&event);
-					break;
+			case SIM_KEY_NMI:
+			case SIM_KEY_RESET:
+			case SIM_KEY_MUTE:
+			case SIM_KEY_TOGGLETHROTTLE:
+			case SIM_KEY_TOGGLEOSD:
+			case SIM_KEY_PAUSE:
+			case SIM_KEY_QUIT:
+				return;
+			default:
+				inputcard_onkeyevent(&event);
+				break;
 			}
 		}
 	}

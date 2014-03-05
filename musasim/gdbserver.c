@@ -29,6 +29,7 @@
 #include "gdbserver_private.h"
 #include "profiler.h"
 #include "throttler.h"
+#include "ui/input.h"
 
 #define GDB_RDP_BACKSTEP bs
 #define GDB_RDP_BACKCONTINUE bc
@@ -143,6 +144,7 @@ static void gdbserver_mainloop() {
 				log_println(LEVEL_INFO, TAG, "processing packet from GDB");
 				gdbserver_parsepacket(socketconnection, inputbuffer);
 			}
+			input_pump_and_checkquit();
 		}
 			break;
 

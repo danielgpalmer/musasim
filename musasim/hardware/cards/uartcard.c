@@ -37,6 +37,8 @@ static unsigned bufferedchars = 0;
 
 static const char TAG[] = "uart";
 
+struct pollfd pollfds[NUMOFCHANNELS];
+
 typedef struct {
 	uint8_t rxbyte;
 	uint8_t txbyte;
@@ -126,6 +128,10 @@ static bool uart_init() {
 		channels[i].txfifo = g_async_queue_new();
 		channels[i].rxfifo = g_async_queue_new();
 		uart_reset_channel(&(channels[i]));
+
+		pollfds[i].fd = channels[i].ptm;
+		pollfds[i].events = POLL_IN;
+
 	}
 
 	return true;
@@ -305,12 +311,6 @@ void uart_enable_logging() {
 static void uart_tick(int cyclesexecuted, bool behind) __attribute__((hot));
 static void uart_tick(int cyclesexecuted, bool behind) {
 
-	struct pollfd pollfds[NUMOFCHANNELS];
-	for (int c = 0; c < NUMOFCHANNELS; c++) {
-		pollfds[c].fd = channels[c].ptm;
-		pollfds[c].events = POLL_IN;
-	}
-
 	poll(pollfds, NUMOFCHANNELS, 0);
 
 	bool dorecv = false;
@@ -446,7 +446,6 @@ static void uart_tick(int cyclesexecuted, bool behind) {
 					// We're transmitting
 					uart_clearbit(LINESTATUS_TRANSMITTEREMPTY,
 							&(channel->registers.line_status));
-
 				}
 			}
 
@@ -494,7 +493,6 @@ static void uart_tick(int cyclesexecuted, bool behind) {
 			}
 		}
 	}
-
 }
 
 static void uart_irq_ack() {
