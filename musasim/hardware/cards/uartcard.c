@@ -16,6 +16,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <errno.h>
+#include <poll.h>
 #include <glib.h>
 
 #include <uart_registermasks.h>
@@ -132,13 +133,14 @@ static bool uart_init() {
 			log_println(LEVEL_INFO, TAG, "Channel %d pts is %s", i,
 					ptsname(ptm));
 			channels[i].ptm = ptm;
+			tcgetattr(ptm, &tattr);
+			cfmakeraw(&tattr);
+			tcsetattr(ptm, 0, &tattr);
+
 			int flags = fcntl(ptm, F_GETFL);
 			if (!(flags & O_NONBLOCK)) {
 				fcntl(ptm, F_SETFL, flags | O_NONBLOCK);
 			}
-			tcgetattr(ptm, &tattr);
-			cfmakeraw(&tattr);
-			tcsetattr(ptm, 0, &tattr);
 		}
 
 		channels[i].txfifo = g_async_queue_new();
@@ -333,6 +335,22 @@ void uart_enable_logging() {
 static void uart_tick(int cyclesexecuted, bool behind) __attribute__((hot));
 static void uart_tick(int cyclesexecuted, bool behind) {
 
+	struct pollfd pollfds[NUMOFCHANNELS];
+	for (int c = 0; c < NUMOFCHANNELS; c++) {
+		pollfds[c].fd = channels[c].ptm;
+		pollfds[c].events = POLL_IN;
+	}
+
+	poll(pollfds, NUMOFCHANNELS, 0);
+
+	bool dorecv = false;
+	for (int c = 0; c < NUMOFCHANNELS; c++) {
+		if (pollfds[c].revents & POLL_IN) {
+			dorecv = true;
+			break;
+		}
+	}
+
 	static int clocks = 0;
 
 	// stuff that isn't tied to the clock
@@ -463,43 +481,44 @@ static void uart_tick(int cyclesexecuted, bool behind) {
 			}
 
 			// receiver
+			if (dorecv) {
+				int bytes;
+				uint8_t byte;
+				if ((bytes = read(channels[i].ptm, &byte, 1)) == 1) {
+					if (bytes > 0) {
+						log_println(LEVEL_DEBUG, TAG,
+								"Read byte 0x%02x[%c] from pty", byte,
+								FILTERPRINTABLE(byte));
 
-			int bytes;
-			uint8_t byte;
-			if ((bytes = read(channels[i].ptm, &byte, 1)) != EAGAIN) {
-				if (bytes > 0) {
-					log_println(LEVEL_DEBUG, TAG,
-							"Read byte 0x%02x[%c] from pty", byte,
-							FILTERPRINTABLE(byte));
+						if (IS_BIT_SET(FIFOCONTROL_ENABLE,
+								channel->registers.fifo_control)) {
+							uint8_t* b = malloc(1);
+							*b = byte;
+							g_async_queue_push(channel->rxfifo, b);
+							//log_println(LEVEL_DEBUG, TAG,
+							//		"byte into fifo on channel %d, have %u bytes",
+							//		i, g__queue_get_length(channel->rxfifo));
 
-					if (IS_BIT_SET(FIFOCONTROL_ENABLE,
-							channel->registers.fifo_control)) {
-						uint8_t* b = malloc(1);
-						*b = byte;
-						g_async_queue_push(channel->rxfifo, b);
-						//log_println(LEVEL_DEBUG, TAG,
-						//		"byte into fifo on channel %d, have %u bytes",
-						//		i, g__queue_get_length(channel->rxfifo));
-
-					} else {
-						channel->registers.rxbyte = byte;
-						if (IS_BIT_SET(LINESTATUS_DATAREADY,
-								channel->registers.line_status)) {
-							log_println(LEVEL_INFO, TAG,
-									"RX Overflow on channel %d", i);
-							uart_setbit(LINESTATUS_OVERRUNERROR,
-									&(channel->registers.line_status));
+						} else {
+							channel->registers.rxbyte = byte;
+							if (IS_BIT_SET(LINESTATUS_DATAREADY,
+									channel->registers.line_status)) {
+								log_println(LEVEL_INFO, TAG,
+										"RX Overflow on channel %d", i);
+								uart_setbit(LINESTATUS_OVERRUNERROR,
+										&(channel->registers.line_status));
+							}
 						}
-					}
 
-					uart_setbit(LINESTATUS_DATAREADY,
-							&(channel->registers.line_status));
+						uart_setbit(LINESTATUS_DATAREADY,
+								&(channel->registers.line_status));
 
-					// RX interrupt
-					if (IS_BIT_SET(INTERRUPTENABLE_ERBFI,
-							channel->registers.interrupt_enable)) {
-						channel->intpending_third = true;
-						board_raise_interrupt(&uartcard);
+						// RX interrupt
+						if (IS_BIT_SET(INTERRUPTENABLE_ERBFI,
+								channel->registers.interrupt_enable)) {
+							channel->intpending_third = true;
+							board_raise_interrupt(&uartcard);
+						}
 					}
 				}
 			}
