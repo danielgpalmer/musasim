@@ -47,7 +47,7 @@ bool read, bool write);
 static void gdbserver_parsepacket(int s, char* inputbuffer);
 static bool gdbserver_readpacket(int s, char* buffer);
 static bool gdbserver_sendpacket(int s, char* data, bool ackincoming);
-static char* gdbserver_query(char* commandbuffer);
+static char* gdbserver_handlequery(char* commandbuffer);
 
 static char* gdbserver_parser_writemem(char* commandbuffer);
 static void gdbserver_cleanup();

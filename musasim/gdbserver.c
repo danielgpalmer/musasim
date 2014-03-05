@@ -264,7 +264,7 @@ static void gdbserver_parsepacket(int s, char* inputbuffer) {
 		break;
 	case GDB_COMMAND_QUERY:
 		log_println(LEVEL_INFO, TAG, "GDB is querying something");
-		data = gdbserver_query(inputbuffer);
+		data = gdbserver_handlequery(inputbuffer);
 		break;
 	case GDB_COMMAND_DETACH:
 		log_println(LEVEL_INFO, TAG, "GDB is detaching!");
@@ -528,8 +528,6 @@ static void gdbserver_io_handler(int signum) {
 
 static void gdbserver_registersighandler() {
 
-// stolen from; http://www.gnu.org/s/hello/manual/libc/Sigaction-Function-Example.html
-
 	struct sigaction new_action, old_action, io_action;
 
 	/* Set up the structure to specify the new action. */
@@ -735,89 +733,92 @@ static char* gbdserver_munchhexstring(char* buffer, int* len) {
 #define ON "on"
 #define OFF "off"
 
-static char* gdbserver_query(char* commandbuffer) {
+static char* gdbserver_handlemonitorcommand(char* commandbuffer) {
 
 	char* ret = "";
-	if (strncmp(commandbuffer, GDB_QUERY_MONITORCMD,
-			strlen(GDB_QUERY_MONITORCMD)) == 0) {
-		char* offset = strchr(commandbuffer, ',') + 1;
 
-		int monitorcommandlen = 0;
-		char* monitorcommand = gbdserver_munchhexstring(offset,
-				&monitorcommandlen);
+	char* offset = strchr(commandbuffer, ',') + 1;
+
+	int monitorcommandlen = 0;
+	char* monitorcommand = gbdserver_munchhexstring(offset, &monitorcommandlen);
+	log_println(LEVEL_INFO, TAG, "GDB is sending a monitor command; %s (%s)",
+			offset, monitorcommand);
+
+	if (strncmp(monitorcommand, LOAD, sizeof(LOAD)) == 0) {
 		log_println(LEVEL_INFO, TAG,
-				"GDB is sending a monitor command; %s (%s)", offset,
-				monitorcommand);
+				"User has requested that a new binary is loaded into ROM");
+		romcard_loadrom(monitorcommand + 5, false);
+		ret = OK;
+	}
 
-		if (strncmp(monitorcommand, LOAD, sizeof(LOAD)) == 0) {
+	else if (strncmp(monitorcommand, RESET, sizeof(RESET)) == 0) {
+		log_println(LEVEL_INFO, TAG, "User has requested the CPU is reset");
+		sim_reset();
+		ret = OK;
+	}
+
+	else if (strncmp(monitorcommand, STFU, sizeof(STFU)) == 0) {
+		log_println(LEVEL_INFO, TAG, "User has requested we keep quiet");
+		ret = OK;
+	}
+
+	else if (strncmp(monitorcommand, TALKTOME, sizeof(TALKTOME)) == 0) {
+		log_println(LEVEL_INFO, TAG, "User wants to know what's going down");
+		ret = OK;
+	}
+
+	else if (strncmp(monitorcommand, INTERRUPTBREAK, sizeof(INTERRUPTBREAK) - 1)
+			== 0) {
+		char* mode = monitorcommand + sizeof(INTERRUPTBREAK);
+		if (strncmp(mode, ON, sizeof(ON)) == 0) {
+			log_println(LEVEL_INFO, TAG, "User wants break on interrupts");
+			interruptbreak = true;
+			ret = OK;
+		} else if (strncmp(mode, OFF, sizeof(OFF)) == 0) {
 			log_println(LEVEL_INFO, TAG,
-					"User has requested that a new binary is loaded into ROM");
-			romcard_loadrom(monitorcommand + 5, false);
+					"User doesn't want to break on interrupts");
+			interruptbreak = false;
 			ret = OK;
-		}
+		} else
+			log_println(LEVEL_INFO, TAG, "bad interruptbreak mode \"%s\"",
+					mode);
+	}
 
-		else if (strncmp(monitorcommand, RESET, sizeof(RESET)) == 0) {
-			log_println(LEVEL_INFO, TAG, "User has requested the CPU is reset");
-			sim_reset();
+	else if (strncmp(monitorcommand, THROTTLE, sizeof(THROTTLE) - 1) == 0) {
+		char* mode = monitorcommand + sizeof(THROTTLE);
+		if (strncmp(mode, ON, sizeof(ON)) == 0) {
+			throttler_enable(true);
 			ret = OK;
-		}
-
-		else if (strncmp(monitorcommand, STFU, sizeof(STFU)) == 0) {
-			log_println(LEVEL_INFO, TAG, "User has requested we keep quiet");
+		} else if (strncmp(mode, OFF, sizeof(OFF)) == 0) {
+			throttler_enable(false);
 			ret = OK;
-		}
+		} else
+			log_println(LEVEL_INFO, TAG, "bad throttle mode \"%s\"", mode);
+	}
 
-		else if (strncmp(monitorcommand, TALKTOME, sizeof(TALKTOME)) == 0) {
-			log_println(LEVEL_INFO, TAG,
-					"User wants to know what's going down");
+	else if (strncmp(monitorcommand, TRACE, sizeof(TRACE) - 1) == 0) {
+		char* mode = monitorcommand + sizeof(TRACE);
+		if (strncmp(mode, ON, sizeof(ON)) == 0) {
+			tracing = true;
 			ret = OK;
-		}
-
-		else if (strncmp(monitorcommand, INTERRUPTBREAK,
-				sizeof(INTERRUPTBREAK) - 1) == 0) {
-			char* mode = monitorcommand + sizeof(INTERRUPTBREAK);
-			if (strncmp(mode, ON, sizeof(ON)) == 0) {
-				log_println(LEVEL_INFO, TAG, "User wants break on interrupts");
-				interruptbreak = true;
-				ret = OK;
-			} else if (strncmp(mode, OFF, sizeof(OFF)) == 0) {
-				log_println(LEVEL_INFO, TAG,
-						"User doesn't want to break on interrupts");
-				interruptbreak = false;
-				ret = OK;
-			} else
-				log_println(LEVEL_INFO, TAG, "bad interruptbreak mode \"%s\"",
-						mode);
-		}
-
-		else if (strncmp(monitorcommand, THROTTLE, sizeof(THROTTLE) - 1) == 0) {
-			char* mode = monitorcommand + sizeof(THROTTLE);
-			if (strncmp(mode, ON, sizeof(ON)) == 0) {
-				throttler_enable(true);
-				ret = OK;
-			} else if (strncmp(mode, OFF, sizeof(OFF)) == 0) {
-				throttler_enable(false);
-				ret = OK;
-			} else
-				log_println(LEVEL_INFO, TAG, "bad throttle mode \"%s\"", mode);
-		}
-
-		else if (strncmp(monitorcommand, TRACE, sizeof(TRACE) - 1) == 0) {
-			char* mode = monitorcommand + sizeof(TRACE);
-			if (strncmp(mode, ON, sizeof(ON)) == 0) {
-				tracing = true;
-				ret = OK;
-			} else if (strncmp(mode, OFF, sizeof(OFF)) == 0) {
-				tracing = false;
-				ret = OK;
-			} else
-				log_println(LEVEL_INFO, TAG, "bad trace mode \"%s\"", mode);
-		}
+		} else if (strncmp(mode, OFF, sizeof(OFF)) == 0) {
+			tracing = false;
+			ret = OK;
+		} else
+			log_println(LEVEL_INFO, TAG, "bad trace mode \"%s\"", mode);
 	} else
 		log_println(LEVEL_INFO, TAG, "Unknown monitor command \"%s\"",
 				commandbuffer);
 
 	return ret;
+}
+
+static char* gdbserver_handlequery(char* commandbuffer) {
+	if (strncmp(commandbuffer, GDB_QUERY_MONITORCMD,
+			strlen(GDB_QUERY_MONITORCMD)) == 0) {
+		return gdbserver_handlemonitorcommand(commandbuffer);
+	} else
+		return "";
 }
 
 static char* gbdserver_readregs(char* commandbuffer) {
