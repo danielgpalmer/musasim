@@ -69,26 +69,6 @@ typedef struct {
 
 static channel channels[NUMOFCHANNELS];
 
-static bool alive = false;
-
-#if USEMULTIPLETHREADS
-static GThread* readerthread;
-
-static gpointer uart_readerthread_func(gpointer data) {
-
-	log_println(LEVEL_INFO, TAG, "Reader thread started");
-
-	while (alive) {
-		sleep(1);
-	}
-
-	log_println(LEVEL_INFO, TAG, "Reader thread shutting down");
-
-	return NULL;
-
-}
-#endif
-
 static void uart_clearbit(uint8_t mask, uint8_t* target) {
 	*target &= ~mask;
 }
@@ -147,21 +127,11 @@ static bool uart_init() {
 		channels[i].rxfifo = g_async_queue_new();
 		uart_reset_channel(&(channels[i]));
 	}
-	alive = true;
-
-#if USEMULTIPLETHREADS
-	readerthread = g_thread_new("uartreader", uart_readerthread_func, NULL );
-#endif
 
 	return true;
 }
 
 static void uart_dispose() {
-
-#if USEMULTIPLETHREADS
-	alive = false;
-	g_thread_join(readerthread);
-#endif
 
 	for (int i = 0; i < NUMOFCHANNELS; i++) {
 		close(channels[i].ptm);
