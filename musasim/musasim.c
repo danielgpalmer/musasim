@@ -21,5 +21,7 @@ int main(int argc, char* argv[]) {
 
 	}
 
+	log_shutdown();
+
 	return ret;
 }

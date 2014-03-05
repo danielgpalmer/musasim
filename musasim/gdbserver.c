@@ -82,7 +82,10 @@ int main(int argc, char* argv[]) {
 
 	if (state != EXIT)
 		gdbserver_mainloop();
+
 	gdbserver_cleanup();
+
+	log_shutdown();
 	return 0;
 }
 
@@ -492,7 +495,10 @@ static void gdbserver_cleanup() {
 //}
 
 	log_println(LEVEL_INFO, TAG, "Cleaning up");
-	sim_quit();
+
+	shutdown(socketconnection, SHUT_RDWR);
+	shutdown(socketlistening, SHUT_RDWR);
+	state = EXIT;
 
 	profiler_flush();
 
@@ -505,11 +511,10 @@ static void gdbserver_cleanup() {
 
 static void gdbserver_termination_handler(int signum) {
 	log_println(LEVEL_INFO, TAG, "Caught interrupt");
-	if (state == RUNNING)
+	if (state == RUNNING) {
 		gdbserver_sendpacket(socketconnection, STOP_EXIT, false);
-	shutdown(socketconnection, SHUT_RDWR);
-	shutdown(socketlistening, SHUT_RDWR);
-	state = EXIT;
+	}
+	sim_quit();
 }
 
 static void gdbserver_io_handler(int signum) {

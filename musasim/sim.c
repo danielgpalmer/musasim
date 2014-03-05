@@ -208,7 +208,6 @@ void sim_quit() {
 	m68k_end_timeslice();
 	board_poweroff();
 	osd_dispose();
-	log_shutdown();
 }
 
 void sim_reset() {

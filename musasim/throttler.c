@@ -46,12 +46,12 @@ static long executiontimes[NUM_SLOTS];
 #include <mach/mach_time.h>
 #include <mach/clock_types.h>
 
-static void get_nanotime(struct timespec *ts)
+static inline void get_nanotime(struct timespec *ts)
 {
 	static struct mach_timebase_info ti;
 
 	if (ti.numer == 0)
-		mach_timebase_info(&ti);
+	mach_timebase_info(&ti);
 
 	uint64_t abstime = mach_absolute_time();
 	uint64_t nanoseconds = (abstime * ti.numer) / ti.denom;
@@ -60,8 +60,7 @@ static void get_nanotime(struct timespec *ts)
 	ts->tv_nsec = nanoseconds % NSEC_PER_SEC;
 }
 #else
-static void get_nanotime(struct timespec *ts)
-{
+static inline void get_nanotime(struct timespec *ts) {
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ts);
 }
 #endif

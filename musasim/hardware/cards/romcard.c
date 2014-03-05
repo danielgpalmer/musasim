@@ -36,17 +36,19 @@ static const char TAG[] = "romcard";
 static bool romcard_init() {
 	if (bootloaderrom == NULL) {
 		bootloaderrom = malloc(SIZE_ROM);
-		if (bootloaderrom == NULL)
+		if (bootloaderrom == NULL) {
+			log_println(LEVEL_INFO, TAG, "Failed to malloc bootloader rom!");
 			return false;
+		}
 	}
 
 	if (rom == NULL) {
 		rom = malloc(SIZE_ROM);
 		if (rom == NULL) {
-			log_println(LEVEL_INFO, TAG, "Failed to malloc ram!");
+			log_println(LEVEL_INFO, TAG, "Failed to malloc rom!");
 			return false;
-		}
-		memset(rom, 0, SIZE_ROM);
+		} else
+			memset(rom, 0, SIZE_ROM);
 	}
 
 	if (ram == NULL) {
@@ -54,8 +56,8 @@ static bool romcard_init() {
 		if (ram == NULL) {
 			log_println(LEVEL_INFO, TAG, "Failed to malloc ram!");
 			return false;
-		}
-		memset(ram, 0x00, SIZE_RAM);
+		} else
+			memset(ram, 0, SIZE_RAM);
 	}
 
 	log_println(LEVEL_INFO, TAG, "ROM section from 0x%08x to 0x%08x",
@@ -66,6 +68,7 @@ static bool romcard_init() {
 }
 
 static void romcard_dispose() {
+	log_println(LEVEL_DEBUG, TAG, "romcard_dispose()");
 	free(bootloaderrom);
 	free(rom);
 	free(ram);
