@@ -43,11 +43,11 @@ typedef struct {
 	uint32_t matcha;
 	uint32_t matchb;
 #else
-uint16_t prescaler;
-uint16_t prescalercounter;
-uint16_t counter;
-uint16_t matcha;
-uint16_t matchb;
+	uint16_t prescaler;
+	uint16_t prescalercounter;
+	uint16_t counter;
+	uint16_t matcha;
+	uint16_t matchb;
 #endif
 } context_t;
 
@@ -85,59 +85,60 @@ uint16_t matchb;
 #define MATCHB_INTERRUPT_ENABLED(c) (c->config & TIMERS_REGISTER_CONFIG_ENMATCHBINT)
 
 static void* timer_init(module_callback* callback, int index) {
-context_t * c = calloc(sizeof(context_t), 1);
-c->cb = callback;
-c->index = index;
-return c;
+	context_t * c = calloc(sizeof(context_t), 1);
+	c->cb = callback;
+	c->index = index;
+	return c;
 }
 
 static void timer_reset(void* context) {
-context_t* c = (context_t*) context;
-c->config = 0;
-c->counter = 0;
-c->matcha = 0;
+	context_t* c = (context_t*) context;
+	c->config = 0;
+	c->counter = 0;
+	c->matcha = 0;
 }
 
 static void timer_tick(void* context, int cycles) {
 
-context_t* c = (context_t*) context;
+	context_t* c = (context_t*) context;
 
-if (!ENABLED(c))
-	return;
+	if (!ENABLED(c))
+		return;
 
-for (; cycles > 0; cycles--) {
-	if (c->prescaler == c->prescalercounter) {
-		c->prescalercounter = 0;
-		c->counter++;
-	}
-	else {
-		c->prescalercounter++;
-	}
-
-	if (c->counter == c->matcha) {
-		if (MATCHA_RESET(c)) {
-			c->counter = 0;
+	for (; cycles > 0; cycles--) {
+		if (c->prescaler == c->prescalercounter) {
+			c->prescalercounter = 0;
+			c->counter++;
+		} else {
+			c->prescalercounter++;
 		}
 
-		if (MATCHA_INTERRUPT_ENABLED(c) && !FLAGGED_INTERRUPTMATCHA(c)) {
-			SET_FLAG_INTERRUPTMATCHA(c);
-			c->cb->raiseinterrupt(c->index);
-			log_println(LEVEL_INFO, TAG, "fired matcha interrupt, index %d", c->index);
+		if (c->counter == c->matcha) {
+			if (MATCHA_RESET(c)) {
+				c->counter = 0;
+			}
+
+			if (MATCHA_INTERRUPT_ENABLED(c) && !FLAGGED_INTERRUPTMATCHA(c)) {
+				SET_FLAG_INTERRUPTMATCHA(c);
+				c->cb->raiseinterrupt(c->index);
+				log_println(LEVEL_INFO, TAG, "fired matcha interrupt, index %d",
+						c->index);
+			}
+		}
+
+		if (c->counter == c->matchb) {
+			if (MATCHB_RESET(c)) {
+				c->counter = 0;
+			}
+
+			if (MATCHB_INTERRUPT_ENABLED(c) && !FLAGGED_INTERRUPTMATCHB(c)) {
+				SET_FLAG_INTERRUPTMATCHB(c);
+				c->cb->raiseinterrupt(c->index);
+				log_println(LEVEL_INFO, TAG, "fired matchb interrupt, index %d",
+						c->index);
+			}
 		}
 	}
-
-	if (c->counter == c->matchb) {
-		if (MATCHB_RESET(c)) {
-			c->counter = 0;
-		}
-
-		if (MATCHB_INTERRUPT_ENABLED(c) && !FLAGGED_INTERRUPTMATCHB(c)) {
-			SET_FLAG_INTERRUPTMATCHB(c);
-			c->cb->raiseinterrupt(c->index);
-			log_println(LEVEL_INFO, TAG, "fired matchb interrupt, index %d", c->index);
-		}
-	}
-}
 
 //log_println(LEVEL_INFO, TAG, "prescaler counter 0x%"PRINTTOKEN" 0x%"PRINTTOKEN, c->prescalercounter, c->counter);
 
@@ -145,13 +146,18 @@ for (; cycles > 0; cycles--) {
 
 static void timer_dumpconfig(context_t* context) {
 
-log_println(LEVEL_INFO, TAG, "flags: 0x%04"PRIx16, context->flags);
-log_println(LEVEL_INFO, TAG, "config: 0x%04"PRIx16, context->config);
-log_println(LEVEL_INFO, TAG, "prescaler: 0x%0"PRINTPAD PRINTTOKEN, context->prescaler);
-log_println(LEVEL_INFO, TAG, "prescalercounter: 0x%0"PRINTPAD PRINTTOKEN, context->prescalercounter);
-log_println(LEVEL_INFO, TAG, "counter: 0x%0"PRINTPAD PRINTTOKEN, context->counter);
-log_println(LEVEL_INFO, TAG, "matcha: 0x%0"PRINTPAD PRINTTOKEN, context->matcha);
-log_println(LEVEL_INFO, TAG, "matchb: 0x%0"PRINTPAD PRINTTOKEN, context->matchb);
+	log_println(LEVEL_INFO, TAG, "flags: 0x%04"PRIx16, context->flags);
+	log_println(LEVEL_INFO, TAG, "config: 0x%04"PRIx16, context->config);
+	log_println(LEVEL_INFO, TAG, "prescaler: 0x%0"PRINTPAD PRINTTOKEN,
+			context->prescaler);
+	log_println(LEVEL_INFO, TAG, "prescalercounter: 0x%0"PRINTPAD PRINTTOKEN,
+			context->prescalercounter);
+	log_println(LEVEL_INFO, TAG, "counter: 0x%0"PRINTPAD PRINTTOKEN,
+			context->counter);
+	log_println(LEVEL_INFO, TAG, "matcha: 0x%0"PRINTPAD PRINTTOKEN,
+			context->matcha);
+	log_println(LEVEL_INFO, TAG, "matchb: 0x%0"PRINTPAD PRINTTOKEN,
+			context->matchb);
 
 }
 
@@ -160,176 +166,178 @@ log_println(LEVEL_INFO, TAG, "matchb: 0x%0"PRINTPAD PRINTTOKEN, context->matchb)
 //TODO UNTESTED! Endian issues..
 
 static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
-context_t* c = (context_t*) context;
-switch (GETREGISTER(address)) {
-	case 0x0:
+	context_t* c = (context_t*) context;
+	switch (GETREGISTER(address)) {
+		case 0x0:
 		return &(c->flags);
-	case 0x1:
+		case 0x1:
 		return &(c->config);
-	case 0x2:
+		case 0x2:
 		return (uint16_t*) &(c->prescaler);
-	case 0x3:
+		case 0x3:
 		return ((uint16_t*) &(c->prescaler)) + 1;
-	case 0x4:
+		case 0x4:
 		return (uint16_t*) &(c->prescalercounter);
-	case 0x5:
+		case 0x5:
 		return (uint16_t*) &(c->counter);
-	case 0x6:
+		case 0x6:
 		return ((uint16_t*) &(c->counter)) + 1;
-	case 0x7:
+		case 0x7:
 		return (uint16_t*) &(c->matcha);
-	case 0x8:
+		case 0x8:
 		return ((uint16_t*) &(c->matcha)) + 1;
-	case 0x9:
+		case 0x9:
 		return (uint16_t*) &(c->matchb);
-	case 0x10:
+		case 0x10:
 		return ((uint16_t*) &(c->matchb)) + 1;
-}
+	}
 
-return NULL ;
+	return NULL;
 }
 
 #else
 
 static uint16_t* timer_getregisterincontext(void* context, uint16_t address) {
-context_t* c = (context_t*) context;
-int reg = GETREGISTER(address);
-switch (reg) {
+	context_t* c = (context_t*) context;
+	int reg = GETREGISTER(address);
+	switch (reg) {
 	case 0x0:
-	return &(c->flags);
+		return &(c->flags);
 	case 0x1:
-	return &(c->config);
+		return &(c->config);
 	case 0x2:
-	return &(c->prescaler);
+		return &(c->prescaler);
 	case 0x3:
-	return &(c->prescalercounter);
+		return &(c->prescalercounter);
 	case 0x4:
-	return &(c->counter);
+		return &(c->counter);
 	case 0x5:
-	return &(c->matcha);
+		return &(c->matcha);
 	case 0x6:
-	return &(c->matchb);
+		return &(c->matchb);
 	default:
-	log_println(LEVEL_INFO, TAG, "Bad register %d", reg);
-	return NULL;
+		log_println(LEVEL_INFO, TAG, "Bad register %d", reg);
+		return NULL;
 
-}
+	}
 
 }
 
 #endif
 
 static void timer_writeword(void* context, uint16_t address, uint16_t value) {
-context_t* c = (context_t*) context;
-uint16_t* reg = timer_getregisterincontext(context, address);
-if (reg != NULL ) {
+	context_t* c = (context_t*) context;
+	uint16_t* reg = timer_getregisterincontext(context, address);
+	if (reg != NULL) {
 // this a fake write to clear the interrupt flags
-	if (reg == &(c->flags)) {
-		CLEAR_FLAG_INTERRUPTMATCHA(c);
-		CLEAR_FLAG_INTERRUPTMATCHB(c);
-		c->cb->lowerinterrupt(c->index);
+		if (reg == &(c->flags)) {
+			CLEAR_FLAG_INTERRUPTMATCHA(c);
+			CLEAR_FLAG_INTERRUPTMATCHB(c);
+			c->cb->lowerinterrupt(c->index);
+		} else
+			*reg = value;
 	}
-	else
-		*reg = value;
-}
 
-timer_dumpconfig((context_t*) context);
+	timer_dumpconfig((context_t*) context);
 }
 
 static uint16_t timer_readword(void* context, uint16_t address) {
-uint16_t* reg = timer_getregisterincontext(context, address);
-timer_dumpconfig((context_t*) context);
-if (reg != NULL )
-	return *reg;
-else
-	return 0;
+	uint16_t* reg = timer_getregisterincontext(context, address);
+	timer_dumpconfig((context_t*) context);
+	if (reg != NULL)
+		return *reg;
+	else
+		return 0;
 }
 
 #ifdef TIMER_BIGTIMER
 static void timer_writelong(void* context, uint16_t address, uint32_t value) {
 
-log_println(LEVEL_INFO, TAG, "address 0x%"PRIx16"\n", address);
+	log_println(LEVEL_INFO, TAG, "address 0x%"PRIx16"\n", address);
 
-context_t* c = (context_t*) context;
+	context_t* c = (context_t*) context;
 
-switch (address) {
-	case 0x4:
+	switch (address) {
+		case 0x4:
 		c->prescaler = value;
 		break;
-	case 0x8:
+		case 0x8:
 		c->prescalercounter = value;
 		break;
-	case 0xc:
+		case 0xc:
 		c->counter = value;
 		break;
-	case 0x10:
+		case 0x10:
 		c->matcha = value;
 		break;
-	case 0x14:
+		case 0x14:
 		c->matchb = value;
 		break;
-}
+	}
 
-timer_dumpconfig((context_t*) context);
+	timer_dumpconfig((context_t*) context);
 
 }
 
 static uint32_t timer_readlong(void* context, uint16_t address) {
-return 0;
+	return 0;
 }
 #endif
 
 static int timer_cyclesleft(void* context) {
 
-context_t* c = (context_t*) context;
+	context_t* c = (context_t*) context;
 
-if (c->prescaler != 0)
-	return SIM_MAINCLOCK / c->prescaler;
+	if (c->prescaler != 0)
+		return SIM_MAINCLOCK / c->prescaler;
 
-return -1;
+	return -1;
 
 }
 
 #ifdef TIMER_BIGTIMER
 const module bigtimermodule = { //
 #else
-	const module timermodule = { //
+const module timermodule = { //
 #endif
-	TAG, //
-			timer_init, //
-			NULL, //
-			timer_reset, //
-			timer_tick, //
-			NULL, //
-			timer_readword, //
+		TAG, //
+				timer_init, //
+				NULL, //
+				timer_reset, //
+				timer_tick, //
+				NULL, //
+				timer_readword, //
 #ifdef TIMER_BIGTIMER
-			timer_readlong, //
+				timer_readlong, //
 #else
-			NULL, //
+				NULL, //
 #endif
-			NULL, //
-			timer_writeword, //
+				NULL, //
+				timer_writeword, //
 #ifdef TIMER_BIGTIMER
-			timer_writelong, //
+				timer_writelong, //
 #else
-			NULL, //
+				NULL, //
 #endif
-			timer_cyclesleft //
-	};
+				timer_cyclesleft //
+		};
 
 #ifdef TIMER_BIGTIMER
-static const char* bigtimerregisternames0[] = { "flags", "config", NULL };
-static const char* bigtimerregisternames1[] = { "prescaler", "prescalercounter", "counter", "matcha", "matchb", NULL };
+static const char* bigtimerregisternames0[] = {"flags", "config", NULL};
+static const char* bigtimerregisternames1[] = {"prescaler", "prescalercounter", "counter", "matcha", "matchb", NULL};
 static registergroup bigtimerrg0 =
-	{ .registerwidth = 2, .numberofregisters = 2, .registernames = bigtimerregisternames0 };
+{	.registerwidth = 2, .numberofregisters = 2, .registernames = bigtimerregisternames0};
 static registergroup bigtimerrg1 =
-	{ .registerwidth = 4, .numberofregisters = 5, .registernames = bigtimerregisternames1 };
-static registergroup* bigtimergroups[] = { &bigtimerrg0, &bigtimerrg1, NULL };
-const peripheral bigtimerperipheral = { .name = NULL, .registergroups = bigtimergroups };
+{	.registerwidth = 4, .numberofregisters = 5, .registernames = bigtimerregisternames1};
+static registergroup* bigtimergroups[] = {&bigtimerrg0, &bigtimerrg1, NULL};
+const peripheral bigtimerperipheral = {.name = NULL, .registergroups = bigtimergroups};
 #else
-static const char* timerregisternames[] = {"flags", "config", "prescaler", "prescalercounter", "counter", "matcha", "matchb", NULL};
-static registergroup timerrg0 = {.registerwidth = 2, .numberofregisters = 7, .registernames = timerregisternames};
-static registergroup* timergroups[] = {&timerrg0, NULL};
-const peripheral timerperipheral = {.name = NULL, .registergroups = timergroups};
+static const char* timerregisternames[] = { "flags", "config", "prescaler",
+		"prescalercounter", "counter", "matcha", "matchb", NULL };
+static registergroup timerrg0 = { .registerwidth = 2, .numberofregisters = 7,
+		.registernames = timerregisternames };
+static registergroup* timergroups[] = { &timerrg0, NULL };
+const peripheral timerperipheral =
+		{ .name = NULL, .registergroups = timergroups };
 #endif
 
