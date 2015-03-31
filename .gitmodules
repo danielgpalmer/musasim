@@ -6,4 +6,4 @@
 	url = https://code.google.com/p/obscuremicros.thirdparty/
 [submodule "docs"]
 	path = docs
-	url = https://code.google.com/p/musasim.docs/
+	url = git@github.com:danielgpalmer/musasim.docs.git
