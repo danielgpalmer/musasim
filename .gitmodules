@@ -1,9 +1,9 @@
 [submodule "toolchains"]
 	path = toolchains
-	url = https://code.google.com/p/obscuremicros.toolchains/
+	url = https://github.com/danielgpalmer/obscuremicros.toolchains.git
 [submodule "thirdparty"]
 	path = thirdparty
-	url = https://code.google.com/p/obscuremicros.thirdparty/
+	url = https://github.com/danielgpalmer/obscuremicros.thirdparty.git
 [submodule "docs"]
 	path = docs
-	url = git@github.com:danielgpalmer/musasim.docs.git
+	url = https://github.com/danielgpalmer/musasim.docs.git
