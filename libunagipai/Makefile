@@ -1,5 +1,5 @@
 ROOT_DIR = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-AR=m68k-elf-ar
+AR=m68k-elf-gcc-ar
 CC=m68k-elf-gcc
 CFLAGS=-mc68000 -ggdb -std=gnu99 -O3 -I ./include -flto
 
@@ -8,7 +8,7 @@ INSTPATH="../toolchains/inst/m68k-elf/m68k-elf"
 all: libunagipai.a docs
 
 libunagipai.a: genheader ata.o dma.o uart.o machine.o video.o pff.o diskio.o utils.o lzfx.o image.o sprite.o vectorsprite.o math.o vt100.o syscalls.o timers.o sound.o rect.o
-	ar cr libunagipai.a *.o
+	$(AR) cr libunagipai.a *.o
 
 uart.o: uart.c include/uart.h
 	$(CC) $(CFLAGS) -c uart.c

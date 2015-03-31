@@ -7,7 +7,7 @@ all:
 	$(MAKE) -C timers
 	$(MAKE) -C sound
 	$(MAKE) -C input
-	$(MAKE) -C spaceeels
+#	$(MAKE) -C spaceeels
 	$(MAKE) -C uartecho
 
 clean:
@@ -19,5 +19,5 @@ clean:
 	$(MAKE) -C timers clean
 	$(MAKE) -C sound clean
 	$(MAKE) -C input clean
-	$(MAKE) -C spaceeels clean
+#	$(MAKE) -C spaceeels clean
 	$(MAKE) -C uartecho
